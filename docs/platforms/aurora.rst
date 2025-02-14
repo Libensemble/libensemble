@@ -50,8 +50,8 @@ Now go to forces_gpu directory::
 
     cd ../forces_gpu
 
-To make use of all available GPUs, open ``run_libe_forces.py`` and adjust
-the exit_criteria to perform more simulations. The following will run two
+To make use of all available GPUs, open **run_libe_forces.py** and adjust
+the ``exit_criteria`` to perform more simulations. The following will run two
 simulations for each worker:
 
 .. code-block:: python
@@ -85,7 +85,7 @@ Now try running::
     python run_libe_forces.py -n 7
 
 And you will see it runs with two cores (mpi ranks) and two GPUs are used per
-worker. The *forces* example will automatically use the GPUs available to
+worker. The **forces** example automatically uses the GPUs available to
 each worker.
 
 Live viewing GPU usage
@@ -142,8 +142,8 @@ Dynamic resource assignment
 
 In the **forces** directory you will also find:
 
-* `forces_gpu_var_resources` uses varying processor/GPU counts per simulation.
-* `forces_multi_app` uses varying processor/GPU counts per simulation and also
+* ``forces_gpu_var_resources`` uses varying processor/GPU counts per simulation.
+* ``forces_multi_app`` uses varying processor/GPU counts per simulation and also
   uses two different user executables, one which is CPU-only and one which
   uses GPUs. This allows highly efficient use of nodes for multi-application
   ensembles.
@@ -151,7 +151,7 @@ In the **forces** directory you will also find:
 Demonstration
 -------------
 
-Note that a video demonstration_ of the *forces_gpu* example on *Frontier*
+Note that a video demonstration_ of the *forces_gpu* example on **Frontier**
 is also available. The workflow is identical when running on Aurora, with the
 exception of different compiler options and numbers of workers (because the
 numbers of GPUs on a node differs).
