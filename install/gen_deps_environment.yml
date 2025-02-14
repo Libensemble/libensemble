@@ -12,3 +12,4 @@ dependencies:
   - mumps-mpi
   - DFO-LS
   - mpmath
+  - ax-platform
