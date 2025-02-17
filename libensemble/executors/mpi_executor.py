@@ -336,6 +336,9 @@ class MPIExecutor(Executor):
         else:
             mpi_runner_obj = self.mpi_runner_obj or self._create_mpi_runner_from_attr()
 
+        if env_script is None and mpi_runner_obj is None:
+            raise ExecutorException("No valid MPI runner was found")
+
         mpi_specs = mpi_runner_obj.get_mpi_specs(
             task,
             num_procs,
