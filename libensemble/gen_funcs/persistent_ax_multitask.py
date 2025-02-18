@@ -305,7 +305,7 @@ def persistent_gp_mt_ax_gen_f(H, persis_info, gen_specs, libE_info):
         # Increase iteration counter.
         model_iteration += 1
 
-    return [], persis_info, FINISHED_PERSISTENT_GEN_TAG
+    return None, persis_info, FINISHED_PERSISTENT_GEN_TAG
 
 
 class AxRunner(Runner):

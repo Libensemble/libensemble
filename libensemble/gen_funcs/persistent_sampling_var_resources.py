@@ -58,7 +58,7 @@ def uniform_sample(_, persis_info, gen_specs, libE_info):
         if hasattr(calc_in, "__len__"):
             b = len(calc_in)
 
-    return H_o, persis_info, FINISHED_PERSISTENT_GEN_TAG
+    return None, persis_info, FINISHED_PERSISTENT_GEN_TAG
 
 
 def uniform_sample_with_var_gpus(_, persis_info, gen_specs, libE_info):
@@ -99,7 +99,7 @@ def uniform_sample_with_var_gpus(_, persis_info, gen_specs, libE_info):
         if hasattr(calc_in, "__len__"):
             b = len(calc_in)
 
-    return H_o, persis_info, FINISHED_PERSISTENT_GEN_TAG
+    return None, persis_info, FINISHED_PERSISTENT_GEN_TAG
 
 
 def uniform_sample_with_procs_gpus(_, persis_info, gen_specs, libE_info):
@@ -128,7 +128,7 @@ def uniform_sample_with_procs_gpus(_, persis_info, gen_specs, libE_info):
         if hasattr(calc_in, "__len__"):
             b = len(calc_in)
 
-    return H_o, persis_info, FINISHED_PERSISTENT_GEN_TAG
+    return None, persis_info, FINISHED_PERSISTENT_GEN_TAG
 
 
 def uniform_sample_with_var_priorities(_, persis_info, gen_specs, libE_info):
@@ -163,7 +163,7 @@ def uniform_sample_with_var_priorities(_, persis_info, gen_specs, libE_info):
 
         tag, Work, calc_in = ps.send_recv(H_o)
 
-    return H_o, persis_info, FINISHED_PERSISTENT_GEN_TAG
+    return None, persis_info, FINISHED_PERSISTENT_GEN_TAG
 
 
 def uniform_sample_diff_simulations(_, persis_info, gen_specs, libE_info):
@@ -197,7 +197,7 @@ def uniform_sample_diff_simulations(_, persis_info, gen_specs, libE_info):
         if hasattr(calc_in, "__len__"):
             b = len(calc_in)
 
-    return H_o, persis_info, FINISHED_PERSISTENT_GEN_TAG
+    return None, persis_info, FINISHED_PERSISTENT_GEN_TAG
 
 
 def uniform_sample_with_sim_gen_resources(_, persis_info, gen_specs, libE_info):
@@ -245,4 +245,4 @@ def uniform_sample_with_sim_gen_resources(_, persis_info, gen_specs, libE_info):
         if hasattr(calc_in, "__len__"):
             b = len(calc_in)
 
-    return H_o, persis_info, FINISHED_PERSISTENT_GEN_TAG
+    return None, persis_info, FINISHED_PERSISTENT_GEN_TAG

@@ -3,6 +3,10 @@ import numpy as np
 from libensemble.message_numbers import EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG, PERSIS_STOP, STOP_TAG
 from libensemble.tools.persistent_support import PersistentSupport
 
+__all__ = [
+    "persistent_updater_after_likelihood",
+]
+
 
 def persistent_updater_after_likelihood(H, persis_info, gen_specs, libE_info):
     """ """
@@ -36,4 +40,4 @@ def persistent_updater_after_likelihood(H, persis_info, gen_specs, libE_info):
         if calc_in is not None:
             w = H_o["prior"] + calc_in["like"] - H_o["prop"]
 
-    return H_o, persis_info, FINISHED_PERSISTENT_GEN_TAG
+    return None, persis_info, FINISHED_PERSISTENT_GEN_TAG
