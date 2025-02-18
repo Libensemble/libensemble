@@ -84,7 +84,7 @@ Now try running::
     ./cleanup.sh
     python run_libe_forces.py -n 7
 
-And you will see it runs with two cores (mpi ranks) and two GPUs are used per
+And you will see it runs with two cores and two GPUs are used per
 worker. The **forces** example automatically uses the GPUs available to
 each worker.
 
