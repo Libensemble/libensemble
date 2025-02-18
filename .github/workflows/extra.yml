@@ -11,22 +11,22 @@ jobs:
             matrix:
                 os: [ubuntu-latest]
                 mpi-version: [mpich]
-                python-version: ["3.10", "3.11", "3.12"]
+                python-version: ["3.10", "3.11", "3.12", "3.13"]
                 pydantic-version: ["2.8.2"]
                 comms-type: [m, l]
                 include:
                     - os: macos-latest
-                      python-version: 3.11
+                      python-version: "3.13"
                       mpi-version: mpich
                       pydantic-version: "2.8.2"
                       comms-type: m
                     - os: macos-latest
-                      python-version: 3.11
+                      python-version: "3.13"
                       mpi-version: mpich
                       pydantic-version: "2.8.2"
                       comms-type: l
                     - os: ubuntu-latest
-                      python-version: "3.10"
+                      python-version: "3.12"
                       mpi-version: mpich
                       pydantic-version: "2.8.2"
                       comms-type: t
@@ -37,12 +37,12 @@ jobs:
                       comms-type: l
                     - os: ubuntu-latest
                       mpi-version: mpich
-                      python-version: "3.10"
+                      python-version: "3.12"
                       pydantic-version: "1.10.17"
                       comms-type: m
                     - os: ubuntu-latest
                       mpi-version: mpich
-                      python-version: "3.10"
+                      python-version: "3.12"
                       pydantic-version: "1.10.17"
                       comms-type: l
 
