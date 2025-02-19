@@ -105,11 +105,12 @@ jobs:
             pip install --upgrade git+https://github.com/bandframework/surmise.git
 
         - name: Install generator dependencies for Ubuntu tests
-          if: matrix.os == 'ubuntu-latest' && matrix.python-version <= '3.12'
-          run: |
-            sudo apt-get install bc
-            pip install -r install/ubuntu_no312.txt
-            pip install Tasmanian --user
+          if: matrix.os == 'ubuntu-latest'
+            if: matrix.python-version <= '3.12'
+            run: |
+              sudo apt-get install bc
+              pip install -r install/ubuntu_no312.txt
+              pip install Tasmanian --user
 
         - name: Install Balsam on Pydantic 1
           if: matrix.pydantic-version == '1.10.17'
