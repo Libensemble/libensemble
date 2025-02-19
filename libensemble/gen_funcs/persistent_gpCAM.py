@@ -211,6 +211,7 @@ def persistent_gpCAM_covar(H_in, persis_info, gen_specs, libE_info):
     .. seealso::
         `test_gpCAM.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_gpCAM.py>`_
     """  # noqa
+
     U = gen_specs["user"]
     my_gp = None
     noise = 1e-12
