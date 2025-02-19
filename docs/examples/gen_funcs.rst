@@ -21,6 +21,8 @@ Sampling
 - :doc:`sampling<sampling>`
 
   Various generators for sampling a space.
+  Includes both persistent and non-persistent sampling generators. There are also useful examples of assigning resources for each simulation (persistent_sampling_var_resources).
+
 
 Optimization
 ------------
