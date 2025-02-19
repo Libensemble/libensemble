@@ -189,7 +189,7 @@ def persistent_gpCAM(H_in, persis_info, gen_specs, libE_info):
 
         tag, Work, calc_in = ps.send_recv(H_o)
 
-    return H_o, persis_info, FINISHED_PERSISTENT_GEN_TAG
+    return None, persis_info, FINISHED_PERSISTENT_GEN_TAG
 
 
 def persistent_gpCAM_covar(H_in, persis_info, gen_specs, libE_info):
@@ -274,4 +274,4 @@ def persistent_gpCAM_covar(H_in, persis_info, gen_specs, libE_info):
                 x_for_var = persis_info["rand_stream"].uniform(lb, ub, (10 * batch_size, n))
             var_vals = _eval_var(my_gp, all_x, all_y, x_for_var, test_points, persis_info)
 
-    return H_o, persis_info, FINISHED_PERSISTENT_GEN_TAG
+    return None, persis_info, FINISHED_PERSISTENT_GEN_TAG

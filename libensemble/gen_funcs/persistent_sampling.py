@@ -60,7 +60,7 @@ def persistent_uniform(_, persis_info, gen_specs, libE_info):
         if hasattr(calc_in, "__len__"):
             b = len(calc_in)
 
-    return H_o, persis_info, FINISHED_PERSISTENT_GEN_TAG
+    return None, persis_info, FINISHED_PERSISTENT_GEN_TAG
 
 
 def persistent_uniform_final_update(_, persis_info, gen_specs, libE_info):
@@ -163,7 +163,7 @@ def persistent_request_shutdown(_, persis_info, gen_specs, libE_info):
             print("Reached threshold.", f_count, flush=True)
             break  # End the persistent gen
 
-    return H_o, persis_info, FINISHED_PERSISTENT_GEN_TAG
+    return None, persis_info, FINISHED_PERSISTENT_GEN_TAG
 
 
 def uniform_nonblocking(_, persis_info, gen_specs, libE_info):
@@ -197,7 +197,7 @@ def uniform_nonblocking(_, persis_info, gen_specs, libE_info):
         if hasattr(calc_in, "__len__"):
             b = len(calc_in)
 
-    return H_o, persis_info, FINISHED_PERSISTENT_GEN_TAG
+    return None, persis_info, FINISHED_PERSISTENT_GEN_TAG
 
 
 def batched_history_matching(_, persis_info, gen_specs, libE_info):
@@ -243,7 +243,7 @@ def batched_history_matching(_, persis_info, gen_specs, libE_info):
             mu = np.mean(H_o["x"][best_inds], axis=0)
             Sigma = np.cov(H_o["x"][best_inds].T)
 
-    return H_o, persis_info, FINISHED_PERSISTENT_GEN_TAG
+    return None, persis_info, FINISHED_PERSISTENT_GEN_TAG
 
 
 def persistent_uniform_with_cancellations(_, persis_info, gen_specs, libE_info):
@@ -272,4 +272,4 @@ def persistent_uniform_with_cancellations(_, persis_info, gen_specs, libE_info):
             cancel_from += b
             ps.request_cancel_sim_ids(cancel_ids)
 
-    return H_o, persis_info, FINISHED_PERSISTENT_GEN_TAG
+    return None, persis_info, FINISHED_PERSISTENT_GEN_TAG
