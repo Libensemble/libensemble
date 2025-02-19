@@ -1,7 +1,11 @@
-.. _gpcam:
-
 gpCAM
 -----
 
+This module provides persistent generators for Gaussian Process-based adaptive sampling.
+
+Required: gpcam_
+
 .. automodule:: persistent_gpCAM
-    :members: persistent_gpCAM_simple, persistent_gpCAM_ask_tell
+    :members:
+
+.. _gpcam: https://pypi.org/project/gpcam
