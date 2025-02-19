@@ -10,8 +10,8 @@ from libensemble.message_numbers import EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TA
 from libensemble.tools.persistent_support import PersistentSupport
 
 __all__ = [
-    "persistent_gpCAM_simple",
-    "persistent_gpCAM_ask_tell",
+    "persistent_gpCAM",
+    "persistent_gpCAM_covar",
 ]
 
 
@@ -140,12 +140,73 @@ def _find_eligible_points(x_for_var, sorted_indices, r, batch_size):
     return np.array(eligible_points)
 
 
-def persistent_gpCAM_simple(H_in, persis_info, gen_specs, libE_info):
+def persistent_gpCAM(H_in, persis_info, gen_specs, libE_info):
+    """
+    This generation function constructs a global surrogate of `f` values. It is
+    a batched method that produces a first batch uniformly random from (lb, ub).
+    On subequent iterations, it calls an optimization method to produce the next
+    batch of points. This optimization might be too slow (relative to the
+    simulation evaluation time) for some use cases.
+
+    .. seealso::
+        `test_gpCAM.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_gpCAM.py>`_
+    """  # noqa
+
+    batch_size, n, lb, ub, all_x, all_y, ps = _initialize_gpcAM(gen_specs["user"], libE_info)
+    ask_max_iter = gen_specs["user"].get("ask_max_iter") or 10
+
+    H_o = np.zeros(batch_size, dtype=gen_specs["out"])
+    x_new = persis_info["rand_stream"].uniform(lb, ub, (batch_size, n))
+    H_o["x"] = x_new
+
+    tag, Work, calc_in = ps.send_recv(H_o)
+
+    first_call = True
+    while tag not in [STOP_TAG, PERSIS_STOP]:
+        all_x = np.vstack((all_x, x_new))
+        all_y = np.vstack((all_y, np.atleast_2d(calc_in["f"]).T))
+
+        if first_call:
+            # Initialize GP
+            my_gp = GP(all_x, all_y.flatten(), noise_variances=1e-8 * np.ones(len(all_y)))
+            first_call = False
+        else:
+            my_gp.tell(all_x, all_y.flatten(), noise_variances=1e-8 * np.ones(len(all_y)))
+
+        my_gp.train()
+
+        start = time.time()
+        x_new = my_gp.ask(
+            input_set=np.column_stack((lb, ub)),
+            n=batch_size,
+            pop_size=batch_size,
+            acquisition_function="total correlation",
+            max_iter=ask_max_iter,  # Larger takes longer. gpCAM default is 20.
+        )["x"]
+        print(f"Ask time:{time.time() - start}")
+        H_o = np.zeros(batch_size, dtype=gen_specs["out"])
+        H_o["x"] = x_new
+
+        tag, Work, calc_in = ps.send_recv(H_o)
+
+    return H_o, persis_info, FINISHED_PERSISTENT_GEN_TAG
+
+
+def persistent_gpCAM_covar(H_in, persis_info, gen_specs, libE_info):
     """
     This generation function constructs a global surrogate of `f` values.
     It is a batched method that produces a first batch uniformly random from
     (lb, ub) and on following iterations samples the GP posterior covariance
     function to find sample points.
+
+    If gen_specs["user"]["use_grid"] is set to True the parameter space is
+    divided into a mesh of candidate points (num_points in each dimension).
+    Subsequent points chosen by maximum covariance that are at least a distance
+    `r` away from each other to explore difference regions.
+
+    If gen_specs["user"]["test_points_file"] is set to a file of evaluated
+    points, then the gpCAM predications are compared at these points to assess
+    model quality.
 
     .. seealso::
         `test_gpCAM.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_gpCAM.py>`_
@@ -214,54 +275,3 @@ def persistent_gpCAM_simple(H_in, persis_info, gen_specs, libE_info):
 
     return H_o, persis_info, FINISHED_PERSISTENT_GEN_TAG
 
-
-def persistent_gpCAM_ask_tell(H_in, persis_info, gen_specs, libE_info):
-    """
-    Like persistent_gpCAM_simple, this generation function constructs a global
-    surrogate of `f` values. It also aa batched method that produces a first batch
-    uniformly random from (lb, ub). On subequent iterations, it calls an
-    optimization method to produce the next batch of points. This optimization
-    might be too slow (relative to the simulation evaluation time) for some use cases.
-
-    .. seealso::
-        `test_gpCAM.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_gpCAM.py>`_
-    """  # noqa
-
-    batch_size, n, lb, ub, all_x, all_y, ps = _initialize_gpcAM(gen_specs["user"], libE_info)
-    ask_max_iter = gen_specs["user"].get("ask_max_iter") or 10
-
-    H_o = np.zeros(batch_size, dtype=gen_specs["out"])
-    x_new = persis_info["rand_stream"].uniform(lb, ub, (batch_size, n))
-    H_o["x"] = x_new
-
-    tag, Work, calc_in = ps.send_recv(H_o)
-
-    first_call = True
-    while tag not in [STOP_TAG, PERSIS_STOP]:
-        all_x = np.vstack((all_x, x_new))
-        all_y = np.vstack((all_y, np.atleast_2d(calc_in["f"]).T))
-
-        if first_call:
-            # Initialize GP
-            my_gp = GP(all_x, all_y.flatten(), noise_variances=1e-8 * np.ones(len(all_y)))
-            first_call = False
-        else:
-            my_gp.tell(all_x, all_y.flatten(), noise_variances=1e-8 * np.ones(len(all_y)))
-
-        my_gp.train()
-
-        start = time.time()
-        x_new = my_gp.ask(
-            input_set=np.column_stack((lb, ub)),
-            n=batch_size,
-            pop_size=batch_size,
-            acquisition_function="total correlation",
-            max_iter=ask_max_iter,  # Larger takes longer. gpCAM default is 20.
-        )["x"]
-        print(f"Ask time:{time.time() - start}")
-        H_o = np.zeros(batch_size, dtype=gen_specs["out"])
-        H_o["x"] = x_new
-
-        tag, Work, calc_in = ps.send_recv(H_o)
-
-    return H_o, persis_info, FINISHED_PERSISTENT_GEN_TAG
