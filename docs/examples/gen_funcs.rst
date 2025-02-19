@@ -32,7 +32,7 @@ Optimization
 
   aposmm
   uniform_or_localopt
-  ax_multitask
+  ax_multitask<ax_multitask>
   VTMOP<https://libensemble.readthedocs.io/projects/libe-community-examples/en/latest/#module-vtmop>
   ytopt<https://libensemble.readthedocs.io/projects/libe-community-examples/en/latest/#module-ytopt_heffte.ytopt_asktell>
   consensus<https://libensemble.readthedocs.io/projects/libe-community-examples/en/latest/#module-consensus>
@@ -53,17 +53,17 @@ Optimization
 
   Performs a uniform random sample or a single persistent NLopt_ local optimization run.
 
-- :doc:`ax_multitask<ax_multitask>`
+- :doc:`Ax Multitask<ax_multitask>`
 
   Bayesian optimization with a Gaussian process and the multi-task algorithm of Ax_.
 
 - :ref:`VTMOP<community:vtmop-link>`
 
-  Generators using the VTMOP_ Fortran package for large-scale multiobjective multidisciplinary design optimization.
+  Generators using the VTMOP_ Fortran package for large-scale multiobjective multidisciplinary design optimization. (*community example*)
 
 - :ref:`ytopt<community:ytopt-link>`
 
-  Generators using ytopt_ (A Bayesian Optimization package for determining optimal input parameter configurations for applications or other executables).
+  Generators using ytopt_. A Bayesian Optimization package for determining optimal input parameter configurations for applications or other executables. (*community example*)
 
 .. - :ref:`Dragonfly<community:dragonfly-link>`
 ..
@@ -71,7 +71,8 @@ Optimization
 
 - :ref:`Consensus<community:consensus-link>`
 
-  Distributed optimization methods for minimizing sums of convex functions. Methods include:
+  Distributed optimization methods for minimizing sums of convex functions (*community example*).
+  Methods include:
     - Primal-dual sliding (https://arxiv.org/pdf/2101.00143).
     - Distributed gradient descent with gradient tracking (https://arxiv.org/abs/1908.11444).
     - Proximal sliding (https://arxiv.org/abs/1406.0919).
@@ -111,7 +112,7 @@ Modeling and Approximation
 
 - :ref:`DEAP-NSGA-II<community:deap-link>`
 
-  Distributed evolutionary algorithms (community example)
+  Distributed evolutionary algorithms (*community example*)
 
 
 
