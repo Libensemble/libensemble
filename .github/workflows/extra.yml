@@ -136,13 +136,15 @@ jobs:
             pip install -e .
             flake8 libensemble
 
-        - name: Remove test for persistent Tasmanian, Surmise on Python 3.12
+        - name: Remove test for persistent Tasmanian, Surmise, octave on Python 3.12
           if: matrix.python-version >= '3.12'
           run: |
             rm ./libensemble/tests/regression_tests/test_persistent_tasmanian.py
             rm ./libensemble/tests/regression_tests/test_persistent_tasmanian_async.py
             rm ./libensemble/tests/regression_tests/test_persistent_surmise_calib.py
             rm ./libensemble/tests/regression_tests/test_persistent_surmise_killsims.py
+            rm ./libensemble/tests/regression_tests/test_persistent_fd_param_finder.py # needs octave, which doesn't yet support 3.13
+            rm ./libensemble/tests/regression_tests/test_persistent_aposmm_external_localopt.py # needs octave, which doesn't yet support 3.13
 
         - name: Remove test for persistent gpcam Python 3.13
           if: matrix.python-version == '3.13'
