@@ -10,7 +10,8 @@
 libEnsemble: A complete toolkit for dynamic ensembles of calculations
 =====================================================================
 
-Adaptive, portable, and scalable software for connecting "deciders" to experiments or simulations.
+libEnsemble empowers model-driven ensembles on the world's leading supercomputers
+including Frontier, Aurora, and Perlmutter.
 
 • **Dynamic ensembles**: Generate parallel tasks on-the-fly based on previous computations.
 • **Extreme portability and scaling**: Run on or across laptops, clusters, and leadership-class machines.
