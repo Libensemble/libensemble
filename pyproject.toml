@@ -8,7 +8,7 @@ dependencies = [ "numpy", "psutil", "pydantic", "pyyaml", "tomli"]
 
 description = "A Python toolkit for coordinating asynchronous and dynamic ensembles of calculations."
 name = "libensemble"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 license = {file = "LICENSE"}
 readme = "README.rst"
 
@@ -22,7 +22,6 @@ classifiers = [
         "Operating System :: Unix",
         "Operating System :: MacOS",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",
@@ -40,7 +39,7 @@ Issues = "https://github.com/Libensemble/libensemble/issues"
 
 [build-system]
 build-backend = "setuptools.build_meta"
-requires = ["setuptools", "wheel", "pip>=24.3.1,<25", "setuptools>=75.1.0,<76", ]
+requires = ["setuptools", "wheel", "pip>=24.3.1,<26", "setuptools>=75.1.0,<76", ]
 
 [tool.setuptools.packages.find]
 where = ["."]
@@ -84,7 +83,7 @@ enchant = ">=2.8.2,<3"  # required for sphinxcontrib-spelling
 ax-platform = "<=0.4.0"
 
 [tool.pixi.dependencies]
-python = ">=3.9,<3.14"
+python = ">=3.10,<3.14"
 pip = ">=24.3.1,<25"
 setuptools = ">=75.6.0,<76"
 numpy = ">=1.21,<3"
