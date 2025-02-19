@@ -104,6 +104,11 @@ jobs:
             pip install --upgrade git+https://github.com/bandframework/surmise.git
 
         - name: Install generator dependencies for Ubuntu tests
+          if: matrix.python-version <= '3.12'
+          run: |
+            conda install octave
+
+        - name: Install generator dependencies for Ubuntu tests
           if: matrix.os == 'ubuntu-latest' && matrix.python-version <= '3.12'
           run: |
             sudo apt-get install bc
@@ -120,7 +125,6 @@ jobs:
 
         - name: Install other testing dependencies
           run: |
-            conda install octave
             pip install -r install/testing_requirements.txt
             pip install -r install/misc_feature_requirements.txt
             source install/install_ibcdfo.sh
