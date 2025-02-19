@@ -105,12 +105,11 @@ jobs:
             pip install --upgrade git+https://github.com/bandframework/surmise.git
 
         - name: Install generator dependencies for Ubuntu tests
-          if: matrix.os == 'ubuntu-latest'
-            if: matrix.python-version <= '3.12'
-            run: |
-              sudo apt-get install bc
-              pip install -r install/ubuntu_no312.txt
-              pip install Tasmanian --user
+          if: matrix.os == 'ubuntu-latest' && matrix.python-version <= "3.12"
+          run: |
+            sudo apt-get install bc
+            pip install -r install/ubuntu_no312.txt
+            pip install Tasmanian --user
 
         - name: Install Balsam on Pydantic 1
           if: matrix.pydantic-version == '1.10.17'
@@ -134,7 +133,7 @@ jobs:
             flake8 libensemble
 
         - name: Remove test for persistent Surmise, octave on Python 3.12
-          if: matrix.python-version >= '3.13'
+          if: matrix.python-version >= "3.13"
           run: |
             rm ./libensemble/tests/regression_tests/test_persistent_fd_param_finder.py # needs octave, which doesn't yet support 3.13
             rm ./libensemble/tests/regression_tests/test_persistent_aposmm_external_localopt.py # needs octave, which doesn't yet support 3.13
