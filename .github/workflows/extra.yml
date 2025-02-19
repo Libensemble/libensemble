@@ -124,6 +124,7 @@ jobs:
             pip install -r install/testing_requirements.txt
             pip install -r install/misc_feature_requirements.txt
             source install/install_ibcdfo.sh
+            conda install numpy scipy
 
         - name: Install libEnsemble, flake8, lock environment
           run: |
