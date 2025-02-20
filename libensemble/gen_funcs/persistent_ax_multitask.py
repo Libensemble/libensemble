@@ -17,18 +17,15 @@ Ax runner handles the execution of trials - AxRunner wraps Runner to use libE tr
 """
 
 import os
-from copy import deepcopy
-from typing import Optional
-from pyre_extensions import assert_is_instance
 import warnings
+from copy import deepcopy
+from typing import Optional  # type: ignore
 
 import numpy as np
 import pandas as pd
 import torch
-
 from ax import Metric, Runner
 from ax.core.data import Data
-from ax.core.experiment import Experiment
 from ax.core.generator_run import GeneratorRun
 from ax.core.multi_type_experiment import MultiTypeExperiment
 from ax.core.objective import Objective
@@ -41,20 +38,22 @@ from ax.modelbridge.factory import get_sobol
 from ax.modelbridge.registry import Models, ST_MTGP_trans
 from ax.modelbridge.torch import TorchModelBridge
 from ax.modelbridge.transforms.convert_metric_names import tconfig_from_mt_experiment
-from ax.storage.metric_registry import register_metrics
 from ax.runners import SyntheticRunner
 from ax.storage.json_store.save import save_experiment
+from ax.storage.metric_registry import register_metrics
 from ax.storage.runner_registry import register_runner
 from ax.utils.common.result import Ok
+from pyre_extensions import assert_is_instance
 
 try:
     # For Ax >= 0.5.0
-    from ax.modelbridge.transforms.derelativize import Derelativize
+    from ax.modelbridge.registry import MBM_X_trans
     from ax.modelbridge.transforms.convert_metric_names import ConvertMetricNames
-    from ax.modelbridge.transforms.trial_as_task import TrialAsTask
+    from ax.modelbridge.transforms.derelativize import Derelativize
     from ax.modelbridge.transforms.stratified_standardize_y import StratifiedStandardizeY
     from ax.modelbridge.transforms.task_encode import TaskChoiceToIntTaskChoice
-    from ax.modelbridge.registry import MBM_X_trans
+    from ax.modelbridge.transforms.trial_as_task import TrialAsTask
+
     MT_MTGP_trans = MBM_X_trans + [
         Derelativize,
         ConvertMetricNames,
@@ -87,10 +86,10 @@ warnings.filterwarnings(
 
 # get_MTGP based on https://ax.dev/docs/tutorials/multi_task/
 def get_MTGP(
-    experiment: Experiment,
+    experiment,
     data: Data,
-    search_space: Optional[SearchSpace] = None,
-    trial_index: Optional[int] = None,
+    search_space: Optional[SearchSpace] = None,  # noqa: MDA501
+    trial_index: Optional[int] = None,  # noqa: MDA501
     device: torch.device = torch.device("cpu"),
     dtype: torch.dtype = torch.double,
 ) -> TorchModelBridge:
@@ -103,9 +102,7 @@ def get_MTGP(
     """
 
     if isinstance(experiment, MultiTypeExperiment):
-        trial_index_to_type = {
-            t.index: t.trial_type for t in experiment.trials.values()
-        }
+        trial_index_to_type = {t.index: t.trial_type for t in experiment.trials.values()}
         transforms = MT_MTGP_trans
         transform_configs = {
             "TrialAsTask": {"trial_level_map": {"trial_type": trial_index_to_type}},
@@ -276,9 +273,7 @@ def persistent_gp_mt_ax_gen_f(H, persis_info, gen_specs, libE_info):
             if not os.path.exists("model_history"):
                 os.mkdir("model_history")
             # Register metric and runner in order to be able to save to json.
-            _, encoder_registry, decoder_registry = register_metrics(
-                {AxMetric: None}
-            )
+            _, encoder_registry, decoder_registry = register_metrics({AxMetric: None})
             _, encoder_registry, decoder_registry = register_runner(
                 AxRunner,
                 encoder_registry=encoder_registry,

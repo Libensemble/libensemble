@@ -128,3 +128,6 @@ noy = "noy"
 
 [tool.typos.files]
 extend-exclude = ["*.bib", "*.xml", "docs/nitpicky"]
+
+[dependency-groups]
+dev = [ "flake8-modern-annotations>=1.6.0,<2", "flake8-type-checking>=3.0.0,<4"]

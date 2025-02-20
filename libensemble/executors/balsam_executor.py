@@ -78,7 +78,6 @@ import datetime
 import logging
 import os
 import time
-from typing import Any, Dict, List, Optional, Union
 
 from balsam import util
 
@@ -106,9 +105,9 @@ class BalsamTask(Task):
 
     def __init__(
         self,
-        app: Optional[Application] = None,
+        app: Application | None = None,
         app_args: dict = None,
-        workdir: Optional[str] = None,
+        workdir: str | None = None,
         stdout: str = None,
         stderr: str = None,
         workerid: int = None,
@@ -122,7 +121,7 @@ class BalsamTask(Task):
         # May want to override workdir with Balsam value when it exists
         Task.__init__(self, app, app_args, workdir, stdout, stderr, workerid)
 
-    def _get_time_since_balsam_submit(self) -> Union[int, float]:
+    def _get_time_since_balsam_submit(self) -> int:
         """Return time since balsam task entered ``RUNNING`` state"""
         event_query = EventLog.objects.filter(job_id=self.process.id, to_state="RUNNING")
         if not len(event_query):
@@ -203,7 +202,7 @@ class BalsamTask(Task):
             self.state = "FAILED"
             self._set_complete()
 
-    def wait(self, timeout: Optional[int] = None) -> None:
+    def wait(self, timeout: int | None = None) -> None:
         """Waits on completion of the task or raises ``TimeoutExpired``.
 
         Status attributes of task are updated on completion.
@@ -280,10 +279,10 @@ class BalsamExecutor(Executor):
     def register_app(
         self,
         BalsamApp: ApplicationDefinition,
-        app_name: Optional[str] = None,
-        calc_type: Optional[str] = None,
+        app_name: str | None = None,
+        calc_type: str | None = None,
         desc: str = None,
-        precedent: Optional[str] = None,
+        precedent: str | None = None,
     ) -> None:
         """Registers a Balsam ``ApplicationDefinition`` to libEnsemble. This class
         instance *must* have a ``site`` and ``command_template`` specified. See
@@ -331,9 +330,9 @@ class BalsamExecutor(Executor):
         job_mode: str = "mpi",
         queue: str = "local",
         project: str = "local",
-        optional_params: Dict[Any, Any] = {},
-        filter_tags: Dict[Any, Any] = {},
-        partitions: List[Any] = [],
+        optional_params: dict = {},
+        filter_tags: dict = {},
+        partitions: list = [],
     ) -> BatchJob:
         """
         Submits a Balsam ``BatchJob`` machine allocation request to Balsam.
@@ -435,14 +434,14 @@ class BalsamExecutor(Executor):
 
     def submit(
         self,
-        calc_type: Optional[str] = None,
-        app_name: Optional[str] = None,
+        calc_type: str | None = None,
+        app_name: str | None = None,
         app_args: dict = None,
         num_procs: int = None,
         num_nodes: int = None,
         procs_per_node: int = None,
         max_tasks_per_node: int = None,
-        machinefile: Optional[str] = None,
+        machinefile: str | None = None,
         gpus_per_rank: int = 0,
         transfers: dict = {},
         workdir: str = "",
