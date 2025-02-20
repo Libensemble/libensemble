@@ -1,7 +1,5 @@
 from abc import ABC, abstractmethod
 
-import numpy.typing as npt
-
 
 class LiveData(ABC):
     """A base class for capturing and processing data during an ensemble"""
@@ -11,7 +9,7 @@ class LiveData(ABC):
         pass
 
     @abstractmethod
-    def live_update(self, hist: npt.NDArray) -> None:
+    def live_update(self, hist: object) -> None:
         """Process history data after simulation results have been added to history
 
         Parameters
@@ -21,7 +19,7 @@ class LiveData(ABC):
             A libEnsemble history type object.
         """
 
-    def finalize(self, hist: npt.NDArray) -> None:
+    def finalize(self, hist: object) -> None:
         """
         Finzalize live data processing
 

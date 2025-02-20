@@ -6,7 +6,6 @@ This module for detects and returns intranode resources
 import collections
 import logging
 import os
-from typing import Tuple
 
 import psutil
 
@@ -29,7 +28,7 @@ def get_cpu_cores(hyperthreads: bool = False) -> int:
     return psutil.cpu_count(logical=hyperthreads)  # This is ranks available per node
 
 
-def _get_local_resources() -> Tuple[int, int, int]:
+def _get_local_resources() -> tuple[int, int, int]:
     """Returns logical and physical cores and GPUs on the local node"""
     physical_cores = get_cpu_cores(hyperthreads=False)
     logical_cores = get_cpu_cores(hyperthreads=True)
@@ -146,7 +145,7 @@ def _update_from_str(cores_info, cores_info_str):
 
 def get_sub_node_resources(
     launcher: str | None = None, remote_mode: bool = False, env_resources=None
-) -> Tuple[int, int, int]:
+) -> tuple[int, int, int]:
     """Returns logical and physical cores and GPUs per node as a tuple
 
     First checks for environment values, and and then for detected values.

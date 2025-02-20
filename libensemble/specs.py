@@ -1,13 +1,11 @@
 import random
 import warnings
 from pathlib import Path
-from typing import Any, Callable
 
 import pydantic
 from pydantic import BaseModel, Field
 
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
-from libensemble.resources.platforms import Platform
 
 __all__ = ["SimSpecs", "GenSpecs", "AllocSpecs", "ExitCriteria", "LibeSpecs", "_EnsembleSpecs"]
 
@@ -26,7 +24,7 @@ class SimSpecs(BaseModel):
     Specifications for configuring a Simulation Function.
     """
 
-    sim_f: Callable = None
+    sim_f: object = None
     """
     Python function matching the ``sim_f`` interface. Evaluates parameters
     produced by a generator function.
@@ -45,7 +43,7 @@ class SimSpecs(BaseModel):
     """
 
     # list of tuples for dtype construction
-    outputs: list[[tuple[str, Any] | tuple[str, Any, int | tuple]]] = Field([], alias="out")
+    outputs: list[[tuple[str, type] | tuple[str, type, int | tuple]]] = Field([], alias="out")
     """
     list of 2- or 3-tuples corresponding to NumPy dtypes.
     e.g. ``("dim", int, (3,))``, or ``("path", str)``.
@@ -78,7 +76,7 @@ class GenSpecs(BaseModel):
     Specifications for configuring a Generator Function.
     """
 
-    gen_f: Callable | None = None
+    gen_f: object | None = None
     """
     Python function matching the ``gen_f`` interface. Produces parameters for evaluation by a
     simulator function, and makes decisions based on simulator function output.
@@ -96,7 +94,7 @@ class GenSpecs(BaseModel):
     throughout the run, following initialization.
     """
 
-    outputs: list[[tuple[str, Any] | tuple[str, Any, int | tuple]]] = Field([], alias="out")
+    outputs: list[[tuple[str, type] | tuple[str, type, int | tuple]]] = Field([], alias="out")
     """
     list of 2- or 3-tuples corresponding to NumPy dtypes.
     e.g. ``("dim", int, (3,))``, or ``("path", str)``. Typically used to initialize an
@@ -128,7 +126,7 @@ class AllocSpecs(BaseModel):
     Specifications for configuring an Allocation Function.
     """
 
-    alloc_f: Callable = give_sim_work_first
+    alloc_f: object = give_sim_work_first
     """
     Python function matching the ``alloc_f`` interface. Decides when simulator and generator functions
     should be called, and with what resources and parameters.
@@ -140,7 +138,7 @@ class AllocSpecs(BaseModel):
     for customizing the allocation function.
     """
 
-    outputs: list[[tuple[str, Any] | tuple[str, Any, int | tuple]]] = Field([], alias="out")
+    outputs: list[[tuple[str, type] | tuple[str, type, int | tuple]]] = Field([], alias="out")
     """
     list of 2- or 3-tuples corresponding to NumPy dtypes. e.g. ``("dim", int, (3,))``, or ``("path", str)``.
     Allocation functions that modify libEnsemble's History array with additional fields should list those
@@ -187,7 +185,7 @@ class LibeSpecs(BaseModel):
     This generator function can access/modify user objects by reference.
     """
 
-    mpi_comm: Any | None = None
+    mpi_comm: object | None = None
     """ libEnsemble MPI communicator. Default: ``MPI.COMM_WORLD``"""
 
     dry_run: bool | None = False
@@ -334,7 +332,7 @@ class LibeSpecs(BaseModel):
     See also option :attr:`platform_specs`.
     """
 
-    platform_specs: Platform | dict | None = {}
+    platform_specs: object | dict | None = {}
     """A Platform object or dictionary specifying settings for a platform.
 
     To use existing platform:
@@ -381,7 +379,7 @@ class LibeSpecs(BaseModel):
     stats_fmt: dict | None = {}
     """ Options for formatting ``'libE_stats.txt'``. See 'Formatting libE_stats.txt'. """
 
-    live_data: Any | None = None
+    live_data: object | None = None
     """ Add a live data capture object (e.g., for plotting). """
 
     workers: list[str] | None = []
@@ -500,7 +498,7 @@ class LibeSpecs(BaseModel):
 class _EnsembleSpecs(BaseModel):
     """An all-encompassing model for a libEnsemble workflow."""
 
-    H0: Any | None = None  # np.ndarray - avoids sphinx issue
+    H0: object | None = None  # np.ndarray - avoids sphinx issue
     """ A previous or preformatted libEnsemble History array to prepend. """
 
     libE_specs: LibeSpecs
@@ -588,7 +586,7 @@ def persistent_input_fields(fields: list[str]):
     return decorator
 
 
-def output_data(fields: list[[tuple[str, Any] | tuple[str, Any, int | tuple]]]):
+def output_data(fields: list[[tuple[str, type] | tuple[str, type, int | tuple]]]):
     """Decorates a user-function with a list of tuples corresponding to NumPy dtypes for the function's output data.
 
     Decorated functions don't need those fields specified in ``SimSpecs.outputs`` or ``GenSpecs.outputs``.
