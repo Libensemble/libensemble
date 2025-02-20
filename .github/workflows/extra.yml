@@ -105,7 +105,7 @@ jobs:
             pip install --upgrade git+https://github.com/bandframework/surmise.git
 
         - name: Install generator dependencies for Ubuntu tests
-          if: matrix.os == 'ubuntu-latest' && matrix.python-version <= "3.12"
+          if: matrix.os == 'ubuntu-latest' && matrix.python-version <= '3.12'
           run: |
             sudo apt-get install bc
             pip install -r install/ubuntu_no312.txt
