@@ -1,7 +1,7 @@
 import logging
 import os
 from collections import Counter, OrderedDict
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Tuple, Union
 
 import numpy as np
 
@@ -97,9 +97,7 @@ class ResourceManager(RSetResources):
             self.nongpu_rsets_free += np.count_nonzero(~self.rsets["gpus"][rsets_to_free])
 
     @staticmethod
-    def get_index_list(
-        num_workers: int, num_rsets: int, zero_resource_list: List[Union[int, Any]]
-    ) -> List[Optional[int]]:
+    def get_index_list(num_workers: int, num_rsets: int, zero_resource_list: List[Union[int, Any]]) -> List[int | None]:
         """Map WorkerID to index into a nodelist"""
         index = 0
         index_list = []

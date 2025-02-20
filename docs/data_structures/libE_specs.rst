@@ -206,14 +206,14 @@ libEnsemble is primarily customized by setting options within a ``LibeSpecs`` cl
                 **save_H_and_persis_on_abort** [bool] = ``True``:
                     Save states of ``H`` and ``persis_info`` to file on aborting after an exception.
 
-                **save_H_on_completion** Optional[bool] = ``False``
+                **save_H_on_completion** bool | None = ``False``
                     Save state of ``H`` to file upon completing a workflow. Also enabled when either ``save_every_k_sims``
                     or ``save_every_k_gens`` is set.
 
-                **save_H_with_date** Optional[bool] = ``False``
+                **save_H_with_date** bool | None = ``False``
                     Save ``H`` filename contains date and timestamp.
 
-                **H_file_prefix** Optional[str] = ``"libE_history"``
+                **H_file_prefix** str | None = ``"libE_history"``
                     Prefix for ``H`` filename.
 
                 **use_persis_return_gen** [bool] = ``False``:

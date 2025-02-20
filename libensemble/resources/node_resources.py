@@ -6,11 +6,10 @@ This module for detects and returns intranode resources
 import collections
 import logging
 import os
-from typing import Optional, Tuple
+from typing import Tuple
 
 import psutil
 
-from libensemble.resources.env_resources import EnvResources
 from libensemble.resources.gpu_detect import get_gpus_from_env, get_num_gpus
 
 logger = logging.getLogger(__name__)
@@ -52,7 +51,7 @@ def _get_remote_resources(launcher):
     return output.decode()
 
 
-def _get_cpu_resources_from_env(env_resources: Optional[EnvResources] = None) -> Optional[Tuple[int, int]]:
+def _get_cpu_resources_from_env(env_resources=None) -> tuple[int, int] | None:
     """Returns logical and physical cores per node by querying environment or None"""
     if not env_resources:
         return None
@@ -146,7 +145,7 @@ def _update_from_str(cores_info, cores_info_str):
 
 
 def get_sub_node_resources(
-    launcher: Optional[str] = None, remote_mode: bool = False, env_resources: Optional[EnvResources] = None
+    launcher: str | None = None, remote_mode: bool = False, env_resources=None
 ) -> Tuple[int, int, int]:
     """Returns logical and physical cores and GPUs per node as a tuple
 

@@ -19,7 +19,7 @@ Ax runner handles the execution of trials - AxRunner wraps Runner to use libE tr
 import os
 import warnings
 from copy import deepcopy
-from typing import Optional  # type: ignore
+from typing import Optional  # noqa: MDA400
 
 import numpy as np
 import pandas as pd
@@ -89,7 +89,7 @@ def get_MTGP(
     experiment,
     data: Data,
     search_space: Optional[SearchSpace] = None,  # noqa: MDA501
-    trial_index: Optional[int] = None,  # noqa: MDA501
+    trial_index: int | None = None,  # noqa: MDA501
     device: torch.device = torch.device("cpu"),
     dtype: torch.dtype = torch.double,
 ) -> TorchModelBridge:

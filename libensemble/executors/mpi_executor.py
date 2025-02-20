@@ -20,7 +20,6 @@ import libensemble.utils.launcher as launcher
 from libensemble.executors.executor import Executor, ExecutorException, Task
 from libensemble.executors.mpi_runner import MPIRunner
 from libensemble.resources.mpi_resources import get_MPI_variant
-from libensemble.resources.resources import Resources
 
 logger = logging.getLogger(__name__)
 # To change logging level for just this module
@@ -136,7 +135,7 @@ class MPIExecutor(Executor):
         self.gen_nprocs = libE_info.get("num_procs")
         self.gen_ngpus = libE_info.get("num_gpus")
 
-    def set_resources(self, resources: Resources) -> None:
+    def set_resources(self, resources) -> None:
         self.resources = resources
 
     def _launch_with_retries(
