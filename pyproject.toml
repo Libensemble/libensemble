@@ -78,7 +78,7 @@ sphinx-design = ">=0.6.1,<0.7"
 sphinx_rtd_theme = ">=3.0.1,<4"
 sphinx-copybutton = ">=0.5.2,<0.6"
 pre-commit = ">=4.0.1,<5"
-nlopt = ">=2.8.0,<3"
+nlopt = ">=2.10.0,<3"
 scipy = ">=1.9.1,<2"
 
 [tool.pixi.dependencies]
