@@ -80,6 +80,7 @@ sphinx-copybutton = ">=0.5.2,<0.6"
 pre-commit = ">=4.0.1,<5"
 nlopt = ">=2.8.0,<3"
 scipy = ">=1.9.1,<2"
+ipdb = ">=0.13.13,<0.14"
 
 [tool.pixi.dependencies]
 python = ">=3.10,<3.14"

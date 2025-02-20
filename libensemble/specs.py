@@ -43,7 +43,7 @@ class SimSpecs(BaseModel):
     """
 
     # list of tuples for dtype construction
-    outputs: list[[tuple[str, type] | tuple[str, type, int | tuple]]] = Field([], alias="out")
+    outputs: list[tuple] = Field([], alias="out")
     """
     list of 2- or 3-tuples corresponding to NumPy dtypes.
     e.g. ``("dim", int, (3,))``, or ``("path", str)``.
@@ -94,7 +94,7 @@ class GenSpecs(BaseModel):
     throughout the run, following initialization.
     """
 
-    outputs: list[[tuple[str, type] | tuple[str, type, int | tuple]]] = Field([], alias="out")
+    outputs: list[tuple] = Field([], alias="out")
     """
     list of 2- or 3-tuples corresponding to NumPy dtypes.
     e.g. ``("dim", int, (3,))``, or ``("path", str)``. Typically used to initialize an
@@ -138,7 +138,7 @@ class AllocSpecs(BaseModel):
     for customizing the allocation function.
     """
 
-    outputs: list[[tuple[str, type] | tuple[str, type, int | tuple]]] = Field([], alias="out")
+    outputs: list[tuple] = Field([], alias="out")
     """
     list of 2- or 3-tuples corresponding to NumPy dtypes. e.g. ``("dim", int, (3,))``, or ``("path", str)``.
     Allocation functions that modify libEnsemble's History array with additional fields should list those
@@ -586,7 +586,7 @@ def persistent_input_fields(fields: list[str]):
     return decorator
 
 
-def output_data(fields: list[[tuple[str, type] | tuple[str, type, int | tuple]]]):
+def output_data(fields: list[tuple]):
     """Decorates a user-function with a list of tuples corresponding to NumPy dtypes for the function's output data.
 
     Decorated functions don't need those fields specified in ``SimSpecs.outputs`` or ``GenSpecs.outputs``.
