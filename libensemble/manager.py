@@ -532,7 +532,7 @@ class Manager:
                 self._kill_workers()
                 raise WorkerException(f"Received error message from worker {w}", D_recv.msg, D_recv.exc)
         elif isinstance(D_recv, logging.LogRecord):
-            logger.debug(f"Manager received a log message from worker {w}")
+            logger.vdebug(f"Manager received a log message from worker {w}")
             logging.getLogger(D_recv.name).handle(D_recv)
         else:
             logger.debug(f"Manager received data message from worker {w}")
@@ -678,7 +678,7 @@ class Manager:
 
     def run(self, persis_info: dict) -> (dict, int, int):
         """Runs the manager"""
-        logger.info(f"Manager initiated on node {socket.gethostname()}")
+        logger.debug(f"Manager initiated on node {socket.gethostname()}")
         logger.info(f"Manager exit_criteria: {self.exit_criteria}")
 
         # Continue receiving and giving until termination test is satisfied

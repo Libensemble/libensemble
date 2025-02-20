@@ -21,7 +21,7 @@ Create a conda environment
 You can create a conda_ environment in which to install libEnsemble and
 all dependencies. For example::
 
-    conda create -n libe-pm python=3.9 -y
+    conda create -n libe-pm python=3.10 -y
 
 As Perlmutter has a shared HOME filesystem with other clusters, using
 the ``-pm`` suffix (for Perlmutter) is good practice.
@@ -96,11 +96,34 @@ Now grab an interactive session on one node::
 Then in the session run::
 
     export LIBE_PLATFORM="perlmutter_g"
-    python run_libe_forces.py --comms local --nworkers 4
+    python run_libe_forces.py -n 5
+
+This places the generator on the first worker and runs simulations on the
+others (each simulation using one GPU).
 
 To see GPU usage, ssh into the node you are on in another window and run::
 
     watch -n 0.1 nvidia-smi
+
+Running generator on the manager
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+An alternative is to run the generator on a thread on the manager. The
+number of workers can then be set to the number of simulation workers.
+
+Change the ``libE_specs`` in **run_libe_forces.py** as follows.
+
+   .. code-block:: python
+
+    nsim_workers = ensemble.nworkers
+
+    # Persistent gen does not need resources
+    ensemble.libE_specs = LibeSpecs(
+        gen_on_manager=True,
+
+and run with::
+
+    python run_libe_forces.py -n 4
 
 To watch video
 ^^^^^^^^^^^^^^
@@ -128,10 +151,10 @@ to use ``mpi4py``, you should install and run as follows::
 
 This line will build ``mpi4py`` on top of a CUDA-aware Cray MPICH.
 
-To run using 4 workers (one manager)::
+To run using 5 workers (one manager)::
 
     export SLURM_EXACT=1
-    srun -n 5 python my_script.py
+    srun -n 6 python my_script.py
 
 More information on using Python and ``mpi4py`` on Perlmutter can be found
 in the `Python on Perlmutter`_ documentation.

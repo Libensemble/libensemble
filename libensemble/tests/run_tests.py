@@ -360,7 +360,8 @@ def run_regression_tests(root_dir, python_exec, args, current_os):
         user_comms_list = ["mpi", "local", "tcp"]
 
     print_heading(f"Running regression tests (comms: {', '.join(user_comms_list)})")
-    build_forces(root_dir)  # Build forces.x before running tests
+    if not REG_LIST_TESTS_ONLY:
+        build_forces(root_dir)  # Build forces.x before running tests
 
     reg_test_list = REG_TEST_LIST
     reg_test_files = []
