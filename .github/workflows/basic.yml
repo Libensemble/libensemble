@@ -73,14 +73,12 @@ jobs:
           if: matrix.os == 'ubuntu-latest'
           run: |
               conda install gcc_linux-64
-              pip install nlopt==2.9.0
 
         # Roundabout solution on macos for proper linking with mpicc
         - name: Install macOS compilers
           if: matrix.os == 'macos-latest'
           run: |
             conda install clang_osx-64
-            pip install nlopt==2.8.0
 
         - name: Install basic testing/feature dependencies
           run: |
