@@ -143,17 +143,6 @@ class Aurora(Platform):
     scheduler_match_slots: bool = True
 
 
-# On SLURM systems, let srun assign free GPUs on the node
-class Crusher(Platform):
-    mpi_runner: str = "srun"
-    cores_per_node: int = 64
-    logical_cores_per_node: int = 128
-    gpus_per_node: int = 8
-    gpu_setting_type: str = "runner_default"
-    gpu_env_fallback: str = "ROCR_VISIBLE_DEVICES"
-    scheduler_match_slots: bool = False
-
-
 class Frontier(Platform):
     mpi_runner: str = "srun"
     cores_per_node: int = 64
@@ -202,38 +191,6 @@ class Polaris(Platform):
     scheduler_match_slots: bool = True
 
 
-class Spock(Platform):
-    mpi_runner: str = "srun"
-    cores_per_node: int = 64
-    logical_cores_per_node: int = 128
-    gpus_per_node: int = 4
-    gpu_setting_type: str = "runner_default"
-    gpu_setting_name: str = "ROCR_VISIBLE_DEVICES"
-    scheduler_match_slots: bool = False
-
-
-class Summit(Platform):
-    mpi_runner: str = "jsrun"
-    cores_per_node: int = 42
-    logical_cores_per_node: int = 168
-    gpus_per_node: int = 6
-    gpu_setting_type: str = "option_gpus_per_task"
-    gpu_setting_name: str = "-g"
-    scheduler_match_slots: bool = False
-
-
-class Sunspot(Platform):
-    mpi_runner: str = "mpich"
-    runner_name: str = "mpiexec"
-    cores_per_node: int = 104
-    logical_cores_per_node: int = 208
-    gpus_per_node: int = 6
-    tiles_per_gpu: int = 2
-    gpu_setting_type: str = "env"
-    gpu_setting_name: str = "ZE_AFFINITY_MASK"
-    scheduler_match_slots: bool = True
-
-
 class Known_platforms(BaseModel):
     """A list of platforms with known configurations.
 
@@ -274,25 +231,18 @@ class Known_platforms(BaseModel):
 
     aurora: Aurora = Aurora()
     generic_rocm: GenericROCm = GenericROCm()
-    crusher: Crusher = Crusher()
     frontier: Frontier = Frontier()
     perlmutter: Perlmutter = Perlmutter()
     perlmutter_c: PerlmutterCPU = PerlmutterCPU()
     perlmutter_g: PerlmutterGPU = PerlmutterGPU()
     polaris: Polaris = Polaris()
-    spock: Spock = Spock()
-    summit: Summit = Summit()
-    sunspot: Sunspot = Sunspot()
 
 
 # Dictionary of known systems (or system partitions) detectable by domain name
 detect_systems = {
-    "crusher.olcf.ornl.gov": "crusher",
     "frontier.olcf.ornl.gov": "frontier",
     "hostmgmt.cm.aurora.alcf.anl.gov": "aurora",
     "hsn.cm.polaris.alcf.anl.gov": "polaris",
-    "spock.olcf.ornl.gov": "spock",
-    "summit.olcf.ornl.gov": "summit",  # Need to detect gpu count
 }
 
 

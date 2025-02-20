@@ -80,26 +80,6 @@ per worker, and adding the manager onto the first node.
 HPC systems that only allow one application to be launched to a node at any one time,
 will not allow a distributed configuration.
 
-Systems with Launch/MOM Nodes
------------------------------
-
-Some large systems have a 3-tier node setup. That is, they have a separate set of launch nodes
-(known as MOM nodes on Cray Systems). User batch jobs or interactive sessions run on a launch node.
-Most such systems supply a special MPI runner that has some application-level scheduling
-capability (e.g., ``aprun``, ``jsrun``). MPI applications can only be submitted from these nodes. Examples
-of these systems include Summit and Sierra.
-
-There are two ways of running libEnsemble on these kinds of systems. The first, and simplest,
-is to run libEnsemble on the launch nodes. This is often sufficient if the worker's simulation
-or generation functions are not doing much work (other than launching applications). This approach
-is inherently centralized. The entire node allocation is available for the worker-launched
-tasks.
-
-However, running libEnsemble on the compute nodes is potentially more scalable and
-will better manage simulation and generation functions that contain considerable
-computational work or I/O. Therefore the second option is to use proxy task-execution
-services like Balsam_.
-
 Balsam - Externally Managed Applications
 ----------------------------------------
 
@@ -210,13 +190,11 @@ libEnsemble on specific HPC systems.
     :titlesonly:
 
     aurora
-    bebop
     frontier
-    improv
     perlmutter
     polaris
-    spock_crusher
-    summit
+    bebop
+    improv
     srun
     example_scripts
 

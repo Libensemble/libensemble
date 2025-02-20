@@ -46,7 +46,6 @@
 .. _scipy.optimize: https://docs.scipy.org/doc/scipy/reference/optimize.html
 .. _setuptools: https://setuptools.pypa.io/en/latest/
 .. _Spack: https://spack.readthedocs.io/en/latest
-.. _Summit: https://www.olcf.ornl.gov/olcf-resources/compute-systems/summit/
 .. _Surmise: https://surmise.readthedocs.io/en/latest/index.html
 .. _SWIG: http://swig.org/
 .. _tarball: https://github.com/Libensemble/libensemble/releases/latest

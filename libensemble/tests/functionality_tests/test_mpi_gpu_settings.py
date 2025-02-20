@@ -53,7 +53,7 @@ from libensemble.gen_funcs.persistent_sampling_var_resources import uniform_samp
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
-from libensemble.resources.platforms import Aurora, Frontier, PerlmutterGPU, Platform, Polaris, Summit
+from libensemble.resources.platforms import Aurora, Frontier, PerlmutterGPU, Platform, Polaris
 from libensemble.sim_funcs import six_hump_camel
 from libensemble.sim_funcs.var_resources import gpu_variable_resources as sim_f
 from libensemble.tools import add_unique_random_streams, parse_args
@@ -203,7 +203,7 @@ if __name__ == "__main__":
     del libE_specs["platform_specs"]
 
     # Fourth set - use platform setting ------------------------------------------------------------
-    for platform in ["summit", "crusher", "perlmutter_g", "polaris", "aurora"]:
+    for platform in ["perlmutter_g", "polaris", "aurora"]:
         print(f"\nRunning GPU setting checks (via known platform) for {platform} ------------------- ")
         libE_specs["platform"] = platform
 
@@ -221,7 +221,7 @@ if __name__ == "__main__":
         del libE_specs["platform"]
 
     # Fifth set - use platform environment setting -----------------------------------------------
-    for platform in ["summit", "crusher", "perlmutter_g", "polaris", "aurora"]:
+    for platform in ["perlmutter_g", "polaris", "aurora"]:
         print(f"\nRunning GPU setting checks (via known platform env. variable) for {platform} ----- ")
         os.environ["LIBE_PLATFORM"] = platform
 
@@ -239,7 +239,7 @@ if __name__ == "__main__":
         del os.environ["LIBE_PLATFORM"]
 
     # Sixth set - use platform_specs with known systems -------------------------------------------
-    for platform in [Summit, Frontier, PerlmutterGPU, Polaris, Aurora]:
+    for platform in [Frontier, PerlmutterGPU, Polaris, Aurora]:
         print(f"\nRunning GPU setting checks (via known platform - platform_specs) for {platform} ------------------- ")
         libE_specs["platform_specs"] = platform()
 

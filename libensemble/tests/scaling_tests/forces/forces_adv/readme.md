@@ -64,10 +64,6 @@ you will need to replace the following templated values if on a Cobalt system:
 
 The included scripts are.
 
-* summit_submit_mproc.sh:
-
-  Example Summit submission script to run libEnsemble in central mode on the Summit launch nodes with multiprocessing worker concurrency.
-
 * cobalt_submit_mproc.sh:
 
   Example submission script to run libEnsemble similarly on ALCF's Theta, a now-retired system.

@@ -44,25 +44,14 @@ def run_warpx(H, persis_info, sim_specs, libE_info):
     app_args = input_file
     os.environ["OMP_NUM_THREADS"] = machine_specs["OMP_NUM_THREADS"]
 
-    # Launch the executor to actually run the WarpX simulation
-    if machine_specs["name"] == "summit":
-        task = exctr.submit(
-            app_name="warpx",
-            extra_args=machine_specs["extra_args"],
-            app_args=app_args,
-            stdout="out.txt",
-            stderr="err.txt",
-            wait_on_start=True,
-        )
-    else:
-        task = exctr.submit(
-            app_name="warpx",
-            num_procs=machine_specs["cores"],
-            app_args=app_args,
-            stdout="out.txt",
-            stderr="err.txt",
-            wait_on_start=True,
-        )
+    task = exctr.submit(
+        app_name="warpx",
+        num_procs=machine_specs["cores"],
+        app_args=app_args,
+        stdout="out.txt",
+        stderr="err.txt",
+        wait_on_start=True,
+    )
 
     # Periodically check the status of the simulation
     poll_interval = 1  # secs

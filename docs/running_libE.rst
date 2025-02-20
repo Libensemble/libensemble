@@ -66,10 +66,6 @@ supercomputers.
         from app-launches (if running libEnsemble on a compute node),
         set ``libE_specs["dedicated_mode"] = True``.
 
-        This mode can also be used to run on a **launch** node of a three-tier
-        system (e.g., Summit), ensuring the whole compute-node allocation is available for
-        launching apps. Make sure there are no imports of ``mpi4py`` in your Python scripts.
-
         Note that on macOS (since Python 3.8) and Windows, the default multiprocessing method
         is ``"spawn"`` instead of ``"fork"``; to resolve many related issues, we recommend placing
         calling script code in an ``if __name__ == "__main__":`` block.
@@ -103,9 +99,6 @@ supercomputers.
         supported with Open MPI**. This can be overcome by using a proxy launcher
         (see :doc:`Balsam<executor/balsam_2_executor>`). This nesting does work
         with MPICH_ and its derivative MPI implementations.
-
-        It is also unsuitable to use this mode when running on the **launch** nodes of
-        three-tier systems (e.g., Summit). In that case ``local`` mode is recommended.
 
     .. tab-item:: TCP Comms
 
