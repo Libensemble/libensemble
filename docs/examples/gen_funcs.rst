@@ -53,7 +53,7 @@ Optimization
 
 - :doc:`uniform_or_localopt<uniform_or_localopt>`
 
-  Performs a uniform random sample or a single persistent NLopt_ local optimization run.
+  Samples uniformly in non-persistent mode or runs an NLopt_ local optimization run in persistent mode.
 
 - :doc:`Ax Multitask<ax_multitask>`
 
