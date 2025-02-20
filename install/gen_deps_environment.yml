@@ -13,3 +13,4 @@ dependencies:
   - DFO-LS
   - mpmath
   - ax-platform
+  - nlopt
