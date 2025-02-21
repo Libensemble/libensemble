@@ -43,13 +43,8 @@ Optimization
 
 - :doc:`APOSMM<aposmm>`
 
-  APOSMM_ Asynchronously parallel optimization solver for finding multiple minima. Supported local optimization routines include:
-
-    - DFO-LS_ Derivative-free solver for (bound constrained) nonlinear least-squares minimization
-    - NLopt_ Library for nonlinear optimization, providing a common interface for various methods
-    - `scipy.optimize`_ Open-source solvers for nonlinear problems, linear programming,
-      constrained and nonlinear least-squares, root finding, and curve fitting.
-    - `PETSc/TAO`_ Routines for the scalable (parallel) solution of scientific applications
+  Asynchronously Parallel Optimization Solver for finding Multiple Minima (APOSMM_) coordinates
+  concurrent local optimization runs to identify many local minima faster on parallel hardware.
 
 - :doc:`uniform_or_localopt<uniform_or_localopt>`
 
