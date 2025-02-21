@@ -114,7 +114,6 @@ Modeling and Approximation
   Distributed evolutionary algorithms (*community example*)
 
 
-
 .. _libEnsemble Community Repository: https://github.com/Libensemble/libe-community-examples
 
 .. _APOSMM: https://link.springer.com/article/10.1007/s12532-017-0131-4

@@ -13,43 +13,40 @@ function launching tasks, see the
 .. role:: underline
     :class: underline
 
-six_hump_camel
---------------
-.. automodule:: six_hump_camel
-  :members: six_hump_camel_simple, persistent_six_hump_camel
-  :undoc-members:
 
-.. dropdown:: :underline:`six_hump_camel.py`
+Simple simulation functions
+---------------------------
 
-   .. literalinclude:: ../../libensemble/sim_funcs/six_hump_camel.py
-      :language: python
-      :linenos:
+.. toctree::
+   :maxdepth: 1
 
-noisy_vector_mapping
---------------------
-.. automodule:: noisy_vector_mapping
-  :members:
-  :undoc-members:
+   sim_funcs/simple_sim
+   sim_funcs/borehole
+   sim_funcs/borehole_kills
+   sim_funcs/chwirut1
+   sim_funcs/inverse_bayes
+   sim_funcs/noisy_vector_mapping
+   sim_funcs/periodic_func
+   sim_funcs/rosenbrock
+   sim_funcs/six_hump_camel
+   sim_funcs/surmise_test_function
 
-.. dropdown:: :underline:`noisy_vector_mapping.py`
 
-   .. literalinclude:: ../../libensemble/sim_funcs/noisy_vector_mapping.py
-      :language: python
-      :linenos:
+Functions with CPU/GPU allocation
+---------------------------------
 
-borehole
---------
-.. automodule:: borehole
-  :members:
-  :undoc-members:
+.. toctree::
+   :maxdepth: 1
 
-executor_hworld
----------------
-.. automodule:: executor_hworld
-  :members:
+   sim_funcs/var_resources
+   sim_funcs/forces_simf
 
-.. dropdown:: :underline:`executor_hworld.py`
+Special simulation functions
+----------------------------
 
-   .. literalinclude:: ../../libensemble/sim_funcs/executor_hworld.py
-      :language: python
-      :linenos:
+.. toctree::
+   :maxdepth: 1
+
+   sim_funcs/mock_sim
+
+
