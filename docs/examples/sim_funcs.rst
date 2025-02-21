@@ -43,6 +43,8 @@ handle dynamic CPU/GPU allocation.
 
    sim_funcs/var_resources
    sim_funcs/forces_simf
+   sim_funcs/forces_simf_gpu
+   sim_funcs/forces_simf_gpu_vary_resources
 
 Special simulation functions
 ----------------------------

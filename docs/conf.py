@@ -65,6 +65,7 @@ sys.path.append(os.path.abspath("../libensemble/tools"))
 sys.path.append(os.path.abspath("../libensemble/tools/live_data"))
 sys.path.append(os.path.abspath("../libensemble/executors"))
 sys.path.append(os.path.abspath("../libensemble/resources"))
+sys.path.append(os.path.abspath("../libensemble/tests/scaling_tests/forces"))
 # print(sys.path)
 
 # -- General configuration ------------------------------------------------
