@@ -38,6 +38,10 @@ Functions that run user applications
 This use the executor to launch applications and in some cases
 handle dynamic CPU/GPU allocation.
 
+The ``var_resources`` module contains basic examples, while the ``forces``
+examples use an MPI/OpenMP (with GPU offload option) application that is used
+to demonstrate libEnsemble’s capabilities on various HPC systems.
+
 .. toctree::
    :maxdepth: 1
 
@@ -45,6 +49,8 @@ handle dynamic CPU/GPU allocation.
    sim_funcs/forces_simf
    sim_funcs/forces_simf_gpu
    sim_funcs/forces_simf_gpu_vary_resources
+   sim_funcs/forces_simf_gpu_multi_app
+
 
 Special simulation functions
 ----------------------------

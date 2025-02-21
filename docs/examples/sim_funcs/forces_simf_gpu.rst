@@ -1,4 +1,4 @@
-forces (GPU)
+Forces (GPU)
 ------------
 
 .. role:: underline
@@ -19,3 +19,9 @@ forces (GPU)
    .. literalinclude:: ../../../libensemble/tests/scaling_tests/forces/forces_gpu/run_libe_forces.py
       :language: python
       :linenos:
+
+Also see the :doc:`Forces GPU tutorial <../../tutorials/forces_gpu_tutorial>` and the
+video_ demonstration on Frontier_.
+
+.. _video: https://www.youtube.com/watch?v=H2fmbZ6DnVc
+.. _Frontier: https://docs.olcf.ornl.gov/systems/frontier_user_guide.html

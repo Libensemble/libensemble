@@ -1,4 +1,4 @@
-forces (CPU)
+Forces (CPU)
 ------------
 
 .. role:: underline
@@ -19,3 +19,5 @@ forces (CPU)
    .. literalinclude:: ../../../libensemble/tests/scaling_tests/forces/forces_simple/run_libe_forces.py
       :language: python
       :linenos:
+
+Also see the :doc:`Forces tutorial <../../tutorials/executor_forces_tutorial>`.
