@@ -42,6 +42,7 @@ MOCK_MODULES = [
     "PETSc",
     "petsc4py",
     "psutil",
+    "pyre_extensions",
     "Tasmanian",
 ]
 
