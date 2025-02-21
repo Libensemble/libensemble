@@ -3,12 +3,12 @@ persistent_surmise
 
 Required: Surmise_.
 
-Modular Bayesian calibration/inference framework using Surmise.
+Example usage: basic_, `kill canceled sims`_
+
+Modular Bayesian calibration/inference framework.
 
 The :doc:`Borehole Calibration tutorial<../tutorials/calib_cancel_tutorial>` uses this generator as an
 example of the capability to cancel pending simulations.
-
-Example usage: basic_, `kill canceled sims`_
 
 .. automodule:: persistent_surmise_calib
   :members:

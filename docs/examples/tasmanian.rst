@@ -3,12 +3,12 @@ persistent_tasmanian
 
 Required: Tasmanian_, pypackaging_, scikit-build_
 
+Example usage: batched_, async_
+
 Note that Tasmanian can be pip installed, but currently must
 use either *venv* or *--user* install.
 
 ``E.g: pip install scikit-build packaging Tasmanian --user``
-
-Example usage: batched_, async_
 
 .. automodule:: persistent_tasmanian
   :members: sparse_grid_batched, sparse_grid_async
