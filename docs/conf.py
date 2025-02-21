@@ -47,6 +47,13 @@ MOCK_MODULES = [
 
 sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 
+class AxParameterWarning(Warning):  # Ensure it's a real warning subclass
+    pass
+
+# Fix only `AxParameterWarning` while keeping `ax` mocked
+sys.modules["ax.exceptions.core"] = MagicMock()
+sys.modules["ax.exceptions.core"].AxParameterWarning = AxParameterWarning
+
 # from libensemble import *
 # from libensemble.alloc_funcs import *
 # from libensemble.gen_funcs import *
