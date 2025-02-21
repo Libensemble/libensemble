@@ -1,5 +1,6 @@
 noisy_vector_mapping
---------------
+--------------------
+
 .. role:: underline
    :class: underline
 
@@ -8,7 +9,6 @@ noisy_vector_mapping
    :undoc-members:
 
 .. dropdown:: :underline:`noisy_vector_mapping.py`
- 
 
    .. literalinclude:: ../../../libensemble/sim_funcs/noisy_vector_mapping.py
       :language: python

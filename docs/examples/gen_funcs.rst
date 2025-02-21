@@ -127,8 +127,6 @@ Modeling and Approximation
 .. _IPAC manuscript: https://doi.org/10.18429/JACoW-ICAP2018-SAPAF03
 .. _NLopt: https://nlopt.readthedocs.io/en/latest/
 .. _OPAL: http://amas.web.psi.ch/docs/opal/opal_user_guide-1.6.0.pdf
-.. _PETSc/TAO: http://www.mcs.anl.gov/petsc
-.. _scipy.optimize: https://docs.scipy.org/doc/scipy/reference/optimize.html
 .. _Surmise: https://surmise.readthedocs.io/en/latest/index.html
 .. _Tasmanian: https://github.com/ORNL/Tasmanian
 .. _user guide: https://libensemble.readthedocs.io/en/latest/programming_libE.html

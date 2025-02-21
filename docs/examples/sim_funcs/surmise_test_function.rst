@@ -1,5 +1,6 @@
 surmise_test_function
---------------
+---------------------
+
 .. role:: underline
    :class: underline
 

@@ -65,3 +65,5 @@ LocalOptInterfacer
 .. _nlopt: https://nlopt.readthedocs.io/en/latest/
 .. _petsc4py: https://bitbucket.org/petsc/petsc4py
 .. _SciPy: https://pypi.org/project/scipy
+.. _PETSc/TAO: http://www.mcs.anl.gov/petsc
+.. _scipy.optimize: https://docs.scipy.org/doc/scipy/reference/optimize.html
