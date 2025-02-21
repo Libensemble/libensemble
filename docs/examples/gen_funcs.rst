@@ -71,17 +71,10 @@ Optimization
 
   Generators using ytopt_. A Bayesian Optimization package for determining optimal input parameter configurations for applications or other executables. (*community example*)
 
-.. - :ref:`Dragonfly<community:dragonfly-link>`
-..
-..   Generators for.
-
 - :ref:`Consensus<community:consensus-link>`
 
   Distributed optimization methods for minimizing sums of convex functions (*community example*).
-  Methods include:
-    - Primal-dual sliding (https://arxiv.org/pdf/2101.00143).
-    - Distributed gradient descent with gradient tracking (https://arxiv.org/abs/1908.11444).
-    - Proximal sliding (https://arxiv.org/abs/1406.0919).
+
 
 Modeling and Approximation
 --------------------------
