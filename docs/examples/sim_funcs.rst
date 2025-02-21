@@ -21,6 +21,7 @@ Simple simulation functions
    :maxdepth: 1
 
    sim_funcs/simple_sim
+   sim_funcs/six_hump_camel
    sim_funcs/borehole
    sim_funcs/borehole_kills
    sim_funcs/chwirut1
@@ -28,12 +29,14 @@ Simple simulation functions
    sim_funcs/noisy_vector_mapping
    sim_funcs/periodic_func
    sim_funcs/rosenbrock
-   sim_funcs/six_hump_camel
    sim_funcs/surmise_test_function
 
 
-Functions with CPU/GPU allocation
----------------------------------
+Functions that run user applications
+------------------------------------
+
+This use the executor to launch applications and in some cases
+handle dynamic CPU/GPU allocation.
 
 .. toctree::
    :maxdepth: 1
