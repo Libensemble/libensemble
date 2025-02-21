@@ -44,6 +44,7 @@ MOCK_MODULES = [
     "psutil",
     "pyre_extensions",
     "Tasmanian",
+    "torch",
 ]
 
 sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
