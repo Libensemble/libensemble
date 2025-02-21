@@ -7,7 +7,6 @@ Here we list many generator functions included with libEnsemble.
   See the API for generator functions :ref:`here<api_gen_f>`.
 
 
-
 Sampling
 --------
 
@@ -17,11 +16,21 @@ Sampling
   :hidden:
 
   sampling
+  persistent_sampling
+  persistent_sampling_var_resources
 
 - :doc:`sampling<sampling>`
 
-  Various generators for sampling a space.
-  Includes both persistent and non-persistent sampling generators. There are also useful examples of assigning resources for each simulation (persistent_sampling_var_resources).
+  Various generators for sampling a space. Function runs once each call.
+
+- :doc:`persistent sampling<persistent_sampling>`
+
+  Various persistent generators (persists on a worker) for sampling a space. After the initial
+  batch each generator creates N new random points for every N points that are returned.
+
+- :doc:`persistent sampling with variable resources<persistent_sampling_var_resources>`
+
+  Various persistent sampling generators that assign different resources to each simulation.
 
 
 Optimization
