@@ -63,3 +63,39 @@ start_persistent_local_opt_gens
 .. automodule:: start_persistent_local_opt_gens
   :members:
   :undoc-members:
+
+fast_alloc_and_pausing
+----------------------
+.. automodule:: fast_alloc_and_pausing
+   :members:
+   :undoc-members:
+
+only_one_gen_alloc
+------------------
+.. automodule:: only_one_gen_alloc
+   :members:
+   :undoc-members:
+
+start_fd_persistent
+-------------------
+.. automodule:: start_fd_persistent
+   :members:
+   :undoc-members:
+
+persistent_aposmm_alloc
+-----------------------
+.. automodule:: persistent_aposmm_alloc
+   :members:
+   :undoc-members:
+
+give_pregenerated_work
+----------------------
+.. automodule:: give_pregenerated_work
+   :members:
+   :undoc-members:
+
+inverse_bayes_allocf
+--------------------
+.. automodule:: inverse_bayes_allocf
+   :members:
+   :undoc-members:
