@@ -225,9 +225,13 @@ html_theme_options = {
 html_static_path = ["_static"]
 # html_static_path = []
 
+def remove_noqa(app, what, name, obj, options, lines):
+    for i, line in enumerate(lines):
+        lines[i] = line.replace("# noqa", "").strip()
 
 def setup(app):
     app.add_css_file("my_theme.css")
+    app.connect("autodoc-process-docstring", remove_noqa)
 
 
 # Custom sidebar templates, must be a dictionary that maps document names
