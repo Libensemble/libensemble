@@ -5,11 +5,15 @@ Allocation Functions
 
 Below are example allocation functions available in libEnsemble.
 
+Many users use these unmodified.
+
 .. IMPORTANT::
   See the API for allocation functions :ref:`here<api_alloc_f>`.
 
 .. note::
-   The default allocation function is ``give_sim_work_first``.
+   The default allocation function (for non-persistent generators) is :ref:`give_sim_work_first<gswf_label>`.
+
+   The most commonly used (for persistent generators) is :ref:`start_only_persistent<start_only_persistent_label>`.
 
 .. role:: underline
     :class: underline
