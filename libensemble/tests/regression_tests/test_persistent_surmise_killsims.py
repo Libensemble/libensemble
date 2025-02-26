@@ -74,7 +74,7 @@ if __name__ == "__main__":
 
     # Subprocess variant creates input and output files for each sim
     libE_specs["sim_dirs_make"] = True  # To keep all - make sim dirs
-    # libE_specs["use_worker_dirs"] = True  # To overwrite - make worker dirs only
+    libE_specs["kill_canceled_sims"] = True
 
     # Rename ensemble dir for non-interference with other regression tests
     en_suffix = str(nworkers) + "_" + libE_specs.get("comms")

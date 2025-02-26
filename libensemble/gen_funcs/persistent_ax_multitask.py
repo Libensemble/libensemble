@@ -8,6 +8,8 @@ of the whole libEnsemble run.
 This `gen_f` is meant to be used with the `alloc_f` function
 `only_persistent_gens`
 
+Requires: Ax>=0.5.0
+
 Ax notes:
 Each arm = a set of simulation inputs (a sim_id)
 Each trial = a batch of simulations.
@@ -36,7 +38,13 @@ from ax.core.observation import ObservationFeatures
 from ax.core.optimization_config import OptimizationConfig
 from ax.core.parameter import ParameterType, RangeParameter
 from ax.core.search_space import SearchSpace
-from ax.exceptions.core import AxParameterWarning
+
+# Necessary for docs rendering (as Ax is mocked)
+try:
+    from ax.exceptions.core import AxParameterWarning
+except ImportError:
+    AxParameterWarning = Warning
+
 from ax.modelbridge.factory import get_sobol
 from ax.modelbridge.registry import Models, ST_MTGP_trans
 from ax.modelbridge.torch import TorchModelBridge
@@ -47,25 +55,12 @@ from ax.storage.json_store.save import save_experiment
 from ax.storage.runner_registry import register_runner
 from ax.utils.common.result import Ok
 
-try:
-    # For Ax >= 0.5.0
-    from ax.modelbridge.transforms.derelativize import Derelativize
-    from ax.modelbridge.transforms.convert_metric_names import ConvertMetricNames
-    from ax.modelbridge.transforms.trial_as_task import TrialAsTask
-    from ax.modelbridge.transforms.stratified_standardize_y import StratifiedStandardizeY
-    from ax.modelbridge.transforms.task_encode import TaskChoiceToIntTaskChoice
-    from ax.modelbridge.registry import MBM_X_trans
-    MT_MTGP_trans = MBM_X_trans + [
-        Derelativize,
-        ConvertMetricNames,
-        TrialAsTask,
-        StratifiedStandardizeY,
-        TaskChoiceToIntTaskChoice,
-    ]
-
-except ImportError:
-    # For Ax < 0.5.0
-    from ax.modelbridge.registry import MT_MTGP_trans
+from ax.modelbridge.transforms.derelativize import Derelativize
+from ax.modelbridge.transforms.convert_metric_names import ConvertMetricNames
+from ax.modelbridge.transforms.trial_as_task import TrialAsTask
+from ax.modelbridge.transforms.stratified_standardize_y import StratifiedStandardizeY
+from ax.modelbridge.transforms.task_encode import TaskChoiceToIntTaskChoice
+from ax.modelbridge.registry import MBM_X_trans
 
 from libensemble.message_numbers import EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG, PERSIS_STOP, STOP_TAG
 from libensemble.tools.persistent_support import PersistentSupport
@@ -84,6 +79,13 @@ warnings.filterwarnings(
     category=AxParameterWarning,
 )
 
+MT_MTGP_trans = list(MBM_X_trans) + [
+    Derelativize,
+    ConvertMetricNames,
+    TrialAsTask,
+    StratifiedStandardizeY,
+    TaskChoiceToIntTaskChoice,
+]
 
 # get_MTGP based on https://ax.dev/docs/tutorials/multi_task/
 def get_MTGP(

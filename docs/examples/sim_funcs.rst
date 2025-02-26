@@ -13,43 +13,51 @@ function launching tasks, see the
 .. role:: underline
     :class: underline
 
-six_hump_camel
---------------
-.. automodule:: six_hump_camel
-  :members: six_hump_camel_simple, persistent_six_hump_camel
-  :undoc-members:
 
-.. dropdown:: :underline:`six_hump_camel.py`
+Simple simulation functions
+---------------------------
 
-   .. literalinclude:: ../../libensemble/sim_funcs/six_hump_camel.py
-      :language: python
-      :linenos:
+.. toctree::
+   :maxdepth: 1
 
-noisy_vector_mapping
---------------------
-.. automodule:: noisy_vector_mapping
-  :members:
-  :undoc-members:
+   sim_funcs/simple_sim
+   sim_funcs/six_hump_camel
+   sim_funcs/borehole
+   sim_funcs/borehole_kills
+   sim_funcs/chwirut1
+   sim_funcs/inverse_bayes
+   sim_funcs/noisy_vector_mapping
+   sim_funcs/periodic_func
+   sim_funcs/rosenbrock
+   sim_funcs/surmise_test_function
 
-.. dropdown:: :underline:`noisy_vector_mapping.py`
 
-   .. literalinclude:: ../../libensemble/sim_funcs/noisy_vector_mapping.py
-      :language: python
-      :linenos:
+Functions that run user applications
+------------------------------------
 
-borehole
---------
-.. automodule:: borehole
-  :members:
-  :undoc-members:
+This use the executor to launch applications and in some cases
+handle dynamic CPU/GPU allocation.
 
-executor_hworld
----------------
-.. automodule:: executor_hworld
-  :members:
+The ``var_resources`` module contains basic examples, while the ``forces``
+examples use an MPI/OpenMP (with GPU offload option) application that is used
+to demonstrate libEnsemble’s capabilities on various HPC systems.
 
-.. dropdown:: :underline:`executor_hworld.py`
+.. toctree::
+   :maxdepth: 1
 
-   .. literalinclude:: ../../libensemble/sim_funcs/executor_hworld.py
-      :language: python
-      :linenos:
+   sim_funcs/var_resources
+   sim_funcs/forces_simf
+   sim_funcs/forces_simf_gpu
+   sim_funcs/forces_simf_gpu_vary_resources
+   sim_funcs/forces_simf_gpu_multi_app
+
+
+Special simulation functions
+----------------------------
+
+.. toctree::
+   :maxdepth: 1
+
+   sim_funcs/mock_sim
+
+
