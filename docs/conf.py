@@ -30,6 +30,7 @@ class Mock(MagicMock):
     def __getattr__(cls, name):
         return MagicMock()
 
+
 autodoc_mock_imports = ["ax", "balsam", "gpcam", "IPython", "matplotlib", "pandas", "scipy", "surmise"]
 
 MOCK_MODULES = [
@@ -49,8 +50,10 @@ MOCK_MODULES = [
 
 sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 
+
 class AxParameterWarning(Warning):  # Ensure it's a real warning subclass
     pass
+
 
 # Fix only `AxParameterWarning` while keeping `ax` mocked
 sys.modules["ax.exceptions.core"] = MagicMock()
@@ -225,9 +228,11 @@ html_theme_options = {
 html_static_path = ["_static"]
 # html_static_path = []
 
+
 def remove_noqa(app, what, name, obj, options, lines):
     for i, line in enumerate(lines):
-        lines[i] = line.replace("# noqa", "").strip()
+        lines[i] = line.replace("# noqa", "")
+
 
 def setup(app):
     app.add_css_file("my_theme.css")
