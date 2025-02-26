@@ -8,6 +8,7 @@ import numpy as np
 
 __all__ = ["rosenbrock_eval"]
 
+
 def EvaluateFunction(x, component=None):
     """
     Evaluates the chained Rosenbrock function
