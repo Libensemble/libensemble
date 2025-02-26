@@ -1,11 +1,18 @@
-Selected Examples
-=================
+Overview of Examples
+====================
 
-.. include:: ../introduction.rst
-    :start-after: example_packages
-    :end-before: libEnsemble has also been used to coordinate many computationally expensive
+Here we give example generation, simulation, and allocation functions for
+libEnsemble, as well as example calling scripts.
 
-.. include:: ../introduction.rst
-    :start-after:   - WarpX_ Advanced electromagnetic particle-in-cell code.
+The examples come from the libEnsemble repository and the `libEnsemble Community Repository`_.
+
+.. toctree::
+   :maxdepth: 2
+   :caption: libEnsemble Example Functions:
+
+   gen_funcs
+   sim_funcs
+   alloc_funcs
+   calling_scripts
 
 .. _libEnsemble Community Repository: https://github.com/Libensemble/libe-community-examples
