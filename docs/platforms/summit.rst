@@ -1,6 +1,6 @@
-======================
-Summit (Decomissioned)
-======================
+=======================
+Summit (Decommissioned)
+=======================
 
 Summit_ was an IBM AC922 system located at the Oak Ridge Leadership Computing
 Facility (OLCF). Each of the approximately 4,600 compute nodes on Summit contained two
