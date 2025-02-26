@@ -28,3 +28,9 @@ information about the respective systems and configuration.
     ..  literalinclude:: ../../examples/libE_submission_scripts/bebop_submit_slurm_distrib.sh
         :caption: /examples/libE_submission_scripts/bebop_submit_slurm_distrib.sh
         :language: bash
+
+.. dropdown:: Summit (Decomissioned) - On Launch Nodes with Multiprocessing
+
+    ..  literalinclude:: ../../examples/libE_submission_scripts/summit_submit_mproc.sh
+        :caption: /examples/libE_submission_scripts/summit_submit_mproc.sh
+        :language: bash

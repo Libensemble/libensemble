@@ -49,6 +49,10 @@ Further recommendations for selected HPC systems are given in the
 
             MPICC=mpiicc pip install mpi4py --no-binary mpi4py
 
+        On Summit, the following line is recommended (with gcc compilers)::
+
+            CC=mpicc MPICC=mpicc pip install mpi4py --no-binary mpi4py
+
     .. tab-item:: conda
 
         Install libEnsemble with Conda_ from the conda-forge channel::
@@ -111,6 +115,12 @@ Further recommendations for selected HPC systems are given in the
         The list of variants can be found by running::
 
             spack info py-libensemble
+
+        On some platforms you may wish to run libEnsemble without ``mpi4py``,
+        using a serial PETSc build. This is often preferable if running on
+        the launch nodes of a three-tier system (e.g., Summit)::
+
+            spack install py-libensemble +scipy +mpmath +petsc4py ^py-petsc4py~mpi ^petsc~mpi~hdf5~hypre~superlu-dist
 
         The installation will create modules for libEnsemble and the dependent
         packages. These can be loaded by running::

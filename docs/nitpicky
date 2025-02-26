@@ -46,7 +46,7 @@ py:class libensemble.resources.platforms.Perlmutter
 py:class libensemble.resources.platforms.PerlmutterCPU
 py:class libensemble.resources.platforms.PerlmutterGPU
 py:class libensemble.resources.platforms.Polaris
-py:class libensemble.resources.platforms.Sunspot
+py:class libensemble.resources.platforms.Summit
 py:class libensemble.resources.rset_resources.RSetResources
 py:class libensemble.resources.env_resources.EnvResources
 py:class libensemble.resources.resources.Resources
