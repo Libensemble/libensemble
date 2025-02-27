@@ -11,43 +11,43 @@ jobs:
             matrix:
                 os: [ubuntu-latest]
                 mpi-version: [mpich]
-                python-version: [3.9, "3.10", "3.11", "3.12"]
-                pydantic-version: ["2.8.2"]
+                python-version: ['3.10', '3.11', '3.12', '3.13']
+                pydantic-version: ['2.8.2']
                 comms-type: [m, l]
                 include:
                     - os: macos-latest
-                      python-version: 3.11
+                      python-version: '3.13'
                       mpi-version: mpich
-                      pydantic-version: "2.8.2"
+                      pydantic-version: '2.8.2'
                       comms-type: m
                     - os: macos-latest
-                      python-version: 3.11
+                      python-version: '3.13'
                       mpi-version: mpich
-                      pydantic-version: "2.8.2"
+                      pydantic-version: '2.8.2'
                       comms-type: l
                     - os: ubuntu-latest
-                      python-version: "3.10"
+                      python-version: '3.12'
                       mpi-version: mpich
-                      pydantic-version: "2.8.2"
+                      pydantic-version: '2.8.2'
                       comms-type: t
                     - os: ubuntu-latest
-                      mpi-version: "openmpi"
-                      pydantic-version: "2.8.2"
-                      python-version: "3.12"
+                      mpi-version: 'openmpi'
+                      pydantic-version: '2.8.2'
+                      python-version: '3.12'
                       comms-type: l
                     - os: ubuntu-latest
                       mpi-version: mpich
-                      python-version: "3.10"
-                      pydantic-version: "1.10.17"
+                      python-version: '3.12'
+                      pydantic-version: '1.10.17'
                       comms-type: m
                     - os: ubuntu-latest
                       mpi-version: mpich
-                      python-version: "3.10"
-                      pydantic-version: "1.10.17"
+                      python-version: '3.12'
+                      pydantic-version: '1.10.17'
                       comms-type: l
 
         env:
-            HYDRA_LAUNCHER: "fork"
+            HYDRA_LAUNCHER: 'fork'
             TERM: xterm-256color
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -61,7 +61,7 @@ jobs:
           uses: conda-incubator/setup-miniconda@v3
           with:
             activate-environment: condaenv
-            miniconda-version: "latest"
+            miniconda-version: 'latest'
             python-version: ${{ matrix.python-version }}
             channels: conda-forge
             channel-priority: flexible
@@ -75,8 +75,8 @@ jobs:
         - name: Install Ubuntu compilers
           if: matrix.os == 'ubuntu-latest'
           run: |
-              conda install gcc_linux-64
-              pip install nlopt==2.9.0
+            conda install gcc_linux-64
+            pip install nlopt==2.9.0
 
         # Roundabout solution on macos for proper linking with mpicc
         - name: Install macOS compilers
@@ -93,22 +93,22 @@ jobs:
           run: |
             conda env update --file install/gen_deps_environment.yml
 
-        - name: Install gpcam
-          if: matrix.python-version != '3.12'
+        - name: Install gpcam and octave # Neither yet support 3.13
+          if: matrix.python-version <= '3.12'
           run: |
             pip install gpcam
+            conda install octave
 
-        - name: Install surmise
+        - name: Install surmise and Tasmanian
           if: matrix.os == 'ubuntu-latest'
           run: |
             pip install --upgrade git+https://github.com/bandframework/surmise.git
+            pip install Tasmanian --user
 
         - name: Install generator dependencies for Ubuntu tests
-          if: matrix.os == 'ubuntu-latest' && matrix.python-version != '3.12'
+          if: matrix.os == 'ubuntu-latest' && matrix.python-version <= '3.12'
           run: |
-            sudo apt-get install bc
-            pip install -r install/ubuntu_no312.txt
-            pip install Tasmanian --user
+            pip install scikit-build packaging
 
         - name: Install Balsam on Pydantic 1
           if: matrix.pydantic-version == '1.10.17'
@@ -120,10 +120,10 @@ jobs:
 
         - name: Install other testing dependencies
           run: |
-            conda install octave
             pip install -r install/testing_requirements.txt
             pip install -r install/misc_feature_requirements.txt
             source install/install_ibcdfo.sh
+            conda install numpy scipy
 
         - name: Install libEnsemble, flake8, lock environment
           run: |
@@ -131,13 +131,12 @@ jobs:
             pip install -e .
             flake8 libensemble
 
-        - name: Remove test for persistent Tasmanian, Surmise on Python 3.12
-          if: matrix.python-version >= '3.12'
+        - name: Remove test using octave, gpcam on Python 3.13
+          if: matrix.python-version >= '3.13'
           run: |
-            rm ./libensemble/tests/regression_tests/test_persistent_tasmanian.py
-            rm ./libensemble/tests/regression_tests/test_persistent_tasmanian_async.py
-            rm ./libensemble/tests/regression_tests/test_persistent_surmise_calib.py
-            rm ./libensemble/tests/regression_tests/test_persistent_surmise_killsims.py
+            rm ./libensemble/tests/regression_tests/test_persistent_fd_param_finder.py # needs octave, which doesn't yet support 3.13
+            rm ./libensemble/tests/regression_tests/test_persistent_aposmm_external_localopt.py # needs octave, which doesn't yet support 3.13
+            rm ./libensemble/tests/regression_tests/test_gpCAM.py # needs gpcam, which doesn't build on 3.13
 
         - name: Install redis/proxystore on Pydantic 2
           if: matrix.pydantic-version == '2.8.2'
@@ -181,4 +180,4 @@ jobs:
         runs-on: ubuntu-latest
         steps:
         - uses: actions/checkout@v4
-        - uses: crate-ci/typos@v1.28.2
+        - uses: crate-ci/typos@v1.29.9

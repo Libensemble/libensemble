@@ -47,6 +47,3 @@ per-file-ignores =
         libensemble/tests/functionality_tests/test_active_persistent_worker_abort.py:E402
         libensemble/tests/unit_tests/test_persistent_aposmm.py:E402
         libensemble/tests/unit_tests/RENAME_test_persistent_aposmm.py:E402
-
-        # Allow undefined name '__version__'
-        setup.py:F821

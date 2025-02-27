@@ -21,11 +21,13 @@ class MPIRunner:
             "msmpi": MSMPI_MPIRunner,
             "custom": MPIRunner,
         }
-        mpi_runner = mpi_runners.get(mpi_runner_type, MPIRunner)
-        if runner_name is not None:
-            runner = mpi_runner(run_command=runner_name, platform_info=platform_info)
-        else:
-            runner = mpi_runner(platform_info=platform_info)
+        runner = None
+        if mpi_runner_type is not None:
+            mpi_runner = mpi_runners[mpi_runner_type]
+            if runner_name is not None:
+                runner = mpi_runner(run_command=runner_name, platform_info=platform_info)
+            else:
+                runner = mpi_runner(platform_info=platform_info)
         return runner
 
     def __init__(self, run_command="mpiexec", platform_info=None):
