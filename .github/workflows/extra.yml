@@ -38,12 +38,12 @@ jobs:
                     - os: ubuntu-latest
                       mpi-version: mpich
                       python-version: '3.12'
-                      pydantic-version: '1.10.17'
+                      pydantic-version: '1.10.21'
                       comms-type: m
                     - os: ubuntu-latest
                       mpi-version: mpich
                       python-version: '3.12'
-                      pydantic-version: '1.10.17'
+                      pydantic-version: '1.10.21'
                       comms-type: l
 
         env:
@@ -111,7 +111,7 @@ jobs:
             pip install scikit-build packaging
 
         - name: Install Balsam on Pydantic 1
-          if: matrix.pydantic-version == '1.10.17'
+          if: matrix.pydantic-version == '1.10.21'
           run: |
             conda install pyzmq
             git clone https://github.com/argonne-lcf/balsam.git
@@ -145,7 +145,7 @@ jobs:
             pip install proxystore==0.7.0
 
         - name: Remove proxystore test on Pydantic 1
-          if: matrix.pydantic-version == '1.10.17'
+          if: matrix.pydantic-version == '1.10.21'
           run: |
             rm ./libensemble/tests/regression_tests/test_proxystore_integration.py
 
