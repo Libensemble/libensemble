@@ -30,31 +30,18 @@ class Mock(MagicMock):
     def __getattr__(cls, name):
         return MagicMock()
 
+autodoc_mock_imports = ["ax", "balsam", "gpcam", "IPython", "matplotlib", "pandas", "scipy", "surmise"]
 
 MOCK_MODULES = [
     "argparse",
     "dfols",
-    "IPython",
-    "IPython.display",
-    "IPython.core",
-    "IPython.core.pylabtools",
     "math",
-    "matplotlib",
-    "matplotlib.pyplot",
     "mpi4py",
     "mpmath",
     "nlopt",
     "PETSc",
     "petsc4py",
     "psutil",
-    "scipy",
-    "scipy.io",
-    "scipy.sparse",
-    "scipy.spatial",
-    "scipy.spatial.distance",
-    "scipy.stats",
-    "surmise.calibration",
-    "surmise.emulation",
     "Tasmanian",
 ]
 
@@ -131,7 +118,6 @@ intersphinx_mapping = {
 
 autodoc_pydantic_model_show_json = False
 
-autodoc_mock_imports = ["balsam"]
 extlinks = {
     "duref": ("http://docutils.sourceforge.net/docs/ref/rst/" "restructuredtext.html#%s", ""),
     "durole": ("http://docutils.sourceforge.net/docs/ref/rst/" "roles.html#%s", ""),

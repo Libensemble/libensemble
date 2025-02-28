@@ -6,10 +6,10 @@ channels:
 dependencies:
   - pip
   - numpy>=2
-  - nlopt==2.7.1
   - scipy
   - superlu_dist
   - hypre
   - mumps-mpi
   - DFO-LS
   - mpmath
+  - ax-platform

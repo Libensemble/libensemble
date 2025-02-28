@@ -5,6 +5,7 @@ Unit test of libensemble log functions.
 """
 import logging
 import os
+import pytest
 
 from libensemble import logger
 from libensemble.comms.logs import LogConfig
@@ -14,6 +15,10 @@ def test_set_log_level():
     # Default
     level = logger.get_level()
     assert level == 20, "Log level should be 20. Found: " + str(level)
+
+    logger.set_level("VDEBUG")
+    level = logger.get_level()
+    assert level == 5, "Log level should be 5. Found: " + str(level)
 
     logger.set_level("DEBUG")
     level = logger.get_level()
@@ -53,8 +58,8 @@ def test_set_filename():
 
     assert os.path.isfile(alt_name), "Expected creation of file" + str(alt_name)
     with open(alt_name, "r") as f:
-        line = f.readline()
-        assert "Cannot set filename after loggers initialized" in line
+        file_content = f.read()
+        assert "Cannot set filename after loggers initialized" in file_content
     try:
         os.remove(alt_name)
     except PermissionError:  # windows only
@@ -80,6 +85,10 @@ def test_set_stderr_level():
     stderr_level = logger.get_stderr_level()
     assert stderr_level == 35, "Default stderr copying level is 35, found " + str(stderr_level)
 
+    logger.set_stderr_level("VDEBUG")
+    stderr_level = logger.get_stderr_level()
+    assert stderr_level == 5, "Log level should be 5. Found: " + str(stderr_level)
+
     logger.set_stderr_level("DEBUG")
     stderr_level = logger.get_stderr_level()
     assert stderr_level == 10, "Log level should be 10. Found: " + str(stderr_level)
@@ -100,9 +109,25 @@ def test_set_stderr_level():
     stderr_level = logger.get_stderr_level()
     assert stderr_level == 40, "Log level should be 40. Found: " + str(stderr_level)
 
-    logger.set_level("ERROR")
+
+def test_custom_log_levels():
+    from libensemble.comms.logs import manager_logging_config
+
+    manager_logging_config()
     logger_test = logging.getLogger("libensemble")
+    logger.set_level("ERROR")
     logger_test.manager_warning("This test message should not log")
+    logger.set_level("DEBUG")
+    logger_test.vdebug("This test message should not log")
+    logger.set_level("VDEBUG")
+    logger_test.manager_warning("This manager_warning message should log")
+    logger_test.vdebug("This vdebug message should log")
+
+    with open(LogConfig.config.filename, 'r') as f:
+        file_content = f.read()
+        assert "This manager_warning message should log" in file_content
+        assert "This vdebug message should log" in file_content
+        assert "This test message should not log" not in file_content
 
 
 # Need setup/teardown here to kill loggers if running file without pytest
@@ -110,7 +135,4 @@ def test_set_stderr_level():
 # Partial solution: either rename the file so it is the first unit test, or
 #   move this unit test to its own directory.
 if __name__ == "__main__":
-    test_set_log_level()
-    test_set_filename()
-    test_set_directory()
-    test_set_stderr_level()
+    pytest.main([__file__])
