@@ -47,6 +47,7 @@ to demonstrate libEnsemble’s capabilities on various HPC systems.
 
    sim_funcs/var_resources
    sim_funcs/forces_simf
+   sim_funcs/forces_simf_input_file
    sim_funcs/forces_simf_gpu
    sim_funcs/forces_simf_gpu_vary_resources
    sim_funcs/forces_simf_gpu_multi_app
