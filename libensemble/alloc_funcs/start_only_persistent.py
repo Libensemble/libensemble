@@ -25,23 +25,23 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info, l
 
     To be provided in calling script: E.g., ``alloc_specs["user"]["async_return"] = True``
 
-    ``init_sample_size`` Int, optional.
+    init_sample_size: int, optional
         Initial sample size - always return in batch. Default: 0
 
-    ``num_active_gens`` Int, optional.
+    num_active_gens: int, optional
         Maximum number of persistent generators to start. Default: 1
 
-    ``async_return`` Boolean, optional.
+    async_return: Boolean, optional
         Return results to gen as they come in (after sample). Default: False (batch return).
 
-    ``active_recv_gen`` Boolean, optional.
+    give_all_with_same_priority: Boolean, optional
+        If True, then all points with the same priority value are given as a batch to the sim.
+        Default is False
+
+    active_recv_gen: Boolean, optional
         Create gen in active receive mode. If True, the manager does not need to wait
         for a return from the generator before sending further returned points.
         Default: False
-
-    ``give_all_with_same_priority`` Boolean, optional.
-        If True, then all points with the same priority value are given as a batch to the sim.
-        Default is False
 
     tags: alloc, batch, async, persistent, priority
 
