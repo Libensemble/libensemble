@@ -35,12 +35,15 @@ Simple simulation functions
 Functions that run user applications
 ------------------------------------
 
-This use the executor to launch applications and in some cases
+These use the executor to launch applications and in some cases
 handle dynamic CPU/GPU allocation.
 
 The ``var_resources`` module contains basic examples, while the ``forces``
 examples use an MPI/OpenMP (with GPU offload option) application that is used
 to demonstrate libEnsemble’s capabilities on various HPC systems.
+
+The build_forces.sh_ file gives compile lines for building the forces application
+on various platforms (use -DGPU to build for GPU).
 
 .. toctree::
    :maxdepth: 1
@@ -61,4 +64,4 @@ Special simulation functions
 
    sim_funcs/mock_sim
 
-
+.. _build_forces.sh: https://github.com/Libensemble/libensemble/blob/main/libensemble/tests/scaling_tests/forces/forces_app/build_forces.sh
