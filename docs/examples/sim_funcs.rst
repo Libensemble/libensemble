@@ -40,9 +40,8 @@ handle dynamic CPU/GPU allocation.
 
 The ``var_resources`` module contains basic examples, while the ``forces``
 examples use an MPI/OpenMP (with GPU offload option) application that is used
-to demonstrate libEnsemble’s capabilities on various HPC systems.
-
-The build_forces.sh_ file gives compile lines for building the forces application
+to demonstrate libEnsemble’s capabilities on various HPC systems. The
+build_forces.sh_ file gives compile lines for building the forces application
 on various platforms (use -DGPU to build for GPU).
 
 .. toctree::
