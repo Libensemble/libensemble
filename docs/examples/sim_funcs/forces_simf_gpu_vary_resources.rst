@@ -9,11 +9,10 @@ Forces (GPU) dynamic resources
    :undoc-members:
 
 .. dropdown:: :underline:`forces_simf.py`
- 
+
    .. literalinclude:: ../../../libensemble/tests/scaling_tests/forces/forces_gpu_var_resources/forces_simf.py
       :language: python
       :linenos:
-
 
 .. dropdown:: :underline:`Example usage`
 

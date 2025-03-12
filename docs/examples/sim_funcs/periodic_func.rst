@@ -8,7 +8,6 @@ periodic_func
    :undoc-members:
 
 .. dropdown:: :underline:`periodic_func.py`
- 
 
    .. literalinclude:: ../../../libensemble/sim_funcs/periodic_func.py
       :language: python

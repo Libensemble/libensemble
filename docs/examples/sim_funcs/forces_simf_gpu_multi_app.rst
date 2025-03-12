@@ -17,7 +17,7 @@ For a realistic use-case see https://journals.aps.org/prab/abstract/10.1103/Phys
    :undoc-members:
 
 .. dropdown:: :underline:`forces_simf.py`
- 
+
    .. literalinclude:: ../../../libensemble/tests/scaling_tests/forces/forces_multi_app/forces_simf.py
       :language: python
       :linenos:

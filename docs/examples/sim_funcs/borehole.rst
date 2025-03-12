@@ -8,8 +8,6 @@ borehole
    :undoc-members:
 
 .. dropdown:: :underline:`borehole.py`
- 
-
 
    .. literalinclude:: ../../../libensemble/sim_funcs/borehole.py
       :language: python

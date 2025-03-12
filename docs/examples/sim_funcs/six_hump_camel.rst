@@ -8,7 +8,6 @@ six_hump_camel
    :undoc-members:
 
 .. dropdown:: :underline:`six_hump_camel.py`
- 
 
    .. literalinclude:: ../../../libensemble/sim_funcs/six_hump_camel.py
       :language: python

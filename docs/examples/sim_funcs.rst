@@ -13,7 +13,6 @@ function launching tasks, see the
 .. role:: underline
     :class: underline
 
-
 Simple simulation functions
 ---------------------------
 
@@ -30,7 +29,6 @@ Simple simulation functions
    sim_funcs/periodic_func
    sim_funcs/rosenbrock
    sim_funcs/surmise_test_function
-
 
 Functions that run user applications
 ------------------------------------
@@ -53,7 +51,6 @@ on various platforms (use -DGPU to build for GPU).
    sim_funcs/forces_simf_gpu
    sim_funcs/forces_simf_gpu_vary_resources
    sim_funcs/forces_simf_gpu_multi_app
-
 
 Special simulation functions
 ----------------------------

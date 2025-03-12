@@ -9,7 +9,6 @@ mock_sim (re-run using history file)
    :undoc-members:
 
 .. dropdown:: :underline:`mock_sim.py`
- 
 
    .. literalinclude:: ../../../libensemble/sim_funcs/mock_sim.py
       :language: python

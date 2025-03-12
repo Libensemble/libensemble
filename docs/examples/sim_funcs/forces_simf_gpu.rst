@@ -9,7 +9,7 @@ Forces (GPU)
    :undoc-members:
 
 .. dropdown:: :underline:`forces_simf.py`
- 
+
    .. literalinclude:: ../../../libensemble/tests/scaling_tests/forces/forces_gpu/forces_simf.py
       :language: python
       :linenos:

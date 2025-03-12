@@ -8,7 +8,6 @@ var_resources
    :undoc-members:
 
 .. dropdown:: :underline:`var_resources.py`
- 
 
    .. literalinclude:: ../../../libensemble/sim_funcs/var_resources.py
       :language: python

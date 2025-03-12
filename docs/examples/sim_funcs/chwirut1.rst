@@ -8,7 +8,6 @@ chwirut1
    :undoc-members:
 
 .. dropdown:: :underline:`chwirut1.py`
- 
 
    .. literalinclude:: ../../../libensemble/sim_funcs/chwirut1.py
       :language: python

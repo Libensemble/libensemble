@@ -20,7 +20,7 @@ Sampling
 
 - :doc:`Basic sampling<sampling>`
 
-  Various generators for sampling a space. The non-persistent function is called as needed. 
+  Various generators for sampling a space. The non-persistent function is called as needed.
 
 - :doc:`Persistent sampling<persistent_sampling>`
 
@@ -104,8 +104,6 @@ Modeling and Approximation
 
   Evaluates points generators by the Tasmanian_ sparse grid library
 
-
-
 .. _libEnsemble Community Repository: https://github.com/Libensemble/libe-community-examples
 
 .. _APOSMM: https://link.springer.com/article/10.1007/s12532-017-0131-4
@@ -124,5 +122,3 @@ Modeling and Approximation
 .. _VTMOP: https://github.com/Libensemble/libe-community-examples#vtmop
 .. _WarpX: https://warpx.readthedocs.io/en/latest/
 .. _ytopt: https://github.com/ytopt-team/ytopt
-
-

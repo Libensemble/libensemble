@@ -8,7 +8,6 @@ simple_sim
    :undoc-members:
 
 .. dropdown:: :underline:`simple_sim.py`
- 
 
    .. literalinclude:: ../../../libensemble/sim_funcs/simple_sim.py
       :language: python

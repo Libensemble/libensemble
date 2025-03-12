@@ -9,7 +9,7 @@ Forces (CPU)
    :undoc-members:
 
 .. dropdown:: :underline:`forces_simf.py`
- 
+
    .. literalinclude:: ../../../libensemble/tests/scaling_tests/forces/forces_simple/forces_simf.py
       :language: python
       :linenos:

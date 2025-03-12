@@ -8,8 +8,6 @@ borehole_kills
    :undoc-members:
 
 .. dropdown:: :underline:`borehole_kills.py`
- 
-
 
    .. literalinclude:: ../../../libensemble/sim_funcs/borehole_kills.py
       :language: python
