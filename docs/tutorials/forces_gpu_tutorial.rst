@@ -154,6 +154,7 @@ and use this information however you want.
             output = np.zeros(1, dtype=sim_specs["out"])
             output["energy"][0] = final_energy
 
+
         return output
 
     The above code will assign a GPU to each worker on CUDA-capable systems,
