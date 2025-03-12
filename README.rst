@@ -10,8 +10,8 @@
 libEnsemble: A complete toolkit for dynamic ensembles of calculations
 =====================================================================
 
-libEnsemble empowers model-driven ensembles on the world's leading supercomputers
-including Frontier, Aurora, and Perlmutter.
+libEnsemble empowers model-driven ensembles to solve design, decision,
+and inference problems on the world's leading supercomputers such as Frontier, Aurora, and Perlmutter.
 
 • **Dynamic ensembles**: Generate parallel tasks on-the-fly based on previous computations.
 • **Extreme portability and scaling**: Run on or across laptops, clusters, and leadership-class machines.
@@ -19,8 +19,6 @@ including Frontier, Aurora, and Perlmutter.
 • **Application monitoring**: Ensemble members can run, monitor, and cancel apps.
 • **Data-flow between tasks**: Running ensemble members can send and receive data.
 • **Low start-up cost**: No additional background services or processes required.
-
-libEnsemble is effective at solving design, decision, and inference problems on parallel resources.
 
 `Quickstart`_
 
