@@ -1,5 +1,5 @@
-Forces (CPU)
-------------
+Template for CPU executables
+----------------------------
 
 .. role:: underline
    :class: underline

@@ -1,5 +1,5 @@
-Forces (GPU) dynamic resources
-------------------------------
+Template for GPU executables with dynamic resources
+---------------------------------------------------
 
 .. role:: underline
    :class: underline

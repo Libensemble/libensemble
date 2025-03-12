@@ -1,5 +1,5 @@
-Forces (GPU)
-------------
+Template for GPU executables 
+----------------------------
 
 .. role:: underline
    :class: underline

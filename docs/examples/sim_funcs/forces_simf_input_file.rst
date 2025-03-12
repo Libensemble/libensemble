@@ -1,5 +1,5 @@
-Forces (CPU) with input file
-----------------------------
+Template for CPU executables with input file
+--------------------------------------------
 
 .. role:: underline
    :class: underline

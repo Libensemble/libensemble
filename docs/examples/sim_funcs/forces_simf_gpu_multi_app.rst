@@ -1,5 +1,5 @@
-Forces with dynamic resources (CPU app and GPU app)
----------------------------------------------------
+Template with dynamic resources (CPU app and GPU app)
+-----------------------------------------------------
 
 .. role:: underline
    :class: underline
