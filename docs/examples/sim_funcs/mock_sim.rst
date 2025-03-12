@@ -1,5 +1,5 @@
-mock_sim (re-run using history file)
-------------------------------------
+Mock simulation evaluations (re-run using history file)
+-------------------------------------------------------
 
 .. role:: underline
    :class: underline
