@@ -19,14 +19,14 @@ information about the respective systems and configuration.
 
 .. dropdown:: Bebop - Central Mode
 
-    ..  literalinclude:: ../../examples/libE_submission_scripts/bebop_submit_pbs_central.sh
-        :caption: /examples/libE_submission_scripts/bebop_submit_pbs_central.sh
+    ..  literalinclude:: ../../examples/libE_submission_scripts/bebop_submit_slurm_central.sh
+        :caption: /examples/libE_submission_scripts/bebop_submit_slurm_central.sh
         :language: bash
 
 .. dropdown:: Bebop - Distributed Mode
 
-    ..  literalinclude:: ../../examples/libE_submission_scripts/bebop_submit_slurm_distrib.sh
-        :caption: /examples/libE_submission_scripts/bebop_submit_slurm_distrib.sh
+    ..  literalinclude:: ../../examples/libE_submission_scripts/bebop_submit_pbs_distrib.sh
+        :caption: /examples/libE_submission_scripts/bebop_submit_pbs_distrib.sh
         :language: bash
 
 .. dropdown:: Summit - On Launch Nodes with Multiprocessing

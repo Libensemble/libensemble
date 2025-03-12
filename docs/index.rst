@@ -30,7 +30,6 @@
    :maxdepth: 1
    :caption: Examples:
 
-   examples/examples_index
    examples/gen_funcs
    examples/sim_funcs
    examples/alloc_funcs
