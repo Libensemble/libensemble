@@ -55,13 +55,13 @@ Optimization
 
   Bayesian optimization with a Gaussian process driven by an Ax_ multi-task algorithm.
 
-- :ref:`Distributed optimization<community:consensus-link>`
-
-  Distributed optimization methods for minimizing sums of convex functions. (*community example*)
-
 - :ref:`DEAP-NSGA-II<community:deap-link>`
 
   Distributed evolutionary algorithms (*community example*)
+
+- :ref:`Distributed optimization<community:consensus-link>`
+
+  Distributed optimization methods for minimizing sums of convex functions. (*community example*)
 
 - :doc:`uniform_or_localopt<uniform_or_localopt>`
 
@@ -73,7 +73,7 @@ Optimization
 
 - :ref:`ytopt<community:ytopt-link>`
 
-  Bayesian Optimization package for determining optimal input parameter configurations for applications or other executables using ytopt_. (*community example*)
+  Bayesian Optimization package for determining optimal input parameter configurations for applications/executables using ytopt_. (*community example*)
 
 Modeling and Approximation
 --------------------------
@@ -90,7 +90,7 @@ Modeling and Approximation
 
 - :doc:`Finite-difference parameter finder<fd_param_finder>`
 
-  Uses ECNoise_ to determine a suitable finite difference parameters and a for a mapping ``F`` from ``R^n`` to ``R^m``.
+  Uses ECNoise_ to determine a suitable finite difference parameters for a mapping ``F`` from ``R^n`` to ``R^m``.
 
 - :doc:`gpCAM<gpcam>`
 
