@@ -9,12 +9,13 @@ of each file type present will be used for the plot.
 
 """
 
-import numpy as np
-import matplotlib.pyplot as plt
 import glob
 import os
 import pickle
 import sys
+
+import matplotlib.pyplot as plt
+import numpy as np
 
 N = 6  # number of opt runs to show.
 
