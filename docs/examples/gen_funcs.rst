@@ -6,7 +6,6 @@ Here we list many generator functions included with libEnsemble.
 .. IMPORTANT::
   See the API for generator functions :ref:`here<api_gen_f>`.
 
-
 Sampling
 --------
 
@@ -19,19 +18,18 @@ Sampling
   persistent_sampling
   persistent_sampling_var_resources
 
-- :doc:`sampling<sampling>`
+- :doc:`Basic sampling<sampling>`
 
-  Various generators for sampling a space. Function runs once each call.
+  Various generators for sampling a space. The non-persistent function is called as needed. 
 
-- :doc:`persistent sampling<persistent_sampling>`
+- :doc:`Persistent sampling<persistent_sampling>`
 
   Various persistent generators (persists on a worker) for sampling a space. After the initial
-  batch each generator creates N new random points for every N points that are returned.
+  batch each generator creates ``p`` new random points for every ``p`` points that are returned.
 
-- :doc:`persistent sampling with variable resources<persistent_sampling_var_resources>`
+- :doc:`Persistent sampling with variable resources<persistent_sampling_var_resources>`
 
   Various persistent sampling generators that assign different resources to each simulation.
-
 
 Optimization
 ------------
@@ -47,34 +45,35 @@ Optimization
   VTMOP<https://libensemble.readthedocs.io/projects/libe-community-examples/en/latest/#module-vtmop>
   ytopt<https://libensemble.readthedocs.io/projects/libe-community-examples/en/latest/#module-ytopt_heffte.ytopt_asktell>
   consensus<https://libensemble.readthedocs.io/projects/libe-community-examples/en/latest/#module-consensus>
-..   Ax<https://libensemble.readthedocs.io/projects/libe-community-examples/en/latest/#module-persistent_ax_multitask>
-..   Dragonfly<https://libensemble.readthedocs.io/projects/libe-community-examples/en/latest/#module-persistent_gp>
+  DEAP-NSGA-II<https://libensemble.readthedocs.io/projects/libe-community-examples/en/latest/#persistent-deap-nsga2>
 
 - :doc:`APOSMM<aposmm>`
 
-  Asynchronously Parallel Optimization Solver for finding Multiple Minima (APOSMM_) coordinates
-  concurrent local optimization runs to identify many local minima faster on parallel hardware.
-
-- :doc:`uniform_or_localopt<uniform_or_localopt>`
-
-  Samples uniformly in non-persistent mode or runs an NLopt_ local optimization run in persistent mode.
+  Asynchronously Parallel Optimization Solver for finding Multiple Minima (APOSMM_).
 
 - :doc:`Ax Multitask<ax_multitask>`
 
-  Bayesian optimization with a Gaussian process and the multi-task algorithm of Ax_.
+  Bayesian optimization with a Gaussian process driven by an Ax_ multi-task algorithm.
+
+- :ref:`Distributed optimization<community:consensus-link>`
+
+  Distributed optimization methods for minimizing sums of convex functions. (*community example*)
+
+- :ref:`DEAP-NSGA-II<community:deap-link>`
+
+  Distributed evolutionary algorithms (*community example*)
+
+- :doc:`uniform_or_localopt<uniform_or_localopt>`
+
+  Samples uniformly in non-persistent mode then runs an NLopt_ local optimization runs in persistent mode.
 
 - :ref:`VTMOP<community:vtmop-link>`
 
-  Generators using the VTMOP_ Fortran package for large-scale multiobjective multidisciplinary design optimization. (*community example*)
+  Multiobjective multidisciplinary design optimization using the VTMOP_ Fortran package. (*community example*)
 
 - :ref:`ytopt<community:ytopt-link>`
 
-  Generators using ytopt_. A Bayesian Optimization package for determining optimal input parameter configurations for applications or other executables. (*community example*)
-
-- :ref:`Consensus<community:consensus-link>`
-
-  Distributed optimization methods for minimizing sums of convex functions (*community example*).
-
+  Bayesian Optimization package for determining optimal input parameter configurations for applications or other executables using ytopt_. (*community example*)
 
 Modeling and Approximation
 --------------------------
@@ -88,30 +87,23 @@ Modeling and Approximation
   tasmanian
   fd_param_finder
   surmise
-  DEAP-NSGA-II<https://libensemble.readthedocs.io/projects/libe-community-examples/en/latest/#persistent-deap-nsga2>
+
+- :doc:`Finite-difference parameter finder<fd_param_finder>`
+
+  Uses ECNoise_ to determine a suitable finite difference parameters and a for a mapping ``F`` from ``R^n`` to ``R^m``.
 
 - :doc:`gpCAM<gpcam>`
 
-  Generators for Gaussian Process-based adaptive sampling using gpcam_.
-
-- :doc:`Tasmanian<tasmanian>`
-
-  Generators using the Tasmanian_ sparse grid library
-  (*Toolkit for Adaptive Stochastic Modeling and Non-Intrusive ApproximatioN*).
-
-- :doc:`fd_param_finder<fd_param_finder>`
-
-  Generator that loops through a set of suitable finite difference
-  parameters for a mapping ``F`` from ``R^n`` to ``R^m``.
+  Gaussian Process-based adaptive sampling using gpcam_.
 
 - :doc:`surmise<surmise>`
 
-  Modular Bayesian calibration/inference framework using Surmise_.
-  Has the option of cancelling previous issued simulations.
+  Modular Bayesian calibration/inference framework using Surmise_ (demonstration of cancelling previous issued simulations).
 
-- :ref:`DEAP-NSGA-II<community:deap-link>`
+- :doc:`Tasmanian<tasmanian>`
 
-  Distributed evolutionary algorithms (*community example*)
+  Evaluates points generators by the Tasmanian_ sparse grid library
+
 
 
 .. _libEnsemble Community Repository: https://github.com/Libensemble/libe-community-examples
@@ -123,7 +115,6 @@ Modeling and Approximation
 .. _DFO-LS: https://github.com/numericalalgorithmsgroup/dfols
 .. _ECNoise: https://www.mcs.anl.gov/~wild/cnoise/
 .. _gpcam: https://gpcam.lbl.gov/
-.. .. _heFFTe: https://github.com/icl-utk-edu/heffte
 .. _IPAC manuscript: https://doi.org/10.18429/JACoW-ICAP2018-SAPAF03
 .. _NLopt: https://nlopt.readthedocs.io/en/latest/
 .. _OPAL: http://amas.web.psi.ch/docs/opal/opal_user_guide-1.6.0.pdf
