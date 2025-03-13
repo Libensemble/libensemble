@@ -6,6 +6,7 @@ This module detects and returns system resources
 import logging
 import os
 import socket
+import warnings
 
 from libensemble.resources import node_resources
 from libensemble.resources.env_resources import EnvResources
@@ -166,6 +167,13 @@ class GlobalResources:
         self.top_level_dir = top_level_dir
         self.dedicated_mode = libE_specs.get("dedicated_mode", False)
         self.zero_resource_workers = libE_specs.get("zero_resource_workers", [])
+        if len(self.zero_resource_workers):
+            warnings.warn(
+                "libE_specs.zero_resource_workers is deprecated, to be removed in v2.0."
+                + "Set libE_specs.gen_workers instead for generator-workers that require no resources.",
+                DeprecationWarning,
+                2,
+            )
         self.num_resource_sets = libE_specs.get("num_resource_sets", None)
         self.enforce_worker_core_bounds = libE_specs.get("enforce_worker_core_bounds", False)
         self.gpus_per_group = libE_specs.get("gpus_per_group")

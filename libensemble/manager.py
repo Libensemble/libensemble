@@ -12,6 +12,7 @@ import socket
 import sys
 import time
 import traceback
+import warnings
 from typing import Any, Union
 
 import numpy as np
@@ -204,6 +205,7 @@ class Manager:
         timer.start()
         self.date_start = timer.date_start.replace(" ", "_")
         self.safe_mode = libE_specs.get("safe_mode")
+
         self.kill_canceled_sims = libE_specs.get("kill_canceled_sims")
         self.hist = hist
         self.hist.safe_mode = self.safe_mode
@@ -221,6 +223,12 @@ class Manager:
         dyn_keys = ("resource_sets", "num_procs", "num_gpus")
         dyn_keys_in_H = any(k in self.hist.H.dtype.names for k in dyn_keys)
         self.use_resource_sets = dyn_keys_in_H or self.libE_specs.get("num_resource_sets")
+        if self.libE_specs.get("num_resource_sets", 0):
+            warnings.warn(
+                "Direct specification of number of resource sets is deprecated, to be removed in v2.0. "
+                + "From v2.0 onward, generators should specify `num_procs` or `num_gpus` instead.",
+                DeprecationWarning,
+            )
         self.gen_num_procs = libE_specs.get("gen_num_procs", 0)
         self.gen_num_gpus = libE_specs.get("gen_num_gpus", 0)
 
@@ -483,8 +491,18 @@ class Manager:
             final_data = D_recv.get("calc_out", None)
             if isinstance(final_data, np.ndarray):
                 if calc_status is FINISHED_PERSISTENT_GEN_TAG and self.libE_specs.get("use_persis_return_gen", False):
+                    warnings.warn(
+                        "LibeSpecs.use_persis_return_gen is deprecated, to be removed in v2.0. From v2.0 onward, "
+                        + "libEnsemble will honor all data returned on completion of a persistent generator.",
+                        DeprecationWarning,
+                    )
                     self.hist.update_history_x_in(w, final_data, self.W[w]["gen_started_time"])
                 elif calc_status is FINISHED_PERSISTENT_SIM_TAG and self.libE_specs.get("use_persis_return_sim", False):
+                    warnings.warn(
+                        "LibeSpecs.use_persis_return_sim is deprecated, to be removed in v2.0. From v2.0 onward, "
+                        + " libEnsemble will honor all data returned on completion of a persistent simulator function.",
+                        DeprecationWarning,
+                    )
                     self.hist.update_history_f(D_recv, self.kill_canceled_sims)
                 else:
                     logger.info(_PERSIS_RETURN_WARNING)
@@ -577,6 +595,12 @@ class Manager:
             for w in self.W["worker_id"][self.W["persis_state"] > 0]:
                 logger.debug(f"Manager sending PERSIS_STOP to worker {w}")
                 if self.libE_specs.get("final_gen_send", False):
+                    warnings.warn(
+                        "LibeSpecs.final_gen_send is deprecated, to be removed in v2.0. From v2.0 onward, "
+                        + "upon a workflow completing, libEnsemble will automatically send any outstanding "
+                        + "finished simulations to the generator.",
+                        DeprecationWarning,
+                    )
                     rows_to_send = np.where(self.hist.H["sim_ended"] & ~self.hist.H["gen_informed"])[0]
                     work = {
                         "H_fields": self.gen_specs["persis_in"],

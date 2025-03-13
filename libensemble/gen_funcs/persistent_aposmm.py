@@ -9,6 +9,7 @@ Larson in the summer of 2019.
 
 __all__ = ["aposmm", "initialize_APOSMM", "decide_where_to_start_localopt", "update_history_dist"]
 
+import warnings
 from math import log, pi, sqrt
 
 import numpy as np
@@ -163,6 +164,11 @@ def aposmm(H, persis_info, gen_specs, libE_info):
     """
 
     try:
+        warnings.warn(
+            "Use of persistent_aposmm as a persistent generator function is deprecated. "
+            + "From libEnsemble v2.0 onward, use the libensemble.gen_classes.aposmm ask/tell generator. See the docs for more information.",
+            FutureWarning,
+        )
         user_specs = gen_specs["user"]
         ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
         n, n_s, rk_const, ld, mu, nu, comm, local_H = initialize_APOSMM(H, user_specs, libE_info)

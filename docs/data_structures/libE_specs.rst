@@ -195,6 +195,10 @@ libEnsemble is primarily customized by setting options within a ``LibeSpecs`` cl
                     a local Python path, calling script, and manager/server format-fields for ``manager_ip``,
                     ``manager_port``, ``authkey``, and ``workerID``. ``nworkers`` is specified normally.
 
+                **worker_launcher** [Callable]:
+                    TCP Only: Worker launcher function. Accepts ``libE_specs``. An alternative to
+                    ``worker_cmd`` for initiating workers via third-party launchers.
+
         .. tab-item:: History
 
                 **save_every_k_sims** [int]:
