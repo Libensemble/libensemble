@@ -580,7 +580,7 @@ class Manager:
                     rows_to_send = np.where(self.hist.H["sim_ended"] & ~self.hist.H["gen_informed"])[0]
                     work = {
                         "H_fields": self.gen_specs["persis_in"],
-                        "persis_info": persis_info[w],
+                        "persis_info": persis_info.get(w),
                         "tag": PERSIS_STOP,
                         "libE_info": {"persistent": True, "H_rows": rows_to_send},
                     }
