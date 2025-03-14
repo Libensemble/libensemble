@@ -48,15 +48,14 @@ def persistent_uniform(_, persis_info, gen_specs, libE_info):
     ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
 
     # Send batches until manager sends stop tag
-    tag = None
-    while tag not in [STOP_TAG, PERSIS_STOP]:
+    while not ps.instructed_to_exit():
         H_o = np.zeros(b, dtype=gen_specs["out"])
         H_o["x"] = persis_info["rand_stream"].uniform(lb, ub, (b, n))
         if "obj_component" in H_o.dtype.fields:
             H_o["obj_component"] = persis_info["rand_stream"].integers(
                 low=0, high=gen_specs["user"]["num_components"], size=b
             )
-        tag, Work, calc_in = ps.send_recv(H_o)
+        calc_in = ps.send_recv(H_o)
         if hasattr(calc_in, "__len__"):
             b = len(calc_in)
 
@@ -229,14 +228,13 @@ def batched_history_matching(_, persis_info, gen_specs, libE_info):
 
     mu = np.zeros(n)
     Sigma = np.eye(n)
-    tag = None
 
-    while tag not in [STOP_TAG, PERSIS_STOP]:
+    while not ps.instructed_to_exit():
         H_o = np.zeros(b, dtype=gen_specs["out"])
         H_o["x"] = persis_info["rand_stream"].multivariate_normal(mu, Sigma, b)
 
         # Send data and get next assignment
-        tag, Work, calc_in = ps.send_recv(H_o)
+        calc_in = ps.send_recv(H_o)
         if calc_in is not None:
             all_inds = np.argsort(calc_in["f"])
             best_inds = all_inds[:q]

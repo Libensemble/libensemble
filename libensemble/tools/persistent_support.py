@@ -28,6 +28,7 @@ class PersistentSupport:
             EVAL_SIM_TAG,
         ], f"The calc_type: {self.calc_type} specifies neither a simulator nor generator."
         self.calc_str = calc_type_strings[self.calc_type]
+        self.tag = None
 
     def send(self, output: npt.NDArray, calc_status: int = UNSET_TAG, keep_state=False) -> None:
         """
@@ -79,7 +80,8 @@ class PersistentSupport:
             logger.debug(f"Persistent {self.calc_str} received signal {tag} from manager")
             if not isinstance(Work, dict):
                 self.comm.push_to_buffer(tag, Work)
-                return tag, Work, None
+                self.tag = tag
+                return None
         else:
             logger.debug(f"Persistent {self.calc_str} received work request from manager")
 
@@ -100,7 +102,9 @@ class PersistentSupport:
             return data_tag, calc_in, None  # calc_in is signal identifier
 
         logger.debug(f"Persistent {self.calc_str} received work rows from manager")
-        return tag, Work, calc_in
+        self.rows = Work["libE_info"]["H_rows"]
+        self.tag = tag
+        return calc_in
 
     def send_recv(self, output: npt.NDArray, calc_status: int = UNSET_TAG) -> (int, dict, npt.NDArray):
         """
@@ -114,6 +118,9 @@ class PersistentSupport:
         """
         self.send(output, calc_status)
         return self.recv()
+
+    def instructed_to_exit(self) -> bool:
+        return self.tag in [STOP_TAG, PERSIS_STOP]
 
     def request_cancel_sim_ids(self, sim_ids: List[int]):
         """Request cancellation of sim_ids.
