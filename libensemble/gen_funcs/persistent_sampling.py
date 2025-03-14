@@ -44,19 +44,22 @@ def persistent_uniform(_, persis_info, gen_specs, libE_info):
         `test_persistent_uniform_sampling_async.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_persistent_uniform_sampling_async.py>`_
     """  # noqa
 
+    from libensemble.array import Array
+
     b, n, lb, ub = _get_user_params(gen_specs["user"])
     ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
 
     # Send batches until manager sends stop tag
     tag = None
+    H_o = Array(b, gen_specs)
     while tag not in [STOP_TAG, PERSIS_STOP]:
-        H_o = np.zeros(b, dtype=gen_specs["out"])
+        H_o.reset()
         H_o["x"] = persis_info["rand_stream"].uniform(lb, ub, (b, n))
-        if "obj_component" in H_o.dtype.fields:
+        if "obj_component" in H_o.fields:
             H_o["obj_component"] = persis_info["rand_stream"].integers(
                 low=0, high=gen_specs["user"]["num_components"], size=b
             )
-        tag, Work, calc_in = ps.send_recv(H_o)
+        tag, Work, calc_in = ps.send_recv(H_o.data)
         if hasattr(calc_in, "__len__"):
             b = len(calc_in)
 
