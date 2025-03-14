@@ -5,10 +5,41 @@ Below are example submission scripts used to configure and launch libEnsemble
 on a variety of high-powered systems. See :doc:`here<platforms_index>` for more
 information about the respective systems and configuration.
 
+General examples
+----------------
+
 .. dropdown:: Slurm - Basic
 
     ..  literalinclude:: ../../examples/libE_submission_scripts/submit_slurm_simple.sh
         :caption: /examples/libE_submission_scripts/submit_slurm_simple.sh
+        :language: bash
+
+.. dropdown:: PBS - Basic
+
+    ..  literalinclude:: ../../examples/libE_submission_scripts/submit_pbs_simple.sh
+        :caption: /examples/libE_submission_scripts/submit_pbs_simple.sh
+        :language: bash
+
+.. dropdown:: LSF - Basic
+
+    ..  literalinclude:: ../../examples/libE_submission_scripts/submit_lsf_simple.sh
+        :caption: /examples/libE_submission_scripts/submit_lsf_simple.sh
+        :language: bash
+
+
+System Examples
+---------------
+
+.. dropdown:: Aurora
+
+    ..  literalinclude:: ../../examples/libE_submission_scripts/submit_pbs_aurora.sh
+        :caption: /examples/libE_submission_scripts/submit_pbs_aurora.sh
+        :language: bash
+
+.. dropdown:: Polaris
+
+    ..  literalinclude:: ../../examples/libE_submission_scripts/submit_pbs_polaris.sh
+        :caption: /examples/libE_submission_scripts/submit_pbs_polaris.sh
         :language: bash
 
 .. dropdown:: Bridges - Central Mode
