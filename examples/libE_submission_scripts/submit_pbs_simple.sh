@@ -7,4 +7,4 @@
 # We selected 2 nodes - now running with 8 workers.
 export MPICH_GPU_SUPPORT_ENABLED=1
 cd $PBS_O_WORKDIR
-python run_libe_forces.py --comms local --nworkers 8
+python libE_calling_script.py -n 8

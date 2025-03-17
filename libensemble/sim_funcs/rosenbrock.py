@@ -1,9 +1,12 @@
-""" Sim function for Rosenbrock function. We include a @const input to the
-    gradient, and not the function evaluation, to scale down the gradient
-    so the Lipschitz and smoothness term is reduced.
+"""
+Sim function for Rosenbrock function. We include a @const input to the
+gradient, and not the function evaluation, to scale down the gradient
+so the Lipschitz and smoothness term is reduced.
 """
 
 import numpy as np
+
+__all__ = ["rosenbrock_eval"]
 
 
 def EvaluateFunction(x, component=None):
@@ -12,10 +15,15 @@ def EvaluateFunction(x, component=None):
 
     Parameters
     ----------
-    x : np.ndarray
-        - input vector
-    component : int
-        - index
+    x : :class:`numpy.ndarray`
+        Input vector
+    component : int, optional
+        Index of the function component
+
+    Returns
+    -------
+    float
+        Evaluated function value
     """
 
     assert len(x) % 2 == 0, "Length of input vector must be even"
@@ -42,12 +50,17 @@ def EvaluateJacobian(x, component, const):
 
     Parameters
     ----------
-    x : np.ndarray
-        - input vector
+    x : :class:`numpy.ndarray`
+        Input vector
     component : int
-        - index
+        Index of the function component
     const : float
-        - term to scale gradient by
+        Term to scale gradient by
+
+    Returns
+    -------
+    :class:`numpy.ndarray`
+        Jacobian of the function
     """
 
     assert len(x) % 2 == 0, print("must be even lengthed input vector")
@@ -71,6 +84,25 @@ def EvaluateJacobian(x, component, const):
 
 
 def rosenbrock_eval(H, persis_info, sim_specs, _):
+    """
+    Evaluates the Rosenbrock function and its gradient
+
+    Parameters
+    ----------
+    H : dict
+        Dictionary containing input points
+    persis_info : dict
+        Persistent state information
+    sim_specs : dict
+        Simulation specifications
+
+    Returns
+    -------
+    tuple
+        - :class:`numpy.ndarray` - Evaluated function values
+        - dict - Updated `persis_info`
+    """
+
     if "params" in persis_info:
         const = persis_info["params"].get("const", 1000)
     else:

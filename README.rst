@@ -10,7 +10,8 @@
 libEnsemble: A complete toolkit for dynamic ensembles of calculations
 =====================================================================
 
-Adaptive, portable, and scalable software for connecting "deciders" to experiments or simulations.
+libEnsemble empowers model-driven ensembles to solve design, decision,
+and inference problems on the world's leading supercomputers such as Frontier, Aurora, and Perlmutter.
 
 • **Dynamic ensembles**: Generate parallel tasks on-the-fly based on previous computations.
 • **Extreme portability and scaling**: Run on or across laptops, clusters, and leadership-class machines.
@@ -18,8 +19,6 @@ Adaptive, portable, and scalable software for connecting "deciders" to experimen
 • **Application monitoring**: Ensemble members can run, monitor, and cancel apps.
 • **Data-flow between tasks**: Running ensemble members can send and receive data.
 • **Low start-up cost**: No additional background services or processes required.
-
-libEnsemble is effective at solving design, decision, and inference problems on parallel resources.
 
 `Quickstart`_
 
@@ -99,7 +98,7 @@ Try some other examples live in Colab.
 | Surrogate model generation with gpCAM.                        | |Surrogate Modeling|                |
 +---------------------------------------------------------------+-------------------------------------+
 
-There are many more examples in the `regression tests`_.
+There are many more examples in the `Community Examples repository`_ and `regression tests`_.
 
 Resources
 =========

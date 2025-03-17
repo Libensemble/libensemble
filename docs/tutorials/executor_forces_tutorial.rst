@@ -32,7 +32,7 @@ Assuming MPI and its C compiler ``mpicc`` are available, compile
 
     mpicc -O3 -o forces.x forces.c -lm
 
-Alternative build lines for different platforms can be found in the ``build_forces.sh``
+Alternative build lines for different platforms can be found in the build_forces.sh_
 file in the same directory.
 
 Calling Script
@@ -514,6 +514,7 @@ these parameters can also be specified as different variables with corresponding
 to generator and simulator functions.
 
 .. _examples/tutorials/forces_with_executor: https://github.com/Libensemble/libensemble/tree/develop/examples/tutorials/forces_with_executor
+.. _build_forces.sh: https://github.com/Libensemble/libensemble/blob/main/libensemble/tests/scaling_tests/forces/forces_app/build_forces.sh
 .. _forces_app: https://github.com/Libensemble/libensemble/tree/main/libensemble/tests/scaling_tests/forces/forces_app
 .. _forces_simple: https://github.com/Libensemble/libensemble/tree/main/libensemble/tests/scaling_tests/forces/forces_simple
 .. _forces_simple_with_input_file: https://github.com/Libensemble/libensemble/tree/main/libensemble/tests/scaling_tests/forces/forces_simple_with_input_file
