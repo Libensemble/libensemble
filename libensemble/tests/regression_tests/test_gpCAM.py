@@ -36,11 +36,10 @@ from libensemble.libE import libE
 from libensemble.sim_funcs.rosenbrock import rosenbrock_eval as sim_f
 from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
 
-# Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
-
 warnings.filterwarnings("ignore", message="Default hyperparameter_bounds")
+warnings.filterwarnings("ignore", message="Hyperparameters initialized")
 
-
+# Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
     nworkers, is_manager, libE_specs, _ = parse_args()
 
