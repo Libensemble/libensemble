@@ -36,6 +36,19 @@ System Examples
         :caption: /examples/libE_submission_scripts/submit_pbs_aurora.sh
         :language: bash
 
+.. dropdown:: Frontier (Large WarpX Ensemble)
+
+    ..  literalinclude:: ../../examples/libE_submission_scripts/submit_frontier_large.sh
+        :caption: /examples/libE_submission_scripts/submit_frontier_large.sh
+        :language: bash
+
+
+.. dropdown:: Perlmutter
+
+    ..  literalinclude:: ../../examples/libE_submission_scripts/submit_perlmutter.sh
+        :caption: /examples/libE_submission_scripts/submit_perlmutter.sh
+        :language: bash
+
 .. dropdown:: Polaris
 
     ..  literalinclude:: ../../examples/libE_submission_scripts/submit_pbs_polaris.sh
