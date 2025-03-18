@@ -1,7 +1,9 @@
 Surrogate Model with gpCAM
 ==========================
 
-This generation function constructs a global surrogate of ``f`` values, using a Gaussian process.
+This example uses gpCAM_ to construct a global surrogate of ``f`` values using a Gaussian process.
+
+In each iteration, a batch of points is produced for concurrent evaluation, maximizing uncertainty reduction.
 
 |Open in Colab|
 
@@ -328,5 +330,6 @@ values at the test points.
     plt.show()
 
 
+.. _gpCAM: https://github.com/lbl-camera/gpCAM
 .. |Open in Colab| image:: https://colab.research.google.com/assets/colab-badge.svg
   :target:  http://colab.research.google.com/github/Libensemble/libensemble/blob/develop/examples/tutorials/gpcam_surrogate_model/gpcam.ipynb
