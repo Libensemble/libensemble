@@ -1,5 +1,5 @@
-gpCAM Surrogate Model Tutorial
-==============================
+Surrogate Model with gpCAM
+==========================
 
 This generation function constructs a global surrogate of ``f`` values, using a Gaussian process.
 
