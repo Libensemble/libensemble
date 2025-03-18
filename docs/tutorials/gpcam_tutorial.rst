@@ -298,10 +298,6 @@ Now we can check how our model compared against the known test points at each it
 The comparison is based on the **Mean Squared Error** between the gpCAM model and our known
 values at the test points.
 
-.. note::
-   The graph may differ between runs because, although we seed libEnsemble's random number generator,
-   gpCAM introduces some randomness when initializing hyperparameters.
-
 .. code-block:: python
 
     import matplotlib
@@ -329,6 +325,15 @@ values at the test points.
     plt.grid(True)
     plt.show()
 
+The plot should look similar to the following.
+
+.. note::
+   The graph may differ between runs because, although we seed libEnsemble's random number generator,
+   gpCAM introduces some randomness when initializing hyperparameters.
+
+.. image:: ../images/gpcam_model_improvement.png
+    :alt: gpcam_model_improvement
+    :align: center
 
 .. _gpCAM: https://github.com/lbl-camera/gpCAM
 .. |Open in Colab| image:: https://colab.research.google.com/assets/colab-badge.svg
