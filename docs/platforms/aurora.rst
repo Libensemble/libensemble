@@ -115,7 +115,6 @@ will use one GPU tile)::
 
     python run_libe_forces.py -n 25
 
-
 Running generator on the manager
 --------------------------------
 
@@ -131,7 +130,6 @@ Change the ``libE_specs`` in **run_libe_forces.py** as follows:
     # Persistent gen does not need resources
     ensemble.libE_specs = LibeSpecs(
         gen_on_manager=True,
-
 
 then we can run with 12 (instead of 13) workers::
 

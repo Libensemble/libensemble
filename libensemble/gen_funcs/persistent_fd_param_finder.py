@@ -35,7 +35,7 @@ def build_H0(x_f_pairs, gen_specs, noise_h_mat):
 def fd_param_finder(H, persis_info, gen_specs, libE_info):
     """
     This generation function loops through a set of suitable finite difference
-    parameters for a mapping F from R^n to R^m.
+    parameters for a mapping ``F`` from ``R^n`` to ``R^m``.
 
     .. seealso::
         `test_persistent_fd_param_finder.py` <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_fd_param_finder.py>`_ # noqa
@@ -56,16 +56,8 @@ def fd_param_finder(H, persis_info, gen_specs, libE_info):
     tag = None
 
     # # Request evaluations of the base point x0 at all p f_inds
-    # H0 = np.zeros(p, dtype=gen_specs["out"])
-    # for j in range(p):
-    #     H0["x"][j] = x0
-    #     H0["x_ind"][j] = -1  # Marking these to know they are the basepoint
-    #     H0["f_ind"][j] = j
-    #     H0["n_ind"][j] = nf/2
-    # tag, Work, calc_in = sendrecv_mgr_worker_msg(comm, H0)
     for i in range(n):
         for j in range(p):
-            # Fhist0[i, j, nf//2] = calc_in["f_val"][calc_in["f_ind"]==j]
             Fhist0[i, j, nf // 2] = U["f0"][j]
 
     x_f_pairs = np.array(np.meshgrid(range(n), range(p))).T.reshape(-1, n)
@@ -74,9 +66,6 @@ def fd_param_finder(H, persis_info, gen_specs, libE_info):
     iters = np.ones_like(noise_h_mat)
 
     tag, Work, calc_in = ps.send_recv(H0)
-
-    # import matlab.engine
-    # eng = matlab.engine.start_matlab()
 
     # Send nf points for each (x_ind, f_ind) pair
     while tag not in [STOP_TAG, PERSIS_STOP]:
@@ -90,13 +79,6 @@ def fd_param_finder(H, persis_info, gen_specs, libE_info):
                     logical_conds = (calc_in["x_ind"] == i, calc_in["f_ind"] == j, calc_in["n_ind"] == k)
                     Fhist0[i, j, k] = calc_in["f_val"][np.logical_and.reduce(logical_conds)][0]
 
-            # Compute noise for (i, j):
-            # [Fnoise(i, j), ~, inform(i, j)] = ECnoise(nf-1, Fhist0(i, j, 2:nf));
-            # t = eng.ECnoise(nf+1, matlab.double(Fhist0[i, j, :nf+1]), nargout=3)
-            # # Optional: check to see what would get with 2 fewer evals (requires nf>=4):
-            # [Fnoise2(i, j), ~, inform2(i, j)] = ECnoise(nf-1, Fhist0(i, j, 2:nf));
-
-            # cmd = ["/home/jlarson/software/MATLAB/R2019a/bin/matlab", "-batch",
             cmd = [
                 "octave",
                 "--no-window-system",

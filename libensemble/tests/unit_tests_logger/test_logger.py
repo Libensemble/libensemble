@@ -5,6 +5,7 @@ Unit test of libensemble log functions.
 """
 import logging
 import os
+
 import pytest
 
 from libensemble import logger
