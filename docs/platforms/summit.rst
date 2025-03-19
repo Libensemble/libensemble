@@ -19,7 +19,7 @@ Special note on resource sets and Executor submit options
 
 When using the portable MPI run configuration options (e.g., num_nodes) to the
 :doc:`MPIExecutor<../executor/mpi_executor>` ``submit`` function, it is important
-to note that, due to the `resource sets`_ used on Summit, the options refer to
+to note that, due to the resource sets used on Summit, the options refer to
 resource sets as follows:
 
 - num_procs (int, optional) – The total number resource sets for this run.
@@ -156,3 +156,4 @@ launch failure resilience, and ease of use.
 .. _conda: https://conda.io/en/latest/
 .. _LSF: https://www.olcf.ornl.gov/wp-content/uploads/2018/12/summit_workshop_fuson.pdf
 .. _mpi4py: https://mpi4py.readthedocs.io/en/stable/
+.. _Summit: https://www.olcf.ornl.gov/olcf-resources/compute-systems/summit/

@@ -2,7 +2,7 @@ Example Scheduler Submission Scripts
 ====================================
 
 Below are example submission scripts used to configure and launch libEnsemble
-on a variety of high-powered systems. See :doc:`here<platforms_index>` for more
+on a variety of high-powered systems. See :ref:`here<platform-index>` for more
 information about the respective systems and configuration.
 
 General examples

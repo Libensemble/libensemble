@@ -215,7 +215,6 @@ libEnsemble on specific HPC systems.
     improv
     perlmutter
     polaris
-    spock_crusher
     summit
     srun
     example_scripts
