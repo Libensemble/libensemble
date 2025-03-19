@@ -52,10 +52,6 @@ except ModuleNotFoundError:
     sys.exit("Ensure https://github.com/POptUS/minq has been cloned and that minq/py/minq5/ is on the PYTHONPATH")
 
 
-def sum_squared(x):
-    return np.sum(np.power(x, 2))
-
-
 def synthetic_beamline_mapping(H, _, sim_specs):
     x = H["x"][0]
     assert len(x) == 4, "Assuming 4 inputs to this function"
@@ -76,7 +72,7 @@ if __name__ == "__main__":
 
     nworkers, is_manager, libE_specs, _ = parse_args()
 
-    assert nworkers == 2, "This test is just for two workers"
+    assert nworkers == 2, "This test is just for two workers, as only one localopt run is being performed"
 
     for inst in range(2):
         if inst == 0:
@@ -109,9 +105,9 @@ if __name__ == "__main__":
             "persis_in": ["f", "fvec"] + [n[0] for n in gen_out],
             "out": gen_out,
             "user": {
-                "initial_sample_size": 1,
-                "stop_after_k_runs": 1,
-                "max_active_runs": 1,
+                "initial_sample_size": 1, # The initial sampled point will be the starting point
+                "stop_after_k_runs": 1,  # Only one local optimization run will be peformed 
+                "max_active_runs": 1, # Only one local optimization run will be peformed,
                 "sample_points": np.atleast_2d(0.1 * (np.arange(n) + 1)),
                 "localopt_method": "ibcdfo_pounders",
                 "run_max_eval": 100 * (n + 1),
