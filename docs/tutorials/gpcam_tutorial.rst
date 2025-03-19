@@ -1,5 +1,5 @@
-Surrogate Model with gpCAM
-==========================
+Surrogate Modeling with gpCAM
+=============================
 
 This example uses gpCAM_ to construct a global surrogate of ``f`` values using a Gaussian process.
 
@@ -14,9 +14,9 @@ Generator function
 
 The gpCAM generator function is called ``persistent_gpCAM``.
 
-This persistent generator is started at the beginning and runs until the Ensemble closes down.
+This persistent generator is started at the beginning of the Ensemble and runs until the Ensemble closes down.
 
-This is a version of the gpCAM generator that can be found, along with other gpCAM generator functions, at `libensemble/gen_funcs/persistent_gpCAM.py <https://github.com/Libensemble/libensemble/blob/main/libensemble/gen_funcs/persistent_gpCAM.py>`_ and can be imported from that location when libEnsemble is installed as follows:
+This version (and others) of the gpCAM generator can be found at `libensemble/gen_funcs/persistent_gpCAM.py <https://github.com/Libensemble/libensemble/blob/main/libensemble/gen_funcs/persistent_gpCAM.py>`_ and can be imported from that location when libEnsemble is installed as follows:
 
 ``from libensemble.gen_funcs.persistent_gpCAM import persistent_gpCAM``
 
@@ -74,8 +74,8 @@ Common acquisition functions include:
 
 **Uncertainty reduction:**
 
-- **"variance"** (default): The optimizer will find N best points.
-- **"total correlation"**: More expensive but points found are self-avoiding.
+- **"variance"** (default): The optimizer will produce N best points.
+- **"total correlation"**: More expensive but points produced are self-avoiding.
 
 **Bayesian optimization:**
 
@@ -142,14 +142,14 @@ The following code adds the functions used by ``persistent_gpCAM``.
         return my_gp
 
 Simulator function
------------------
+------------------
 
 Simulator functions or ``sim_f``\ s perform calculations based on parameters created in the generator function.
-Each worker will run a copy of this function in parallel.
+Each worker runs a copy of this function in parallel.
 
-The function used here is the simple 2D ``six_hump_camel``, for demonstration purposes.
+The function here is the simple 2D ``six_hump_camel``, for demonstration purposes.
 
-For running parallel applications in the simulator see the `forces examples <https://github.com/Libensemble/libensemble/tree/main/libensemble/tests/scaling_tests/forces/forces_simple>`_.
+For running applications using parallel resources in the simulator see the `forces examples <https://github.com/Libensemble/libensemble/tree/main/libensemble/tests/scaling_tests/forces/forces_simple>`_.
 
 .. code-block:: python
 
@@ -181,7 +181,7 @@ For running parallel applications in the simulator see the `forces examples <htt
 Calling Script
 -------------
 
-Our calling script contains the configuration for libEnsemble, the generator function, and the simulator function. We then create the ensemble object and are ready to run the ensemble.
+Our calling script configures libEnsemble, the generator function, and the simulator function. It then create the ensemble object and runs the ensemble.
 
 First we will create a cleanup script so we can easily re-run.
 
@@ -277,7 +277,7 @@ At the end of our calling script we run the ensemble.
 Rerun and test model at known points
 -----------------------------------
 
-To see how our model improves, we can use our existing points as test points and run again with a different seed.
+To see how the accuracy of the surrogate model improves, we can use previously evaluated points as test points and run again with a different seed.
 
 .. code-block:: python
 
@@ -294,8 +294,8 @@ To see how our model improves, we can use our existing points as test points and
 Viewing model progression
 ------------------------
 
-Now we can check how our model compared against the known test points at each iteration.
-The comparison is based on the **Mean Squared Error** between the gpCAM model and our known
+Now we can check how our model's values compared against the values at known test points as the ensemble progresses.
+The comparison is based on the **mean squared error** between the gpCAM model and our known
 values at the test points.
 
 .. code-block:: python
