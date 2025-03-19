@@ -98,7 +98,7 @@ Try some other examples live in Colab.
 | Surrogate model generation with gpCAM.                        | |Surrogate Modeling|                |
 +---------------------------------------------------------------+-------------------------------------+
 
-There are many more examples in the `Community Examples repository`_ and `regression tests`_.
+There are many more examples in the `regression tests`_ and `Community Examples repository`_.
 
 Resources
 =========
@@ -181,4 +181,4 @@ Resources
   :target:  http://colab.research.google.com/github/Libensemble/libensemble/blob/develop/examples/tutorials/aposmm/aposmm_tutorial_notebook.ipynb
 
 .. |Surrogate Modeling| image:: https://colab.research.google.com/assets/colab-badge.svg
-  :target:  https://colab.research.google.com/github/Libensemble/libensemble/blob/examples/gpcam_notebook/examples/tutorials/gpcam_surrogate_model/gpcam.ipynb
+  :target:  https://colab.research.google.com/github/Libensemble/libensemble/blob/develop/examples/tutorials/gpcam_surrogate_model/gpcam.ipynb
