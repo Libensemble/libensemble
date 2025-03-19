@@ -573,7 +573,7 @@ class Ensemble:
 
         Format: ``<basename>_results_History_length=<length>_evals=<Completed evals>_ranks=<nworkers>``
 
-        To use just basename as the filename, set append_attrs=False
+        To have the filename be only the basename, set append_attrs=False
 
         Format: ``<basename>_results_History_length=<length>_evals=<Completed evals>_ranks=<nworkers>``
         """
