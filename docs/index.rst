@@ -34,6 +34,7 @@
    examples/sim_funcs
    examples/alloc_funcs
    examples/calling_scripts
+   Submission Scripts<examples/submission_scripts>
 
 .. toctree::
    :maxdepth: 1

@@ -1,10 +1,10 @@
 import random
+import warnings
 from pathlib import Path
 from typing import Any, Callable, List, Optional, Tuple, Union
 
 import pydantic
 from pydantic import BaseModel, Field
-import warnings
 
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 from libensemble.resources.platforms import Platform

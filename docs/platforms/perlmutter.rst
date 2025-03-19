@@ -125,7 +125,6 @@ and run with::
 
     python run_libe_forces.py -n 4
 
-
 To watch video
 ^^^^^^^^^^^^^^
 

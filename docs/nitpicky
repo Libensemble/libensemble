@@ -37,6 +37,7 @@ py:class <class 'int'>
 py:class +ScalarType
 py:class +_ScalarType_co
 py:class collections.abc.Sequence
+py:class pathlib._local.Path
 
 # Internal paths that are verified importable but Sphinx can't find
 py:class libensemble.resources.platforms.Aurora
