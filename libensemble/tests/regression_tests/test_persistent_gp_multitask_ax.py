@@ -7,7 +7,7 @@ a thread). Therefore nworkers is the number of simulation workers.
 
 Execute via one of the following commands:
    mpiexec -np 4 python test_persistent_gp_multitask_ax.py
-   python test_persistent_gp_multitask_ax.py --nworkers 3 --comms local
+   python test_persistent_gp_multitask_ax.py --nworkers 3
    python test_persistent_gp_multitask_ax.py --nworkers 3 --comms tcp
 
 When running with the above commands, the number of concurrent evaluations of
