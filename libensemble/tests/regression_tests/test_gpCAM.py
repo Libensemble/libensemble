@@ -9,10 +9,13 @@ When running with the above commands, the number of concurrent evaluations of
 the objective function will be 2, as one of the three workers will be the
 persistent generator.
 
-See libensemble.gen_funcs.persistent_gpCAM for more details about the generator
-setup.
+Runs three variants of gpCAM. The first two use the posterior covariance
+sampling method,  whereby the second run uses the grid approach and uses
+the points from the first run as it’s test points.The third run uses the
+gpCAM ask/tell interface.
 
-Requires numpy<2.
+See libensemble.gen_funcs.persistent_gpCAM for more details about the
+generator setup.
 """
 
 # Do not change these lines - they are parsed by run-tests.sh
@@ -34,7 +37,7 @@ from libensemble.sim_funcs.rosenbrock import rosenbrock_eval as sim_f
 from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
 
 warnings.filterwarnings("ignore", message="Default hyperparameter_bounds")
-
+warnings.filterwarnings("ignore", message="Hyperparameters initialized")
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":

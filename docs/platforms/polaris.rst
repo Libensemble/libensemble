@@ -39,7 +39,6 @@ environment (if you need ``conda install``). More details at `Python for Polaris
 See :doc:`here<../advanced_installation>` for more information on advanced options
 for installing libEnsemble, including using Spack.
 
-
 Job Submission
 --------------
 

@@ -75,11 +75,11 @@ class LocalOptInterfacer(object):
 
     Currently supported routines are
 
-    - NLopt routines ['LN_SBPLX', 'LN_BOBYQA', 'LN_COBYLA', 'LN_NEWUOA', 'LN_NELDERMEAD', 'LD_MMA']
-    - PETSc/TAO routines ['pounders', 'blmvm', 'nm']
-    - SciPy routines ['scipy_Nelder-Mead', 'scipy_COBYLA', 'scipy_BFGS']
-    - DFOLS ['dfols']
-    - External local optimizer ['external_localopt'] (which use files to pass/receive x/f values)
+    - NLopt [``'LN_SBPLX'``, ``LN_BOBYQA'``, ``'LN_COBYLA'``, ``'LN_NEWUOA'``, ``'LN_NELDERMEAD'``, ``'LD_MMA'``]
+    - PETSc/TAO [``'pounders'``, ``'blmvm'``, ``'nm'``]
+    - SciPy [``'scipy_Nelder-Mead'``, ``'scipy_COBYLA'``, ``'scipy_BFGS'``]
+    - DFOLS [``'dfols'``]
+    - External local optimizer [``'external_localopt'``] (which use files to pass/receive ``x/f`` values)
     """
 
     def __init__(self, user_specs, x0, f0, grad0=None):
