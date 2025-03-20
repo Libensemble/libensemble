@@ -69,7 +69,7 @@ Once in the interactive session, you may need to reload your modules::
 
 Now run your script with four workers (one for generator and three for simulations)::
 
-    python my_libe_script.py --comms local --nworkers 4
+    python my_libe_script.py --nworkers 4
 
 ``mpirun`` should also work. This line launches libEnsemble with a manager and
 **three** workers to one allocated compute node, with three nodes available for

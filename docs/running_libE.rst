@@ -53,7 +53,7 @@ supercomputers.
         or an :class:`Ensemble<libensemble.ensemble.Ensemble>` object with ``Ensemble(parse_args=True)``,
         you can specify these on the command line::
 
-            python myscript.py --comms local --nworkers N
+            python myscript.py --nworkers N
 
         This will launch one manager and ``N`` workers.
 

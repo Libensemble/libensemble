@@ -276,7 +276,7 @@ Also, this can be set on the command line as a convenience.
 
 .. code-block:: bash
 
-    python run_ensemble.py --comms local --nworkers 5 --nresource_sets 8
+    python run_ensemble.py --nworkers 5 --nresource_sets 8
 
 .. _persistent_sampling_var_resources.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/gen_funcs/persistent_sampling_var_resources.py
 .. _test_GPU_variable_resources.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_GPU_variable_resources.py
