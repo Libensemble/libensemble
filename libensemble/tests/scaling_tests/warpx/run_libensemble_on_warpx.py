@@ -6,7 +6,7 @@ simulations. It is the entry point script that runs LibEnsemble. Libensemble
 then launches WarpX simulations.
 
 Execute locally via the following command:
-    python run_libensemble_on_warpx.py --comms local --nworkers 3
+    python run_libensemble_on_warpx.py --nworkers 3
 
 The number of concurrent evaluations of the objective function will be
 nworkers=1 as one worker is for the persistent gen_f.

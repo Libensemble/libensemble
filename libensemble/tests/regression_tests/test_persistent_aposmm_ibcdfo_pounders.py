@@ -15,7 +15,7 @@ These values are then mapped to the normalized emittance <x> <p_x> - <x p_x>.
 
 Execute via one of the following commands:
    mpiexec -np 3 python test_persistent_aposmm_ibcdfo.py
-   python test_persistent_aposmm_ibcdfo.py --nworkers 2 --comms local
+   python test_persistent_aposmm_ibcdfo.py --nworkers 2
 Both will run with 1 manager, 1 worker running APOSMM+IBCDFO), and 1 worker
 doing the simulation evaluations.
 """
