@@ -272,8 +272,8 @@ libEnsemble is primarily customized by setting options within a ``LibeSpecs`` cl
                     ``disable_resource_manager`` is set.
 
                 **dedicated_mode** [bool] = ``False``:
-                    Disallow any resources running libEnsemble processes (manager and workers)
-                    from being valid targets for app submissions.
+                    Instructs libEnsemble’s MPI executor not to run applications on nodes where
+                    libEnsemble processes (manager and workers) are running.
 
                 **zero_resource_workers** [list of ints]:
                     List of workers (by IDs) that require no resources. For when a fixed mapping of workers

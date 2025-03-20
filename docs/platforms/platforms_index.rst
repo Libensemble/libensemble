@@ -3,26 +3,52 @@
 Running on HPC Systems
 ======================
 
-Central vs. Distributed
------------------------
+libEnsemble has been  tested on systems of highly varying scales, from laptops to
+thousands of compute nodes. On multi-node systems, there are a few alternative
+ways of configuring libEnsemble to run and launch tasks (user applications) on
+the available nodes.
 
-libEnsemble has been developed, supported, and tested on systems of highly varying
-scales, from laptops to thousands of compute nodes. On multi-node systems, there are
-two basic modes of configuring libEnsemble to run and launch tasks (user applications)
-on the available nodes.
+The :doc:`Forces tutorial <../../tutorials/executor_forces_tutorial>` gives an
+example with a simple MPI application.
 
-The first mode we refer to as **central** mode, where the libEnsemble manager and worker processes
-are grouped onto one or more dedicated nodes. Workers launch applications onto
-the remaining allocated nodes:
+Central Mode
+------------
 
-    .. image:: ../images/centralized_new_detailed.png
+The default communications scheme places the manager and workers on the first node.
+The :doc:`MPI Executor<../executor/mpi_executor>` can then be used on each
+simulation worker to distribute user applications across the current node allocation.
+
+The generator will run on a worker by default, but if running a single generator,
+the :ref:`libE_specs<datastruct-libe-specs>` option **gen_on_manager** is recommended,
+which runs the generator on the manager (using a thread) as below.
+
+    .. image:: ../images/centralized_gen_on_manager.png
+        :alt: centralized
+        :scale: 55
+        :align: center
+
+
+If the :ref:`libE_specs<datastruct-libe-specs>` option **dedicated_mode** is set to
+True, the MPI executor will not launch applications on nodes where libEnsemble Python
+processes (manager and workers) are running. Worker’s launch applications onto the
+remaining nodes in the allocation.
+
+    .. image:: ../images/centralized_dedicated.png
         :alt: centralized
         :scale: 30
         :align: center
 
-Alternatively, in **distributed** mode, the libEnsemble (manager/worker) processes
-will share nodes with submitted tasks. This enables libEnsemble, using the *mpi4py*
-communicator, to be run with the workers spread across nodes so as to be co-located
+.. note::
+    Note that **gen_on_manager** is not set in the above example.
+
+Note that while these diagrams show one application being run per node, configurations
+with multiple nodes per worker or multiple workers per node are both common use cases.
+
+Distributed Mode
+----------------
+
+In the **distributed** approach, libEnsemble, using the *mpi4py* communicator,
+can be run with the workers spread across nodes so as to be co-located
 with their tasks.
 
     .. image:: ../images/distributed_new_detailed.png
@@ -30,10 +56,10 @@ with their tasks.
         :scale: 30
         :align: center
 
-Configurations with multiple nodes per worker or multiple workers per node are both
-common use cases. The distributed approach allows the libEnsemble worker to read files
-produced by the application on local node storage. HPC systems that allow only one
-application to be launched to a node at any one time prevent distributed configuration.
+The distributed approach allows the libEnsemble worker to read files
+produced by the application on local node storage.
+
+Distributed mode is also useful when workers are running simulations directly through
 
 Configuring the Run
 -------------------
@@ -63,22 +89,16 @@ or::
 
 Either of these will run libEnsemble (inc. manager and 4 workers) on the first node. The remaining
 4 nodes will be divided among the workers for submitted applications. If the same run was
-performed without ``libE_specs["dedicated_mode"]=True``, runs could be submitted to all 5 nodes. The number of workers
-can be modified to allow either multiple workers to map to each node or multiple nodes per worker.
+performed without ``libE_specs["dedicated_mode"]=True``, runs could be submitted to all 5 nodes.
+The number of workers can be modified to allow either multiple workers to map to each node or
+multiple nodes per worker.
 
 To launch libEnsemble distributed requires a less trivial libEnsemble run script.
 For example::
 
     mpirun -np 5 -ppn 1 python myscript.py
 
-would launch libEnsemble with 5 processes across 5 nodes. However, the manager would have its
-own node, which is likely wasteful. More often, a ``machinefile`` is used to add the manager to
-the first node. In the :doc:`examples<example_scripts>` directory, you can find an example submission
-script, configured to run libensemble distributed, with multiple workers per node or multiple nodes
-per worker, and adding the manager onto the first node.
-
-HPC systems that only allow one application to be launched to a node at any one time,
-will not allow a distributed configuration.
+would launch libEnsemble with 5 processes across 5 nodes.
 
 Systems with Launch/MOM Nodes
 -----------------------------
