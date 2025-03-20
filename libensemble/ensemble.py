@@ -562,17 +562,29 @@ class Ensemble:
         self.persis_info = add_unique_random_streams(self.persis_info, nstreams + 1, seed=seed)
         return self.persis_info
 
-    def save_output(self, file: str):
+    def save_output(self, basename: str, append_attrs: bool = True):
         """
         Writes out History array and persis_info to files.
         If using a workflow_dir, will place with specified filename in that directory.
 
-        Format: ``<calling_script>_results_History_length=<length>_evals=<Completed evals>_ranks=<nworkers>``
+        Parameters
+        ----------
+
+        Format: ``<basename>_results_History_length=<length>_evals=<Completed evals>_ranks=<nworkers>``
+
+        To have the filename be only the basename, set append_attrs=False
+
+        Format: ``<basename>_results_History_length=<length>_evals=<Completed evals>_ranks=<nworkers>``
         """
         if self.is_manager:
             if self._get_option("libE_specs", "workflow_dir_path"):
                 save_libE_output(
-                    self.H, self.persis_info, file, self.nworkers, dest_path=self.libE_specs.workflow_dir_path
+                    self.H,
+                    self.persis_info,
+                    basename,
+                    self.nworkers,
+                    dest_path=self.libE_specs.workflow_dir_path,
+                    append_attrs=append_attrs,
                 )
             else:
-                save_libE_output(self.H, self.persis_info, file, self.nworkers)
+                save_libE_output(self.H, self.persis_info, basename, self.nworkers, append_attrs=append_attrs)

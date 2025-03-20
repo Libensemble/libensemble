@@ -1,12 +1,10 @@
-Example User Functions and Calling Scripts
-==========================================
+Overview of Examples
+====================
 
 Here we give example generation, simulation, and allocation functions for
 libEnsemble, as well as example calling scripts.
 
-Additional examples from libEnsemble's users are available in
-the `libEnsemble Community Repository`_, with corresponding generator documentation available
-:doc:`here<community:index>`.
+The examples come from the libEnsemble repository and the `libEnsemble Community Repository`_.
 
 .. toctree::
    :maxdepth: 2

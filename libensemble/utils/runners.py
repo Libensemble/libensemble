@@ -36,6 +36,8 @@ class Runner:
         pass
 
     def run(self, calc_in: npt.NDArray, Work: dict) -> (npt.NDArray, dict, int | None):
+        if Work["persis_info"] is None:
+            Work["persis_info"] = {}
         return self._result(calc_in, Work["persis_info"], Work["libE_info"])
 
 
