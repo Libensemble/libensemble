@@ -203,7 +203,7 @@ if __name__ == "__main__":
     del libE_specs["platform_specs"]
 
     # Fourth set - use platform setting ------------------------------------------------------------
-    for platform in ["summit", "crusher", "perlmutter_g", "polaris", "aurora"]:
+    for platform in ["summit", "frontier", "perlmutter_g", "polaris", "aurora"]:
         print(f"\nRunning GPU setting checks (via known platform) for {platform} ------------------- ")
         libE_specs["platform"] = platform
 
@@ -221,7 +221,7 @@ if __name__ == "__main__":
         del libE_specs["platform"]
 
     # Fifth set - use platform environment setting -----------------------------------------------
-    for platform in ["summit", "crusher", "perlmutter_g", "polaris", "aurora"]:
+    for platform in ["summit", "frontier", "perlmutter_g", "polaris", "aurora"]:
         print(f"\nRunning GPU setting checks (via known platform env. variable) for {platform} ----- ")
         os.environ["LIBE_PLATFORM"] = platform
 
