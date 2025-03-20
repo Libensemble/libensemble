@@ -143,6 +143,7 @@ class Aurora(Platform):
     scheduler_match_slots: bool = True
 
 
+# On SLURM systems, let srun assign free GPUs on the node
 class Frontier(Platform):
     mpi_runner: str = "srun"
     cores_per_node: int = 64
@@ -150,16 +151,6 @@ class Frontier(Platform):
     gpus_per_node: int = 8
     gpu_setting_type: str = "runner_default"
     gpu_env_fallback: str = "ROCR_VISIBLE_DEVICES"
-    scheduler_match_slots: bool = False
-
-
-class Summit(Platform):
-    mpi_runner: str = "jsrun"
-    cores_per_node: int = 42
-    logical_cores_per_node: int = 168
-    gpus_per_node: int = 6
-    gpu_setting_type: str = "option_gpus_per_task"
-    gpu_setting_name: str = "-g"
     scheduler_match_slots: bool = False
 
 
@@ -199,6 +190,16 @@ class Polaris(Platform):
     gpu_setting_type: str = "runner_default"
     gpu_env_fallback: str = "CUDA_VISIBLE_DEVICES"
     scheduler_match_slots: bool = True
+
+
+class Summit(Platform):
+    mpi_runner: str = "jsrun"
+    cores_per_node: int = 42
+    logical_cores_per_node: int = 168
+    gpus_per_node: int = 6
+    gpu_setting_type: str = "option_gpus_per_task"
+    gpu_setting_name: str = "-g"
+    scheduler_match_slots: bool = False
 
 
 class Known_platforms(BaseModel):

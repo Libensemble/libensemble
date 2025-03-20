@@ -12,9 +12,56 @@ Users on login nodes submit batch runs to the launch nodes.
 Batch scripts and interactive sessions run on the launch nodes. Only the launch
 nodes can submit MPI runs to the compute nodes via ``jsrun``.
 
-These docs are maintained to guide libEnsemble's usage on three-tier systems similar to Summit.
+These docs are maintained to guide libEnsemble's usage on three-tier systems and/or
+`jsrun` systems similar to Summit.
 
+Configuring Python
+------------------
+
+Begin by loading the Python 3 Anaconda module::
+
+    $ module load python
+
+You can now create and activate your own custom conda_ environment::
+
+    conda create --name myenv python=3.10
+    export PYTHONNOUSERSITE=1 # Make sure get python from conda env
+    . activate myenv
+
+If you are installing any packages with extensions, ensure that the correct compiler
+module is loaded. If using mpi4py_, this must be installed from source,
+referencing the compiler. Currently, mpi4py must be built with gcc::
+
+    module load gcc
+
+With your environment activated, run ::
+
+    CC=mpicc MPICC=mpicc pip install mpi4py --no-binary mpi4py
+
+Installing libEnsemble
+----------------------
+
+Obtaining libEnsemble is now as simple as ``pip install libensemble``.
+Your prompt should be similar to the following line:
+
+.. code-block:: console
+
+    (my_env) user@login5:~$ pip install libensemble
+
+.. note::
+    If you encounter pip errors, run ``python -m pip install --upgrade pip`` first
+
+Or, you can install via ``conda``:
+
+.. code-block:: console
+
+    (my_env) user@login5:~$ conda config --add channels conda-forge
+    (my_env) user@login5:~$ conda install -c conda-forge libensemble
+
+See :doc:`here<../advanced_installation>` for more information on advanced options
+for installing libEnsemble.
 Special note on resource sets and Executor submit options
+
 ---------------------------------------------------------
 
 When using the portable MPI run configuration options (e.g., num_nodes) to the

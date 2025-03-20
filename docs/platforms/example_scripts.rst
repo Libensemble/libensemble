@@ -78,3 +78,10 @@ System Examples
     ..  literalinclude:: ../../examples/libE_submission_scripts/summit_submit_mproc.sh
         :caption: /examples/libE_submission_scripts/summit_submit_mproc.sh
         :language: bash
+
+.. dropdown:: Cobalt - Intermediate node with Multiprocessing
+
+    .. literalinclude:: ../../examples/libE_submission_scripts/cobalt_submit_mproc.sh
+        :caption: /examples/libE_submission_scripts/cobalt_submit_mproc.sh
+        :language: bash
+
