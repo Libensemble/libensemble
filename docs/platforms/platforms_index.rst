@@ -15,9 +15,10 @@ Central Mode
 ------------
 
 The default communications scheme places the manager and workers on the first node.
-The :doc:`MPI Executor<../executor/mpi_executor>` can then be used on each
-simulation worker to distribute user applications across the current node allocation.
-This is the most common approach, when each simulation is running an MPI application.
+The :doc:`MPI Executor<../executor/mpi_executor>` can then be invoked on each
+simulation worker, and libEnsemble will distribute user applications across the
+current node allocation. This is the most common approach, when each simulation
+is running an MPI application.
 
 The generator will run on a worker by default, but if running a single generator,
 the :ref:`libE_specs<datastruct-libe-specs>` option **gen_on_manager** is recommended,
