@@ -90,7 +90,7 @@ Common Errors
 
 .. dropdown:: **PETSc and MPI errors with "[unset]: write_line error; fd=-1 buf=:cmd=abort exitcode=59"**
 
-  with ``python [test with PETSc].py --comms local --nworkers 4``
+  with ``python [test with PETSc].py --nworkers 4``
 
   This error occurs on some platforms when using PETSc with libEnsemble
   in ``local`` (multiprocessing) mode. We believe this is due to PETSc initializing MPI

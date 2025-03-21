@@ -3,7 +3,7 @@ Runs libEnsemble with Latin hypercube sampling on a simple 2D problem
 
 Execute via one of the following commands (e.g. 3 workers):
    mpiexec -np 4 python test_2d_sampling.py
-   python test_2d_sampling.py --nworkers 3 --comms local
+   python test_2d_sampling.py --nworkers 3
    python test_2d_sampling.py --nworkers 3 --comms tcp
 
 The number of concurrent evaluations of the objective function will be 4-1=3.

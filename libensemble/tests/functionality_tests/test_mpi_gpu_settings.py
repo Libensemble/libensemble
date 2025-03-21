@@ -30,7 +30,7 @@ A known platform is specified for known systems via platforms_specs (imported cl
 
 Execute via one of the following commands (e.g. 5 workers):
    mpiexec -np 6 python test_mpi_gpu_settings.py
-   python test_mpi_gpu_settings.py --comms local --nworkers 5
+   python test_mpi_gpu_settings.py --nworkers 5
 
 When running with the above command, the number of concurrent evaluations of
 the objective function will be 4, as one of the five workers will be the
@@ -203,7 +203,7 @@ if __name__ == "__main__":
     del libE_specs["platform_specs"]
 
     # Fourth set - use platform setting ------------------------------------------------------------
-    for platform in ["summit", "crusher", "perlmutter_g", "polaris", "aurora"]:
+    for platform in ["summit", "frontier", "perlmutter_g", "polaris", "aurora"]:
         print(f"\nRunning GPU setting checks (via known platform) for {platform} ------------------- ")
         libE_specs["platform"] = platform
 
@@ -221,7 +221,7 @@ if __name__ == "__main__":
         del libE_specs["platform"]
 
     # Fifth set - use platform environment setting -----------------------------------------------
-    for platform in ["summit", "crusher", "perlmutter_g", "polaris", "aurora"]:
+    for platform in ["summit", "frontier", "perlmutter_g", "polaris", "aurora"]:
         print(f"\nRunning GPU setting checks (via known platform env. variable) for {platform} ----- ")
         os.environ["LIBE_PLATFORM"] = platform
 

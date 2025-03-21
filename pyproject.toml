@@ -133,4 +133,4 @@ noy = "noy"
 extend-exclude = ["*.bib", "*.xml", "docs/nitpicky"]
 
 [dependency-groups]
-dev = [ "pyenchant", "flake8-modern-annotations>=1.6.0,<2", "flake8-type-checking>=3.0.0,<4"]
+dev = ["pyenchant", "enchant>=0.0.1,<0.0.2", "flake8-modern-annotations>=1.6.0,<2", "flake8-type-checking>=3.0.0,<4"]
