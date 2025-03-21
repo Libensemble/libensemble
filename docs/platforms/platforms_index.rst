@@ -77,6 +77,12 @@ communicator, with workers distributed across nodes to be co-located with their 
         :scale: 30
         :align: center
 
+
+To run using a 3-node allocation with 3 workers using an `mpich` based MPI. From the
+head node of the allocation run the following (inc. manager and 3 workers)::
+
+    mpirun -np 4 -ppn 1 python myscript.py
+
 The distributed approach allows the libEnsemble worker to read files produced by the
 application on local node storage.
 
@@ -92,35 +98,53 @@ the nodes within that allocation.
 
 *How does libEnsemble know where to run tasks (user applications)?*
 
-The libEnsemble :doc:`Executor<../executor/ex_index>` can be initialized from the user calling
+The libEnsemble :doc:`MPI Executor<../executor/mpi_executor>` can be initialized from the user calling
 script, and then used by workers to run tasks. The Executor will automatically detect the nodes
 available on most systems. Alternatively, the user can provide a file called **node_list** in
 the run directory. By default, the Executor will divide up the nodes evenly to each worker.
-If the argument ``libE_specs["dedicated_mode"]=True`` is used when initializing libEnsemble, then any node
-that is running a libEnsemble manager or worker will be removed from the node-list available
-to the workers, ensuring libEnsemble has dedicated nodes.
 
-To run in central mode using a 5-node allocation with 4 workers: From the head node
-of the allocation::
+Mapping Tasks to Resources
+--------------------------
 
-    mpirun -np 5 python myscript.py
+The :ref:`resource manager<resources_index>` detects node lists from
+:ref:`common batch schedulers<resource_detection>`,
+and partition these to workers. The :doc:`MPI Executor<../executor/mpi_executor>`
+accesses the resources available to the current worker when launching tasks.
 
-or::
+Zero-resource workers
+~~~~~~~~~~~~~~~~~~~~~
 
-    python myscript.py --nworkers 4
+Users with persistent ``gen_f`` functions may notice that the persistent workers
+are still automatically assigned system resources. This can be resolved by using
+the ``gen_on_manager`` option or by
+:ref:`fixing the number of resource sets<zero_resource_workers>`.
 
-Either of these will run libEnsemble (inc. manager and 4 workers) on the first node. The remaining
-4 nodes will be divided among the workers for submitted applications. If the same run was
-performed without ``libE_specs["dedicated_mode"]=True``, runs could be submitted to all 5 nodes.
-The number of workers can be modified to allow either multiple workers to map to each node or
-multiple nodes per worker.
+Assigning GPUs
+--------------
 
-To launch libEnsemble distributed requires a less trivial libEnsemble run script.
-For example::
+libEnsemble automatically detects and assigns Nvidia, AMD, and Intel GPUs without modifying the user scripts. This automatically works on many systems, but if the assignment is incorrect or needs to be modified the user can specify :ref:`platform information<datastruct-platform-specs>`.
+The :doc:`forces_gpu tutorial<../tutorials/forces_gpu_tutorial>` shows an example of this.
 
-    mpirun -np 5 -ppn 1 python myscript.py
+Varying resources
+-----------------
 
-would launch libEnsemble with 5 processes across 5 nodes.
+libEnsemble also features :ref:`dynamic resource assignment<var_resources_gpu>`, whereby the
+number of processes and/or the number of GPUs can be a set for each simulation by the generator.
+
+
+Overriding Auto-Detection
+-------------------------
+
+libEnsemble can automatically detect system information. This includes resource information, such as
+available nodes and the number of cores on the node, and information about available MPI runners.
+
+System detection for resources can be overridden using the :ref:`resource_info<resource_info>`
+libE_specs option.
+
+When using the MPI Executor, it is possible to override the detected information using the
+`custom_info` argument. See the :doc:`MPI Executor<../executor/mpi_executor>` for more.
+
+
 
 Systems with Launch/MOM Nodes
 -----------------------------
@@ -160,31 +184,6 @@ or *to entirely different systems*.
 Submission scripts for running on launch/MOM nodes and for using Balsam, can be found in
 the :doc:`examples<example_scripts>`.
 
-Mapping Tasks to Resources
---------------------------
-
-The :ref:`resource manager<resources_index>` can :ref:`detect system resources<resource_detection>`,
-and partition these to workers. The :doc:`MPI Executor<../executor/mpi_executor>`
-accesses the resources available to the current worker when launching tasks.
-
-Zero-resource workers
-~~~~~~~~~~~~~~~~~~~~~
-
-Users with persistent ``gen_f`` functions may notice that the persistent workers
-are still automatically assigned system resources. This can be resolved by
-:ref:`fixing the number of resource sets<zero_resource_workers>`.
-
-Overriding Auto-Detection
--------------------------
-
-libEnsemble can automatically detect system information. This includes resource information, such as
-available nodes and the number of cores on the node, and information about available MPI runners.
-
-System detection for resources can be overridden using the :ref:`resource_info<resource_info>`
-libE_specs option.
-
-When using the MPI Executor, it is possible to override the detected information using the
-`custom_info` argument. See the :doc:`MPI Executor<../executor/mpi_executor>` for more.
 
 .. _globus_compute_ref:
 
