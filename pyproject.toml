@@ -132,4 +132,4 @@ noy = "noy"
 extend-exclude = ["*.bib", "*.xml", "docs/nitpicky"]
 
 [dependency-groups]
-dev = ["pyenchant"]
+dev = ["pyenchant", "enchant>=0.0.1,<0.0.2"]
