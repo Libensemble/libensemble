@@ -31,7 +31,7 @@ def test_asktell_sampling_and_utils():
     gen = UniformSample(variables, objectives)
     assert len(gen.suggest(10)) == 10
 
-    out_np = gen.ask_numpy(3)  # should get numpy arrays, non-flattened
+    out_np = gen.suggest_numpy(3)  # should get numpy arrays, non-flattened
     out = gen.suggest(3)  # needs to get dicts, 2d+ arrays need to be flattened
 
     assert all([len(x) == 2 for x in out])  # np_to_list_dicts is now tested
