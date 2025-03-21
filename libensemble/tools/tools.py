@@ -75,19 +75,21 @@ _PERSIS_RETURN_WARNING = (
 )
 
 
-def _get_shortname(calling_file):
-    script_name = os.path.splitext(os.path.basename(calling_file))[0]
+def _get_shortname(basename):
+    script_name = os.path.splitext(os.path.basename(basename))[0]
     short_name = script_name.split("test_", 1).pop()
     return short_name
 
 
 # =================== save libE output to pickle and np ========================
 
-def save_libE_output(H, persis_info, calling_file, nworkers, dest_path=None, mess="Run completed"):
+def save_libE_output(H, persis_info, basename, nworkers, dest_path=None, mess="Run completed", append_attrs=True):
     """
     Writes out history array and persis_info to files.
 
-    Format: <calling_script>_results_History_length=<length>_evals=<Completed evals>_ranks=<nworkers>
+    Format: <basename>_results_History_length=<length>_evals=<Completed evals>_ranks=<nworkers>
+
+    To use just basename, set append_attrs=False
 
     .. code-block:: python
 
@@ -106,7 +108,7 @@ def save_libE_output(H, persis_info, calling_file, nworkers, dest_path=None, mes
         Persistent information dictionary.
         :doc:`(example)<data_structures/persis_info>`
 
-    calling_file  : :obj:`str`
+    basename  : :obj:`str`
 
         Name of user-calling script (or user chosen name) to prefix output files.
         The convention is to send __file__ from user calling script.
@@ -119,15 +121,24 @@ def save_libE_output(H, persis_info, calling_file, nworkers, dest_path=None, mes
 
         A message to print/log when saving the file.
 
+    append_attrs: `bool`
+
+        Append run attributes to the base filename.
+
     """
     if dest_path is None:
         dest_path = os.getcwd()
 
-    short_name = _get_shortname(calling_file)
-    prob_str = "length=" + str(len(H)) + "_evals=" + str(sum(H["sim_ended"])) + "_workers=" + str(nworkers)
+    short_name = _get_shortname(basename)
 
-    h_filename = os.path.join(dest_path, short_name + "_history_" + prob_str)
-    p_filename = os.path.join(dest_path, short_name + "_persis_info_" + prob_str)
+    prob_str = hist_name = persis_name = ""
+    if append_attrs:
+        prob_str = "length=" + str(len(H)) + "_evals=" + str(sum(H["sim_ended"])) + "_workers=" + str(nworkers)
+        hist_name = "_history_" + prob_str
+        persis_name = "_persis_info_" + prob_str
+
+    h_filename = os.path.join(dest_path, short_name + hist_name)
+    p_filename = os.path.join(dest_path, short_name + persis_name)
 
     status_mess = " ".join(["------------------", mess, "-------------------"])
     logger.info(f"{status_mess}\nSaving results to file: {h_filename}")

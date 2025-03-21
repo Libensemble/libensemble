@@ -214,7 +214,7 @@ nine workers (the extra worker runs the persistent generator).
 
 For example::
 
-    python run_libe_forces.py --comms local --nworkers 9
+    python run_libe_forces.py --nworkers 9
 
 See :ref:`zero-resource workers<zero_resource_workers>` for more ways to express this.
 
@@ -298,7 +298,7 @@ that runs 8 workers on 2 nodes:
     export MPICH_GPU_SUPPORT_ENABLED=1
     export SLURM_EXACT=1
 
-    python run_libe_forces.py --comms local --nworkers 9
+    python run_libe_forces.py --nworkers 9
 
 where ``SLURM_EXACT`` is set to help prevent resource conflicts on each node.
 

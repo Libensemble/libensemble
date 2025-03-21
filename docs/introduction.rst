@@ -8,6 +8,7 @@ See the `user guide`_ for more information.
 .. example_packages
 
 .. dropdown:: **Example Compatible Packages**
+  :open:
 
   libEnsemble and the `Community Examples repository`_ include example generator
   functions for the following libraries:
@@ -49,7 +50,7 @@ See the `user guide`_ for more information.
 .. _PETSc/TAO: http://www.mcs.anl.gov/petsc
 .. _scipy.optimize: https://docs.scipy.org/doc/scipy/reference/optimize.html
 .. _Surmise: https://surmise.readthedocs.io/en/latest/index.html
-.. _Tasmanian: https://tasmanian.ornl.gov/
+.. _Tasmanian: https://github.com/ORNL/Tasmanian
 .. _user guide: https://libensemble.readthedocs.io/en/latest/programming_libE.html
 .. _VTMOP: https://github.com/Libensemble/libe-community-examples#vtmop
 .. _WarpX: https://warpx.readthedocs.io/en/latest/

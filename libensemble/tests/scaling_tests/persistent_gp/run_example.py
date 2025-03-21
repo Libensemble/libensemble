@@ -3,7 +3,7 @@ Example of optimization using a persistent GP gen_func, with multi-fidelity
 
 Usage:
 ------
-python run_example.py --comms local --nworkers 4
+python run_example.py --nworkers 4
 """
 
 import numpy as np

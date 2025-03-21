@@ -36,4 +36,3 @@ updates:
       submodule-updates:
         patterns:
           - "*"
-

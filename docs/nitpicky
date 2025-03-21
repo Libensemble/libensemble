@@ -37,19 +37,17 @@ py:class <class 'int'>
 py:class +ScalarType
 py:class +_ScalarType_co
 py:class collections.abc.Sequence
+py:class pathlib._local.Path
 
 # Internal paths that are verified importable but Sphinx can't find
 py:class libensemble.resources.platforms.Aurora
 py:class libensemble.resources.platforms.GenericROCm
-py:class libensemble.resources.platforms.Crusher
 py:class libensemble.resources.platforms.Frontier
 py:class libensemble.resources.platforms.Perlmutter
 py:class libensemble.resources.platforms.PerlmutterCPU
 py:class libensemble.resources.platforms.PerlmutterGPU
 py:class libensemble.resources.platforms.Polaris
-py:class libensemble.resources.platforms.Spock
 py:class libensemble.resources.platforms.Summit
-py:class libensemble.resources.platforms.Sunspot
 py:class libensemble.resources.rset_resources.RSetResources
 py:class libensemble.resources.env_resources.EnvResources
 py:class libensemble.resources.resources.Resources

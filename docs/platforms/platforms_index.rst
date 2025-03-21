@@ -59,7 +59,7 @@ of the allocation::
 
 or::
 
-    python myscript.py --comms local --nworkers 4
+    python myscript.py --nworkers 4
 
 Either of these will run libEnsemble (inc. manager and 4 workers) on the first node. The remaining
 4 nodes will be divided among the workers for submitted applications. If the same run was
@@ -215,7 +215,6 @@ libEnsemble on specific HPC systems.
     improv
     perlmutter
     polaris
-    spock_crusher
     summit
     srun
     example_scripts

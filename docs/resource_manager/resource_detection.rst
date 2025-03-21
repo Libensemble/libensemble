@@ -32,7 +32,7 @@ Resource detection can be disabled by setting
 configuration options on the Executor submit line.
 
 This will usually work sufficiently on
-systems that have application-level scheduling and queuing (e.g., ``jsrun`` on Summit).
+systems that have application-level scheduling and queuing (e.g., ``jsrun``).
 However, on many cluster and multi-node systems, if the built-in resource
 manager is disabled, then runs without a hostlist or machinefile supplied may be
 undesirably scheduled to the same nodes.

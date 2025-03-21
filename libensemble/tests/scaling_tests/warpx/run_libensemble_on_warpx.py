@@ -6,9 +6,7 @@ simulations. It is the entry point script that runs LibEnsemble. Libensemble
 then launches WarpX simulations.
 
 Execute locally via the following command:
-    python run_libensemble_on_warpx.py --comms local --nworkers 3
-On summit, use the submission script:
-    bsub summit_submit_mproc.sh
+    python run_libensemble_on_warpx.py --nworkers 3
 
 The number of concurrent evaluations of the objective function will be
 nworkers=1 as one worker is for the persistent gen_f.
@@ -16,7 +14,6 @@ nworkers=1 as one worker is for the persistent gen_f.
 
 # Either 'random' or 'aposmm'
 generator_type = "aposmm"
-# Either 'local' or 'summit'
 machine = "local"
 
 import sys
@@ -49,8 +46,6 @@ from libensemble.tools import add_unique_random_streams, parse_args, save_libE_o
 # Import machine-specific run parameters
 if machine == "local":
     machine_specs = all_machine_specs.local_specs
-elif machine == "summit":
-    machine_specs = all_machine_specs.summit_specs
 else:
     print("you shouldn' hit that")
     sys.exit()
