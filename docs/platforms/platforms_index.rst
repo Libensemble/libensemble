@@ -17,6 +17,7 @@ Central Mode
 The default communications scheme places the manager and workers on the first node.
 The :doc:`MPI Executor<../executor/mpi_executor>` can then be used on each
 simulation worker to distribute user applications across the current node allocation.
+This is the most common approach, when each simulation is running an MPI application.
 
 The generator will run on a worker by default, but if running a single generator,
 the :ref:`libE_specs<datastruct-libe-specs>` option **gen_on_manager** is recommended,
@@ -27,6 +28,20 @@ which runs the generator on the manager (using a thread) as below.
         :scale: 55
         :align: center
 
+   .. code-block:: python
+
+    ensemble.libE_specs = LibeSpecs(
+        gen_on_manager=True,
+    )
+
+When using **gen_on_manager**, set ``nworkers`` to the number of workers desired for running
+simulations. A batch script may include:
+
+    .. code-block:: bash
+
+        #SBATCH --nodes 3
+
+        python run_libe_forces.py --nworkers 3
 
 If the :ref:`libE_specs<datastruct-libe-specs>` option **dedicated_mode** is set to
 True, the MPI executor will not launch applications on nodes where libEnsemble Python
@@ -38,28 +53,34 @@ remaining nodes in the allocation.
         :scale: 30
         :align: center
 
-.. note::
-    Note that **gen_on_manager** is not set in the above example.
+Note that **gen_on_manager** is not set in the above example.
+
+   .. code-block:: python
+
+    ensemble.libE_specs = LibeSpecs(
+        dedicated_mode=True,
+    )
+
 
 Note that while these diagrams show one application being run per node, configurations
-with multiple nodes per worker or multiple workers per node are both common use cases.
+with **multiple nodes per worker** or **multiple workers per node** are both common use cases.
 
 Distributed Mode
 ----------------
 
-In the **distributed** approach, libEnsemble, using the *mpi4py* communicator,
-can be run with the workers spread across nodes so as to be co-located
-with their tasks.
+In the **distributed** approach, libEnsemble can be run using the **mpi4py**
+communicator, with workers distributed across nodes to be co-located with their tasks.
 
     .. image:: ../images/distributed_new_detailed.png
         :alt: distributed
         :scale: 30
         :align: center
 
-The distributed approach allows the libEnsemble worker to read files
-produced by the application on local node storage.
+The distributed approach allows the libEnsemble worker to read files produced by the
+application on local node storage.
 
-Distributed mode is also useful when workers are running simulations directly through
+Distributed mode is also useful when workers are running simulations directly, via a
+Python interface.
 
 Configuring the Run
 -------------------
