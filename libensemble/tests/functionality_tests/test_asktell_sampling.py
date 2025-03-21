@@ -59,7 +59,7 @@ if __name__ == "__main__":
 
     persis_info = add_unique_random_streams({}, nworkers + 1, seed=1234)
 
-    # Using asktell runner - pass object
+    # Using standard runner - pass object
     generator = UniformSample(variables, objectives)
     gen_specs["generator"] = generator
 

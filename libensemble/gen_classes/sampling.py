@@ -36,19 +36,19 @@ class UniformSample(SampleBase):
         super().__init__(variables, objectives, _, persis_info, gen_specs, libE_info, **kwargs)
         self._get_user_params(self.gen_specs["user"])
 
-    def ask_numpy(self, n_trials):
+    def suggest_numpy(self, n_trials):
         return list_dicts_to_np(
             UniformSampleDicts(
                 self.variables, self.objectives, self.History, self.persis_info, self.gen_specs, self.libE_info
-            ).ask(n_trials)
+            ).suggest(n_trials)
         )
 
-    def tell_numpy(self, calc_in):
+    def ingest_numpy(self, calc_in):
         pass  # random sample so nothing to tell
 
 
-# List of dictionaries format for ask (constructor currently using numpy still)
-# Mostly standard generator interface for libE generators will use the ask/tell wrappers
+# List of dictionaries format for standard (constructor currently using numpy still)
+# Mostly standard generator interface for libE generators will use the suggest/ingest wrappers
 # to the classes above. This is for testing a function written directly with that interface.
 class UniformSampleDicts(Generator):
     """
@@ -65,7 +65,7 @@ class UniformSampleDicts(Generator):
         self.gen_specs = gen_specs
         self.persis_info = persis_info
 
-    def ask(self, n_trials):
+    def suggest(self, n_trials):
         H_o = []
         for _ in range(n_trials):
             trial = {}
@@ -74,5 +74,5 @@ class UniformSampleDicts(Generator):
             H_o.append(trial)
         return H_o
 
-    def tell(self, calc_in):
+    def ingest(self, calc_in):
         pass  # random sample so nothing to tell

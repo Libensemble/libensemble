@@ -204,7 +204,7 @@ def test_asktell_with_persistent_aposmm():
         variables=variables, objectives=objectives, gen_specs=gen_specs, variables_mapping=variables_mapping
     )
 
-    initial_sample = my_APOSMM.ask(100)
+    initial_sample = my_APOSMM.suggest(100)
 
     total_evals = 0
     eval_max = 2000
@@ -213,21 +213,21 @@ def test_asktell_with_persistent_aposmm():
         point["energy"] = six_hump_camel_func(np.array([point["core"], point["edge"]]))
         total_evals += 1
 
-    my_APOSMM.tell(initial_sample)
+    my_APOSMM.ingest(initial_sample)
 
     potential_minima = []
 
     while total_evals < eval_max:
 
-        sample, detected_minima = my_APOSMM.ask(6), my_APOSMM.ask_updates()
+        sample, detected_minima = my_APOSMM.suggest(6), my_APOSMM.suggest_updates()
         if len(detected_minima):
             for m in detected_minima:
                 potential_minima.append(m)
         for point in sample:
             point["energy"] = six_hump_camel_func(np.array([point["core"], point["edge"]]))
             total_evals += 1
-        my_APOSMM.tell(sample)
-    H, persis_info, exit_code = my_APOSMM.final_tell()
+        my_APOSMM.ingest(sample)
+    H, persis_info, exit_code = my_APOSMM.finalize()
 
     assert exit_code == FINISHED_PERSISTENT_GEN_TAG, "Standalone persistent_aposmm didn't exit correctly"
     assert persis_info.get("run_order"), "Standalone persistent_aposmm didn't do any localopt runs"

@@ -23,7 +23,7 @@ NOTE: These generators, implementations, methods, and subclasses are in BETA, an
 
 
 class GeneratorNotStartedException(Exception):
-    """Exception raised by a threaded/multiprocessed generator upon being asked without having been started"""
+    """Exception raised by a threaded/multiprocessed generator upon being suggested without having been started"""
 
 
 class Generator(ABC):
@@ -40,14 +40,14 @@ class Generator(ABC):
                 self.param = param
                 self.model = create_model(variables, objectives, self.param)
 
-            def ask(self, num_points):
+            def suggest(self, num_points):
                 return create_points(num_points, self.param)
 
-            def tell(self, results):
+            def ingest(self, results):
                 self.model = update_model(results, self.model)
 
-            def final_tell(self, results):
-                self.tell(results)
+            def finalize(self, results):
+                self.ingest(results)
                 return list(self.model)
 
 
@@ -70,29 +70,29 @@ class Generator(ABC):
         """
 
     @abstractmethod
-    def ask(self, num_points: Optional[int]) -> List[dict]:
+    def suggest(self, num_points: Optional[int]) -> List[dict]:
         """
         Request the next set of points to evaluate.
         """
 
-    def tell(self, results: List[dict]) -> None:
+    def ingest(self, results: List[dict]) -> None:
         """
         Send the results of evaluations to the generator.
         """
 
-    def final_tell(self, results: List[dict], *args, **kwargs) -> Optional[npt.NDArray]:
+    def finalize(self, results: List[dict], *args, **kwargs) -> Optional[npt.NDArray]:
         """
         Send the last set of results to the generator, instruct it to cleanup, and
         optionally retrieve an updated final state of evaluations. This is a separate
         method to simplify the common pattern of noting internally if a
-        specific tell is the last. This will be called only once.
+        specific ingest is the last. This will be called only once.
         """
 
 
 class LibensembleGenerator(Generator):
     """Internal implementation of Generator interface for use with libEnsemble, or for those who
-    prefer numpy arrays. ``ask/tell`` methods communicate lists of dictionaries, like the standard.
-    ``ask_numpy/tell_numpy`` methods communicate numpy arrays containing the same data.
+    prefer numpy arrays. ``suggest/ingest`` methods communicate lists of dictionaries, like the standard.
+    ``suggest_numpy/ingest_numpy`` methods communicate numpy arrays containing the same data.
     """
 
     def __init__(
@@ -139,11 +139,11 @@ class LibensembleGenerator(Generator):
             self.persis_info = persis_info
 
     @abstractmethod
-    def ask_numpy(self, num_points: Optional[int] = 0) -> npt.NDArray:
+    def suggest_numpy(self, num_points: Optional[int] = 0) -> npt.NDArray:
         """Request the next set of points to evaluate, as a NumPy array."""
 
     @abstractmethod
-    def tell_numpy(self, results: npt.NDArray) -> None:
+    def ingest_numpy(self, results: npt.NDArray) -> None:
         """Send the results, as a NumPy array, of evaluations to the generator."""
 
     @staticmethod
@@ -153,19 +153,19 @@ class LibensembleGenerator(Generator):
             for item in dict_list
         ]
 
-    def ask(self, num_points: Optional[int] = 0) -> List[dict]:
+    def suggest(self, num_points: Optional[int] = 0) -> List[dict]:
         """Request the next set of points to evaluate."""
         return LibensembleGenerator.convert_np_types(
-            np_to_list_dicts(self.ask_numpy(num_points), mapping=self.variables_mapping)
+            np_to_list_dicts(self.suggest_numpy(num_points), mapping=self.variables_mapping)
         )
 
-    def tell(self, results: List[dict]) -> None:
+    def ingest(self, results: List[dict]) -> None:
         """Send the results of evaluations to the generator."""
-        self.tell_numpy(list_dicts_to_np(results, mapping=self.variables_mapping))
+        self.ingest_numpy(list_dicts_to_np(results, mapping=self.variables_mapping))
 
 
 class PersistentGenInterfacer(LibensembleGenerator):
-    """Implement ask/tell for traditionally written libEnsemble persistent generator functions.
+    """Implement suggest/ingest for traditionally written libEnsemble persistent generator functions.
     Still requires a handful of libEnsemble-specific data-structures on initialization.
     """
 
@@ -186,7 +186,7 @@ class PersistentGenInterfacer(LibensembleGenerator):
         self.running_gen_f = None
 
     def setup(self) -> None:
-        """Must be called once before calling ask/tell. Initializes the background thread."""
+        """Must be called once before calling suggest/ingest. Initializes the background thread."""
         if self.running_gen_f is not None:
             return
         # SH this contains the thread lock -  removing.... wrong comm to pass on anyway.
@@ -204,7 +204,7 @@ class PersistentGenInterfacer(LibensembleGenerator):
             user_function=True,
         )
 
-        # this is okay since the object isnt started until the first ask
+        # this is okay since the object isnt started until the first suggest
         self.libE_info["comm"] = self.running_gen_f.comm
 
     def _set_sim_ended(self, results: npt.NDArray) -> npt.NDArray:
@@ -217,19 +217,19 @@ class PersistentGenInterfacer(LibensembleGenerator):
         new_results["sim_ended"] = True
         return new_results
 
-    def tell(self, results: List[dict], tag: int = EVAL_GEN_TAG) -> None:
+    def ingest(self, results: List[dict], tag: int = EVAL_GEN_TAG) -> None:
         """Send the results of evaluations to the generator."""
-        self.tell_numpy(list_dicts_to_np(results, mapping=self.variables_mapping), tag)
+        self.ingest_numpy(list_dicts_to_np(results, mapping=self.variables_mapping), tag)
 
-    def ask_numpy(self, num_points: int = 0) -> npt.NDArray:
+    def suggest_numpy(self, num_points: int = 0) -> npt.NDArray:
         """Request the next set of points to evaluate, as a NumPy array."""
         if self.running_gen_f is None:
             self.setup()
             self.running_gen_f.run()
-        _, ask_full = self.running_gen_f.recv()
-        return ask_full["calc_out"]
+        _, suggest_full = self.running_gen_f.recv()
+        return suggest_full["calc_out"]
 
-    def tell_numpy(self, results: npt.NDArray, tag: int = EVAL_GEN_TAG) -> None:
+    def ingest_numpy(self, results: npt.NDArray, tag: int = EVAL_GEN_TAG) -> None:
         """Send the results of evaluations to the generator, as a NumPy array."""
         if results is not None:
             results = self._set_sim_ended(results)
@@ -241,7 +241,7 @@ class PersistentGenInterfacer(LibensembleGenerator):
         else:
             self.running_gen_f.send(tag, None)
 
-    def final_tell(self, results: npt.NDArray = None) -> (npt.NDArray, dict, int):
+    def finalize(self, results: npt.NDArray = None) -> (npt.NDArray, dict, int):
         """Send any last results to the generator, and it to close down."""
-        self.tell_numpy(results, PERSIS_STOP)  # conversion happens in tell
+        self.ingest_numpy(results, PERSIS_STOP)  # conversion happens in ingest
         return self.running_gen_f.result()

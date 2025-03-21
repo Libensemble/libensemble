@@ -29,10 +29,10 @@ def test_asktell_sampling_and_utils():
 
     # Test initialization with libensembley parameters
     gen = UniformSample(variables, objectives)
-    assert len(gen.ask(10)) == 10
+    assert len(gen.suggest(10)) == 10
 
     out_np = gen.ask_numpy(3)  # should get numpy arrays, non-flattened
-    out = gen.ask(3)  # needs to get dicts, 2d+ arrays need to be flattened
+    out = gen.suggest(3)  # needs to get dicts, 2d+ arrays need to be flattened
 
     assert all([len(x) == 2 for x in out])  # np_to_list_dicts is now tested
 
@@ -50,7 +50,7 @@ def test_asktell_sampling_and_utils():
     mapping = {"x": ["core", "edge"]}
 
     gen = UniformSample(variables, objectives, mapping)
-    out = gen.ask(1)
+    out = gen.suggest(1)
     assert len(out) == 1
     assert out[0].get("core")
     assert out[0].get("edge")

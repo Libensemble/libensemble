@@ -21,7 +21,7 @@ class APOSMM(PersistentGenInterfacer):
         persis_info: dict = {},
         gen_specs: dict = {},
         libE_info: dict = {},
-        **kwargs
+        **kwargs,
     ) -> None:
         from libensemble.gen_funcs.persistent_aposmm import aposmm
 
@@ -47,78 +47,78 @@ class APOSMM(PersistentGenInterfacer):
         if not self.persis_info.get("nworkers"):
             self.persis_info["nworkers"] = kwargs.get("nworkers", gen_specs["user"]["max_active_runs"])
         self.all_local_minima = []
-        self._ask_idx = 0
-        self._last_ask = None
-        self._tell_buf = None
+        self._suggest_idx = 0
+        self._last_suggest = None
+        self._ingest_buf = None
         self._n_buffd_results = 0
         self._told_initial_sample = False
 
     def _slot_in_data(self, results):
         """Slot in libE_calc_in and trial data into corresponding array fields. *Initial sample only!!*"""
-        self._tell_buf[self._n_buffd_results : self._n_buffd_results + len(results)] = results
+        self._ingest_buf[self._n_buffd_results : self._n_buffd_results + len(results)] = results
 
     def _enough_initial_sample(self):
         return (
             self._n_buffd_results >= int(self.gen_specs["user"]["initial_sample_size"])
         ) or self._told_initial_sample
 
-    def _ready_to_ask_genf(self):
+    def _ready_to_suggest_genf(self):
         """
-        We're presumably ready to be asked IF:
+        We're presumably ready to be suggested IF:
         - When we're working on the initial sample:
-            - We have no _last_ask cached
-            - all points given out have returned AND we've been asked *at least* as many points as we cached
+            - We have no _last_suggest cached
+            - all points given out have returned AND we've been suggested *at least* as many points as we cached
         - When we're done with the initial sample:
-            - we've been asked *at least* as many points as we cached
+            - we've been suggested *at least* as many points as we cached
         """
-        if not self._told_initial_sample and self._last_ask is not None:
-            cond = all([i in self._tell_buf["sim_id"] for i in self._last_ask["sim_id"]])
+        if not self._told_initial_sample and self._last_suggest is not None:
+            cond = all([i in self._ingest_buf["sim_id"] for i in self._last_suggest["sim_id"]])
         else:
             cond = True
-        return self._last_ask is None or (cond and (self._ask_idx >= len(self._last_ask)))
+        return self._last_suggest is None or (cond and (self._suggest_idx >= len(self._last_suggest)))
 
-    def ask_numpy(self, num_points: int = 0) -> npt.NDArray:
+    def suggest_numpy(self, num_points: int = 0) -> npt.NDArray:
         """Request the next set of points to evaluate, as a NumPy array."""
-        if self._ready_to_ask_genf():
-            self._ask_idx = 0
-            self._last_ask = super().ask_numpy(num_points)
+        if self._ready_to_suggest_genf():
+            self._suggest_idx = 0
+            self._last_suggest = super().suggest_numpy(num_points)
 
-            if self._last_ask["local_min"].any():  # filter out local minima rows
-                min_idxs = self._last_ask["local_min"]
-                self.all_local_minima.append(self._last_ask[min_idxs])
-                self._last_ask = self._last_ask[~min_idxs]
+            if self._last_suggest["local_min"].any():  # filter out local minima rows
+                min_idxs = self._last_suggest["local_min"]
+                self.all_local_minima.append(self._last_suggest[min_idxs])
+                self._last_suggest = self._last_suggest[~min_idxs]
 
-        if num_points > 0:  # we've been asked for a selection of the last ask
-            results = np.copy(self._last_ask[self._ask_idx : self._ask_idx + num_points])
-            self._ask_idx += num_points
+        if num_points > 0:  # we've been suggested for a selection of the last suggest
+            results = np.copy(self._last_suggest[self._suggest_idx : self._suggest_idx + num_points])
+            self._suggest_idx += num_points
 
         else:
-            results = np.copy(self._last_ask)
-            self._last_ask = None
+            results = np.copy(self._last_suggest)
+            self._last_suggest = None
 
         return results
 
-    def tell_numpy(self, results: npt.NDArray, tag: int = EVAL_GEN_TAG) -> None:
+    def ingest_numpy(self, results: npt.NDArray, tag: int = EVAL_GEN_TAG) -> None:
         if (results is None and tag == PERSIS_STOP) or self._told_initial_sample:
-            super().tell_numpy(results, tag)
+            super().ingest_numpy(results, tag)
             return
 
         # Initial sample buffering here:
 
         if self._n_buffd_results == 0:
-            self._tell_buf = np.zeros(self.gen_specs["user"]["initial_sample_size"], dtype=results.dtype)
-            self._tell_buf["sim_id"] = -1
+            self._ingest_buf = np.zeros(self.gen_specs["user"]["initial_sample_size"], dtype=results.dtype)
+            self._ingest_buf["sim_id"] = -1
 
         if not self._enough_initial_sample():
             self._slot_in_data(np.copy(results))
             self._n_buffd_results += len(results)
 
         if self._enough_initial_sample():
-            super().tell_numpy(self._tell_buf, tag)
+            super().ingest_numpy(self._ingest_buf, tag)
             self._told_initial_sample = True
             self._n_buffd_results = 0
 
-    def ask_updates(self) -> List[npt.NDArray]:
+    def suggest_updates(self) -> List[npt.NDArray]:
         """Request a list of NumPy arrays containing entries that have been identified as minima."""
         minima = copy.deepcopy(self.all_local_minima)
         self.all_local_minima = []

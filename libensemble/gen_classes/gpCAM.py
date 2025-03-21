@@ -65,7 +65,7 @@ class GP_CAM(LibensembleGenerator):
         self.noise = 1e-8  # 1e-12
         self.ask_max_iter = self.gen_specs["user"].get("ask_max_iter") or 10
 
-    def ask_numpy(self, n_trials: int) -> npt.NDArray:
+    def suggest_numpy(self, n_trials: int) -> npt.NDArray:
         if self.all_x.shape[0] == 0:
             self.x_new = self.rng.uniform(self.lb, self.ub, (n_trials, self.n))
         else:
@@ -82,7 +82,7 @@ class GP_CAM(LibensembleGenerator):
         H_o["x"] = self.x_new
         return H_o
 
-    def tell_numpy(self, calc_in: npt.NDArray) -> None:
+    def ingest_numpy(self, calc_in: npt.NDArray) -> None:
         if calc_in is not None:
             if "x" in calc_in.dtype.names:  # SH should we require x in?
                 self.x_new = np.atleast_2d(calc_in["x"])
@@ -121,7 +121,7 @@ class GP_CAM_Covar(GP_CAM):
             self.x_for_var = _generate_mesh(self.lb, self.ub, self.num_points)
             self.r_low_init, self.r_high_init = _calculate_grid_distances(self.lb, self.ub, self.num_points)
 
-    def ask_numpy(self, n_trials: int) -> List[dict]:
+    def suggest_numpy(self, n_trials: int) -> List[dict]:
         if self.all_x.shape[0] == 0:
             x_new = self.rng.uniform(self.lb, self.ub, (n_trials, self.n))
         else:
@@ -145,7 +145,7 @@ class GP_CAM_Covar(GP_CAM):
         H_o["x"] = self.x_new
         return H_o
 
-    def tell_numpy(self, calc_in: npt.NDArray):
+    def ingest_numpy(self, calc_in: npt.NDArray):
         if calc_in is not None:
             super().tell_numpy(calc_in)
             if not self.U.get("use_grid"):
