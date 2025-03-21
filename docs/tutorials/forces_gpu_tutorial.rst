@@ -225,7 +225,7 @@ If you want to have two GPUs per worker on the same system (with four GPUs per n
 you could assign only four workers. You will see that two GPUs are used for each
 forces run.
 
-.. _var_resources_gpu
+.. _var-resources-gpu:
 
 Varying resources
 -----------------

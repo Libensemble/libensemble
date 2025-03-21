@@ -128,7 +128,7 @@ The :doc:`forces_gpu tutorial<../tutorials/forces_gpu_tutorial>` shows an exampl
 Varying resources
 -----------------
 
-libEnsemble also features :ref:`dynamic resource assignment<var_resources_gpu>`, whereby the
+libEnsemble also features :ref:`dynamic resource assignment<var-resources-gpu>`, whereby the
 number of processes and/or the number of GPUs can be a set for each simulation by the generator.
 
 
