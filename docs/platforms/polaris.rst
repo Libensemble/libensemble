@@ -64,7 +64,7 @@ A simple example batch script for a libEnsemble use case that runs 5 workers
 
     cd $PBS_O_WORKDIR
 
-    python run_libe_forces.py --comms local --nworkers 5
+    python run_libe_forces.py --nworkers 5
 
 The script can be run with::
 

@@ -14,7 +14,7 @@ produced and GPU settings for different MPI runners.
 
 Execute via one of the following commands (e.g. 5 workers):
    mpiexec -np 6 python test_GPU_variable_resources.py
-   python test_GPU_variable_resources.py --comms local --nworkers 5
+   python test_GPU_variable_resources.py --nworkers 5
 
 When running with the above command, the number of concurrent evaluations of
 the objective function will be 4, as one of the five workers will be the

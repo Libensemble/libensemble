@@ -3,7 +3,7 @@ Tests libEnsemble's capability to kill/cancel  simulations that are in progress.
 
 Execute via one of the following commands (e.g. 3 workers):
    mpiexec -np 4 python test_persistent_surmise_killsims.py
-   python test_persistent_surmise_killsims.py --nworkers 3 --comms local
+   python test_persistent_surmise_killsims.py --nworkers 3
    python test_persistent_surmise_killsims.py --nworkers 3 --comms tcp
 
 When running with the above commands, the number of concurrent evaluations of
