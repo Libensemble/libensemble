@@ -102,7 +102,7 @@ class PersistentSupport:
             return data_tag, calc_in, None  # calc_in is signal identifier
 
         logger.debug(f"Persistent {self.calc_str} received work rows from manager")
-        self.rows = Work["libE_info"]["H_rows"]
+        self.last_H_rows = Work["libE_info"]["H_rows"]
         self.tag = tag
         return calc_in
 
