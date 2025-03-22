@@ -1,7 +1,7 @@
 .. _datastruct-libe-specs:
 
-General Specs
-=============
+LibE Specs
+==========
 
 libEnsemble is primarily customized by setting options within a ``LibeSpecs`` class or dictionary.
 
@@ -10,11 +10,10 @@ libEnsemble is primarily customized by setting options within a ``LibeSpecs`` cl
     from libensemble.specs import LibeSpecs
 
     specs = LibeSpecs(
-        comm=MPI.COMM_WORLD,
-        comms="mpi",
-        save_every_k_gens=1000,
+        gen_on_manager=True,
+        save_every_k_gens=100,
         sim_dirs_make=True,
-        ensemble_dir_path="/scratch/ensemble",
+        nworkers=4
     )
 
 .. dropdown:: Settings by Category
