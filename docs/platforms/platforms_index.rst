@@ -11,8 +11,8 @@ the available nodes.
 The :doc:`Forces tutorial <../../tutorials/executor_forces_tutorial>` gives an
 example with a simple MPI application.
 
-Central Mode
-------------
+Centralized Running
+-------------------
 
 The default communications scheme places the manager and workers on the first node.
 The :doc:`MPI Executor<../executor/mpi_executor>` can then be invoked on each
@@ -24,50 +24,76 @@ The generator will run on a worker by default, but if running a single generator
 the :ref:`libE_specs<datastruct-libe-specs>` option **gen_on_manager** is recommended,
 which runs the generator on the manager (using a thread) as below.
 
-    .. image:: ../images/centralized_gen_on_manager.png
-        :alt: centralized
-        :scale: 55
-        :align: center
+.. list-table::
+   :widths: 60 40
 
-   .. code-block:: python
+   * - .. image:: ../images/centralized_gen_on_manager.png
+          :alt: centralized
+          :scale: 55
 
-    ensemble.libE_specs = LibeSpecs(
-        gen_on_manager=True,
-    )
+     - In calling script:
 
-When using **gen_on_manager**, set ``nworkers`` to the number of workers desired for running
-simulations. A batch script may include:
+       .. code-block:: python
+          :linenos:
 
-    .. code-block:: bash
+          ensemble.libE_specs = LibeSpecs(
+              gen_on_manager=True,
+          )
 
-        #SBATCH --nodes 3
+       A SLURM batch script may include:
 
-        python run_libe_forces.py --nworkers 3
+
+       .. code-block:: bash
+
+          #SBATCH --nodes 3
+
+          python run_libe_forces.py --nworkers 3
+
+
+When using **gen_on_manager**, set ``nworkers`` to the number of workers desired for running simulations.
+
+Dedicated Mode
+^^^^^^^^^^^^^^
 
 If the :ref:`libE_specs<datastruct-libe-specs>` option **dedicated_mode** is set to
 True, the MPI executor will not launch applications on nodes where libEnsemble Python
 processes (manager and workers) are running. Worker’s launch applications onto the
 remaining nodes in the allocation.
 
-    .. image:: ../images/centralized_dedicated.png
-        :alt: centralized
-        :scale: 30
-        :align: center
+
+.. list-table::
+   :widths: 60 40
+
+   * - .. image:: ../images/centralized_dedicated.png
+          :alt: centralized dedicated mode
+          :scale: 30
+
+     - In calling script:
+
+       .. code-block:: python
+          :linenos:
+
+          ensemble.libE_specs = LibeSpecs(
+              dedicated_mode=True,
+          )
+
+       A SLURM batch script may include:
+
+
+       .. code-block:: bash
+
+          #SBATCH --nodes 3
+
+          python run_libe_forces.py --nworkers 3
+
 
 Note that **gen_on_manager** is not set in the above example.
-
-   .. code-block:: python
-
-    ensemble.libE_specs = LibeSpecs(
-        dedicated_mode=True,
-    )
-
 
 Note that while these diagrams show one application being run per node, configurations
 with **multiple nodes per worker** or **multiple workers per node** are both common use cases.
 
-Distributed Mode
-----------------
+Distributed  Running
+--------------------
 
 In the **distributed** approach, libEnsemble can be run using the **mpi4py**
 communicator, with workers distributed across nodes to be co-located with their tasks.
