@@ -57,7 +57,7 @@ Dedicated Mode
 
 If the :ref:`libE_specs<datastruct-libe-specs>` option **dedicated_mode** is set to
 True, the MPI executor will not launch applications on nodes where libEnsemble Python
-processes (manager and workers) are running. Worker’s launch applications onto the
+processes (manager and workers) are running. Workers launch applications onto the
 remaining nodes in the allocation.
 
 
@@ -112,7 +112,7 @@ head node of the allocation run the following (inc. manager and 3 workers)::
 The distributed approach allows the libEnsemble worker to read files produced by the
 application on local node storage.
 
-Distributed mode is also useful when workers are running simulations directly, via a
+Distributed mode is also useful when workers run simulations directly, via a
 Python interface.
 
 Configuring the Run
@@ -134,7 +134,7 @@ Mapping Tasks to Resources
 
 The :ref:`resource manager<resources_index>` detects node lists from
 :ref:`common batch schedulers<resource_detection>`,
-and partition these to workers. The :doc:`MPI Executor<../executor/mpi_executor>`
+and partitions these to workers. The :doc:`MPI Executor<../executor/mpi_executor>`
 accesses the resources available to the current worker when launching tasks.
 
 Zero-resource workers
@@ -207,7 +207,7 @@ or *to entirely different systems*.
 
         (New) Multi-System: libEnsemble + BalsamExecutor
 
-Submission scripts for running on launch/MOM nodes and for using Balsam, can be found in
+Submission scripts for running on launch/MOM nodes and for using Balsam can be found in
 the :doc:`examples<example_scripts>`.
 
 
