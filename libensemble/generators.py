@@ -116,18 +116,18 @@ class LibensembleGenerator(Generator):
         self._internal_variable = "x"  # need to figure these out dynamically
         self._internal_objective = "f"
 
-        if self.variables:
+        # if self.variables:
 
-            self.n = len(self.variables)
-            # build our own lb and ub
-            lb = []
-            ub = []
-            for i, v in enumerate(self.variables.values()):
-                if isinstance(v, list) and (isinstance(v[0], int) or isinstance(v[0], float)):
-                    lb.append(v[0])
-                    ub.append(v[1])
-            kwargs["lb"] = np.array(lb)
-            kwargs["ub"] = np.array(ub)
+        #     self.n = len(self.variables)
+        #     # build our own lb and ub
+        #     lb = []
+        #     ub = []
+        #     for i, v in enumerate(self.variables.values()):
+        #         if isinstance(v, list) and (isinstance(v[0], int) or isinstance(v[0], float)):
+        #             lb.append(v[0])
+        #             ub.append(v[1])
+        #     kwargs["lb"] = np.array(lb)
+        #     kwargs["ub"] = np.array(ub)
 
         if len(kwargs) > 0:  # so user can specify gen-specific parameters as kwargs to constructor
             if not self.gen_specs.get("user"):
@@ -208,8 +208,12 @@ class PersistentGenInterfacer(LibensembleGenerator):
         self.libE_info["comm"] = self.running_gen_f.comm
 
     def _set_sim_ended(self, results: npt.NDArray) -> npt.NDArray:
-        new_results = np.zeros(len(results), dtype=self.gen_specs["out"] + [("sim_ended", bool), ("f", float)])
-        for field in results.dtype.names:
+        filtered_dtype = [
+            (name, results.dtype[name]) for name in results.dtype.names if name in self.gen_specs["persis_in"]
+        ]
+        new_dtype = filtered_dtype + [("sim_ended", bool)]
+        new_results = np.zeros(len(results), dtype=new_dtype)
+        for field in new_results.dtype.names:  # only copy over fields that generator explicitly wants
             try:
                 new_results[field] = results[field]
             except ValueError:  # lets not slot in data that the gen doesnt need?
