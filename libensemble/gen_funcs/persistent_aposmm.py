@@ -53,7 +53,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
 
     - ``"fvec" [m floats]``: All objective components (if performing a least-squares calculation)
     - ``"grad" [n floats]``: The gradient (if available) of the objective with respect to `x`.
-    - ``"hfun_arg" [any]``: The argument of the hfun function.
+    - ``"hfun_arg" [float]``: The argument of the hfun function.
 
     Note:
 
