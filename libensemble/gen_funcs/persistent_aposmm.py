@@ -34,7 +34,7 @@ def cdist(XA, XB, metric="euclidean"):
     distances = np.sqrt(np.sum(diff**2, axis=2))
     return distances
 
-
+#   SH TODO hfun_arg could be a list of arguments
 def aposmm(H, persis_info, gen_specs, libE_info):
     """
     APOSMM coordinates multiple local optimization runs, dramatically reducing time for
@@ -53,6 +53,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
 
     - ``"fvec" [m floats]``: All objective components (if performing a least-squares calculation)
     - ``"grad" [n floats]``: The gradient (if available) of the objective with respect to `x`.
+    - ``"hfun_arg" [any]``: The argument of the hfun function.
 
     Note:
 
@@ -208,6 +209,14 @@ def aposmm(H, persis_info, gen_specs, libE_info):
 
                 n_s, n_r = update_local_H_after_receiving(local_H, n, n_s, user_specs, Work, calc_in, fields_to_pass)
 
+                if 'hfun' in user_specs and 'hfun_arg' in calc_in.dtype.names:
+                    # closure to capture the hfun_arg
+                    def create_hfun_wrapper(original_hfun, hfun_arg):
+                        def hfun(x):
+                            return original_hfun(x, hfun_arg)
+                        return hfun
+                    user_specs['hfun'] = create_hfun_wrapper(user_specs['hfun'], calc_in['hfun_arg'])
+
                 for row in calc_in:
                     if sim_id_to_child_inds.get(row["sim_id"]):
                         # Point came from a child local opt run
@@ -233,6 +242,8 @@ def aposmm(H, persis_info, gen_specs, libE_info):
 
             starting_inds = decide_where_to_start_localopt(local_H, n, n_s, rk_const, ld, mu, nu)
 
+
+
             for ind in starting_inds:
                 if len([p for p in local_opters.values() if p.is_running]) < user_specs.get("max_active_runs", np.inf):
                     local_H["started_run"][ind] = 1
@@ -243,6 +254,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                         local_H[ind]["x_on_cube"],
                         local_H[ind]["f"] if "f" in fields_to_pass else local_H[ind]["fvec"],
                         local_H[ind]["grad"] if "grad" in fields_to_pass else None,
+
                     )
 
                     local_opters[total_runs] = local_opter
@@ -287,11 +299,12 @@ def aposmm(H, persis_info, gen_specs, libE_info):
 
 
 def update_local_H_after_receiving(local_H, n, n_s, user_specs, Work, calc_in, fields_to_pass):
-    for name in ["f", "x_on_cube", "grad", "fvec"]:
+    for name in ["f", "x_on_cube", "grad", "fvec", "hfun_arg"]:
         if name in fields_to_pass:
             assert name in calc_in.dtype.names, (
                 name + " must be returned to persistent_aposmm for localopt_method: " + user_specs["localopt_method"]
             )
+
 
     for name in calc_in.dtype.names:
         local_H[name][Work["libE_info"]["H_rows"]] = calc_in[name]
@@ -648,6 +661,7 @@ def initialize_APOSMM(H, user_specs, libE_info):
     local_H_fields = [
         ("f", float),
         ("grad", float, n),
+        ("hfun_arg", float),
         ("x", float, n),
         ("x_on_cube", float, n),
         ("local_pt", bool),
@@ -735,7 +749,7 @@ def initialize_children(user_specs):
     ]:
         fields_to_pass = ["x_on_cube", "f"]
     elif user_specs["localopt_method"] in ["pounders", "ibcdfo_pounders", "dfols"]:
-        fields_to_pass = ["x_on_cube", "fvec"]
+        fields_to_pass = ["x_on_cube", "fvec", "hfun_arg"]
     else:
         raise NotImplementedError(f"Unknown local optimization method {user_specs['localopt_method']}.")
 
