@@ -42,17 +42,7 @@ class APOSMM(PersistentGenInterfacer):
                 ("local_min", bool),
                 ("local_pt", bool),
             ]
-            gen_specs["persis_in"] = [
-                "x",
-                "f",
-                "fvec",
-                "local_pt",
-                "sim_id",
-                "sim_ended",
-                "x_on_cube",
-                "local_min",
-                "hfun_arg",
-            ]
+            gen_specs["persis_in"] = ["x", "f", "fvec", "local_pt", "sim_id", "sim_ended", "x_on_cube", "local_min"]
         super().__init__(variables, objectives, History, persis_info, gen_specs, libE_info, **kwargs)
         if not self.persis_info.get("nworkers"):
             self.persis_info["nworkers"] = kwargs.get("nworkers", gen_specs["user"]["max_active_runs"])
