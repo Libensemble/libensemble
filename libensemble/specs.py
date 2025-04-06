@@ -220,6 +220,9 @@ class LibeSpecs(BaseModel):
     H_file_prefix: Optional[str] = "libE_history"
     """ Prefix for ``H`` filename."""
 
+    persis_info_file_prefix: Optional[str] = "libE_persis"
+    """ Prefix for ``H`` filename."""
+
     worker_timeout: Optional[int] = 1
     """ On libEnsemble shutdown, number of seconds after which workers considered timed out, then terminated. """
 
