@@ -1,7 +1,7 @@
 .. _datastruct-libe-specs:
 
-General Specs
-=============
+LibE Specs
+==========
 
 libEnsemble is primarily customized by setting options within a ``LibeSpecs`` class or dictionary.
 
@@ -10,11 +10,10 @@ libEnsemble is primarily customized by setting options within a ``LibeSpecs`` cl
     from libensemble.specs import LibeSpecs
 
     specs = LibeSpecs(
-        comm=MPI.COMM_WORLD,
-        comms="mpi",
-        save_every_k_gens=1000,
+        gen_on_manager=True,
+        save_every_k_gens=100,
         sim_dirs_make=True,
-        ensemble_dir_path="/scratch/ensemble",
+        nworkers=4
     )
 
 .. dropdown:: Settings by Category
@@ -272,8 +271,8 @@ libEnsemble is primarily customized by setting options within a ``LibeSpecs`` cl
                     ``disable_resource_manager`` is set.
 
                 **dedicated_mode** [bool] = ``False``:
-                    Disallow any resources running libEnsemble processes (manager and workers)
-                    from being valid targets for app submissions.
+                    Instructs libEnsemble’s MPI executor not to run applications on nodes where
+                    libEnsemble processes (manager and workers) are running.
 
                 **zero_resource_workers** [list of ints]:
                     List of workers (by IDs) that require no resources. For when a fixed mapping of workers
