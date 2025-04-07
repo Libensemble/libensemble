@@ -78,6 +78,7 @@ remaining nodes in the allocation.
           :linenos:
 
           ensemble.libE_specs = LibeSpecs(
+              num_resource_sets=2,
               dedicated_mode=True,
           )
 
