@@ -97,14 +97,14 @@ Distributed  Running
 
 In the **distributed** approach, libEnsemble can be run using the **mpi4py**
 communicator, with workers distributed across nodes. This is most often used
-when workers run simulation code directly, via a Python interface, and may be
-run an mpirunner, for example (using an `mpich` based MPI)::
+when workers run simulation code directly, via a Python interface. The user
+script is invoked with an MPI runner, for example (using an `mpich` based MPI)::
 
     mpirun -np 4 -ppn 1 python myscript.py
 
 The distributed approach, can also be used with the executor, to co-locate workers
 with the applications they submit. To ensure workers are placed as required in this
-case, requires a careful MPI rank placement.
+case, requires :ref:`a careful MPI rank placement <slurm_mpi_distributed>`.
 
     .. image:: ../images/distributed_new_detailed.png
         :alt: distributed
