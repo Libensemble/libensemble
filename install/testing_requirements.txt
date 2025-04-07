@@ -1,4 +1,4 @@
-flake8==7.1.2
+flake8==7.2.0
 coverage>=7.5
 pytest==8.3.5
 pytest-cov==6.0.0
@@ -8,4 +8,4 @@ python-dateutil==2.9.0.post0
 anyio==4.9.0
 matplotlib==3.10.1
 mpmath==1.3.0
-rich==13.9.4
+rich==14.0.0
