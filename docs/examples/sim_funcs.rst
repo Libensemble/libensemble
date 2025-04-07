@@ -51,6 +51,7 @@ application on various platforms (use -DGPU to build for GPU).
    sim_funcs/forces_simf_gpu
    sim_funcs/forces_simf_gpu_vary_resources
    sim_funcs/forces_simf_gpu_multi_app
+   WarpX Example<https://libensemble.readthedocs.io/projects/libe-community-examples/en/latest/simulators.html#module-warpx-simf>
 
 Special simulation functions
 ----------------------------
