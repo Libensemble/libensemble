@@ -8,6 +8,45 @@ GitHub issues are referenced, and can be viewed with hyperlinks on the `github r
 
 .. _`github releases page`: https://github.com/Libensemble/libensemble/releases
 
+Release 1.5.0
+--------------
+
+:Date: Apr 8, 2025
+
+General Updates:
+
+* Migrate package build system to `pyproject.toml` (with `pixi` support). #1459
+* Improve handling when no MPI found. #1514
+* `ensemble.save_output()` can save without appending attributes `append_attrs=False`.  #1531
+* Improved handling of worker-specific `persis_info` fields when they are not initially provided. #1531
+  * Bugfix: Fix `final_gen_send` when there are no worker-specific `persis_info` fields.
+  * Handle worker-generated `persis_info` fields.
+  * Ensure `persis_info` is initialized to an empty dictionary in user functions instead of None.
+
+Examples:
+
+* Update Ax generator for `Ax v0.5.0`. #1508
+* gpCAM generators renamed. #1516
+  * `persistent_gpCAM_ask_tell` to `persistent_gpCAM`
+  * `persistent_gpCAM_simple` to `persistent_gpCAM_covar` (in fact less simple)
+* Persistent generators return `None` as first return value unless `H_o` is updated. #1515
+
+Documentation:
+
+* Revamped Examples and HPC section of documentation. #1501, #1536, #1539
+* Added tutorial and notebook demonstrating surrogate model creation with gpCAM. #1531
+* Updated Aurora guide. #1510
+* Updated and documented APOSMM/WarpX example. #1543
+
+:Note:
+
+* Tests were run on Linux and MacOS with Python versions 3.10, 3.11, 3.12, 3.13
+* Heterogeneous workflows tested on Aurora (ALCF), Polaris (ALCF), and Perlmutter (NERSC).
+
+:Known Issues:
+
+* See known issues section in the documentation.
+
 Release 1.4.3
 --------------
 
