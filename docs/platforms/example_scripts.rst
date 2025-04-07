@@ -75,8 +75,8 @@ Polaris
     :caption: /examples/libE_submission_scripts/submit_pbs_polaris.sh
     :language: bash
 
-Bebop - Central Mode
-^^^^^^^^^^^^^^^^^^^^
+Bebop
+^^^^^
 
 ..  literalinclude:: ../../examples/libE_submission_scripts/bebop_submit_pbs_central.sh
     :caption: /examples/libE_submission_scripts/bebop_submit_pbs_central.sh
