@@ -5,11 +5,15 @@ Running on HPC Systems
 
 libEnsemble has been tested on systems of highly varying scales, from laptops to
 thousands of compute nodes. On multi-node systems, there are a few alternative
-ways of configuring libEnsemble to run and launch tasks (i.e., user applications) on
-the available nodes.
+ways of configuring libEnsemble to run and launch tasks (i.e., user applications)
+on the available nodes.
 
 The :doc:`Forces tutorial <../../tutorials/executor_forces_tutorial>` gives an
 example with a simple MPI application.
+
+Note that while the diagrams below show one application being run per node,
+configurations with **multiple nodes per worker** or **multiple workers per node**
+are both common use cases.
 
 Centralized Running
 -------------------
@@ -17,10 +21,10 @@ Centralized Running
 The default communications scheme places the manager and workers on the first node.
 The :doc:`MPI Executor<../executor/mpi_executor>` can then be invoked by each
 simulation worker, and libEnsemble will distribute user applications across the
-node allocation. This is the most common approach where each simulation
+node allocation. This is the **most common approach** where each simulation
 runs an MPI application.
 
-The generator will run on one worker by default, but if running a single generator,
+The generator will run on a worker by default, but if running a single generator,
 the :ref:`libE_specs<datastruct-libe-specs>` option **gen_on_manager** is recommended,
 which runs the generator on the manager (using a thread) as below.
 
@@ -88,9 +92,6 @@ remaining nodes in the allocation.
 
 
 Note that **gen_on_manager** is not set in the above example.
-
-Note that while these diagrams show one application being run per node, configurations
-with **multiple nodes per worker** or **multiple workers per node** are both common use cases.
 
 Distributed  Running
 --------------------
