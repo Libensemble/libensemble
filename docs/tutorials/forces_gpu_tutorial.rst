@@ -7,9 +7,9 @@ to the GPU. The libEnsemble scripts in this example are available under
 forces_gpu_ in the libEnsemble repository.
 
 This example is based on the
-:doc:`simple forces tutorial  <../tutorials/executor_forces_tutorial>` with
+:doc:`simple forces tutorial <../tutorials/executor_forces_tutorial>` with
 a slightly modified simulation function (to assign GPUs) and a greatly increased
-number of particles (allows live GPU usage to be viewed).
+number of particles (to allow real-time GPU usage to be viewed).
 
 In the first example, each worker will be using one GPU. The code will assign the
 GPUs available to each worker, using the appropriate method. This works on systems
