@@ -36,8 +36,8 @@ Functions that run user applications
 These use the executor to launch applications and in some cases
 handle dynamic CPU/GPU allocation.
 
-The ``Variable resources`` module contains basic examples, while the ``Template`` 
-examples use a simple  MPI/OpenMP (with GPU offload option) application (``forces``) 
+The ``Variable resources`` module contains basic examples, while the ``Template``
+examples use a simple  MPI/OpenMP (with GPU offload option) application (``forces``)
 to demonstrate libEnsemble’s capabilities on various HPC systems. The
 build_forces.sh_ file gives compile lines for building the simple ``forces``
 application on various platforms (use -DGPU to build for GPU).

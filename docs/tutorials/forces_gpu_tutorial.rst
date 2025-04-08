@@ -35,7 +35,6 @@ from the simple forces example are highlighted:
     # Optional - to print GPU settings
     from libensemble.tools.test_support import check_gpu_setting
 
-
     def run_forces(H, persis_info, sim_specs, libE_info):
         """Launches the forces MPI app and auto-assigns ranks and GPU resources.
 
@@ -153,7 +152,6 @@ and use this information however you want.
             # Define our output array,  populate with energy reading
             output = np.zeros(1, dtype=sim_specs["out"])
             output["energy"][0] = final_energy
-
 
         return output
 

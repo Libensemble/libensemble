@@ -46,13 +46,11 @@ which runs the generator on the manager (using a thread) as below.
 
        A SLURM batch script may include:
 
-
        .. code-block:: bash
 
           #SBATCH --nodes 3
 
           python run_libe_forces.py --nworkers 3
-
 
 When using **gen_on_manager**, set ``nworkers`` to the number of workers desired for running simulations.
 
@@ -63,7 +61,6 @@ If the :ref:`libE_specs<datastruct-libe-specs>` option **dedicated_mode** is set
 True, the MPI executor will not launch applications on nodes where libEnsemble Python
 processes (manager and workers) are running. Workers launch applications onto the
 remaining nodes in the allocation.
-
 
 .. list-table::
    :widths: 60 40
@@ -84,13 +81,11 @@ remaining nodes in the allocation.
 
        A SLURM batch script may include:
 
-
        .. code-block:: bash
 
           #SBATCH --nodes 3
 
           python run_libe_forces.py --nworkers 3
-
 
 Note that **gen_on_manager** is not set in the above example.
 
@@ -115,7 +110,6 @@ case, requires :ref:`a careful MPI rank placement <slurm_mpi_distributed>`.
 
 This allows the libEnsemble worker to read files produced by the application on
 local node storage.
-
 
 Configuring the Run
 -------------------
@@ -159,7 +153,6 @@ Varying resources
 libEnsemble also features :ref:`dynamic resource assignment<var-resources-gpu>`, whereby the
 number of processes and/or the number of GPUs can be a set for each simulation by the generator.
 
-
 Overriding Auto-Detection
 -------------------------
 
@@ -171,8 +164,6 @@ libE_specs option.
 
 When using the MPI Executor, it is possible to override the detected information using the
 `custom_info` argument. See the :doc:`MPI Executor<../executor/mpi_executor>` for more.
-
-
 
 Systems with Launch/MOM Nodes
 -----------------------------
@@ -211,7 +202,6 @@ or *to entirely different systems*.
 
 Submission scripts for running on launch/MOM nodes and for using Balsam can be found in
 the :doc:`examples<example_scripts>`.
-
 
 .. _globus_compute_ref:
 

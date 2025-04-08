@@ -18,7 +18,6 @@ for more information about the respective systems and configuration.
     or, if using dynamic resources,
     :doc:`in the generator<../examples/sim_funcs/forces_simf_gpu_vary_resources>`.
 
-
 General examples
 ----------------
 
@@ -42,7 +41,6 @@ LSF - Basic
 ..  literalinclude:: ../../examples/libE_submission_scripts/submit_lsf_simple.sh
     :caption: /examples/libE_submission_scripts/submit_lsf_simple.sh
     :language: bash
-
 
 System Examples
 ---------------
