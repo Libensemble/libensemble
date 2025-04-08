@@ -10,7 +10,7 @@ In each iteration, a batch of points is produced for concurrent evaluation, maxi
 Ensure that libEnsemble, and gpCAM are installed via: ``pip install libensemble gpcam``
 
 Generator function
------------------
+------------------
 
 The gpCAM generator function is called ``persistent_gpCAM``.
 
@@ -179,7 +179,7 @@ For running applications using parallel resources in the simulator see the `forc
         return term1 + term2 + term3
 
 Calling Script
--------------
+--------------
 
 Our calling script configures libEnsemble, the generator function, and the simulator function. It then create the ensemble object and runs the ensemble.
 
@@ -275,7 +275,7 @@ At the end of our calling script we run the ensemble.
     pprint(H[["sim_id", "x", "f"]][:16]) # See first 16 results
 
 Rerun and test model at known points
------------------------------------
+------------------------------------
 
 To see how the accuracy of the surrogate model improves, we can use previously evaluated points as test points and run again with a different seed.
 
@@ -292,7 +292,7 @@ To see how the accuracy of the surrogate model improves, we can use previously e
     print(persis_info)
 
 Viewing model progression
-------------------------
+-------------------------
 
 Now we can check how our model's values compared against the values at known test points as the ensemble progresses.
 The comparison is based on the **mean squared error** between the gpCAM model and our known
