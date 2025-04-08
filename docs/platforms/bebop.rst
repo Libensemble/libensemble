@@ -2,7 +2,7 @@
 Bebop
 =====
 
-Bebop_ is a Cray CS400 cluster with Intel Broadwell and Knights Landing compute
+Bebop_ is a Cray CS400 cluster with Intel Broadwell compute
 nodes available in the Laboratory Computing Resources
 Center (LCRC) at Argonne National
 Laboratory.
@@ -52,24 +52,24 @@ for installing libEnsemble.
 Job Submission
 --------------
 
-Bebop uses Slurm_ for job submission and management. The two commands you'll
-likely use the most to run jobs are ``srun`` and ``sbatch`` for running
-interactively and batch, respectively.
-
-libEnsemble node-worker affinity is especially flexible on Bebop. By adjusting
-``srun`` runtime options_ users may assign multiple libEnsemble  workers to each
-allocated node(oversubscription) or assign multiple nodes per worker.
+Bebop uses PBS for job submission and management.
 
 Interactive Runs
 ^^^^^^^^^^^^^^^^
 
-You can allocate four Knights Landing nodes for thirty minutes through the following::
+You can allocate four Broadwell nodes for thirty minutes through the following::
 
-    salloc -N 4 -p knl -A [username OR project] -t 00:30:00
+    qsub -I -A <project_id> -l select=4:mpiprocs=4 -l walltime=30:00
 
-With your nodes allocated, queue your job to start with four MPI ranks::
+Once in the interactive session, you may need to reload your modules::
 
-    srun -n 4 python calling.py
+    cd $PBS_O_WORKDIR
+    module load anaconda3 gcc openmpi aocl
+    conda activate bebop_libe_env
+
+Now run your script with four workers (one for generator and three for simulations)::
+
+    python my_libe_script.py --nworkers 4
 
 ``mpirun`` should also work. This line launches libEnsemble with a manager and
 **three** workers to one allocated compute node, with three nodes available for
@@ -83,56 +83,9 @@ be initiated with ``libE_specs["dedicated_mode"]=True``
     and not oversubscribing, specify one more MPI process than the number of
     allocated nodes. The manager and first worker run together on a node.
 
-If you would like to interact directly with the compute nodes via a shell,
-the following starts a bash session on a Knights Landing node
-for thirty minutes::
-
-    srun --pty -A [username OR project] -p knl -t 00:30:00 /bin/bash
-
 .. note::
     You will need to reactivate your conda virtual environment and reload your
     modules! Configuring this routine to occur automatically is recommended.
-
-Batch Runs
-^^^^^^^^^^
-
-Batch scripts specify run settings using ``#SBATCH`` statements. A simple example
-for a libEnsemble use case running in :doc:`distributed<platforms_index>` MPI
-mode on Broadwell nodes resembles the following:
-
-.. code-block:: bash
-    :linenos:
-
-    #!/bin/bash
-    #SBATCH -J myjob
-    #SBATCH -N 4
-    #SBATCH -p bdwall
-    #SBATCH -A myproject
-    #SBATCH -o myjob.out
-    #SBATCH -e myjob.error
-    #SBATCH -t 00:15:00
-
-    # These four lines construct a machinefile for the executor and slurm
-    srun hostname | sort -u > node_list
-    head -n 1 node_list > machinefile.$SLURM_JOBID
-    cat node_list >> machinefile.$SLURM_JOBID
-    export SLURM_HOSTFILE=machinefile.$SLURM_JOBID
-
-    srun --ntasks 5 python calling_script.py
-
-With this saved as ``myscript.sh``, allocating, configuring, and running libEnsemble
-on Bebop is achieved by running ::
-
-    sbatch myscript.sh
-
-Example submission scripts for running on Bebop in distributed and centralized mode
-are also given in the :doc:`examples<example_scripts>`.
-
-Debugging Strategies
---------------------
-
-View the status of your submitted jobs with ``squeue``, and cancel jobs with
-``scancel <Job ID>``.
 
 Additional Information
 ----------------------
@@ -144,5 +97,3 @@ See the LCRC Bebop docs here_ for more information about Bebop.
 .. _conda: https://conda.io/en/latest/
 .. _here: https://docs.lcrc.anl.gov/bebop/running-jobs-bebop/
 .. _mpi4py: https://mpi4py.readthedocs.io/en/stable/
-.. _options: https://slurm.schedmd.com/srun.html
-.. _Slurm: https://slurm.schedmd.com/

@@ -37,85 +37,78 @@ def cdist(XA, XB, metric="euclidean"):
 
 def aposmm(H, persis_info, gen_specs, libE_info):
     """
-    APOSMM coordinates multiple local optimization runs, starting from points
-    which do not have a better point nearby (within a distance ``r_k``). This
-    generation function uses a ``local_H`` (serving a similar purpose as ``H``
-    in libEnsemble) containing the fields:
+    APOSMM coordinates multiple local optimization runs, dramatically reducing time for
+    discovering multiple minima on parallel systems. APOSMM tracks these fields:
 
-    - ``'x' [n floats]``: Parameters being optimized over
-    - ``'x_on_cube' [n floats]``: Parameters scaled to the unit cube
-    - ``'f' [float]``: Objective function being minimized
-    - ``'local_pt' [bool]``: True if point from a local optimization run
-    - ``'dist_to_unit_bounds' [float]``: Distance to domain boundary
-    - ``'dist_to_better_l' [float]``: Dist to closest better local opt point
-    - ``'dist_to_better_s' [float]``: Dist to closest better sample point
-    - ``'ind_of_better_l' [int]``: Index of point ``'dist_to_better_l``' away
-    - ``'ind_of_better_s' [int]``: Index of point ``'dist_to_better_s``' away
-    - ``'started_run' [bool]``: True if point has started a local opt run
-    - ``'num_active_runs' [int]``: Number of active local runs point is in
-    - ``'local_min' [float]``: True if point has been ruled a local minima
-    - ``'sim_id' [int]``: Row number of entry in history
+    - ``"x" [n floats]``: Parameters being optimized over
+    - ``"x_on_cube" [n floats]``: Parameters scaled to the unit cube
+    - ``"f" [float]``: Objective function being minimized
+    - ``"local_pt" [bool]``: True if point from a local optimization run
+    - ``"started_run" [bool]``: True if point has started a local opt run
+    - ``"num_active_runs" [int]``: Number of active local runs point is in
+    - ``"local_min" [float]``: True if point has been ruled a local minima
+    - ``"sim_id" [int]``: Row number of entry in history
 
     and optionally
 
-    - ``'fvec' [m floats]``: All objective components (if performing a least-squares calculation)
-    - ``'grad' [n floats]``: The gradient (if available) of the objective with respect to `x`.
+    - ``"fvec" [m floats]``: All objective components (if performing a least-squares calculation)
+    - ``"grad" [n floats]``: The gradient (if available) of the objective with respect to `x`.
 
     Note:
 
     - If any of the above fields are desired after a libEnsemble run, name
-      them in ``gen_specs['out']``.
+      them in ``gen_specs["out"]``.
     - If intitializing APOSMM with past function values, make sure to include
-      ``'x'``, ``'x_on_cube'``, ``'f'``, ``'local_pt'``, etc. in
-      ``gen_specs['in']`` (and, of course, include them in the H0 array given
+      ``"x"``, ``"x_on_cube"``, ``"f"``, ``"local_pt"``, etc. in
+      ``gen_specs["in"]`` (and, of course, include them in the H0 array given
       to libensemble).
 
-    Necessary quantities in ``gen_specs['user']`` are:
+    Necessary quantities in ``gen_specs["user"]`` are:
 
-    - ``'lb' [n floats]``: Lower bound on search domain
-    - ``'ub' [n floats]``: Upper bound on search domain
-    - ``'localopt_method' [str]``: Name of an NLopt, PETSc/TAO, or SciPy method
-      (see 'advance_local_run' below for supported methods). When using a SciPy
-      method, must supply ``'opt_return_codes'``, a list of integers that will
+    - ``"lb" [n floats]``: Lower bound on search domain
+    - ``"ub" [n floats]``: Upper bound on search domain
+    - ``"localopt_method" [str]``: Name of an NLopt, PETSc/TAO, or SciPy method
+      (see "advance_local_run" below for supported methods). When using a SciPy
+      method, must supply ``"opt_return_codes"``, a list of integers that will
       be used to determine if the x produced by the localopt method should be
-      ruled a local minimum. (For example, SciPy's COBYLA has a 'status' of 1 if
-      at an optimum, but SciPy's Nelder-Mead and BFGS have a 'status' of 0 if at
+      ruled a local minimum. (For example, SciPy's COBYLA has a "status" of ``1`` if
+      at an optimum, but SciPy's Nelder-Mead and BFGS have a "status" of ``0`` if at
       an optimum.)
-    - ``'initial_sample_size' [int]``: Number of uniformly sampled points
-      must be returned (non-nan value) before a local opt run is started. Can be
+    - ``"initial_sample_size" [int]``: Number of uniformly sampled points
+      to be evaluated before starting the localopt runs. Can be
       zero if no additional sampling is desired, but if zero there must be past
       sim_f values given to libEnsemble in H0.
 
-    Optional ``gen_specs['user']`` entries are:
+    Optional ``gen_specs["user"]`` entries are:
 
-    - ``'sample_points' [numpy array]``: Points to be sampled (original domain).
+    - ``"max_active_runs" [int]``: Bound on number of runs APOSMM is advancing
+    - ``"sample_points" [numpy array]``: Points to be sampled (original domain).
       If more sample points are needed by APOSMM during the course of the
       optimization, points will be drawn uniformly over the domain
-    - ``'components' [int]``: Number of objective components
-    - ``'dist_to_bound_multiple' [float in (0, 1]]``: What fraction of the
+    - ``"components" [int]``: Number of objective components
+    - ``"dist_to_bound_multiple" [float in (0, 1]]``: What fraction of the
       distance to the nearest boundary should the initial step size be in
       localopt runs
-    - ``'lhs_divisions' [int]``: Number of Latin hypercube sampling partitions
+    - ``"lhs_divisions" [int]``: Number of Latin hypercube sampling partitions
       (0 or 1 results in uniform sampling)
-    - ``'mu' [float]``: Distance from the boundary that all localopt starting
+    - ``"mu" [float]``: Distance from the boundary that all localopt starting
       points must satisfy
-    - ``'nu' [float]``: Distance from identified minima that all starting
+    - ``"nu" [float]``: Distance from identified minima that all starting
       points must satisfy
-    - ``'rk_const' [float]``: Multiplier in front of the r_k value
-    - ``'max_active_runs' [int]``: Bound on number of runs APOSMM is advancing
-    - ``'stop_after_k_minima' [int]``: Tell APOSMM to stop after this many
+    - ``"rk_const" [float]``: Multiplier in front of the ``r_k`` value
+    - ``"stop_after_k_minima" [int]``: Tell APOSMM to stop after this many
       local minima have been identified by a local optimization run.
-    - ``'stop_after_k_runs' [int]``: Tell APOSMM to stop after this many runs
+    - ``"stop_after_k_runs" [int]``: Tell APOSMM to stop after this many runs
       have ended. (The number of ended runs may be less than the number of
       minima if, for example, a local optimization run ends due to a evaluation
       constraint, but not convergence criteria.)
 
     If the rules in ``decide_where_to_start_localopt`` produces more than
-    ``'max_active_runs'`` in some iteration, then existing runs are prioritized.
+    ``"max_active_runs"`` in some iteration, then existing runs are prioritized.
 
-    And ``gen_specs['user']`` must also contain fields for the given
-    localopt_method's convergence tolerances (e.g., gatol/grtol for PETSC/TAO
-    or ftol_rel for NLopt)
+    And ``gen_specs["user"]`` must also contain fields for the given
+    localopt_method's convergence tolerances (e.g., ``gatol/grtol`` for PETSC/TAO
+    or ``ftol_rel`` for NLopt)
 
     .. seealso::
 

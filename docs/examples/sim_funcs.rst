@@ -13,55 +13,52 @@ function launching tasks, see the
 .. role:: underline
     :class: underline
 
-six_hump_camel
---------------
-.. automodule:: six_hump_camel
-  :members:
-  :undoc-members:
+Simple simulation functions
+---------------------------
+Ideal for simple debugging of generator processes or system testing.
 
-.. dropdown:: :underline:`six_hump_camel.py`
+.. toctree::
+   :maxdepth: 1
 
-   .. literalinclude:: ../../libensemble/sim_funcs/six_hump_camel.py
-      :language: python
-      :linenos:
+   Borehole function <sim_funcs/borehole>
+   Borehole function with kills <sim_funcs/borehole_kills>
+   Chwirut1 vector-valued function <sim_funcs/chwirut1>
+   Inverse Bayesian likelihood <sim_funcs/inverse_bayes>
+   Norm <sim_funcs/simple_sim>
+   Rosenbrock test optimization function <sim_funcs/rosenbrock>
+   Six Hump Camel <sim_funcs/six_hump_camel>
+   Test noisy function <sim_funcs/noisy_vector_mapping>
+   Test periodic function <sim_funcs/periodic_func>
 
-chwirut
--------
-.. automodule:: chwirut1
-  :members:
-  :undoc-members:
+Functions that run user applications
+------------------------------------
 
-noisy_vector_mapping
---------------------
-.. automodule:: noisy_vector_mapping
-  :members:
-  :undoc-members:
+These use the executor to launch applications and in some cases
+handle dynamic CPU/GPU allocation.
 
-.. dropdown:: :underline:`noisy_vector_mapping.py`
+The ``Variable resources`` module contains basic examples, while the ``Template``
+examples use a simple MPI/OpenMP (with GPU offload option) application (``forces``)
+to demonstrate libEnsemble’s capabilities on various HPC systems. The
+build_forces.sh_ file gives compile lines for building the simple ``forces``
+application on various platforms (use -DGPU to build for GPU).
 
-   .. literalinclude:: ../../libensemble/sim_funcs/noisy_vector_mapping.py
-      :language: python
-      :linenos:
+.. toctree::
+   :maxdepth: 1
 
-periodic_func
--------------
-.. automodule:: periodic_func
-  :members:
-  :undoc-members:
+   Variable resources <sim_funcs/var_resources>
+   sim_funcs/forces_simf
+   sim_funcs/forces_simf_input_file
+   sim_funcs/forces_simf_gpu
+   sim_funcs/forces_simf_gpu_vary_resources
+   sim_funcs/forces_simf_gpu_multi_app
+   WarpX Example<https://libensemble.readthedocs.io/projects/libe-community-examples/en/latest/simulators.html#module-warpx-simf>
 
-borehole
---------
-.. automodule:: borehole
-  :members:
-  :undoc-members:
+Special simulation functions
+----------------------------
 
-executor_hworld
----------------
-.. automodule:: executor_hworld
-  :members:
+.. toctree::
+   :maxdepth: 1
 
-.. dropdown:: :underline:`executor_hworld.py`
+   sim_funcs/mock_sim
 
-   .. literalinclude:: ../../libensemble/sim_funcs/executor_hworld.py
-      :language: python
-      :linenos:
+.. _build_forces.sh: https://github.com/Libensemble/libensemble/blob/main/libensemble/tests/scaling_tests/forces/forces_app/build_forces.sh

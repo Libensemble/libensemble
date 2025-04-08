@@ -11,7 +11,7 @@ The persistent generator creates simulations with variable resource requirements
 
 Execute via one of the following commands (e.g. 5 workers):
    mpiexec -np 6 python test_mpi_gpu_settings_mock_nodes_multi_task.py
-   python test_mpi_gpu_settings_mock_nodes_multi_task.py --comms local --nworkers 5
+   python test_mpi_gpu_settings_mock_nodes_multi_task.py --nworkers 5
 
 When running with the above command, the number of concurrent evaluations of
 the objective function will be 4, as one of the five workers will be the

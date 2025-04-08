@@ -1,10 +1,10 @@
 import random
+import warnings
 from pathlib import Path
 from typing import Any, Callable, List, Optional, Tuple, Union
 
 import pydantic
 from pydantic import BaseModel, Field
-import warnings
 
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 from libensemble.resources.platforms import Platform
@@ -469,8 +469,8 @@ class LibeSpecs(BaseModel):
 
     dedicated_mode: Optional[bool] = False
     """
-    Instructs libEnsemble to not run applications on resources where libEnsemble
-    processes (manager and workers) are running.
+    Instructs libEnsemble’s MPI executor not to run applications on nodes where
+    libEnsemble processes (manager and workers) are running.
     """
 
     zero_resource_workers: Optional[List[int]] = []

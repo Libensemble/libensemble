@@ -117,7 +117,7 @@ busy.
 In practice, since a single worker becomes "persistent" for APOSMM, users
 should initiate one more worker than the number of parallel simulations::
 
-    python my_aposmm_routine.py --comms local --nworkers 4
+    python my_aposmm_routine.py --nworkers 4
 
 results in three workers running simulations and one running APSOMM.
 
@@ -265,7 +265,7 @@ optimization method::
 
 Finally, run this libEnsemble / APOSMM optimization routine with the following::
 
-    python my_first_aposmm.py --comms local --nworkers 4
+    python my_first_aposmm.py --nworkers 4
 
 Please note that one worker will be "persistent" for APOSMM for the duration of
 the routine.
