@@ -21,7 +21,7 @@ General Updates:
 * Improve handling of worker-specific `persis_info` fields when they are not initially provided. #1531
   * Bugfix: Fix `final_gen_send` when there are no worker-specific `persis_info` fields.
   * Handle worker-generated `persis_info` fields.
-  * Ensure `persis_info` is initialized to an empty dictionary in user functions instead of None.
+  * Ensure `persis_info` is initialized to an empty dictionary in user functions instead of `None`.
 
 Examples:
 
