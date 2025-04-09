@@ -578,14 +578,11 @@ class Ensemble:
         Format: ``<basename>_results_History_length=<length>_evals=<Completed evals>_ranks=<nworkers>``
         """
         if self.is_manager:
-            if self._get_option("libE_specs", "workflow_dir_path"):
-                save_libE_output(
-                    self.H,
-                    self.persis_info,
-                    basename,
-                    self.nworkers,
-                    dest_path=self.libE_specs.workflow_dir_path,
-                    append_attrs=append_attrs,
-                )
-            else:
-                save_libE_output(self.H, self.persis_info, basename, self.nworkers, append_attrs=append_attrs)
+            save_libE_output(
+                self.H,
+                self.persis_info,
+                basename,
+                self.nworkers,
+                dest_path=self.libE_specs.workflow_dir_path,
+                append_attrs=append_attrs,
+            )
