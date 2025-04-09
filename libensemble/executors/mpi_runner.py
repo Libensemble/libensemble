@@ -171,6 +171,10 @@ class MPIRunner:
 
         wresources = resources.worker_resources
 
+        #print(f"do I have GPUs? {wresources.doihave_gpus()}")
+        #print(f"gpus per node: {wresources.gpus_per_rset_per_node}")
+        #print(f"slot count: {wresources.slot_count}")
+
         # gpus per node for this worker.
         if wresources.doihave_gpus():
             gpus_avail_per_node = wresources.slot_count * wresources.gpus_per_rset_per_node
@@ -212,6 +216,7 @@ class MPIRunner:
         if self.platform_info:
             gpu_setting_type = self.platform_info.get("gpu_setting_type", gpu_setting_type)
 
+        print(f"gpu_setting_type: {gpu_setting_type}")
         if gpu_setting_type == "runner_default":
             extra_args = self._local_runner_set_gpus(task, wresources, extra_args, gpus_per_node, ppn)
 

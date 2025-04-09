@@ -55,9 +55,12 @@ class RSetResources:
         self.split_list, self.local_rsets_list = RSetResources.get_partitioned_nodelist(self.total_num_rsets, resources)
         self.nodes_in_rset = len(self.split_list[0])
 
+        
         gpus_avail_per_node = resources.gpus_avail_per_node
+        print(f"gpus_avail_per_node: {gpus_avail_per_node}")
         self.rsets_per_node = RSetResources.get_rsets_on_a_node(self.total_num_rsets, resources)
         self.gpu_rsets_per_node = min(gpus_avail_per_node, self.rsets_per_node)
+        # print(f"gpu_rsets_per_node: {self.gpu_rsets_per_node}")
         self.nongpu_rsets_per_node = self.rsets_per_node - self.gpu_rsets_per_node
 
         self.all_rsets = np.zeros(self.total_num_rsets, dtype=RSetResources.rset_dtype)
