@@ -289,12 +289,10 @@ def known_envs():
             logger.manager_warning("Perlmutter detected, but no compute partition detected. Are you on login nodes?")
     if os.environ.get("SLURM_CLUSTER_NAME") == "lumi":
         partition = os.environ.get("SLURM_JOB_PARTITION")
-        print(f"Lumi partition: {partition}")
         if not partition:
             logger.manager_warning("LUMI detected, but no compute partition detected. Are you on login nodes?")
         if partition and partition.endswith("-g"):
             name = "lumi_g"
-            print(f"Lumi GPU detected: {name}")
         else:
             name = "lumi"
     return name
