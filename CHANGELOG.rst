@@ -42,7 +42,7 @@ Documentation:
 :Note:
 
 * Tests were run on Linux and MacOS with Python versions 3.10, 3.11, 3.12, 3.13
-* Heterogeneous workflows tested on Aurora (ALCF), Polaris (ALCF), LUMI ((EuroHPC JU)), and Perlmutter (NERSC).
+* Heterogeneous workflows tested on Aurora (ALCF), Polaris (ALCF), LUMI (EuroHPC JU), and Perlmutter (NERSC).
 
 :Known Issues:
 
