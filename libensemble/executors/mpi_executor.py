@@ -380,7 +380,7 @@ class MPIExecutor(Executor):
         else:
             # Set environment variables and launch task
             task._implement_env()
-            print(f'Worker {self.workerID}: task.env: {task.env}')
+            
             # Launch Task
             self._launch_with_retries(task, sglaunch, wait_on_start, run_cmd, use_shell)
 
