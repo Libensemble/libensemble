@@ -174,6 +174,7 @@ class LumiGPU(Lumi):
     gpu_setting_name: str = "ROCR_VISIBLE_DEVICES"
     scheduler_match_slots: bool = True
 
+
 class Perlmutter(Platform):
     mpi_runner: str = "srun"
 
@@ -286,7 +287,7 @@ def known_envs():
         else:
             name = "perlmutter"
             logger.manager_warning("Perlmutter detected, but no compute partition detected. Are you on login nodes?")
-    if os.environ.get("SLURM_CLUSTER_NAME") == "lumi":   
+    if os.environ.get("SLURM_CLUSTER_NAME") == "lumi":
         partition = os.environ.get("SLURM_JOB_PARTITION")
         print(f"Lumi partition: {partition}")
         if not partition:
