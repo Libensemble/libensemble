@@ -10,10 +10,10 @@ from libensemble.message_numbers import EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TA
 from libensemble.tools import parse_args
 from libensemble.tools.persistent_support import PersistentSupport
 
-# __all__ = [
-#     "sparse_grid_batched",
-#     "sparse_grid_async",
-# ]
+__all__ = [
+    "sparse_grid_batched",
+    "sparse_grid_async",
+]
 
 
 def lex_le(x, y, tol=1e-12):
