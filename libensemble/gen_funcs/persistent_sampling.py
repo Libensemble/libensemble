@@ -29,8 +29,8 @@ def _get_user_params(user_specs):
     return b, n, lb, ub
 
 
-@persistent_input_fields(["f", "x", "sim_id"])
-@output_data([("x", float, (2,))])
+@persistent_input_fields(["sim_id"])
+@output_data([("x", float, (2,))])  # The dimesion 2 is only a default... and is overwritten 
 def persistent_uniform(_, persis_info, gen_specs, libE_info):
     """
     This generation function always enters into persistent mode and returns
