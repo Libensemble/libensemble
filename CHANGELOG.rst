@@ -11,7 +11,7 @@ GitHub issues are referenced, and can be viewed with hyperlinks on the `github r
 Release 1.5.0
 --------------
 
-:Date: Apr 8, 2025
+:Date: Apr 10, 2025
 
 General Updates:
 
