@@ -32,7 +32,7 @@ Assuming MPI and its C compiler ``mpicc`` are available, compile
 
     mpicc -O3 -o forces.x forces.c -lm
 
-Alternative build lines for different platforms can be found in the ``build_forces.sh``
+Alternative build lines for different platforms can be found in the build_forces.sh_
 file in the same directory.
 
 Calling Script
@@ -211,7 +211,7 @@ This completes our calling script and simulation function. Run libEnsemble with:
 
 .. code-block:: bash
 
-    python run_libe_forces.py --comms local --nworkers [nworkers]
+    python run_libe_forces.py --nworkers [nworkers]
 
 where ``nworkers`` is one more than the number of concurrent simulations.
 
@@ -226,7 +226,7 @@ and ``ensemble.log`` as usual.
 
    .. code-block:: bash
 
-       python run_libe_forces.py --comms local --nworkers 3
+       python run_libe_forces.py --nworkers 3
 
    my ``libE_stats.txt`` resembled::
 
@@ -362,13 +362,13 @@ E.g., Instead of:
 
 .. code-block:: bash
 
-    python run_libe_forces.py --comms local --nworkers 5
+    python run_libe_forces.py --nworkers 5
 
 use:
 
 .. code-block:: bash
 
-    python run_libe_forces.py --comms local --nworkers 4
+    python run_libe_forces.py --nworkers 4
 
 Note that as the generator random number seed will be zero instead of one, the checksum will change.
 
@@ -380,7 +380,7 @@ Running forces application with input file
 Many applications read an input file instead of being given parameters directly on the run line.
 
 forces_simple_with_input_file_ directory contains a variant of this example, where a templated
-input file is parametized for each evaluation.
+input file is parameterized for each evaluation.
 
 This requires **jinja2** to be installed::
 
@@ -514,6 +514,7 @@ these parameters can also be specified as different variables with corresponding
 to generator and simulator functions.
 
 .. _examples/tutorials/forces_with_executor: https://github.com/Libensemble/libensemble/tree/develop/examples/tutorials/forces_with_executor
+.. _build_forces.sh: https://github.com/Libensemble/libensemble/blob/main/libensemble/tests/scaling_tests/forces/forces_app/build_forces.sh
 .. _forces_app: https://github.com/Libensemble/libensemble/tree/main/libensemble/tests/scaling_tests/forces/forces_app
 .. _forces_simple: https://github.com/Libensemble/libensemble/tree/main/libensemble/tests/scaling_tests/forces/forces_simple
 .. _forces_simple_with_input_file: https://github.com/Libensemble/libensemble/tree/main/libensemble/tests/scaling_tests/forces/forces_simple_with_input_file

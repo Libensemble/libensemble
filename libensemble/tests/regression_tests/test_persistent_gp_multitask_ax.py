@@ -2,24 +2,24 @@
 Example of multi-fidelity optimization using a persistent GP gen_func (calling
 Ax).
 
-Execute via one of the following commands (e.g. 5 workers):
-   mpiexec -np 5 python test_persistent_gp_multitask_ax.py
-   python test_persistent_gp_multitask_ax.py --nworkers 4 --comms local
-   python test_persistent_gp_multitask_ax.py --nworkers 4 --comms tcp
+This test uses the gen_on_manager option (persistent generator runs on
+a thread). Therefore nworkers is the number of simulation workers.
+
+Execute via one of the following commands:
+   mpiexec -np 4 python test_persistent_gp_multitask_ax.py
+   python test_persistent_gp_multitask_ax.py --nworkers 3
+   python test_persistent_gp_multitask_ax.py --nworkers 3 --comms tcp
 
 When running with the above commands, the number of concurrent evaluations of
-the objective function will be 3, as one of the three workers will be the
-persistent generator.
+the objective function will be 3.
 
-Requires numpy<2.
 """
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: local mpi
-# TESTSUITE_NPROCS: 5
+# TESTSUITE_NPROCS: 4
 # TESTSUITE_EXTRA: true
 # TESTSUITE_OS_SKIP: OSX
-# TESTSUITE_EXCLUDE: true
 
 import warnings
 
@@ -50,6 +50,7 @@ def run_simulation(H, persis_info, sim_specs, libE_info):
         z = 8
     elif task == "cheap_model":
         z = 1
+    print('in sim', task)
 
     libE_output = np.zeros(1, dtype=sim_specs["out"])
     calc_status = WORKER_DONE
@@ -63,6 +64,7 @@ def run_simulation(H, persis_info, sim_specs, libE_info):
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
     nworkers, is_manager, libE_specs, _ = parse_args()
+    libE_specs["gen_on_manager"] = True
 
     mt_params = {
         "name_hifi": "expensive_model",

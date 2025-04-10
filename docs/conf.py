@@ -31,34 +31,33 @@ class Mock(MagicMock):
         return MagicMock()
 
 
+autodoc_mock_imports = ["ax", "balsam", "gpcam", "IPython", "matplotlib", "pandas", "scipy", "surmise"]
+
 MOCK_MODULES = [
     "argparse",
     "dfols",
-    "IPython",
-    "IPython.display",
-    "IPython.core",
-    "IPython.core.pylabtools",
     "math",
-    "matplotlib",
-    "matplotlib.pyplot",
     "mpi4py",
     "mpmath",
     "nlopt",
     "PETSc",
     "petsc4py",
     "psutil",
-    "scipy",
-    "scipy.io",
-    "scipy.sparse",
-    "scipy.spatial",
-    "scipy.spatial.distance",
-    "scipy.stats",
-    "surmise.calibration",
-    "surmise.emulation",
+    "pyre_extensions",
     "Tasmanian",
+    "torch",
 ]
 
 sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
+
+
+class AxParameterWarning(Warning):  # Ensure it's a real warning subclass
+    pass
+
+
+# Fix only `AxParameterWarning` while keeping `ax` mocked
+sys.modules["ax.exceptions.core"] = MagicMock()
+sys.modules["ax.exceptions.core"].AxParameterWarning = AxParameterWarning
 
 # from libensemble import *
 # from libensemble.alloc_funcs import *
@@ -78,6 +77,7 @@ sys.path.append(os.path.abspath("../libensemble/tools"))
 sys.path.append(os.path.abspath("../libensemble/tools/live_data"))
 sys.path.append(os.path.abspath("../libensemble/executors"))
 sys.path.append(os.path.abspath("../libensemble/resources"))
+sys.path.append(os.path.abspath("../libensemble/tests/scaling_tests/forces"))
 # print(sys.path)
 
 # -- General configuration ------------------------------------------------
@@ -131,7 +131,6 @@ intersphinx_mapping = {
 
 autodoc_pydantic_model_show_json = False
 
-autodoc_mock_imports = ["balsam"]
 extlinks = {
     "duref": ("http://docutils.sourceforge.net/docs/ref/rst/" "restructuredtext.html#%s", ""),
     "durole": ("http://docutils.sourceforge.net/docs/ref/rst/" "roles.html#%s", ""),
@@ -230,8 +229,14 @@ html_static_path = ["_static"]
 # html_static_path = []
 
 
+def remove_noqa(app, what, name, obj, options, lines):
+    for i, line in enumerate(lines):
+        lines[i] = line.replace("# noqa", "")
+
+
 def setup(app):
     app.add_css_file("my_theme.css")
+    app.connect("autodoc-process-docstring", remove_noqa)
 
 
 # Custom sidebar templates, must be a dictionary that maps document names

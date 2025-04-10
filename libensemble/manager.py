@@ -514,7 +514,7 @@ class Manager:
             self.live_data.live_update(self.hist)
 
         if D_recv.get("persis_info"):
-            persis_info[w].update(D_recv["persis_info"])
+            persis_info.setdefault(int(w), {}).update(D_recv["persis_info"])
 
     def _handle_msg_from_worker(self, persis_info: dict, w: int) -> None:
         """Handles a message from worker w"""
@@ -580,7 +580,7 @@ class Manager:
                     rows_to_send = np.where(self.hist.H["sim_ended"] & ~self.hist.H["gen_informed"])[0]
                     work = {
                         "H_fields": self.gen_specs["persis_in"],
-                        "persis_info": persis_info[w],
+                        "persis_info": persis_info.get(w),
                         "tag": PERSIS_STOP,
                         "libE_info": {"persistent": True, "H_rows": rows_to_send},
                     }

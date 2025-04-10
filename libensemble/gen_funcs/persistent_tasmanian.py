@@ -1,6 +1,6 @@
 """
 A persistent generator using the uncertainty quantification capabilities in
-`Tasmanian <https://tasmanian.ornl.gov/>`_.
+`Tasmanian <https://github.com/ORNL/Tasmanian>`_.
 """
 
 import numpy as np
@@ -9,6 +9,11 @@ from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens a
 from libensemble.message_numbers import EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG, PERSIS_STOP, STOP_TAG
 from libensemble.tools import parse_args
 from libensemble.tools.persistent_support import PersistentSupport
+
+__all__ = [
+    "sparse_grid_batched",
+    "sparse_grid_async",
+]
 
 
 def lex_le(x, y, tol=1e-12):
@@ -195,7 +200,7 @@ def sparse_grid_batched(H, persis_info, gen_specs, libE_info):
             assert "sCriteria" in U
             grid.setSurplusRefinement(U["fTolerance"], U["iOutput"], U["sCriteria"])
 
-    return H0, persis_info, FINISHED_PERSISTENT_GEN_TAG
+    return None, persis_info, FINISHED_PERSISTENT_GEN_TAG
 
 
 def sparse_grid_async(H, persis_info, gen_specs, libE_info):
@@ -283,7 +288,7 @@ def sparse_grid_async(H, persis_info, gen_specs, libE_info):
         else:
             tag, Work, calc_in = ps.recv()
 
-    return [], persis_info, FINISHED_PERSISTENT_GEN_TAG
+    return None, persis_info, FINISHED_PERSISTENT_GEN_TAG
 
 
 def get_sparse_grid_specs(user_specs, sim_f, num_dims, num_outputs=1, mode="batched"):

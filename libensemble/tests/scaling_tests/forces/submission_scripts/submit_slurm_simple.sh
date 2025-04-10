@@ -12,4 +12,4 @@
 export SLURM_EXACT=1
 export SLURM_MEM_PER_NODE=0
 
-python run_libe_forces.py --comms local --nworkers 9
+python run_libe_forces.py -n 9

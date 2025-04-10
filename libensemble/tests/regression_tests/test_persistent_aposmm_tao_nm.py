@@ -3,7 +3,7 @@ Runs libEnsemble with APOSMM with a PETSc/TAO local optimizer.
 
 Execute via one of the following commands (e.g. 3 workers):
    mpiexec -np 4 python test_persistent_aposmm_tao_nm.py
-   python test_persistent_aposmm_tao_nm.py --nworkers 3 --comms local
+   python test_persistent_aposmm_tao_nm.py --nworkers 3
    python test_persistent_aposmm_tao_nm.py --nworkers 3 --comms tcp
 
 When running with the above commands, the number of concurrent evaluations of

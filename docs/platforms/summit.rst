@@ -1,16 +1,19 @@
-======
-Summit
-======
+=======================
+Summit (Decommissioned)
+=======================
 
-Summit_ is an IBM AC922 system located at the Oak Ridge Leadership Computing
-Facility (OLCF). Each of the approximately 4,600 compute nodes on Summit contains two
+Summit_ was an IBM AC922 system located at the Oak Ridge Leadership Computing
+Facility (OLCF). Each of the approximately 4,600 compute nodes on Summit contained two
 IBM POWER9 processors and six NVIDIA Volta V100 accelerators.
 
-Summit features three tiers of nodes: login, launch, and compute nodes.
+Summit featured three tiers of nodes: login, launch, and compute nodes.
 
 Users on login nodes submit batch runs to the launch nodes.
 Batch scripts and interactive sessions run on the launch nodes. Only the launch
 nodes can submit MPI runs to the compute nodes via ``jsrun``.
+
+These docs are maintained to guide libEnsemble's usage on three-tier systems and/or
+`jsrun` systems similar to Summit.
 
 Configuring Python
 ------------------
@@ -21,7 +24,7 @@ Begin by loading the Python 3 Anaconda module::
 
 You can now create and activate your own custom conda_ environment::
 
-    conda create --name myenv python=3.9
+    conda create --name myenv python=3.10
     export PYTHONNOUSERSITE=1 # Make sure get python from conda env
     . activate myenv
 
@@ -57,13 +60,13 @@ Or, you can install via ``conda``:
 
 See :doc:`here<../advanced_installation>` for more information on advanced options
 for installing libEnsemble.
-
 Special note on resource sets and Executor submit options
+
 ---------------------------------------------------------
 
 When using the portable MPI run configuration options (e.g., num_nodes) to the
 :doc:`MPIExecutor<../executor/mpi_executor>` ``submit`` function, it is important
-to note that, due to the `resource sets`_ used on Summit, the options refer to
+to note that, due to the resource sets used on Summit, the options refer to
 resource sets as follows:
 
 - num_procs (int, optional) – The total number resource sets for this run.
@@ -114,7 +117,7 @@ available on a Summit node, and thus two such tasks may be allocated to each nod
 Job Submission
 --------------
 
-Summit uses LSF_ for job management and submission. For libEnsemble, the most
+Summit used LSF_ for job management and submission. For libEnsemble, the most
 important command is ``bsub`` for submitting batch scripts from the login nodes
 to execute on the launch nodes.
 
@@ -191,20 +194,13 @@ Launching User Applications from libEnsemble Workers
 ----------------------------------------------------
 
 Only the launch nodes can submit MPI runs to the compute nodes via ``jsrun``.
-This can be accomplished in user ``sim_f`` functions directly. However, it is highly
+This can be accomplished in user simulator functions directly. However, it is highly
 recommended that the :doc:`Executor<../executor/ex_index>` interface
-be used inside the ``sim_f`` or ``gen_f``, because this provides a portable interface
+be used inside the simulator or generator, because this provides a portable interface
 with many advantages including automatic resource detection, portability,
 launch failure resilience, and ease of use.
 
-Additional Information
-----------------------
-
-See the OLCF guides_ for more information about Summit.
-
 .. _conda: https://conda.io/en/latest/
-.. _guides: https://docs.olcf.ornl.gov/systems/summit_user_guide.html
 .. _LSF: https://www.olcf.ornl.gov/wp-content/uploads/2018/12/summit_workshop_fuson.pdf
 .. _mpi4py: https://mpi4py.readthedocs.io/en/stable/
-.. _resource sets: https://docs.olcf.ornl.gov/systems/summit_user_guide.html#job-launcher-jsrun
-.. _Summit: https://docs.olcf.ornl.gov/systems/summit_user_guide.html
+.. _Summit: https://www.olcf.ornl.gov/olcf-resources/compute-systems/summit/

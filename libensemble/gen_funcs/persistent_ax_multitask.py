@@ -8,16 +8,27 @@ of the whole libEnsemble run.
 This `gen_f` is meant to be used with the `alloc_f` function
 `only_persistent_gens`
 
-This test currently requires ax-platform<=0.4.0
+Requires: Ax>=0.5.0
+
+Ax notes:
+Each arm = a set of simulation inputs (a sim_id)
+Each trial = a batch of simulations.
+The metric = the recorded simulation output (f) that Ax optimizes.
+Ax runner handles the execution of trials - AxRunner wraps Runner to use libE tr.run()
+
 """
 
 import os
+import warnings
 from copy import deepcopy
+from typing import Optional
 
 import numpy as np
 import pandas as pd
+import torch
 from ax import Metric, Runner
 from ax.core.data import Data
+from ax.core.experiment import Experiment
 from ax.core.generator_run import GeneratorRun
 from ax.core.multi_type_experiment import MultiTypeExperiment
 from ax.core.objective import Objective
@@ -25,21 +36,115 @@ from ax.core.observation import ObservationFeatures
 from ax.core.optimization_config import OptimizationConfig
 from ax.core.parameter import ParameterType, RangeParameter
 from ax.core.search_space import SearchSpace
+from pyre_extensions import assert_is_instance
+
+# Necessary for docs rendering (as Ax is mocked)
+try:
+    from ax.exceptions.core import AxParameterWarning
+except ImportError:
+    AxParameterWarning = Warning
+
 from ax.modelbridge.factory import get_sobol
+from ax.modelbridge.registry import MBM_X_trans, Models, ST_MTGP_trans
+from ax.modelbridge.torch import TorchModelBridge
+from ax.modelbridge.transforms.convert_metric_names import ConvertMetricNames, tconfig_from_mt_experiment
+from ax.modelbridge.transforms.derelativize import Derelativize
+from ax.modelbridge.transforms.stratified_standardize_y import StratifiedStandardizeY
+from ax.modelbridge.transforms.task_encode import TaskChoiceToIntTaskChoice
+from ax.modelbridge.transforms.trial_as_task import TrialAsTask
 from ax.runners import SyntheticRunner
 from ax.storage.json_store.save import save_experiment
-from ax.storage.metric_registry import register_metric
+from ax.storage.metric_registry import register_metrics
 from ax.storage.runner_registry import register_runner
 from ax.utils.common.result import Ok
 
-try:
-    from ax.modelbridge.factory import get_MTGP
-except ImportError:
-    # For Ax >= 0.3.4
-    from ax.modelbridge.factory import get_MTGP_LEGACY as get_MTGP
-
 from libensemble.message_numbers import EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG, PERSIS_STOP, STOP_TAG
 from libensemble.tools.persistent_support import PersistentSupport
+
+__all__ = ["persistent_gp_mt_ax_gen_f"]
+
+warnings.filterwarnings(
+    "ignore",
+    message="`cache_root` is only supported for GPyTorchModels",
+    category=RuntimeWarning,
+)
+
+warnings.filterwarnings(
+    "ignore",
+    message="Changing `is_ordered` to `True` for `ChoiceParameter`",
+    category=AxParameterWarning,
+)
+
+MT_MTGP_trans = list(MBM_X_trans) + [
+    Derelativize,
+    ConvertMetricNames,
+    TrialAsTask,
+    StratifiedStandardizeY,
+    TaskChoiceToIntTaskChoice,
+]
+
+
+# get_MTGP based on https://ax.dev/docs/tutorials/multi_task/
+def get_MTGP(
+    experiment: Experiment,
+    data: Data,
+    search_space: Optional[SearchSpace] = None,
+    trial_index: Optional[int] = None,
+    device: torch.device = torch.device("cpu"),
+    dtype: torch.dtype = torch.double,
+) -> TorchModelBridge:
+    """Instantiates a Multi-task Gaussian Process (MTGP) model that generates
+    points with EI.
+
+    If the input experiment is a MultiTypeExperiment then a
+    Multi-type Multi-task GP model will be instantiated.
+    Otherwise, the model will be a Single-type Multi-task GP.
+    """
+
+    if isinstance(experiment, MultiTypeExperiment):
+        trial_index_to_type = {
+            t.index: t.trial_type for t in experiment.trials.values()
+        }
+        transforms = MT_MTGP_trans
+        transform_configs = {
+            "TrialAsTask": {"trial_level_map": {"trial_type": trial_index_to_type}},
+            "ConvertMetricNames": tconfig_from_mt_experiment(experiment),
+        }
+    else:
+        # Set transforms for a Single-type MTGP model.
+        transforms = ST_MTGP_trans
+        transform_configs = None
+
+    # Choose the status quo features for the experiment from the selected trial.
+    # If trial_index is None, we will look for a status quo from the last
+    # experiment trial to use as a status quo for the experiment.
+    if trial_index is None:
+        trial_index = len(experiment.trials) - 1
+    elif trial_index >= len(experiment.trials):
+        raise ValueError("trial_index is bigger than the number of experiment trials")
+
+    status_quo = experiment.trials[trial_index].status_quo
+    if status_quo is None:
+        status_quo_features = None
+    else:
+        status_quo_features = ObservationFeatures(
+            parameters=status_quo.parameters,
+            trial_index=trial_index,  # pyre-ignore[6]
+        )
+
+    return assert_is_instance(
+        Models.ST_MTGP(
+            experiment=experiment,
+            search_space=search_space or experiment.search_space,
+            data=data,
+            transforms=transforms,
+            transform_configs=transform_configs,
+            torch_dtype=dtype,
+            torch_device=device,
+            status_quo_features=status_quo_features,
+        ),
+        TorchModelBridge,
+    )
 
 
 def persistent_gp_mt_ax_gen_f(H, persis_info, gen_specs, libE_info):
@@ -97,6 +202,7 @@ def persistent_gp_mt_ax_gen_f(H, persis_info, gen_specs, libE_info):
         optimization_config=opt_config,
     )
 
+    # hifi_task has been added as default but we need to add lofi task and link them.
     exp.add_trial_type(lofi_task, ax_runner)
     exp.add_tracking_metric(metric=lofi_objective, trial_type=lofi_task, canonical_name="hifi_metric")
 
@@ -141,7 +247,7 @@ def persistent_gp_mt_ax_gen_f(H, persis_info, gen_specs, libE_info):
 
             # But launch them at low fidelity.
             tr = exp.new_batch_trial(trial_type=lofi_task, generator_run=gr)
-            tr.run()
+            tr.run()  # Runs sims via libE (see AxRunner.run below)
             tr.mark_completed()
             tag = tr.run_metadata["tag"]
             if tag in [STOP_TAG, PERSIS_STOP]:
@@ -157,7 +263,7 @@ def persistent_gp_mt_ax_gen_f(H, persis_info, gen_specs, libE_info):
             # Select max-utility points from the low fidelity batch to generate a high fidelity batch.
             gr = max_utility_from_GP(n=n_opt_hifi, m=m, gr=gr, hifi_task=hifi_task)
             tr = exp.new_batch_trial(trial_type=hifi_task, generator_run=gr)
-            tr.run()
+            tr.run()  # Runs sims via libE (see AxRunner.run below)
             tr.mark_completed()
             tag = tr.run_metadata["tag"]
             if tag in [STOP_TAG, PERSIS_STOP]:
@@ -169,7 +275,9 @@ def persistent_gp_mt_ax_gen_f(H, persis_info, gen_specs, libE_info):
             if not os.path.exists("model_history"):
                 os.mkdir("model_history")
             # Register metric and runner in order to be able to save to json.
-            _, encoder_registry, decoder_registry = register_metric(AxMetric)
+            _, encoder_registry, decoder_registry = register_metrics(
+                {AxMetric: None}
+            )
             _, encoder_registry, decoder_registry = register_runner(
                 AxRunner,
                 encoder_registry=encoder_registry,
@@ -196,7 +304,7 @@ def persistent_gp_mt_ax_gen_f(H, persis_info, gen_specs, libE_info):
         # Increase iteration counter.
         model_iteration += 1
 
-    return [], persis_info, FINISHED_PERSISTENT_GEN_TAG
+    return None, persis_info, FINISHED_PERSISTENT_GEN_TAG
 
 
 class AxRunner(Runner):
@@ -222,9 +330,8 @@ class AxRunner(Runner):
             for j in range(n_param):
                 param_array[j] = params[f"x{j}"]
             H_o["x"][i] = param_array
-            H_o["resource_sets"][i] = 1
+            H_o["resource_sets"][i] = 1  # one is default but could be diff for hi/lo
             H_o["task"][i] = task
-
         tag, Work, calc_in = self.ps.send_recv(H_o)
 
         trial_metadata["tag"] = tag
