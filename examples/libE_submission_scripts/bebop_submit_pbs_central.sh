@@ -5,7 +5,6 @@
 #PBS -A [project]
 #PBS -N libE_example
 
-
 cd $PBS_O_WORKDIR
 # Choose MPI backend. Note that the built mpi4py in your environment should match.
 module load oneapi/mpi

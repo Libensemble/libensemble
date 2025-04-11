@@ -54,6 +54,20 @@ def test_thread_runners():
     simrunner.shutdown()
 
 
+def test_persis_info_from_none():
+    calc_in, sim_specs, gen_specs = get_ufunc_args()
+
+    def tupilize(arg1, arg2):
+        return (arg1, arg2)
+
+    sim_specs["sim_f"] = tupilize
+    simrunner = Runner(sim_specs)
+    libE_info = {"H_rows": np.array([2, 3, 4]), "workerID": 1, "comm": "fakecomm"}
+
+    result = simrunner.run(calc_in, {"libE_info": libE_info, "persis_info": None, "tag": 1})
+    assert result == (calc_in, {})
+
+
 @pytest.mark.extra
 def test_globus_compute_runner_init():
     calc_in, sim_specs, gen_specs = get_ufunc_args()
@@ -122,6 +136,7 @@ def test_globus_compute_runner_fail():
 if __name__ == "__main__":
     test_normal_runners()
     test_thread_runners()
+    test_persis_info_from_none()
     test_globus_compute_runner_init()
     test_globus_compute_runner_pass()
     test_globus_compute_runner_fail()

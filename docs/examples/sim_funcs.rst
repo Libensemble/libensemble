@@ -24,7 +24,7 @@ Ideal for simple debugging of generator processes or system testing.
    Borehole function with kills <sim_funcs/borehole_kills>
    Chwirut1 vector-valued function <sim_funcs/chwirut1>
    Inverse Bayesian likelihood <sim_funcs/inverse_bayes>
-   Norm  <sim_funcs/simple_sim>
+   Norm <sim_funcs/simple_sim>
    Rosenbrock test optimization function <sim_funcs/rosenbrock>
    Six Hump Camel <sim_funcs/six_hump_camel>
    Test noisy function <sim_funcs/noisy_vector_mapping>
@@ -36,8 +36,8 @@ Functions that run user applications
 These use the executor to launch applications and in some cases
 handle dynamic CPU/GPU allocation.
 
-The ``Variable resources`` module contains basic examples, while the ``Template`` 
-examples use a simple  MPI/OpenMP (with GPU offload option) application (``forces``) 
+The ``Variable resources`` module contains basic examples, while the ``Template``
+examples use a simple MPI/OpenMP (with GPU offload option) application (``forces``)
 to demonstrate libEnsemble’s capabilities on various HPC systems. The
 build_forces.sh_ file gives compile lines for building the simple ``forces``
 application on various platforms (use -DGPU to build for GPU).

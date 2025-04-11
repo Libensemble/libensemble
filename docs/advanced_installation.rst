@@ -9,7 +9,7 @@ automatically installed alongside libEnsemble:
 * Python_       ``>= 3.10``
 * NumPy_        ``>= 1.21``
 * psutil_       ``>= 5.9.4``
-* `pydantic`_   ``<= 1.10.12``
+* `pydantic`_   ``>= 1.10.12``
 * pyyaml_       ``>= v6.0``
 * tomli_        ``>= 1.2.1``
 
