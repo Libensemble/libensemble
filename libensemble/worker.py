@@ -3,6 +3,8 @@ libEnsemble worker class
 ====================================================
 """
 
+from __future__ import annotations
+
 import logging
 import logging.handlers
 import socket
