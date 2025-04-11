@@ -2,7 +2,7 @@
 Example of multi-fidelity optimization using a persistent GP gen_func (calling
 Ax).
 
-Test is set to use the gen_on_manager option (persistent generator runs on
+This test uses the gen_on_manager option (persistent generator runs on
 a thread). Therefore nworkers is the number of simulation workers.
 
 Execute via one of the following commands:

@@ -42,10 +42,10 @@ Optimization
   aposmm
   uniform_or_localopt
   ax_multitask<ax_multitask>
-  VTMOP<https://libensemble.readthedocs.io/projects/libe-community-examples/en/latest/#module-vtmop>
-  ytopt<https://libensemble.readthedocs.io/projects/libe-community-examples/en/latest/#module-ytopt_heffte.ytopt_asktell>
-  consensus<https://libensemble.readthedocs.io/projects/libe-community-examples/en/latest/#module-consensus>
-  DEAP-NSGA-II<https://libensemble.readthedocs.io/projects/libe-community-examples/en/latest/#persistent-deap-nsga2>
+  VTMOP<https://libensemble.readthedocs.io/projects/libe-community-examples/en/latest/generators.html#module-vtmop>
+  ytopt<https://libensemble.readthedocs.io/projects/libe-community-examples/en/latest/generators.html#module-ytopt_heffte.ytopt_asktell>
+  consensus<https://libensemble.readthedocs.io/projects/libe-community-examples/en/latest/generators.html#gens.persistent_independent_optimize>
+  DEAP-NSGA-II<https://libensemble.readthedocs.io/projects/libe-community-examples/en/latest/generators.html#persistent-deap-nsga2>
 
 - :doc:`APOSMM<aposmm>`
 
