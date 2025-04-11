@@ -1,11 +1,14 @@
 import logging
 import os
 from collections import Counter, OrderedDict
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 
 from libensemble.resources.rset_resources import RSetResources
+
+if TYPE_CHECKING:
+    from libensemble.resources.resources import GlobalResources
 
 logger = logging.getLogger(__name__)
 # To change logging level for just this module
@@ -26,7 +29,7 @@ class ResourceManager(RSetResources):
     # Holds the ID of the worker this rset is assigned to or zero
     man_rset_dtype = np.dtype(RSetResources.rset_dtype + [("assigned", int)])
 
-    def __init__(self, num_workers: int, resources: "GlobalResources") -> None:  # noqa: F821
+    def __init__(self, num_workers: int, resources: GlobalResources) -> None:
         """Initializes a new ResourceManager instance
 
         Instantiates the numpy structured array that holds information for each

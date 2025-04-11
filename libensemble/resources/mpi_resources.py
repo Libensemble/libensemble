@@ -6,6 +6,11 @@ import logging
 import os
 import platform
 import subprocess
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from libensemble.resources.resources import Resources
+    from libensemble.resources.worker_resources import WorkerResources
 
 
 class MPIResourcesException(Exception):
@@ -120,7 +125,7 @@ def task_partition(
     return num_procs, num_nodes, procs_per_node
 
 
-def _max_rsets_per_node(worker_resources):
+def _max_rsets_per_node(worker_resources: WorkerResources) -> int:
     """Return the maximum rsets per node for any node on this worker"""
     rset_team = worker_resources.rset_team
     local_rsets_list = worker_resources.local_rsets_list
@@ -128,7 +133,13 @@ def _max_rsets_per_node(worker_resources):
     return max(rsets_on_node)
 
 
-def get_resources(resources, num_procs=None, num_nodes=None, procs_per_node=None, hyperthreads=False):
+def get_resources(
+    resources: Resources,
+    num_procs: int = None,
+    num_nodes: int = None,
+    procs_per_node: int = None,
+    hyperthreads: bool = False,
+) -> tuple[int, int, int]:
     """Reconciles user-supplied options with available worker
     resources to produce run configuration.
 
@@ -221,7 +232,7 @@ def get_resources(resources, num_procs=None, num_nodes=None, procs_per_node=None
 
 
 def create_machinefile(
-    resources: "resources.Resources",  # noqa: F821
+    resources: Resources,
     machinefile: str | None = None,
     num_procs: int = None,
     num_nodes: int | None = None,
@@ -250,7 +261,7 @@ def create_machinefile(
     return built_mfile, num_procs, num_nodes, procs_per_node
 
 
-def get_hostlist(resources, num_nodes=None):
+def get_hostlist(resources: Resources, num_nodes=None):
     """Creates a hostlist based on user-supplied config options.
 
     completed by detected machine resources
