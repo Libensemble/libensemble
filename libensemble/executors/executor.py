@@ -12,7 +12,7 @@ import stat
 import sys
 import time
 from pathlib import Path
-from typing import Any, Optional, Union
+from typing import Any
 
 import libensemble.utils.launcher as launcher
 from libensemble.message_numbers import (
@@ -24,7 +24,6 @@ from libensemble.message_numbers import (
     WORKER_DONE,
     WORKER_KILL_ON_TIMEOUT,
 )
-from libensemble.resources.resources import Resources
 from libensemble.utils.timer import TaskTimer
 
 logger = logging.getLogger(__name__)
@@ -78,10 +77,10 @@ class Application:
     def __init__(
         self,
         full_path: str,
-        name: Optional[str] = None,
-        calc_type: Optional[str] = "sim",
-        desc: Optional[str] = None,
-        pyobj: Optional[Any] = None,  # used by balsam_executor to store ApplicationDefinition
+        name: str | None = None,
+        calc_type: str | None = "sim",
+        desc: str | None = None,
+        pyobj: Any | None = None,  # used by balsam_executor to store ApplicationDefinition
         precedent: str = "",
     ) -> None:
         """Instantiates a new Application instance."""
@@ -101,7 +100,7 @@ class Application:
         self.app_cmd = " ".join(filter(None, [self.precedent, self.full_path]))
 
 
-def jassert(test: Optional[Union[Application, bool]], *args) -> None:
+def jassert(test: Application | bool | None, *args) -> None:
     "Version of assert that raises a ExecutorException"
     if not test:
         raise ExecutorException(*args)
@@ -170,7 +169,7 @@ class Task:
         """Add to task environment - overwrites if already set"""
         self.env[key] = value
 
-    def workdir_exists(self) -> Optional[bool]:
+    def workdir_exists(self) -> bool | None:
         """Returns true if the task's workdir exists"""
         return self.workdir and os.path.exists(self.workdir)
 
@@ -260,7 +259,7 @@ class Task:
 
         self._set_complete()
 
-    def wait(self, timeout: Optional[float] = None) -> None:
+    def wait(self, timeout: float | None = None) -> None:
         """Waits on completion of the task or raises TimeoutExpired exception
 
         Status attributes of task are updated on completion.
@@ -288,7 +287,7 @@ class Task:
 
         self._set_complete()
 
-    def result(self, timeout: Optional[Union[int, float]] = None) -> str:
+    def result(self, timeout: int | float | None = None) -> str:
         """Wrapper for task.wait() that also returns the task's status on completion.
 
         Parameters
@@ -303,7 +302,7 @@ class Task:
         self.wait(timeout=timeout)
         return self.state
 
-    def exception(self, timeout: Optional[Union[int, float]] = None):
+    def exception(self, timeout: int | float | None = None):
         """Wrapper for task.wait() that instead returns the task's error code on completion.
 
         Parameters
@@ -386,7 +385,7 @@ class Executor:
 
     executor = None
 
-    def _wait_on_start(self, task: Task, fail_time: Optional[int] = None) -> None:
+    def _wait_on_start(self, task: Task, fail_time: int | None = None) -> None:
         """Called by submit when wait_on_start is True.
 
         Blocks until task polls as having started.
@@ -472,7 +471,7 @@ class Executor:
         jassert(app, f"Default {calc_type} app is not set")
         return app
 
-    def set_resources(self, resources: Resources):
+    def set_resources(self, resources):
         # Does not use resources
         pass
 
@@ -493,9 +492,9 @@ class Executor:
     def register_app(
         self,
         full_path: str,
-        app_name: Optional[str] = None,
-        calc_type: Optional[str] = None,
-        desc: Optional[str] = None,
+        app_name: str | None = None,
+        calc_type: str | None = None,
+        desc: str | None = None,
         precedent: str = "",
     ) -> None:
         """Registers a user application to libEnsemble.
@@ -571,7 +570,7 @@ class Executor:
         return False
 
     def polling_loop(
-        self, task: Task, timeout: Optional[int] = None, delay: float = 0.1, poll_manager: bool = False
+        self, task: Task, timeout: int | None = None, delay: float = 0.1, poll_manager: bool = False
     ) -> int:
         """Optional, blocking, generic task status polling loop. Operates until the task
         finishes, times out, or is optionally killed via a manager signal. On completion, returns a
@@ -637,7 +636,7 @@ class Executor:
 
         return calc_status
 
-    def get_task(self, taskid: Union[str, int]) -> Optional[Task]:
+    def get_task(self, taskid: str | int) -> Task | None:
         """Returns the task object for the supplied task ID"""
         task = next((j for j in self.list_of_tasks if j.id == taskid), None)
         if task is None:
@@ -681,14 +680,14 @@ class Executor:
 
     def submit(
         self,
-        calc_type: Optional[str] = None,
-        app_name: Optional[str] = None,
-        app_args: Optional[str] = None,
-        stdout: Optional[str] = None,
-        stderr: Optional[str] = None,
-        dry_run: Optional[bool] = False,
-        wait_on_start: Optional[bool] = False,
-        env_script: Optional[str] = None,
+        calc_type: str | None = None,
+        app_name: str | None = None,
+        app_args: str | None = None,
+        stdout: str | None = None,
+        stderr: str | None = None,
+        dry_run: bool | None = False,
+        wait_on_start: bool | None = False,
+        env_script: str | None = None,
     ) -> Task:
         """Create a new task and run as a local serial subprocess.
 
