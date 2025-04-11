@@ -161,6 +161,19 @@ class GenericROCm(Platform):
     scheduler_match_slots: bool = True
 
 
+class Lumi(Platform):
+    mpi_runner: str = "srun"
+    cores_per_node: int = 64
+    logical_cores_per_node: int = 128
+
+
+class LumiGPU(Lumi):
+    gpus_per_node: int = 8
+    gpu_setting_type: str = "env"
+    gpu_setting_name: str = "ROCR_VISIBLE_DEVICES"
+    scheduler_match_slots: bool = True
+
+
 class Perlmutter(Platform):
     mpi_runner: str = "srun"
 
@@ -242,6 +255,8 @@ class Known_platforms(BaseModel):
     aurora: Aurora = Aurora()
     generic_rocm: GenericROCm = GenericROCm()
     frontier: Frontier = Frontier()
+    lumi: Lumi = Lumi()
+    lumi_g: LumiGPU = LumiGPU()
     perlmutter: Perlmutter = Perlmutter()
     perlmutter_c: PerlmutterCPU = PerlmutterCPU()
     perlmutter_g: PerlmutterGPU = PerlmutterGPU()
@@ -271,6 +286,14 @@ def known_envs():
         else:
             name = "perlmutter"
             logger.manager_warning("Perlmutter detected, but no compute partition detected. Are you on login nodes?")
+    if os.environ.get("SLURM_CLUSTER_NAME") == "lumi":
+        partition = os.environ.get("SLURM_JOB_PARTITION")
+        if not partition:
+            logger.manager_warning("LUMI detected, but no compute partition detected. Are you on login nodes?")
+        if partition and partition.endswith("-g"):
+            name = "lumi_g"
+        else:
+            name = "lumi"
     return name
 
 

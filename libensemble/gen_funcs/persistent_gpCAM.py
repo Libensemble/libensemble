@@ -212,10 +212,10 @@ def persistent_gpCAM_covar(H_in, persis_info, gen_specs, libE_info):
     (lb, ub) and on following iterations samples the GP posterior covariance
     function to find sample points.
 
-    If gen_specs["user"]["use_grid"] is set to True the parameter space is
+    If gen_specs["user"]["use_grid"] is set to True, the parameter space is
     divided into a mesh of candidate points (num_points in each dimension).
-    Subsequent points chosen by maximum covariance that are at least a distance
-    `r` away from each other to explore difference regions.
+    Subsequent points are chosen with maximum covariance that are at least a
+    distance `r` away from each other to explore difference regions.
 
     If gen_specs["user"]["test_points_file"] is set to a file of evaluated
     points, then the gpCAM predications are compared at these points to assess

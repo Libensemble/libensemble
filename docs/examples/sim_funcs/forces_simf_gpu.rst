@@ -1,4 +1,4 @@
-Template for GPU executables 
+Template for GPU executables
 ----------------------------
 
 .. role:: underline

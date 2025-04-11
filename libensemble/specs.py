@@ -467,8 +467,8 @@ class LibeSpecs(BaseModel):
 
     dedicated_mode: bool | None = False
     """
-    Instructs libEnsemble to not run applications on resources where libEnsemble
-    processes (manager and workers) are running.
+    Instructs libEnsemble’s MPI executor not to run applications on nodes where
+    libEnsemble processes (manager and workers) are running.
     """
 
     zero_resource_workers: list[int] | None = []
