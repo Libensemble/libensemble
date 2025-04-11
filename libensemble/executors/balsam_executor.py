@@ -74,6 +74,8 @@ via Globus.
 .. _Globus: https://www.globus.org/
 """
 
+from __future__ import annotations
+
 import datetime
 import logging
 import os

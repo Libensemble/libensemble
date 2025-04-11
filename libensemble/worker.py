@@ -165,7 +165,7 @@ class Worker:
         sim_specs: dict,
         gen_specs: dict,
         libE_specs: dict,
-    ) -> None:  # noqa: F821
+    ) -> None:
         """Initializes new worker object"""
         self.comm = comm
         self.dtypes = dtypes
@@ -204,7 +204,7 @@ class Worker:
             return False
 
     @staticmethod
-    def _set_executor(workerID: int, comm: "communicator") -> bool:  # noqa: F821
+    def _set_executor(workerID: int, comm: Comm) -> bool:
         """Sets worker ID in the executor, return True if set"""
         exctr = Executor.executor
         if isinstance(exctr, Executor):
@@ -215,7 +215,7 @@ class Worker:
             return False
 
     @staticmethod
-    def _set_resources(workerID, comm: "communicator") -> bool:  # noqa: F821
+    def _set_resources(workerID, comm: Comm) -> bool:
         """Sets worker ID in the resources, return True if set"""
         resources = Resources.resources
         if isinstance(resources, Resources):
