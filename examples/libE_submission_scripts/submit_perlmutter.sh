@@ -7,10 +7,9 @@
 
 # This script is using GPU partition
 export MPICH_GPU_SUPPORT_ENABLED=1
-export SLURM_EXACT=1
 
 # One worker for generator and 4 for sims (one GPU each)
 python libe_calling_script.py -n 5
 
 # Or if libE_specs option gen_on_manager=True
-python libe_calling_script.py -n 4
+# python libe_calling_script.py -n 4

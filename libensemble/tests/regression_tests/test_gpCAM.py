@@ -11,7 +11,7 @@ persistent generator.
 
 Runs three variants of gpCAM. The first two use the posterior covariance
 sampling method,  whereby the second run uses the grid approach and uses
-the points from the first run as it’s test points.The third run uses the
+the points from the first run as it’s test points. The third run uses the
 gpCAM ask/tell interface.
 
 See libensemble.gen_funcs.persistent_gpCAM for more details about the

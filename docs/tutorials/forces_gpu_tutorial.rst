@@ -7,9 +7,9 @@ to the GPU. The libEnsemble scripts in this example are available under
 forces_gpu_ in the libEnsemble repository.
 
 This example is based on the
-:doc:`simple forces tutorial  <../tutorials/executor_forces_tutorial>` with
+:doc:`simple forces tutorial <../tutorials/executor_forces_tutorial>` with
 a slightly modified simulation function (to assign GPUs) and a greatly increased
-number of particles (allows live GPU usage to be viewed).
+number of particles (to allow real-time GPU usage to be viewed).
 
 In the first example, each worker will be using one GPU. The code will assign the
 GPUs available to each worker, using the appropriate method. This works on systems
@@ -34,7 +34,6 @@ from the simple forces example are highlighted:
 
     # Optional - to print GPU settings
     from libensemble.tools.test_support import check_gpu_setting
-
 
     def run_forces(H, persis_info, sim_specs, libE_info):
         """Launches the forces MPI app and auto-assigns ranks and GPU resources.
@@ -154,7 +153,6 @@ and use this information however you want.
             output = np.zeros(1, dtype=sim_specs["out"])
             output["energy"][0] = final_energy
 
-
         return output
 
     The above code will assign a GPU to each worker on CUDA-capable systems,
@@ -224,6 +222,8 @@ Changing the number of GPUs per worker
 If you want to have two GPUs per worker on the same system (with four GPUs per node),
 you could assign only four workers. You will see that two GPUs are used for each
 forces run.
+
+.. _var-resources-gpu:
 
 Varying resources
 -----------------
