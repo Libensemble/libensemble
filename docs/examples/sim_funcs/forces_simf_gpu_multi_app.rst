@@ -10,7 +10,7 @@ ranks and GPU resources as requested by the generator.
 This makes efficient use of each node as the expensive GPU simulations will use the GPUs on
 the node/s, while the rest of the CPU cores are assigned to the simple CPU-only simulations.
 
-For a realistic use-case see https://journals.aps.org/prab/abstract/10.1103/PhysRevAccelBeams.26.084601
+See this publication_ for a real-world demonstration of these capabilities.
 
 .. automodule:: forces_multi_app.forces_simf
    :members:
@@ -39,5 +39,6 @@ up by each worker and these will be used when the simulation is run, unless over
 More information is available in the :doc:`Forces GPU tutorial <../../tutorials/forces_gpu_tutorial>`
 and the video_ demonstration on Frontier_.
 
-.. _video: https://www.youtube.com/watch?v=H2fmbZ6DnVc
 .. _Frontier: https://docs.olcf.ornl.gov/systems/frontier_user_guide.html
+.. _publication: https://doi.org/10.1103/PhysRevAccelBeams.26.084601
+.. _video: https://www.youtube.com/watch?v=H2fmbZ6DnVc
