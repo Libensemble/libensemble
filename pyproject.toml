@@ -86,6 +86,9 @@ ax-platform = ">=0.5.0,<0.6"
 sphinxcontrib-spelling = ">=8.0.1,<9"
 autodoc-pydantic = ">=2.1.0,<3"
 ipdb = ">=0.13.13,<0.14"
+mypy = ">=1.15.0,<2"
+types-psutil = ">=6.1.0.20241221,<7"
+types-pyyaml = ">=6.0.12.20250402,<7"
 
 [tool.pixi.dependencies]
 python = ">=3.10,<3.14"
@@ -134,6 +137,9 @@ noy = "noy"
 
 [tool.typos.files]
 extend-exclude = ["*.bib", "*.xml", "docs/nitpicky"]
+
+[tool.mypy]
+disable_error_code = ["import-not-found", "import-untyped"]
 
 [dependency-groups]
 dev = ["pyenchant", "enchant>=0.0.1,<0.0.2", "flake8-modern-annotations>=1.6.0,<2", "flake8-type-checking>=3.0.0,<4"]
