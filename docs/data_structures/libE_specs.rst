@@ -215,6 +215,9 @@ libEnsemble is primarily customized by setting options within a ``LibeSpecs`` cl
                 **H_file_prefix** Optional[str] = ``"libE_history"``
                     Prefix for ``H`` filename.
 
+                **persis_info_file_prefix** Optional[str] = ``"libE_persis"``
+                    Prefix for ``persis_info`` filename.
+
                 **use_persis_return_gen** [bool] = ``False``:
                     Adds persistent generator output fields to the History array on return.
 
