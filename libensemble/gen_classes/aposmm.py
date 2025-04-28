@@ -43,7 +43,7 @@ class APOSMM(PersistentGenInterfacer):
                 ("local_pt", bool),
             ]
             gen_specs["persis_in"] = ["x", "f", "local_pt", "sim_id", "sim_ended", "x_on_cube", "local_min"]
-            if "components" in kwargs:
+            if "components" in kwargs or "components" in gen_specs.get("user", {}):
                 gen_specs["persis_in"].append("fvec")
         super().__init__(variables, objectives, History, persis_info, gen_specs, libE_info, **kwargs)
         if not self.persis_info.get("nworkers"):
