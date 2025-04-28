@@ -21,7 +21,6 @@ class APOSMM(PersistentGenInterfacer):
         persis_info: dict = {},
         gen_specs: dict = {},
         libE_info: dict = {},
-        accept_fvec: bool = False,
         **kwargs,
     ) -> None:
         from libensemble.gen_funcs.persistent_aposmm import aposmm
@@ -44,7 +43,7 @@ class APOSMM(PersistentGenInterfacer):
                 ("local_pt", bool),
             ]
             gen_specs["persis_in"] = ["x", "f", "local_pt", "sim_id", "sim_ended", "x_on_cube", "local_min"]
-            if accept_fvec:
+            if "components" in kwargs:
                 gen_specs["persis_in"].append("fvec")
         super().__init__(variables, objectives, History, persis_info, gen_specs, libE_info, **kwargs)
         if not self.persis_info.get("nworkers"):
