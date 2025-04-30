@@ -99,6 +99,9 @@ psutil = ">=5.9.4,<7"
 [tool.pixi.target.osx-arm64.dependencies]
 clang_osx-arm64 = ">=19.1.2,<20"
 
+[tool.pixi.target.linux-64.dependencies]
+gxx_linux-64 = ">=14.2.0,<15"
+
 [tool.black]
 line-length = 120
 target-version = ['py39', 'py310', 'py311', 'py312', 'py313']
