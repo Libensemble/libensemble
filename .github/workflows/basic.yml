@@ -84,8 +84,7 @@ jobs:
         - name: Run simple tests, macOS
           if: matrix.os == 'macos-latest'
           run: |
-            pip install rich
-            ./libensemble/tests/run_tests.py -A "-W error" -${{ matrix.comms-type }}
+            pixi run -e dev ./libensemble/tests/run_tests.py -A "-W error" -${{ matrix.comms-type }}
 
         - name: Merge coverage
           run: |
