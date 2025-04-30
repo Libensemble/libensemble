@@ -57,6 +57,7 @@ jobs:
           with:
             pixi-version: v0.45.0
             cache: true
+            frozen: true
             environments: "dev"
             activate-environment: "dev"
 
