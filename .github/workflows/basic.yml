@@ -18,28 +18,28 @@ jobs:
                 os: [ubuntu-latest]
                 mpi-version: [mpich]
                 python-version: ["3.10", "3.11", "3.12", "3.13"]
-                pydantic-version: ["2.10.6"]
+                pydantic-version: ["2.11.4"]
                 comms-type: [m, l]
                 include:
                     - os: macos-latest
                       python-version: "3.11"
                       mpi-version: mpich
-                      pydantic-version: "2.10.6"
+                      pydantic-version: "2.11.4"
                       comms-type: m
                     - os: macos-latest
                       python-version: "3.11"
                       mpi-version: mpich
-                      pydantic-version: "2.10.6"
+                      pydantic-version: "2.11.4"
                       comms-type: l
                     - os: ubuntu-latest
                       mpi-version: mpich
                       python-version: "3.10"
-                      pydantic-version: "1.10.21"
+                      pydantic-version: "1.10.22"
                       comms-type: m
                     - os: ubuntu-latest
                       mpi-version: mpich
                       python-version: "3.10"
-                      pydantic-version: "1.10.21"
+                      pydantic-version: "1.10.22"
                       comms-type: l
 
         env:
