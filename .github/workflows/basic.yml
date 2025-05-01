@@ -63,7 +63,7 @@ jobs:
 
         - name: Install basic testing/feature dependencies
           run: |
-            source install/install_ibcdfo.sh
+            pixi run -e dev ./install/install_ibcdfo.sh
 
         - name: Install libEnsemble, test flake8
           run: |
