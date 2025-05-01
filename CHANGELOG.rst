@@ -11,7 +11,7 @@ GitHub issues are referenced, and can be viewed with hyperlinks on the `github r
 Release 1.5.0
 --------------
 
-:Date: Apr 8, 2025
+:Date: Apr 10, 2025
 
 General Updates:
 
@@ -30,6 +30,7 @@ Examples:
   * `persistent_gpCAM_ask_tell` to `persistent_gpCAM`
   * `persistent_gpCAM_simple` to `persistent_gpCAM_covar` (in fact less simple)
 * Persistent generators return `None` as first return value unless `H_o` is updated. #1515
+* Add LUMI to known platforms. #1546
 
 Documentation:
 
@@ -41,7 +42,7 @@ Documentation:
 :Note:
 
 * Tests were run on Linux and MacOS with Python versions 3.10, 3.11, 3.12, 3.13
-* Heterogeneous workflows tested on Aurora (ALCF), Polaris (ALCF), and Perlmutter (NERSC).
+* Heterogeneous workflows tested on Aurora (ALCF), Polaris (ALCF), LUMI (EuroHPC JU), and Perlmutter (NERSC).
 
 :Known Issues:
 
