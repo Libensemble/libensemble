@@ -4,7 +4,7 @@ authors = [{name = "Jeffrey Larson"}, {name = "Stephen Hudson"},
             {name = "Stefan M. Wild"}, {name = "David Bindel"},
             {name = "John-Luke Navarro"}]
 
-dependencies = [ "numpy", "psutil", "pydantic", "pyyaml", "tomli", "pyenchant", "enchant", "flake8-modern-annotations", "flake8-type-checking", "enchant>=0.0.1,<0.0.2", "flake8-modern-annotations>=1.6.0,<2", "flake8-type-checking>=3.0.0,<4"]
+dependencies = [ "numpy", "psutil", "pydantic", "pyyaml", "tomli"]
 
 description = "A Python toolkit for coordinating asynchronous and dynamic ensembles of calculations."
 name = "libensemble"
@@ -140,3 +140,6 @@ extend-exclude = ["*.bib", "*.xml", "docs/nitpicky"]
 
 [tool.mypy]
 disable_error_code = ["import-not-found", "import-untyped"]
+
+[dependency-groups]
+dev = ["pyenchant", "enchant>=0.0.1,<0.0.2", "flake8-modern-annotations>=1.6.0,<2", "flake8-type-checking>=3.0.0,<4"]
