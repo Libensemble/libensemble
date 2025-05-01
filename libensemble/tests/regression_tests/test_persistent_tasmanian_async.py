@@ -87,7 +87,7 @@ if __name__ == "__main__":
         }
     )
     exit_criteria_arr = []
-    exit_criteria_arr.append({"wallclock_max": 300})
+    exit_criteria_arr.append({"wallclock_max": 3})
     exit_criteria_arr.append({"gen_max": 100})
 
     run_num = 0
