@@ -24,20 +24,17 @@ simulation worker, and libEnsemble will distribute user applications across the
 node allocation. This is the **most common approach** where each simulation
 runs an MPI application.
 
-.. list-table::
-   :widths: 60 40
+.. image:: ../images/centralized_gen_on_manager.png
+        :alt: centralized
+        :scale: 55
 
-   * - .. image:: ../images/centralized_gen_on_manager.png
-          :alt: centralized
-          :scale: 55
+A SLURM batch script may include:
 
-       A SLURM batch script may include:
+.. code-block:: bash
 
-       .. code-block:: bash
+    #SBATCH --nodes 3
 
-          #SBATCH --nodes 3
-
-          python run_libe_forces.py --nworkers 3
+    python run_libe_forces.py --nworkers 3
 
 If running multiple generator processes instead, then set the
 :ref:`libE_specs<datastruct-libe-specs>` option **gen_on_worker** so that multiple
@@ -51,30 +48,28 @@ True, the MPI executor will not launch applications on nodes where libEnsemble P
 processes (manager and workers) are running. Workers launch applications onto the
 remaining nodes in the allocation.
 
-.. list-table::
-   :widths: 60 40
 
-   * - .. image:: ../images/centralized_dedicated.png
-          :alt: centralized dedicated mode
-          :scale: 30
+.. image:: ../images/centralized_dedicated.png
+    :alt: centralized dedicated mode
+    :scale: 30
 
-     - In calling script:
+In calling script:
 
-       .. code-block:: python
-          :linenos:
+.. code-block:: python
+    :linenos:
 
-          ensemble.libE_specs = LibeSpecs(
-              num_resource_sets=2,
-              dedicated_mode=True,
-          )
+    ensemble.libE_specs = LibeSpecs(
+        num_resource_sets=2,
+        dedicated_mode=True,
+    )
 
-       A SLURM batch script may include:
+A SLURM batch script may include:
 
-       .. code-block:: bash
+.. code-block:: bash
 
-          #SBATCH --nodes 3
+    #SBATCH --nodes 3
 
-          python run_libe_forces.py --nworkers 3
+    python run_libe_forces.py --nworkers 3
 
 Distributed Running
 -------------------
