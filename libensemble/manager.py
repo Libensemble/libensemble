@@ -232,8 +232,9 @@ class Manager:
         ]
 
         gen_on_worker = self.libE_specs.get("gen_on_worker", False)
+        len_W = len(self.wcomms) + 1 - gen_on_worker
 
-        self.W = np.zeros(len(self.wcomms) + gen_on_worker, dtype=Manager.worker_dtype)
+        self.W = np.zeros(len_W, dtype=Manager.worker_dtype)
         if gen_on_worker:
             self.W["worker_id"] = np.arange(len(self.wcomms)) + 1  # [1, 2, 3, ...]
         else:
@@ -242,8 +243,8 @@ class Manager:
             local_worker_comm = self._run_additional_worker(hist, sim_specs, gen_specs, libE_specs)
             self.wcomms = [local_worker_comm] + self.wcomms
 
-        self.W = _WorkerIndexer(self.W, gen_on_worker)
-        self.wcomms = _WorkerIndexer(self.wcomms, gen_on_worker)
+        self.W = _WorkerIndexer(self.W, 1 - gen_on_worker)
+        self.wcomms = _WorkerIndexer(self.wcomms, 1 - gen_on_worker)
 
         temp_EnsembleDirectory = EnsembleDirectory(libE_specs=libE_specs)
         self.resources = Resources.resources
