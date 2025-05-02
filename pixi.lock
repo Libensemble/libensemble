@@ -3342,7 +3342,7 @@ packages:
 - pypi: .
   name: libensemble
   version: 1.5.0+dev
-  sha256: b382f993661013a18d63478abbc4d8627085a4caa3ca654327bbd4b0095b36a5
+  sha256: a69ede470e6f435addd3351ac52d9681a592fea2480621b2d477a521ed5e93a7
   requires_dist:
   - numpy
   - psutil
