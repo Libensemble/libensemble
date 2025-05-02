@@ -59,6 +59,7 @@ In calling script:
     :linenos:
 
     ensemble.libE_specs = LibeSpecs(
+        gen_on_worker=True,
         num_resource_sets=2,
         dedicated_mode=True,
     )

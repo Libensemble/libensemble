@@ -20,6 +20,9 @@ which perform computations via **user functions**:
 
 |
 
+As of **v2.0** the **Manager** by default runs **a single generator**. This
+is configurable.
+
 The default allocator (``alloc_f``) instructs workers to run the simulator on the
 highest priority work from the generator. If a worker is idle and there is
 no work, that worker is instructed to call the generator.
