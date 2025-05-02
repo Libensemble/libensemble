@@ -182,10 +182,8 @@ class LibeSpecs(BaseModel):
     nworkers: Optional[int] = 0
     """ Number of worker processes in ``"local"``, ``"threads"``, or ``"tcp"``."""
 
-    gen_on_manager: Optional[bool] = False
-    """ Instructs Manager process to run generator functions.
-    This generator function can access/modify user objects by reference.
-    """
+    gen_on_worker: Optional[bool] = False
+    """ Instructs Worker process to run generator instead of Manager."""
 
     mpi_comm: Optional[Any] = None
     """ libEnsemble MPI communicator. Default: ``MPI.COMM_WORLD``"""

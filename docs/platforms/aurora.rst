@@ -57,7 +57,7 @@ simulations for each worker:
 .. code-block:: python
 
     # Instruct libEnsemble to exit after this many simulations
-    ensemble.exit_criteria = ExitCriteria(sim_max=nsim_workers*2)
+    ensemble.exit_criteria = ExitCriteria(sim_max=nsim_workers * 2)
 
 Now grab an interactive session on two nodes (or use the batch script at
 ``../submission_scripts/submit_pbs_aurora.sh``)::
@@ -114,26 +114,6 @@ Now you can run again but with twice the workers for running simulations (each
 will use one GPU tile)::
 
     python run_libe_forces.py -n 25
-
-Running generator on the manager
---------------------------------
-
-An alternative is to run the generator on a thread on the manager. The
-number of workers can then be set to the number of simulation workers.
-
-Change the ``libE_specs`` in **run_libe_forces.py** as follows:
-
-.. code-block:: python
-
-    nsim_workers = ensemble.nworkers
-
-    # Persistent gen does not need resources
-    ensemble.libE_specs = LibeSpecs(
-        gen_on_manager=True,
-
-then we can run with 12 (instead of 13) workers::
-
-    python run_libe_forces.py -n 12
 
 Dynamic resource assignment
 ---------------------------

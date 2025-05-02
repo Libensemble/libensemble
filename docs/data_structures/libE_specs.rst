@@ -9,12 +9,7 @@ libEnsemble is primarily customized by setting options within a ``LibeSpecs`` cl
 
     from libensemble.specs import LibeSpecs
 
-    specs = LibeSpecs(
-        gen_on_manager=True,
-        save_every_k_gens=100,
-        sim_dirs_make=True,
-        nworkers=4
-    )
+    specs = LibeSpecs(save_every_k_gens=100, sim_dirs_make=True, nworkers=4)
 
 .. dropdown:: Settings by Category
     :open:
@@ -31,9 +26,8 @@ libEnsemble is primarily customized by setting options within a ``LibeSpecs`` cl
                 **nworkers** [int]:
                     Number of worker processes in ``"local"``, ``"threads"``, or ``"tcp"``.
 
-                **gen_on_manager** [bool] = False
-                    Instructs Manager process to run generator functions.
-                    This generator function can access/modify user objects by reference.
+                **gen_on_worker** [bool] = False
+                    Instructs Worker process to run generator instead of Manager.
 
                 **mpi_comm** [MPI communicator] = ``MPI.COMM_WORLD``:
                     libEnsemble MPI communicator.

@@ -231,19 +231,19 @@ class Manager:
             (1, "stop_val", self.term_test_stop_val),
         ]
 
-        gen_on_manager = self.libE_specs.get("gen_on_manager", False)
+        gen_on_worker = self.libE_specs.get("gen_on_worker", False)
 
-        self.W = np.zeros(len(self.wcomms) + gen_on_manager, dtype=Manager.worker_dtype)
-        if gen_on_manager:
+        self.W = np.zeros(len(self.wcomms) + gen_on_worker, dtype=Manager.worker_dtype)
+        if gen_on_worker:
+            self.W["worker_id"] = np.arange(len(self.wcomms)) + 1  # [1, 2, 3, ...]
+        else:
             self.W["worker_id"] = np.arange(len(self.wcomms) + 1)  # [0, 1, 2, ...]
             self.W[0]["gen_worker"] = True
             local_worker_comm = self._run_additional_worker(hist, sim_specs, gen_specs, libE_specs)
             self.wcomms = [local_worker_comm] + self.wcomms
-        else:
-            self.W["worker_id"] = np.arange(len(self.wcomms)) + 1  # [1, 2, 3, ...]
 
-        self.W = _WorkerIndexer(self.W, gen_on_manager)
-        self.wcomms = _WorkerIndexer(self.wcomms, gen_on_manager)
+        self.W = _WorkerIndexer(self.W, gen_on_worker)
+        self.wcomms = _WorkerIndexer(self.wcomms, gen_on_worker)
 
         temp_EnsembleDirectory = EnsembleDirectory(libE_specs=libE_specs)
         self.resources = Resources.resources
@@ -639,7 +639,7 @@ class Manager:
             "use_resource_sets": self.use_resource_sets,
             "gen_num_procs": self.gen_num_procs,
             "gen_num_gpus": self.gen_num_gpus,
-            "gen_on_manager": self.libE_specs.get("gen_on_manager", False),
+            "gen_on_worker": self.libE_specs.get("gen_on_worker", False),
         }
 
     def _alloc_work(self, H: npt.NDArray, persis_info: dict) -> dict:

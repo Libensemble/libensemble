@@ -336,44 +336,6 @@ These may require additional browsing of the documentation to complete.
 
         ...
 
-Running the generator on the manager
-------------------------------------
-
-As of version 1.3.0, the generator can be run on a thread on the manager,
-using the :ref:`libE_specs<datastruct-libe-specs>` option **gen_on_manager**.
-
-Change the libE_specs as follows.
-
-   .. code-block:: python
-    :linenos:
-    :lineno-start: 28
-
-    nsim_workers = ensemble.nworkers
-
-    # Persistent gen does not need resources
-    ensemble.libE_specs = LibeSpecs(
-        gen_on_manager=True,
-        sim_dirs_make=True,
-        ensemble_dir_path="./test_executor_forces_tutorial",
-    )
-
-When running set ``nworkers`` to the number of workers desired for running simulations.
-E.g., Instead of:
-
-.. code-block:: bash
-
-    python run_libe_forces.py --nworkers 5
-
-use:
-
-.. code-block:: bash
-
-    python run_libe_forces.py --nworkers 4
-
-Note that as the generator random number seed will be zero instead of one, the checksum will change.
-
-For more information see :ref:`Running generator on the manager<gen-on-manager>`.
-
 Running forces application with input file
 ------------------------------------------
 
