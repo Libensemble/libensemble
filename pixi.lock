@@ -350,7 +350,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/narwhals-1.33.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/ncurses-6.5-h2d0b736_3.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/networkx-3.4.2-pyh267e887_2.conda
-      - conda: https://conda.anaconda.org/conda-forge/linux-64/nlopt-2.10.0-py312h2694a52_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-64/nlopt-2.8.0-py312h69683c5_2.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/nodeenv-1.9.1-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/nomkl-1.0-h5ca1d4c_0.tar.bz2
       - conda: https://conda.anaconda.org/conda-forge/linux-64/numpy-2.2.4-py312h72c5963_0.conda
@@ -616,7 +616,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/narwhals-1.33.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-64/ncurses-6.5-h0622a9a_3.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/networkx-3.4.2-pyh267e887_2.conda
-      - conda: https://conda.anaconda.org/conda-forge/osx-64/nlopt-2.10.0-py313h3e00fb1_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/osx-64/nlopt-2.8.0-py313h1f02af7_2.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/nodeenv-1.9.1-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/nomkl-1.0-h5ca1d4c_0.tar.bz2
       - conda: https://conda.anaconda.org/conda-forge/osx-64/numpy-2.2.4-py313hc518a0f_0.conda
@@ -864,7 +864,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/narwhals-1.33.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/ncurses-6.5-h5e97a16_3.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/networkx-3.4.2-pyh267e887_2.conda
-      - conda: https://conda.anaconda.org/conda-forge/osx-arm64/nlopt-2.10.0-py313hafaedd8_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/osx-arm64/nlopt-2.8.0-py313hb5c8cdb_2.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/nodeenv-1.9.1-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/nomkl-1.0-h5ca1d4c_0.tar.bz2
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/numpy-2.2.4-py313h41a2e72_0.conda
@@ -3342,7 +3342,7 @@ packages:
 - pypi: .
   name: libensemble
   version: 1.5.0+dev
-  sha256: a69ede470e6f435addd3351ac52d9681a592fea2480621b2d477a521ed5e93a7
+  sha256: b794a6ee58b15778741b668b697f6dfd8778b114fca59945538cf352714d453d
   requires_dist:
   - numpy
   - psutil
@@ -5305,9 +5305,9 @@ packages:
   purls: []
   size: 1265008
   timestamp: 1731521053408
-- conda: https://conda.anaconda.org/conda-forge/linux-64/nlopt-2.10.0-py312h2694a52_0.conda
-  sha256: 3ce7e39de8d03f7c162a3d95d9e258c6fe64933c5b31096ddf7e550038e0357a
-  md5: ff11b29f6d15aaa7a5391846421d41dd
+- conda: https://conda.anaconda.org/conda-forge/linux-64/nlopt-2.8.0-py312h69683c5_2.conda
+  sha256: 22a30934649cabd7b20a9f17062543ca610c0e3840c7679999b7299ed2be073c
+  md5: 8582b8ef6a808ace0bfb83213ac54d54
   depends:
   - __glibc >=2.17,<3.0.a0
   - libgcc >=13
@@ -5318,37 +5318,37 @@ packages:
   license: LGPL-2.1-or-later
   purls:
   - pkg:pypi/nlopt?source=hash-mapping
-  size: 410002
-  timestamp: 1738746652336
-- conda: https://conda.anaconda.org/conda-forge/osx-64/nlopt-2.10.0-py313h3e00fb1_0.conda
-  sha256: 68ba884e35d060d382f71f198327fd1ce717c0c16e755e596e328bc54d5d9827
-  md5: 992a9416ec8c1159435331e611308cb8
+  size: 402249
+  timestamp: 1725348631250
+- conda: https://conda.anaconda.org/conda-forge/osx-64/nlopt-2.8.0-py313h1f02af7_2.conda
+  sha256: 98340299f3fd790985d4a947730f2172dfe002aaef91eb93dcc0d3ca24138cff
+  md5: 33ab4c0ad80f0d3a2489e903870058a7
   depends:
   - __osx >=10.13
-  - libcxx >=18
+  - libcxx >=17
   - numpy >=1.21,<3
-  - python >=3.13,<3.14.0a0
+  - python >=3.13.0rc1,<3.14.0a0
   - python_abi 3.13.* *_cp313
   license: LGPL-2.1-or-later
   purls:
   - pkg:pypi/nlopt?source=hash-mapping
-  size: 387740
-  timestamp: 1738747001546
-- conda: https://conda.anaconda.org/conda-forge/osx-arm64/nlopt-2.10.0-py313hafaedd8_0.conda
-  sha256: 24254814cdb67bfb3b6b79205c0e04a74ece7abc1aba6013dee86aadd3578763
-  md5: 7089219c64fde5ba3606c06b7dc8bf48
+  size: 385576
+  timestamp: 1725348698854
+- conda: https://conda.anaconda.org/conda-forge/osx-arm64/nlopt-2.8.0-py313hb5c8cdb_2.conda
+  sha256: f2fe6cf597584a10ca77a25b0503b033a9aa61b9a296aafc89ad421d5164c5ef
+  md5: f22e15be2ff85ec0f4b8d83627295b33
   depends:
   - __osx >=11.0
-  - libcxx >=18
+  - libcxx >=17
   - numpy >=1.21,<3
-  - python >=3.13,<3.14.0a0
-  - python >=3.13,<3.14.0a0 *_cp313
+  - python >=3.13.0rc1,<3.14.0a0
+  - python >=3.13.0rc1,<3.14.0a0 *_cp313
   - python_abi 3.13.* *_cp313
   license: LGPL-2.1-or-later
   purls:
   - pkg:pypi/nlopt?source=hash-mapping
-  size: 326390
-  timestamp: 1738746993700
+  size: 323329
+  timestamp: 1725348737402
 - conda: https://conda.anaconda.org/conda-forge/noarch/nodeenv-1.9.1-pyhd8ed1ab_1.conda
   sha256: 3636eec0e60466a00069b47ce94b6d88b01419b6577d8e393da44bb5bc8d3468
   md5: 7ba3f09fceae6a120d664217e58fe686
