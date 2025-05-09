@@ -67,7 +67,7 @@ jobs:
             environments: "dev"
             activate-environment: "dev"
 
-        - name: Install basic testing/feature dependencies
+        - name: Install IBCDFO
           run: |
             pixi run -e dev ./install/install_ibcdfo.sh
 

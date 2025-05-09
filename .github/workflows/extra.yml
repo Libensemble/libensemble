@@ -57,58 +57,24 @@ jobs:
 
         steps:
         - uses: actions/checkout@v4
-        - name: Setup conda - Python ${{ matrix.python-version }}
-          uses: conda-incubator/setup-miniconda@v3
           with:
-            activate-environment: condaenv
-            miniconda-version: 'latest'
-            python-version: ${{ matrix.python-version }}
-            channels: conda-forge
-            channel-priority: flexible
-            auto-update-conda: true
+            lfs: true
 
-        - name: Force-update certifi
-          run: |
-            python --version
-            pip install -I --upgrade certifi
+        - name: Checkout lockfile
+          run: git lfs checkout
 
-        - name: Install Ubuntu compilers
-          if: matrix.os == 'ubuntu-latest'
-          run: |
-            conda install gcc_linux-64
-            pip install nlopt==2.9.0
+        - uses: prefix-dev/setup-pixi@v0.8.8
+          with:
+            pixi-version: v0.45.0
+            cache: true
+            frozen: true
+            environments: "dev"
+            activate-environment: "dev"
 
-        # Roundabout solution on macos for proper linking with mpicc
-        - name: Install macOS compilers
-          if: matrix.os == 'macos-latest'
-          run: |
-            conda install clang_osx-64
-            pip install nlopt==2.8.0
-
-        - name: Install mpi4py and MPI from conda
-          run: |
-            conda install mpi4py ${{ matrix.mpi-version }}
-
-        - name: Install generator dependencies
-          run: |
-            conda env update --file install/gen_deps_environment.yml
-
-        - name: Install gpcam and octave # Neither yet support 3.13
-          if: matrix.python-version <= '3.12'
-          run: |
-            pip install gpcam
-            conda install octave
-
-        - name: Install surmise and Tasmanian
+        - name: Install surmise
           if: matrix.os == 'ubuntu-latest'
           run: |
             pip install --upgrade git+https://github.com/bandframework/surmise.git
-            pip install Tasmanian --user
-
-        - name: Install generator dependencies for Ubuntu tests
-          if: matrix.os == 'ubuntu-latest' && matrix.python-version <= '3.12'
-          run: |
-            pip install scikit-build packaging
 
         - name: Install Balsam on Pydantic 1
           if: matrix.pydantic-version == '1.10.22'
@@ -118,12 +84,9 @@ jobs:
             sed -i -e "s/pyzmq>=22.1.0,<23.0.0/pyzmq>=23.0.0,<24.0.0/" ./balsam/setup.cfg
             cd balsam; pip install -e .; cd ..
 
-        - name: Install other testing dependencies
+        - name: Install IBCDFO
           run: |
-            pip install -r install/testing_requirements.txt
-            pip install -r install/misc_feature_requirements.txt
-            source install/install_ibcdfo.sh
-            conda install numpy scipy
+            pixi run -e dev ./install/install_ibcdfo.sh
 
         - name: Install libEnsemble, flake8, lock environment
           run: |
@@ -137,12 +100,6 @@ jobs:
             rm ./libensemble/tests/regression_tests/test_persistent_fd_param_finder.py # needs octave, which doesn't yet support 3.13
             rm ./libensemble/tests/regression_tests/test_persistent_aposmm_external_localopt.py # needs octave, which doesn't yet support 3.13
             rm ./libensemble/tests/regression_tests/test_gpCAM.py # needs gpcam, which doesn't build on 3.13
-
-        - name: Install redis/proxystore on Pydantic 2
-          if: matrix.pydantic-version == '2.11.4'
-          run: |
-            pip install redis
-            pip install proxystore==0.7.0
 
         - name: Remove proxystore test on Pydantic 1
           if: matrix.pydantic-version == '1.10.22'
@@ -161,9 +118,15 @@ jobs:
           with:
             redis-version: 7
 
-        - name: Run extensive tests
+        - name: Run extensive tests, Ubuntu
+          if: matrix.os == 'ubuntu-latest'
           run: |
            ./libensemble/tests/run_tests.py -e -${{ matrix.comms-type }}
+
+        - name: Run extensive tests, macOS
+          if: matrix.os == 'macos-latest'
+          run: |
+            pixi run -e dev ./libensemble/tests/run_tests.py -e -${{ matrix.comms-type }}
 
         - name: Merge coverage
           run: |
