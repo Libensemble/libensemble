@@ -69,7 +69,7 @@ jobs:
 
         - name: Install IBCDFO
           run: |
-            pixi run -e dev ./install/install_ibcdfo.sh
+            pixi run -e basic ./install/install_ibcdfo.sh
 
         - name: Install libEnsemble, test flake8
           run: |
@@ -90,7 +90,7 @@ jobs:
         - name: Run simple tests, macOS
           if: matrix.os == 'macos-latest'
           run: |
-            pixi run -e dev ./libensemble/tests/run_tests.py -A "-W error" -${{ matrix.comms-type }}
+            pixi run -e basic ./libensemble/tests/run_tests.py -A "-W error" -${{ matrix.comms-type }}
 
         - name: Merge coverage
           run: |
