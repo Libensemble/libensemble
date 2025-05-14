@@ -69,10 +69,11 @@ jobs:
             environments: "extra"
             activate-environment: "extra"
 
-        - name: Install surmise
+        - name: Install surmise and Tasmanian
           if: matrix.os == 'ubuntu-latest'
           run: |
             pip install --upgrade git+https://github.com/bandframework/surmise.git
+            pip install Tasmanian --user
 
         - name: Install Balsam on Pydantic 1
           if: matrix.pydantic-version == '1.10.22'
