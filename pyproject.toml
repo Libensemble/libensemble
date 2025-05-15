@@ -62,6 +62,11 @@ extra = ["basic", "extra"]
 docs = ["docs", "basic"]
 dev = ["dev", "basic", "extra", "docs"]
 
+py310 = ["py310", "basic"]
+py311 = ["py311", "basic"]
+py312 = ["py312", "basic"]
+py313 = ["py313", "basic"]
+
 [tool.pixi.feature.dev.dependencies]
 pre-commit = ">=4.1.0,<5"
 git-lfs = ">=3.6.1,<4"
@@ -109,6 +114,15 @@ packaging = ">=25.0,<26"
 
 [tool.pixi.feature.extra.target.linux-64.pypi-dependencies]
 tasmanian = ">=8.1, <9"
+
+[tool.pixi.feature.py310.dependencies]
+python = "3.10.*"
+[tool.pixi.feature.py311.dependencies]
+python = "3.11.*"
+[tool.pixi.feature.py312.dependencies]
+python = "3.12.*"
+[tool.pixi.feature.py313.dependencies]
+python = "3.13.*"
 
 [tool.pixi.dependencies]
 python = ">=3.10,<3.14"
@@ -162,4 +176,4 @@ noy = "noy"
 extend-exclude = ["*.bib", "*.xml", "docs/nitpicky"]
 
 [dependency-groups]
-extra = ["pyenchant", "enchant>=0.0.1,<0.0.2", "gpcam>=7.4.2,<8", "globus-compute-sdk>=2.28.0,<3", "proxystore==0.7.0", "redis>=6.0.0,<7"]
+extra = ["pyenchant", "enchant>=0.0.1,<0.0.2", "proxystore==0.7.0", "redis>=6.0.0,<7", "globus-compute-sdk>=2.28.0,<3",]
