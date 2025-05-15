@@ -17,28 +17,28 @@ jobs:
             matrix:
                 os: [ubuntu-latest]
                 mpi-version: [mpich]
-                python-version: ["3.10", "3.11", "3.12", "3.13"]
+                python-version: ["py310", "py311", "py312", "py313"]
                 pydantic-version: ["2.11.4"]
                 comms-type: [m, l]
                 include:
                     - os: macos-latest
-                      python-version: "3.11"
+                      python-version: "py311"
                       mpi-version: mpich
                       pydantic-version: "2.11.4"
                       comms-type: m
                     - os: macos-latest
-                      python-version: "3.11"
+                      python-version: "py311"
                       mpi-version: mpich
                       pydantic-version: "2.11.4"
                       comms-type: l
                     - os: ubuntu-latest
                       mpi-version: mpich
-                      python-version: "3.10"
+                      python-version: "py310"
                       pydantic-version: "1.10.22"
                       comms-type: m
                     - os: ubuntu-latest
                       mpi-version: mpich
-                      python-version: "3.10"
+                      python-version: "py310"
                       pydantic-version: "1.10.22"
                       comms-type: l
 
@@ -64,12 +64,12 @@ jobs:
             pixi-version: v0.45.0
             # cache: true
             # frozen: true
-            environments: "basic"
-            activate-environment: "basic"
+            environments: ${{ matrix.python-version }}
+            activate-environment: ${{ matrix.python-version }}
 
         - name: Install IBCDFO
           run: |
-            pixi run -e basic ./install/install_ibcdfo.sh
+            pixi run -e ${{ matrix.python-version }} ./install/install_ibcdfo.sh
 
         - name: Install libEnsemble, test flake8
           run: |
@@ -78,9 +78,9 @@ jobs:
             flake8 libensemble
 
         - name: Remove various tests on newer pythons
-          if: matrix.python-version >= '3.11'
+          if: matrix.python-version == 'py311' || matrix.python-version == 'py312' || matrix.python-version == 'py313'
           run: |
-            rm ./libensemble/tests/functionality_tests/test_local_sine_tutorial*.py # matplotlib errors on 3.12
+            rm ./libensemble/tests/functionality_tests/test_local_sine_tutorial*.py # matplotlib errors on py312
 
         - name: Run simple tests, Ubuntu
           if: matrix.os == 'ubuntu-latest'
@@ -90,7 +90,7 @@ jobs:
         - name: Run simple tests, macOS
           if: matrix.os == 'macos-latest'
           run: |
-            pixi run -e basic ./libensemble/tests/run_tests.py -A "-W error" -${{ matrix.comms-type }}
+            pixi run -e ${{ matrix.python-version }} ./libensemble/tests/run_tests.py -A "-W error" -${{ matrix.comms-type }}
 
         - name: Merge coverage
           run: |
