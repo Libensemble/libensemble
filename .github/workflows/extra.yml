@@ -11,38 +11,38 @@ jobs:
             matrix:
                 os: [ubuntu-latest]
                 mpi-version: [mpich]
-                python-version: ["py310", "py311", "py312", "py313"]
+                python-version: ["py310e", "py311e", "py312e", "py313e"]
                 pydantic-version: ['2.11.4']
                 comms-type: [m, l]
                 include:
                     - os: macos-latest
-                      python-version: "py313"
+                      python-version: "py313e"
                       mpi-version: mpich
                       pydantic-version: '2.11.4'
                       comms-type: m
                     - os: macos-latest
-                      python-version: "py313"
+                      python-version: "py313e"
                       mpi-version: mpich
                       pydantic-version: '2.11.4'
                       comms-type: l
                     - os: ubuntu-latest
-                      python-version: "py312"
+                      python-version: "py312e"
                       mpi-version: mpich
                       pydantic-version: '2.11.4'
                       comms-type: t
                     - os: ubuntu-latest
                       mpi-version: 'openmpi'
                       pydantic-version: '2.11.4'
-                      python-version: "py312"
+                      python-version: "py312e"
                       comms-type: l
                     - os: ubuntu-latest
                       mpi-version: mpich
-                      python-version: "py312"
+                      python-version: "py312e"
                       pydantic-version: '1.10.22'
                       comms-type: m
                     - os: ubuntu-latest
                       mpi-version: mpich
-                      python-version: "py312"
+                      python-version: "py312e"
                       pydantic-version: '1.10.22'
                       comms-type: l
 
@@ -94,7 +94,7 @@ jobs:
             flake8 libensemble
 
         - name: Remove test using octave, gpcam on Python 3.13
-          if: matrix.python-version == 'py313'
+          if: matrix.python-version == 'py313e'
           run: |
             rm ./libensemble/tests/regression_tests/test_persistent_fd_param_finder.py # needs octave, which doesn't yet support 3.13
             rm ./libensemble/tests/regression_tests/test_persistent_aposmm_external_localopt.py # needs octave, which doesn't yet support 3.13
