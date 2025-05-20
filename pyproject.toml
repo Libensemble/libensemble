@@ -68,10 +68,10 @@ py311 = ["py311", "basic"]
 py312 = ["py312", "basic"]
 py313 = ["py313", "basic"]
 
-py310e = ["py310", "py310e", "extra"]
-py311e = ["py311", "py311e", "extra"]
-py312e = ["py312", "py312e", "extra"]
-py313e = ["py313", "py313e", "extra"]
+py310e = ["py310", "py310e", "basic", "extra"]
+py311e = ["py311", "py311e", "basic", "extra"]
+py312e = ["py312", "py312e", "basic", "extra"]
+py313e = ["py313", "py313e", "basic", "extra"]
 
 [tool.pixi.feature.dev.dependencies]
 pre-commit = ">=4.1.0,<5"
@@ -84,6 +84,7 @@ mpi4py = ">=4.0.3,<5"
 nlopt = "<=2.8.0"
 scipy = ">=1.13,<2"
 mpmath = ">=1.3.0,<2"
+
 # "dev" dependencies to run basic.yml
 flake8 = ">=7.1.2,<8"
 coverage = ">=7.6.12,<8"
