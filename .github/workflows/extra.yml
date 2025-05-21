@@ -117,13 +117,7 @@ jobs:
           with:
             redis-version: 7
 
-        - name: Run extensive tests, Ubuntu
-          if: matrix.os == 'ubuntu-latest'
-          run: |
-           ./libensemble/tests/run_tests.py -e -${{ matrix.comms-type }}
-
-        - name: Run extensive tests, macOS
-          if: matrix.os == 'macos-latest'
+        - name: Run extensive tests
           run: |
             pixi run -e ${{ matrix.python-version }} ./libensemble/tests/run_tests.py -e -${{ matrix.comms-type }}
 
