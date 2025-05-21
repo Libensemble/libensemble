@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import os
-import sys,getopt
+import sys, getopt
 import subprocess
 
 import jinja2
@@ -15,37 +15,30 @@ from libensemble.gen_funcs.persistent_sampling import persistent_uniform as gen_
 from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
 
 
-
-
-
 def main(argv):
 
     try:
-        opts, args = getopt.getopt(argv,'n:',["nproc=","nomp=","numa=","mpinuma="])
-  
+        opts, args = getopt.getopt(argv, "n:", ["nproc=", "nomp=", "numa=", "mpinuma="])
+
         print(opts)
         print(args)
 
     except getopt.GetoptError as err:
-         print(err) 
-         sys.exit(2)
+        print(err)
+        sys.exit(2)
     for opt, arg in opts:
-       if opt in ("--nproc"):
-           nproc = arg
-       elif opt in ("--nomp"):
-           nomp = arg
-       elif opt in ("--numa"):
-           numa = arg
-       elif opt in ("--mpinuma"):
-           mpinuma = arg
-
-
-
+        if opt in ("--nproc"):
+            nproc = arg
+        elif opt in ("--nomp"):
+            nomp = arg
+        elif opt in ("--numa"):
+            numa = arg
+        elif opt in ("--mpinuma"):
+            mpinuma = arg
 
     cgyro_input_file = "input.cgyro"
 
     exctr = MPIExecutor()
-
 
     # sim_app = "/global/common/software/atom/gacode-perlmutter-gpu/cgyro/src/cgyro"
     sim_app = "/global/cfs/cdirs/m4493/ebelli/gacode/cgyro/src/cgyro"
@@ -54,8 +47,8 @@ def main(argv):
 
     if not os.path.isfile(sim_app):
         sys.exit("cgyro not found")
-     
-    exctr.register_app(full_path=sim_app , app_name="cgyro",precedent=wrapper )
+
+    exctr.register_app(full_path=sim_app, app_name="cgyro", precedent=wrapper)
 
     # Parse number of workers, comms type, etc. from arguments
     ensemble = Ensemble(parse_args=True, executor=exctr)
@@ -69,21 +62,21 @@ def main(argv):
         sim_dirs_make=True,
         sim_input_dir="/global/homes/j/jmlarson/run_libe_CGYRO_inputs_0/nl01",
         platform_specs=platform_specs,
-        reuse_output_dir = True,
+        reuse_output_dir=True,
     )
 
     ensemble.sim_specs = SimSpecs(
         sim_f=run_CGYRO,
         inputs=["x"],
-        outputs=[("f", float),("fvec", float, 2)],
-        user = {
+        outputs=[("f", float), ("fvec", float, 2)],
+        user={
             "input_filename": cgyro_input_file,
             "input_names": ["KAPPA"],
             "plot_heat_flux": False,
-            "nproc":nproc,
-            "nomp":nomp,
-            "numa":numa,
-            "mpinuma":mpinuma
+            "nproc": nproc,
+            "nomp": nomp,
+            "numa": numa,
+            "mpinuma": mpinuma,
         },
     )
 
@@ -113,12 +106,12 @@ def main(argv):
     # Seed random streams for each worker, particularly for gen_f
     ensemble.add_random_streams()
 
-
     # Run ensemble
     ensemble.run()
 
     if ensemble.is_manager:
         ensemble.save_output(__file__)
+
 
 if __name__ == "__main__":
     main(sys.argv[1:])

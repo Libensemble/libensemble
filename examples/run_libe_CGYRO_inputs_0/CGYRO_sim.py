@@ -27,30 +27,30 @@ def run_CGYRO(H, persis_info, sim_specs, libE_info):
         template = jinja2.Template(f.read())
     with open(input_file, "w") as f:
         f.write(template.render(input_values))
-    
-    nproc=sim_specs["user"]["nproc"]
-    nomp=sim_specs["user"]["nomp"]
-    numa=sim_specs["user"]["numa"]
-    mpinuma= sim_specs["user"]["mpinuma"]
+
+    nproc = sim_specs["user"]["nproc"]
+    nomp = sim_specs["user"]["nomp"]
+    numa = sim_specs["user"]["numa"]
+    mpinuma = sim_specs["user"]["mpinuma"]
     calc_status = 0
 
     # Retrieve our MPI Executor
     exctr = libE_info["executor"]
-    #env_script_path = "/global/homes/a/arash/bin/cgyro_libe_2"#"/global/u1/a/arash/run_libe_CGYRO_inputs/env_script_in.sh"
+    # env_script_path = "/global/homes/a/arash/bin/cgyro_libe_2"#"/global/u1/a/arash/run_libe_CGYRO_inputs/env_script_in.sh"
     os.environ["OMP_NUM_THREADS"] = "{}".format(nomp)
     # Submit our gx app for execution.
-    
+
     subprocess.run(["python", "/global/cfs/cdirs/m4493/ebelli/gacode/cgyro/bin/cgyro_parse.py"])
 
     task = exctr.submit(
         app_name="cgyro",
         app_args="0",
-        procs_per_node = 16,
-        #auto_assign_gpus=True,
-        #match_procs_to_gpus=True,
-        num_nodes = 2,
-        #env_script= env_script_path,
-        extra_args=' -C gpu --cpu_bind=cores -n {} -c {}'.format(nproc,nomp)
+        procs_per_node=16,
+        # auto_assign_gpus=True,
+        # match_procs_to_gpus=True,
+        num_nodes=2,
+        # env_script= env_script_path,
+        extra_args=" -C gpu --cpu_bind=cores -n {} -c {}".format(nproc, nomp),
     )
 
     # Block until the task finishes
@@ -58,15 +58,19 @@ def run_CGYRO(H, persis_info, sim_specs, libE_info):
 
     # Try loading final energy reading, set the sim's status
 
-
     try:
-        # Q=subprocess.run('python heat_flux_cgyro_libE.py', capture_output=True, text=True, shell=True)  
-        Q=subprocess.run('python /global/u2/j/jmlarson/run_libe_CGYRO_inputs_0/heat_flux_cgyro_libE.py', capture_output=True, text=True, shell=True)
-        qavg=eval(Q.stdout)
+        # Q=subprocess.run('python heat_flux_cgyro_libE.py', capture_output=True, text=True, shell=True)
+        Q = subprocess.run(
+            "python /global/u2/j/jmlarson/run_libe_CGYRO_inputs_0/heat_flux_cgyro_libE.py",
+            capture_output=True,
+            text=True,
+            shell=True,
+        )
+        qavg = eval(Q.stdout)
         # outputs: qavg and qstd (latter not used currently)
         calc_status = WORKER_DONE
     except:
-        print(f'Failed to open {fname}')
+        print(f"Failed to open {fname}")
         qavg = np.nan
         calc_status = TASK_FAILED
 
