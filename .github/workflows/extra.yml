@@ -73,7 +73,7 @@ jobs:
           if: matrix.os == 'ubuntu-latest'
           run: |
             pip install --upgrade git+https://github.com/bandframework/surmise.git
-            pip install Tasmanian --user
+            pixi run -e ${{ matrix.python-version }} pip install Tasmanian --user
 
         - name: Install Balsam on Pydantic 1
           if: matrix.pydantic-version == '1.10.22'
