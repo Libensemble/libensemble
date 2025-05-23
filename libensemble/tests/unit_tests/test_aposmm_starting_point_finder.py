@@ -5,6 +5,7 @@ from libensemble.gen_funcs.persistent_aposmm import (
     decide_where_to_start_localopt,
 )
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel_func
+from libensemble.tests.regression_tests.support import six_hump_camel_minima as known_minima
 
 
 def setup_history_and_find_rk(n_s, num_to_start, lb, ub, f_vals, x_points):
@@ -90,7 +91,7 @@ if __name__ == "__main__":
     dim = len(lb)
 
     # Number of sample points and desired number of start points
-    num_samples = 100
+    num_samples = 1000
     num_to_start = 6
 
     # Generate random sample points uniformly in the [lb,ub] box
@@ -103,6 +104,10 @@ if __name__ == "__main__":
     H, rk_final, inds_to_start = setup_history_and_find_rk(num_samples, num_to_start, lb, ub, f_vals, x_points)
 
     assert len(inds_to_start) == num_to_start, f"Found {len(inds_to_start)} starting points instead of {num_to_start}"
+
+    starting_pts = H['x'][inds_to_start]
+
+    print(f"For this problem, we know the minima. The chosen starting points: \n{starting_pts[np.lexsort(starting_pts.T[::-1])]}\nshoudl be close to the known minima: \n{known_minima[np.lexsort(known_minima.T[::-1])]}")
 
     # Output results
     print(f"Chosen r_k: {rk_final:.6f}")
