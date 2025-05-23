@@ -105,9 +105,15 @@ if __name__ == "__main__":
 
     assert len(inds_to_start) == num_to_start, f"Found {len(inds_to_start)} starting points instead of {num_to_start}"
 
-    starting_pts = H['x'][inds_to_start]
+    starting_pts = H["x"][inds_to_start]
+    sorted_starting = starting_pts[np.lexsort(starting_pts.T[::-1])]
+    sorted_known = known_minima[np.lexsort(known_minima.T[::-1])]
 
-    print(f"For this problem, we know the minima. The chosen starting points: \n{starting_pts[np.lexsort(starting_pts.T[::-1])]}\nshoudl be close to the known minima: \n{known_minima[np.lexsort(known_minima.T[::-1])]}")
+    print(
+        f"For this problem, we know the minima.\n"
+        f"The chosen starting points:\n{sorted_starting}\n"
+        f"should be close to the known minima:\n{sorted_known}"
+    )
 
     # Output results
     print(f"Chosen r_k: {rk_final:.6f}")
