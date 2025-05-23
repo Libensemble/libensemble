@@ -51,7 +51,8 @@ def setup_history_and_find_rk(n_s, num_to_start, lb, ub, f_vals, x_points):
         H[i]["local_pt"] = False
         H[i]["sim_ended"] = True  # Ensure point is considered by distance function
 
-    local_H = initialize_APOSMM(H, {"lb": lb, "ub": ub, "initial_sample_size": n_s, "localopt_method": None}, {"comm": None})[-1]
+    user_specs = {"lb": lb, "ub": ub, "initial_sample_size": n_s, "localopt_method": None}
+    local_H = initialize_APOSMM(H, user_specs, {"comm": None})[-1]
     local_H = local_H[:n_s]  # Use only the required number of entries
 
     update_history_dist(local_H, n)
@@ -101,7 +102,7 @@ if __name__ == "__main__":
     # Call the history setup and bisection function
     H, rk_final, inds_to_start = setup_history_and_find_rk(num_samples, num_to_start, lb, ub, f_vals, x_points)
 
-    assert len(inds_to_start) == num_to_start, f"Didn't find correct number of starting points. Found {len(inds_to_start)} instead of {num_to_start}"
+    assert len(inds_to_start) == num_to_start, f"Found {len(inds_to_start)} starting points instead of {num_to_start}"
 
     # Output results
     print(f"Chosen r_k: {rk_final:.6f}")
