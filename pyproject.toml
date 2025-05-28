@@ -135,4 +135,4 @@ noy = "noy"
 extend-exclude = ["*.bib", "*.xml", "docs/nitpicky"]
 
 [dependency-groups]
-dev = ["pyenchant", "enchant>=0.0.1,<0.0.2"]
+dev = ["pyenchant", "enchant>=0.0.1,<0.0.2", "campa-generator-standard @ git+https://github.com/roussel-ryan/generator_standard@vocs_standard?rev_type=branch"]

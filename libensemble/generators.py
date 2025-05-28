@@ -1,10 +1,12 @@
 # import queue as thread_queue
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 
 # from multiprocessing import Queue as process_queue
 from typing import List, Optional
 
 import numpy as np
+from generator_standard import Generator
+from generator_standard.vocs import VOCS
 from numpy import typing as npt
 
 from libensemble.comms.comms import QCommProcess  # , QCommThread
@@ -26,67 +28,67 @@ class GeneratorNotStartedException(Exception):
     """Exception raised by a threaded/multiprocessed generator upon being suggested without having been started"""
 
 
-class Generator(ABC):
-    """
+# class Generator(ABC):
+#     """
 
-    .. code-block:: python
+#     .. code-block:: python
 
-        from libensemble.specs import GenSpecs
-        from libensemble.generators import Generator
-
-
-        class MyGenerator(Generator):
-            def __init__(self, variables, objectives, param):
-                self.param = param
-                self.model = create_model(variables, objectives, self.param)
-
-            def suggest(self, num_points):
-                return create_points(num_points, self.param)
-
-            def ingest(self, results):
-                self.model = update_model(results, self.model)
-
-            def finalize(self, results):
-                self.ingest(results)
-                return list(self.model)
+#         from libensemble.specs import GenSpecs
+#         from libensemble.generators import Generator
 
 
-        variables = {"a": [-1, 1], "b": [-2, 2]}
-        objectives = {"f": "MINIMIZE"}
+#         class MyGenerator(Generator):
+#             def __init__(self, variables, objectives, param):
+#                 self.param = param
+#                 self.model = create_model(variables, objectives, self.param)
 
-        my_generator = MyGenerator(variables, objectives, my_parameter=100)
-        gen_specs = GenSpecs(generator=my_generator, ...)
-    """
+#             def suggest(self, num_points):
+#                 return create_points(num_points, self.param)
 
-    @abstractmethod
-    def __init__(self, variables: dict[str, List[float]], objectives: dict[str, str], *args, **kwargs):
-        """
-        Initialize the Generator object on the user-side. Constants, class-attributes,
-        and preparation goes here.
+#             def ingest(self, results):
+#                 self.model = update_model(results, self.model)
 
-        .. code-block:: python
+#             def finalize(self, results):
+#                 self.ingest(results)
+#                 return list(self.model)
 
-            my_generator = MyGenerator(my_parameter, batch_size=10)
-        """
 
-    @abstractmethod
-    def suggest(self, num_points: Optional[int]) -> List[dict]:
-        """
-        Request the next set of points to evaluate.
-        """
+#         variables = {"a": [-1, 1], "b": [-2, 2]}
+#         objectives = {"f": "MINIMIZE"}
 
-    def ingest(self, results: List[dict]) -> None:
-        """
-        Send the results of evaluations to the generator.
-        """
+#         my_generator = MyGenerator(variables, objectives, my_parameter=100)
+#         gen_specs = GenSpecs(generator=my_generator, ...)
+#     """
 
-    def finalize(self, results: List[dict], *args, **kwargs) -> Optional[npt.NDArray]:
-        """
-        Send the last set of results to the generator, instruct it to cleanup, and
-        optionally retrieve an updated final state of evaluations. This is a separate
-        method to simplify the common pattern of noting internally if a
-        specific ingest is the last. This will be called only once.
-        """
+#     @abstractmethod
+#     def __init__(self, variables: dict[str, List[float]], objectives: dict[str, str], *args, **kwargs):
+#         """
+#         Initialize the Generator object on the user-side. Constants, class-attributes,
+#         and preparation goes here.
+
+#         .. code-block:: python
+
+#             my_generator = MyGenerator(my_parameter, batch_size=10)
+#         """
+
+#     @abstractmethod
+#     def suggest(self, num_points: Optional[int]) -> List[dict]:
+#         """
+#         Request the next set of points to evaluate.
+#         """
+
+#     def ingest(self, results: List[dict]) -> None:
+#         """
+#         Send the results of evaluations to the generator.
+#         """
+
+#     def finalize(self, results: List[dict], *args, **kwargs) -> Optional[npt.NDArray]:
+#         """
+#         Send the last set of results to the generator, instruct it to cleanup, and
+#         optionally retrieve an updated final state of evaluations. This is a separate
+#         method to simplify the common pattern of noting internally if a
+#         specific ingest is the last. This will be called only once.
+#         """
 
 
 class LibensembleGenerator(Generator):
@@ -97,32 +99,27 @@ class LibensembleGenerator(Generator):
 
     def __init__(
         self,
-        variables: dict,
-        objectives: dict = {},
+        VOCS: VOCS,
         History: npt.NDArray = [],
         persis_info: dict = {},
         gen_specs: dict = {},
         libE_info: dict = {},
         **kwargs,
     ):
-        self.variables = variables
-        self.objectives = objectives
+        self.VOCS = VOCS
         self.History = History
         self.gen_specs = gen_specs
         self.libE_info = libE_info
 
         self.variables_mapping = kwargs.get("variables_mapping", {})
 
-        self._internal_variable = "x"  # need to figure these out dynamically
-        self._internal_objective = "f"
-
-        if self.variables:
+        if self.VOCS.variables:
 
             self.n = len(self.variables)
             # build our own lb and ub
             lb = []
             ub = []
-            for i, v in enumerate(self.variables.values()):
+            for i, v in enumerate(self.VOCS.variables.values()):
                 if isinstance(v, list) and (isinstance(v[0], int) or isinstance(v[0], float)):
                     lb.append(v[0])
                     ub.append(v[1])
@@ -137,6 +134,9 @@ class LibensembleGenerator(Generator):
             self.persis_info = add_unique_random_streams({}, 4, seed=4321)[1]
         else:
             self.persis_info = persis_info
+
+    def _validate_vocs(self, vocs) -> None:
+        pass
 
     @abstractmethod
     def suggest_numpy(self, num_points: Optional[int] = 0) -> npt.NDArray:
@@ -171,15 +171,14 @@ class PersistentGenInterfacer(LibensembleGenerator):
 
     def __init__(
         self,
-        variables: dict,
-        objectives: dict = {},
+        VOCS: VOCS,
         History: npt.NDArray = [],
         persis_info: dict = {},
         gen_specs: dict = {},
         libE_info: dict = {},
         **kwargs,
     ) -> None:
-        super().__init__(variables, objectives, History, persis_info, gen_specs, libE_info, **kwargs)
+        super().__init__(VOCS, History, persis_info, gen_specs, libE_info, **kwargs)
         self.gen_f = gen_specs["gen_f"]
         self.History = History
         self.libE_info = libE_info
