@@ -17,7 +17,6 @@ mpinuma=4
 
 . $GACODE_ROOT/shared/bin/gacode_mpi_tool
 
-
 let proc_per_node=$CORES_PER_NODE/$nomp
 
 # Run with 4 workers running simulations
