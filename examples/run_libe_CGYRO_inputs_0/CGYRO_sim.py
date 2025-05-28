@@ -61,7 +61,7 @@ def run_CGYRO(H, persis_info, sim_specs, libE_info):
     try:
         # Q=subprocess.run('python heat_flux_cgyro_libE.py', capture_output=True, text=True, shell=True)
         Q = subprocess.run(
-            "python /global/u2/j/jmlarson/run_libe_CGYRO_inputs_0/heat_flux_cgyro_libE.py",
+            "python /global/u2/j/jmlarson/research/libensemble/examples/run_libe_CGYRO_inputs_0/heat_flux_cgyro_libE.py",
             capture_output=True,
             text=True,
             shell=True,
@@ -71,13 +71,14 @@ def run_CGYRO(H, persis_info, sim_specs, libE_info):
         calc_status = WORKER_DONE
     except:
         print(f"Failed to open {fname}")
-        qavg = np.nan
+        qavg = np.nan*np.ones(2)
         calc_status = TASK_FAILED
 
     # Define our output array, populate with energy reading
     output = np.zeros(1, dtype=sim_specs["out"])
-
-    output["f"] = qavg
+    
+    output["fvec"] = qavg
+    output["f"] = float(qavg[0]) + float(qavg[1])
 
     # Return final information to worker, for reporting to manager
     return output, persis_info, calc_status
