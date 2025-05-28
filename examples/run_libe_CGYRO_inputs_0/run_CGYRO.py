@@ -63,6 +63,7 @@ def main(argv):
         sim_input_dir="/global/homes/j/jmlarson/research/libensemble/examples/run_libe_CGYRO_inputs_0/nl01",
         platform_specs=platform_specs,
         reuse_output_dir=True,
+        save_every_k_sims=1,
     )
 
     ensemble.sim_specs = SimSpecs(
