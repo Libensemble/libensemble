@@ -61,7 +61,7 @@ def main(argv):
         gen_on_manager=True,
         sim_dirs_make=True,
         # sim_input_dir="/global/homes/j/jmlarson/research/libensemble/examples/run_libe_CGYRO_inputs_0/nl01",
-        sim_input_dir="/global/homes/j/jmlarson/research/libensemble/examples/run_libe_CGYRO_inputs_0/reg03",
+        sim_input_dir="/global/homes/j/jmlarson/research/libensemble/examples/run_libe_CGYRO_inputs_0/reg02",
         platform_specs=platform_specs,
         reuse_output_dir=True,
         save_every_k_sims=1,

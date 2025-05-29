@@ -45,10 +45,12 @@ def run_CGYRO(H, persis_info, sim_specs, libE_info):
     task = exctr.submit(
         app_name="cgyro",
         app_args="0",
-        procs_per_node=16,
+        #procs_per_node=16,  # nl01
+        #num_nodes=2, # nl01
+        procs_per_node=4,  # reg02
+        num_nodes=1, # reg02
         # auto_assign_gpus=True,
         # match_procs_to_gpus=True,
-        num_nodes=2,
         # env_script= env_script_path,
         extra_args=" -C gpu --cpu_bind=cores -n {} -c {}".format(nproc, nomp),
     )
