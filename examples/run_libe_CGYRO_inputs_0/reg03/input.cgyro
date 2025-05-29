@@ -12,6 +12,8 @@ MAX_TIME=4.0
 
 KY=0.3
 
+KAPPA= {{KAPPA}}
+
 # Fields
 N_FIELD=2
 BETAE_UNIT=0.008
