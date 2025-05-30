@@ -132,7 +132,41 @@ def test_awkward_H():
     _check_conversion(H, npp)
 
 
+def test_asktell_VOCS():
+    from generator_standard import Generator
+    from generator_standard.vocs import VOCS
+
+    class UniformSampleDicts(Generator):
+        def __init__(self, VOCS: VOCS, *args, **kwargs):
+            self.VOCS = VOCS
+            self.rng = np.random.default_rng(1)
+
+        def suggest(self, n_trials):
+            H_o = []
+            for _ in range(n_trials):
+                trial = {}
+                for key in self.VOCS.variables.keys():
+                    trial[key] = self.rng.uniform(self.VOCS.variables[key][0], self.VOCS.variables[key][1])
+                H_o.append(trial)
+            return H_o
+
+        def ingest(self, calc_in):
+            pass
+
+    vocs = VOCS(
+        variables={
+            "x": [-1, 1],
+            "y": [-2, 2],
+            "z": [-3, 3],
+        }
+    )
+
+    sampler = UniformSampleDicts(vocs)
+    print(sampler.suggest(10))
+
+
 if __name__ == "__main__":
     test_asktell_sampling_and_utils()
     test_awkward_list_dict()
     test_awkward_H()
+    test_asktell_VOCS()

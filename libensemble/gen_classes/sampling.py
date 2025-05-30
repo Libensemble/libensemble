@@ -1,6 +1,7 @@
 """Generator classes providing points using sampling"""
 
 import numpy as np
+from generator_standard.vocs import VOCS
 
 from libensemble.generators import Generator, LibensembleGenerator
 from libensemble.utils.misc import list_dicts_to_np
@@ -32,16 +33,12 @@ class UniformSample(SampleBase):
     mode by adjusting the allocation function.
     """
 
-    def __init__(self, variables: dict, objectives: dict, _=[], persis_info={}, gen_specs={}, libE_info=None, **kwargs):
-        super().__init__(variables, objectives, _, persis_info, gen_specs, libE_info, **kwargs)
-        self._get_user_params(self.gen_specs["user"])
+    def __init__(self, VOCS: VOCS, *args, **kwargs):
+        super().__init__(VOCS, **kwargs)
+        self._get_user_params(VOCS)
 
     def suggest_numpy(self, n_trials):
-        return list_dicts_to_np(
-            UniformSampleDicts(
-                self.variables, self.objectives, self.History, self.persis_info, self.gen_specs, self.libE_info
-            ).suggest(n_trials)
-        )
+        return list_dicts_to_np(UniformSampleDicts(VOCS).suggest(n_trials))
 
     def ingest_numpy(self, calc_in):
         pass  # random sample so nothing to tell
@@ -60,17 +57,16 @@ class UniformSampleDicts(Generator):
     This currently adheres to the complete standard.
     """
 
-    def __init__(self, variables: dict, objectives: dict, _, persis_info, gen_specs, libE_info=None, **kwargs):
-        self.variables = variables
-        self.gen_specs = gen_specs
-        self.persis_info = persis_info
+    def __init__(self, VOCS: VOCS, *args, **kwargs):
+        self.VOCS = VOCS
+        self.rng = np.random.default_rng(1)
 
     def suggest(self, n_trials):
         H_o = []
         for _ in range(n_trials):
             trial = {}
-            for key in self.variables.keys():
-                trial[key] = self.persis_info["rand_stream"].uniform(self.variables[key][0], self.variables[key][1])
+            for key in self.VOCS.variables.keys():
+                trial[key] = self.rng.uniform(self.VOCS.variables[key][0], self.VOCS.variables[key][1])
             H_o.append(trial)
         return H_o
 
