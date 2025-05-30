@@ -83,7 +83,7 @@ jobs:
 
         - name: Install GPCAM and IBCDFO
           run: |
-            pixi run -e ${{ matrix.python-version }} pip install gpcam
+            pixi run -e ${{ matrix.python-version }} pip install gpcam==8.2.0
             pixi run -e ${{ matrix.python-version }} ./install/install_ibcdfo.sh
 
         - name: Install libEnsemble, flake8, lock environment
