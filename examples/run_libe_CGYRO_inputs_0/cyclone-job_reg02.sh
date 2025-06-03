@@ -10,6 +10,9 @@ nproc=4
 nomp=4
 numa=1
 mpinuma=4
+
+source /global/u2/j/jmlarson/research/libensemble/examples/run_libe_CGYRO_inputs_0/arash_gx_modules.sh
+
 . $GACODE_ROOT/shared/bin/gacode_mpi_tool
 let proc_per_node=$CORES_PER_NODE/$nomp
 # Run with 4 workers running simulations
