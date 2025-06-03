@@ -66,6 +66,7 @@ def main(argv):
         reuse_output_dir=True,
         save_every_k_sims=1,
     )
+    ensemble.libE_specs["stats_fmt"] = {"show_resource_sets": True}
 
     ensemble.sim_specs = SimSpecs(
         sim_f=run_CGYRO,
