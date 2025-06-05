@@ -22,4 +22,4 @@ export OMP_STACKSIZE=400M
 export MPICH_GPU_SUPPORT_ENABLED=1
 export SLURM_CPU_BIND="cores"
 ulimit -c unlimited
-python run_CGYRO.py -n 8  --nproc=$nproc --nomp=$nomp --numa=$numa --mpinuma=$mpinuma
+python run_CGYRO.py -n 4 --nproc=$nproc --nomp=$nomp --numa=$numa --mpinuma=$mpinuma
