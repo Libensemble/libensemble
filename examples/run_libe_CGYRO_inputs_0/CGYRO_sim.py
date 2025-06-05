@@ -49,10 +49,11 @@ def run_CGYRO(H, persis_info, sim_specs, libE_info):
         #num_nodes=2, # nl01
         procs_per_node=4,  # reg02
         num_nodes=1, # reg02
+        num_gpus=1,
         # auto_assign_gpus=True,
         # match_procs_to_gpus=True,
         # env_script= env_script_path,
-        extra_args=" -C gpu --cpu_bind=cores,verbose -n {} -c {}".format(nproc, nomp),
+        extra_args="--cpu_bind=cores,verbose -n {} -c {}".format(nproc, nomp),
     )
 
     # Block until the task finishes
