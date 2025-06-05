@@ -25,7 +25,7 @@ from libensemble.tools.persistent_support import PersistentSupport
 def cdist(XA, XB, metric="euclidean"):
     """Compute the pairwise Euclidean distances"""
 
-    # Just so dont have to change the call
+    # Just so we don't have to change the call
     if metric != "euclidean":
         raise ValueError("Only 'euclidean' metric is supported in this implementation.")
 
@@ -119,6 +119,11 @@ def aposmm(H, persis_info, gen_specs, libE_info):
 
         `test_persistent_aposmm_with_grad <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_aposmm_with_grad.py>`_
         for an example where past function values are given to libEnsemble/APOSMM.
+
+    .. seealso::
+
+        `test_aposmm_starting_point_finder <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/unit_tests/test_aposmm_starting_point_finder.py>`_
+        for an example the APOSMM r_k radius logic is adjusted to produce a certain number of localopt starting points.
 
     """
     """
