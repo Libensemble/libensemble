@@ -24,35 +24,21 @@ simulation worker, and libEnsemble will distribute user applications across the
 node allocation. This is the **most common approach** where each simulation
 runs an MPI application.
 
-The generator will run on a worker by default, but if running a single generator,
-the :ref:`libE_specs<datastruct-libe-specs>` option **gen_on_manager** is recommended,
-which runs the generator on the manager (using a thread) as below.
+.. image:: ../images/centralized_gen_on_manager.png
+        :alt: centralized
+        :scale: 55
 
-.. list-table::
-   :widths: 60 40
+A SLURM batch script may include:
 
-   * - .. image:: ../images/centralized_gen_on_manager.png
-          :alt: centralized
-          :scale: 55
+.. code-block:: bash
 
-     - In calling script:
+    #SBATCH --nodes 3
 
-       .. code-block:: python
-          :linenos:
+    python run_libe_forces.py --nworkers 3
 
-          ensemble.libE_specs = LibeSpecs(
-              gen_on_manager=True,
-          )
-
-       A SLURM batch script may include:
-
-       .. code-block:: bash
-
-          #SBATCH --nodes 3
-
-          python run_libe_forces.py --nworkers 3
-
-When using **gen_on_manager**, set ``nworkers`` to the number of workers desired for running simulations.
+If running multiple generator processes instead, then set the
+:ref:`libE_specs<datastruct-libe-specs>` option **gen_on_worker** so that multiple
+worker processes can run multiple generator instances.
 
 Dedicated Mode
 ^^^^^^^^^^^^^^
@@ -62,32 +48,29 @@ True, the MPI executor will not launch applications on nodes where libEnsemble P
 processes (manager and workers) are running. Workers launch applications onto the
 remaining nodes in the allocation.
 
-.. list-table::
-   :widths: 60 40
 
-   * - .. image:: ../images/centralized_dedicated.png
-          :alt: centralized dedicated mode
-          :scale: 30
+.. image:: ../images/centralized_dedicated.png
+    :alt: centralized dedicated mode
+    :scale: 30
 
-     - In calling script:
+In calling script:
 
-       .. code-block:: python
-          :linenos:
+.. code-block:: python
+    :linenos:
 
-          ensemble.libE_specs = LibeSpecs(
-              num_resource_sets=2,
-              dedicated_mode=True,
-          )
+    ensemble.libE_specs = LibeSpecs(
+        gen_on_worker=True,
+        num_resource_sets=2,
+        dedicated_mode=True,
+    )
 
-       A SLURM batch script may include:
+A SLURM batch script may include:
 
-       .. code-block:: bash
+.. code-block:: bash
 
-          #SBATCH --nodes 3
+    #SBATCH --nodes 3
 
-          python run_libe_forces.py --nworkers 3
-
-Note that **gen_on_manager** is not set in the above example.
+    python run_libe_forces.py --nworkers 3
 
 Distributed Running
 -------------------
@@ -137,8 +120,7 @@ Zero-resource workers
 ---------------------
 
 Users with persistent ``gen_f`` functions may notice that the persistent workers
-are still automatically assigned system resources. This can be resolved by using
-the ``gen_on_manager`` option or by
+are still automatically assigned system resources. This can be resolved by
 :ref:`fixing the number of resource sets<zero_resource_workers>`.
 
 Assigning GPUs

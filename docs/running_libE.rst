@@ -12,13 +12,6 @@ determine the parameters/inputs for simulations. Simulator functions run and
 manage simulations, which often involve running a user application (see
 :doc:`Executor<executor/ex_index>`).
 
-.. note::
-    As of version 1.3.0, the generator can be run as a thread on the manager,
-    using the :ref:`libE_specs<datastruct-libe-specs>` option **gen_on_manager**.
-    When using this option, set the number of workers desired for running
-    simulations. See :ref:`Running generator on the manager<gen-on-manager>`
-    for more details.
-
 To use libEnsemble, you will need a calling script, which in turn will specify
 generator and simulator functions. Many :doc:`examples<examples/examples_index>`
 are available.
@@ -161,29 +154,6 @@ If this example was run as::
     mpirun -np 2 python my_script.py
 
 No simulations will be able to run.
-
-.. _gen-on-manager:
-
-Running generator on the manager
---------------------------------
-
-The majority of libEnsemble use cases run a single generator. The
-:ref:`libE_specs<datastruct-libe-specs>` option **gen_on_manager** will cause
-the generator function to run on a thread on the manager. This can run
-persistent user functions, sharing data structures with the manager, and avoids
-additional communication to a generator running on a worker. When using this
-option, the number of workers specified should be the (maximum) number of
-concurrent simulations.
-
-If modifying a workflow to use ``gen_on_manager`` consider the following.
-
-* Set ``nworkers`` to the number of workers desired for running simulations.
-* If using :meth:`add_unique_random_streams()<tools.add_unique_random_streams>`
-  to seed random streams, the default generator seed will be zero.
-* If you have a line like ``libE_specs["nresource_sets"] = nworkers -1``, this
-  line should be removed.
-* If the generator does use resources, ``nresource_sets`` can be increased as needed
-  so that the generator and all simulations are resourced.
 
 Environment Variables
 ---------------------
