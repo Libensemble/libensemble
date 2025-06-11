@@ -2,11 +2,10 @@
 #SBATCH -A m4865
 #SBATCH --qos=debug
 #SBATCH --time=0:30:00
-#SBATCH -N 1
+#SBATCH -N 4
 #SBATCH -J Lib_CGYRO
 #SBATCH --gpus-per-node=4
 #SBATCH -C gpu
-
 
 #nproc=4
 
