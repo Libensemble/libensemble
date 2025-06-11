@@ -27,6 +27,7 @@ import pandas as pd
 import torch
 from ax import Metric, Runner
 from ax.core.data import Data
+from ax.core.experiment import Experiment
 from ax.core.generator_run import GeneratorRun
 from ax.core.multi_type_experiment import MultiTypeExperiment
 from ax.core.objective import Objective
@@ -43,35 +44,18 @@ except ImportError:
     AxParameterWarning = Warning
 
 from ax.modelbridge.factory import get_sobol
-from ax.modelbridge.registry import Models, ST_MTGP_trans
+from ax.modelbridge.registry import MBM_X_trans, Models, ST_MTGP_trans
 from ax.modelbridge.torch import TorchModelBridge
-from ax.modelbridge.transforms.convert_metric_names import tconfig_from_mt_experiment
+from ax.modelbridge.transforms.convert_metric_names import ConvertMetricNames, tconfig_from_mt_experiment
+from ax.modelbridge.transforms.derelativize import Derelativize
+from ax.modelbridge.transforms.stratified_standardize_y import StratifiedStandardizeY
+from ax.modelbridge.transforms.task_encode import TaskChoiceToIntTaskChoice
+from ax.modelbridge.transforms.trial_as_task import TrialAsTask
 from ax.runners import SyntheticRunner
 from ax.storage.json_store.save import save_experiment
 from ax.storage.metric_registry import register_metrics
 from ax.storage.runner_registry import register_runner
 from ax.utils.common.result import Ok
-
-try:
-    # For Ax >= 0.5.0
-    from ax.modelbridge.registry import MBM_X_trans
-    from ax.modelbridge.transforms.convert_metric_names import ConvertMetricNames
-    from ax.modelbridge.transforms.derelativize import Derelativize
-    from ax.modelbridge.transforms.stratified_standardize_y import StratifiedStandardizeY
-    from ax.modelbridge.transforms.task_encode import TaskChoiceToIntTaskChoice
-    from ax.modelbridge.transforms.trial_as_task import TrialAsTask
-
-    MT_MTGP_trans = list(MBM_X_trans) + [
-        Derelativize,
-        ConvertMetricNames,
-        TrialAsTask,
-        StratifiedStandardizeY,
-        TaskChoiceToIntTaskChoice,
-    ]
-
-except ImportError:
-    # For Ax < 0.5.0
-    from ax.modelbridge.registry import MT_MTGP_trans
 
 from libensemble.message_numbers import EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG, PERSIS_STOP, STOP_TAG
 from libensemble.tools.persistent_support import PersistentSupport
@@ -90,13 +74,21 @@ warnings.filterwarnings(
     category=AxParameterWarning,
 )
 
+MT_MTGP_trans = list(MBM_X_trans) + [
+    Derelativize,
+    ConvertMetricNames,
+    TrialAsTask,
+    StratifiedStandardizeY,
+    TaskChoiceToIntTaskChoice,
+]
+
 
 # get_MTGP based on https://ax.dev/docs/tutorials/multi_task/
 def get_MTGP(
-    experiment,
+    experiment: Experiment,
     data: Data,
-    search_space: SearchSpace | None = None,  # noqa: MDA501
-    trial_index: int | None = None,  # noqa: MDA501
+    search_space: SearchSpace | None = None,
+    trial_index: int | None = None,
     device: torch.device = torch.device("cpu"),
     dtype: torch.dtype = torch.double,
 ) -> TorchModelBridge:
