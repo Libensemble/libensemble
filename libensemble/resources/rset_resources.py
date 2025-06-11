@@ -1,6 +1,12 @@
+from __future__ import annotations
+
 import logging
+from typing import TYPE_CHECKING
 
 import numpy as np
+
+if TYPE_CHECKING:
+    from libensemble.resources.resources import Resources
 
 logger = logging.getLogger(__name__)
 # To change logging level for just this module
@@ -30,7 +36,7 @@ class RSetResources:
         # ('pool', int),    # Pool ID (eg. separate gen/sim resources) - not yet used.
     ]
 
-    def __init__(self, num_workers, resources):
+    def __init__(self, num_workers: int, resources: Resources):
         """Initializes a new RSetResources instance
 
         Determines the compute resources available for each resource set.

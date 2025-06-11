@@ -9,10 +9,9 @@ import signal
 import subprocess
 import time
 from itertools import chain
-from typing import List, Optional, Union
 
 
-def form_command(cmd_template: List[str], specs: dict) -> List[str]:
+def form_command(cmd_template: list[str], specs: dict) -> list[str]:
     "Fill command parts with dict entries from specs; drop any missing."
     specs = {k: v for k, v in specs.items() if v is not None}
 
@@ -26,7 +25,7 @@ def form_command(cmd_template: List[str], specs: dict) -> List[str]:
     return list(chain.from_iterable(filter(None, map(fill, cmd_template))))
 
 
-def launch(cmd_template: List[str], specs: dict = None, **kwargs) -> subprocess.Popen:
+def launch(cmd_template: list[str], specs: dict = None, **kwargs) -> subprocess.Popen:
     "Launch a new subprocess (with command templating and Python 3 help)."
     cmd = form_command(cmd_template, specs) if specs is not None else cmd_template
     return subprocess.Popen(cmd, **kwargs)
@@ -70,7 +69,7 @@ def process_is_stopped(process, timeout):
     return process.poll() is not None
 
 
-def wait(process: subprocess.Popen, timeout: Optional[Union[int, float]] = None) -> Optional[int]:
+def wait(process: subprocess.Popen, timeout: int | float | None = None) -> int | None:
     "Wait on a process with timeout (wait forever if None)."
     try:
         return process.wait(timeout=timeout)
@@ -78,7 +77,7 @@ def wait(process: subprocess.Popen, timeout: Optional[Union[int, float]] = None)
         return None
 
 
-def wait_and_kill(process: subprocess.Popen, timeout: Optional[Union[int, float]]) -> int:
+def wait_and_kill(process: subprocess.Popen, timeout: int | float | None) -> int:
     "Give a grace period for a process to terminate, then kill it."
     rc = wait(process, timeout)
     if rc is not None:
@@ -87,7 +86,7 @@ def wait_and_kill(process: subprocess.Popen, timeout: Optional[Union[int, float]
     return process.wait()
 
 
-def cancel(process: subprocess.Popen, timeout: Optional[Union[int, float]] = 0) -> int:
+def cancel(process: subprocess.Popen, timeout: int | float | None = 0) -> int:
     "Send a termination signal, give a grace period, then hard kill if needed."
     if timeout is not None and timeout > 0:
         terminatepg(process)
