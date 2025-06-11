@@ -6,7 +6,11 @@
 #SBATCH -J Lib_CGYRO
 #SBATCH --gpus-per-node=4
 #SBATCH -C gpu
-nproc=4
+
+
+#nproc=4
+
+nmpi=4
 nomp=4
 numa=1
 mpinuma=4
