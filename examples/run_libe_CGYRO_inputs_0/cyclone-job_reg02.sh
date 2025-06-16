@@ -4,7 +4,6 @@
 #SBATCH --time=0:30:00
 #SBATCH -N 4
 #SBATCH -J Lib_CGYRO
-#SBATCH --gpus-per-node=4
 #SBATCH -C gpu
 
 #nproc=4
