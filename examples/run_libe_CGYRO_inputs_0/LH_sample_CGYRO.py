@@ -11,7 +11,7 @@ from CGYRO_sim import run_CGYRO  # Sim func from current dir
 from libensemble import Ensemble
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.executors import MPIExecutor
-from libensemble.gen_funcs.persistent_sampling import persistent_uniform as gen_f
+from libensemble.gen_funcs.sampling import latin_hypercube_sample as gen_f
 from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
 
 
@@ -89,9 +89,10 @@ def main(argv):
         persis_in=["sim_id"],  # Return sim_ids of evaluated points to generator
         outputs=[("x", float, (1,))],
         user={
-            "initial_batch_size": nworkers,
-            "lb": np.array([0.54]),  # lower bound for input
-            "ub": np.array([0.56]),  # upper bound for input
+            # "initial_batch_size": nworkers,
+            "gen_batch_size": 12,
+            "lb": np.array([0.5]),  # lower bound for input
+            "ub": np.array([4.0]),  # upper bound for input
         },
     )
 
@@ -104,7 +105,7 @@ def main(argv):
     )
 
     # Instruct libEnsemble to exit after this many simulations
-    ensemble.exit_criteria = ExitCriteria(sim_max=8)
+    ensemble.exit_criteria = ExitCriteria(sim_max=12)
 
     # Seed random streams for each worker, particularly for gen_f
     ensemble.add_random_streams()

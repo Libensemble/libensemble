@@ -9,11 +9,13 @@ import numpy as np
 from CGYRO_sim import run_CGYRO  # Sim func from current dir
 
 from libensemble import Ensemble
-from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.executors import MPIExecutor
-from libensemble.gen_funcs.persistent_sampling import persistent_uniform as gen_f
 from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
 
+libensemble.gen_funcs.rc.aposmm_optimizers = "nlopt"
+
+from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc as alloc_f
+from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
 
 def main(argv):
 
@@ -82,16 +84,33 @@ def main(argv):
             "mpinuma": mpinuma,
         },
     )
+    
+    n = 1
+    gen_out = [
+        ("x", float, n),
+        ("x_on_cube", float, n),
+        ("sim_id", int),
+        ("local_min", bool),
+        ("local_pt", bool),
+    ]
 
     ensemble.gen_specs = GenSpecs(
         gen_f=gen_f,
         inputs=[],  # No input when start persistent generator
-        persis_in=["sim_id"],  # Return sim_ids of evaluated points to generator
+        # persis_in=["sim_id"],  # Return sim_ids of evaluated points to generator
+        persis_in=["f"] + [n[0] for n in gen_out],
         outputs=[("x", float, (1,))],
         user={
-            "initial_batch_size": nworkers,
-            "lb": np.array([0.54]),  # lower bound for input
-            "ub": np.array([0.56]),  # upper bound for input
+            "initial_batch_size": 1,
+            "sample_points": np.array([2.222]),
+            "lb": np.array([0.5]),  # lower bound for input
+            "ub": np.array([4.0]),  # upper bound for input
+            "localopt_method": "LN_BOBYQA",
+            "rk_const": 0.5 * ((gamma(1 + (n / 2)) * 5) ** (1 / n)) / sqrt(pi),
+            "xtol_abs": 1e-6,
+            "ftol_abs": 1e-6,
+            "dist_to_bound_multiple": 0.05,
+            "max_active_runs": 1,
         },
     )
 
@@ -104,7 +123,7 @@ def main(argv):
     )
 
     # Instruct libEnsemble to exit after this many simulations
-    ensemble.exit_criteria = ExitCriteria(sim_max=8)
+    ensemble.exit_criteria = ExitCriteria(sim_max=5)
 
     # Seed random streams for each worker, particularly for gen_f
     ensemble.add_random_streams()
