@@ -5,6 +5,8 @@
 #SBATCH -N 1
 #SBATCH -J Lib_CGYRO
 #SBATCH -C gpu
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=jmlarson@anl.gov
 
 #nproc=4
 
@@ -24,4 +26,4 @@ export OMP_STACKSIZE=400M
 export MPICH_GPU_SUPPORT_ENABLED=1
 export SLURM_CPU_BIND="cores"
 ulimit -c unlimited
-python uniform_sample_CGYRO.py -n 1 --nproc=$nmpi --nomp=$nomp --numa=$numa --mpinuma=$mpinuma
+python opt_CGYRO.py -n 1 --nproc=$nmpi --nomp=$nomp --numa=$numa --mpinuma=$mpinuma
