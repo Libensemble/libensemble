@@ -9,13 +9,12 @@ import numpy as np
 from CGYRO_sim import run_CGYRO  # Sim func from current dir
 
 from libensemble import Ensemble
+from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc as alloc_f
 from libensemble.executors import MPIExecutor
+libensemble.gen_funcs.rc.aposmm_optimizers = "nlopt"
+from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
 from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
 
-libensemble.gen_funcs.rc.aposmm_optimizers = "nlopt"
-
-from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc as alloc_f
-from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
 
 def main(argv):
 
@@ -97,7 +96,6 @@ def main(argv):
     ensemble.gen_specs = GenSpecs(
         gen_f=gen_f,
         inputs=[],  # No input when start persistent generator
-        # persis_in=["sim_id"],  # Return sim_ids of evaluated points to generator
         persis_in=["f"] + [n[0] for n in gen_out],
         outputs=[("x", float, (1,))],
         user={

@@ -1,8 +1,8 @@
 #!/bin/bash
 #SBATCH -A m4865
 #SBATCH --qos=debug
-#SBATCH --time=0:30:00
-#SBATCH -N 4
+#SBATCH --time=0:05:00
+#SBATCH -N 2
 #SBATCH -J Lib_CGYRO
 #SBATCH -C gpu
 
@@ -24,4 +24,4 @@ export OMP_STACKSIZE=400M
 export MPICH_GPU_SUPPORT_ENABLED=1
 export SLURM_CPU_BIND="cores"
 ulimit -c unlimited
-python uniform_sample_CGYBO.py -n 4 --nproc=$nmpi --nomp=$nomp --numa=$numa --mpinuma=$mpinuma
+python uniform_sample_CGYRO.py -n 2 --nproc=$nmpi --nomp=$nomp --numa=$numa --mpinuma=$mpinuma
