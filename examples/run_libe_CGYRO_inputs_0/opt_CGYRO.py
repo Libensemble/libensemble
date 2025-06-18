@@ -102,10 +102,10 @@ def main(argv):
         gen_f=gen_f,
         inputs=[],  # No input when start persistent generator
         persis_in=["f"] + [n[0] for n in gen_out],
-        outputs=[("x", float, (1,))] + gen_out,
+        outputs=gen_out,
         user={
             "initial_sample_size": 1,
-            "sample_points": np.array([2.222]),
+            "sample_points": np.atleast_2d(2.222),
             "lb": np.array([0.5]),  # lower bound for input
             "ub": np.array([4.0]),  # upper bound for input
             "localopt_method": "LN_BOBYQA",
