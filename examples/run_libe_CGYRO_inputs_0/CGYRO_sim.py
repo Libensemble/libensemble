@@ -22,10 +22,11 @@ def run_CGYRO(H, persis_info, sim_specs, libE_info):
     input_file = sim_specs["user"]["input_filename"]
     input_values = {}
     for i, name in enumerate(sim_specs["user"]["input_names"]):
-        if len(H["x"][0]) > 1:
-            value = H["x"][0][i]
-        else:
-            value = H["x"][0]
+        value = H["x"][0][i]
+        # if len(H["x"][0]) > 1:
+        #     value = H["x"][0][i]
+        # else:
+        #     value = H["x"][0]
         input_values[name] = value
     with open(input_file, "r") as f:
         template = jinja2.Template(f.read())
