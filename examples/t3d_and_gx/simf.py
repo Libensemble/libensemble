@@ -51,6 +51,7 @@ def run_t3d_and_gx(H, persis_info, sim_specs, libE_info):
     # Submit our t3d_and_gx app for execution.
     task = exctr.submit(
         app_name="t3d",
+        app_args=sim_specs["user"].get("input_filename")
         auto_assign_gpus=True,
         match_procs_to_gpus=True,
     )

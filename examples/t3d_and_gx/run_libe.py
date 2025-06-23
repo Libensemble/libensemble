@@ -58,7 +58,7 @@ if __name__ == "__main__":
         user={"async_return": True},
     )
 
-    exit_criteria = ExitCriteria(sim_max=3)
+    exit_criteria = ExitCriteria(sim_max=5)
 
     ensemble = Ensemble(
         libE_specs=libE_specs,

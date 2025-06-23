@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --nodes=2
 #SBATCH --gpus-per-node=4
-#SBATCH --time=00:30:00
+#SBATCH --time=00:10:00
 #SBATCH --account=m4505
 #SBATCH --qos=debug
 #SBATCH --constraint=gpu
