@@ -18,7 +18,7 @@ if __name__ == "__main__":
     if not os.path.isfile(sim_app):
         sys.exit(f"Application not found: {sim_app}")
 
-    exctr.register_app(full_path=sim_app, app_name="t3d_and_gx")
+    exctr.register_app(full_path=sim_app, app_name="t3d")
 
     num_workers = 1
 
@@ -36,7 +36,7 @@ if __name__ == "__main__":
         sim_f=run_t3d_and_gx,
         inputs=["x"],
         outputs=[("f", float)],
-        user={"input_filename": "test-w7x-gx_jeff.in", "input_names": ["H_height", "H_width"]},
+        user={"input_filename": "test-w7x-gx.in", "input_names": ["H_height", "H_width"]},
     )
 
     n = 2
@@ -54,7 +54,7 @@ if __name__ == "__main__":
 
     alloc_specs = AllocSpecs(
         alloc_f=alloc_f,
-        user={"async_return": False},
+        user={"async_return": True},
     )
 
     exit_criteria = ExitCriteria(sim_max=2)
