@@ -29,6 +29,7 @@ if __name__ == "__main__":
         nworkers=num_workers,
         gen_on_manager=True,
         sim_dirs_make=True,
+        reuse_output_dir=True,
         sim_input_dir=sim_input_dir,
     )
 
@@ -47,8 +48,8 @@ if __name__ == "__main__":
         outputs=[("x", float, (2,))],
         user={
             "initial_batch_size": num_workers,
-            "lb": np.array([0, 0]),
-            "ub": np.array([3, 3]),
+            "lb": np.array([1e-3, 1e-3]),
+            "ub": np.array([0.1, 0.2]),
         },
     )
 
@@ -57,7 +58,7 @@ if __name__ == "__main__":
         user={"async_return": True},
     )
 
-    exit_criteria = ExitCriteria(sim_max=2)
+    exit_criteria = ExitCriteria(sim_max=3)
 
     ensemble = Ensemble(
         libE_specs=libE_specs,

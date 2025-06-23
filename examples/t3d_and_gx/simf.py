@@ -6,8 +6,9 @@ from libensemble.message_numbers import TASK_FAILED, WORKER_DONE
 
 def set_objective_value():
     try:
-        data = np.loadtxt("t3d_and_gx.stat")
-        return data[-1]
+        data = np.load("test-w7x-gx.log.npy", allow_pickle=True)
+        out = data.flatten()[0]['Wtot_MJ'][-1]
+        return out
     except Exception:
         return np.nan
 
@@ -47,7 +48,7 @@ def run_t3d_and_gx(H, persis_info, sim_specs, libE_info):
 
     # Submit our t3d_and_gx app for execution.
     task = exctr.submit(
-        app_name="t3d_and_gx",
+        app_name="t3d",
         auto_assign_gpus=True,
         match_procs_to_gpus=True,
     )

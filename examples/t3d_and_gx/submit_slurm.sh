@@ -10,11 +10,11 @@
 #SBATCH --mail-user=jmlarson@anl.gov
 
 pushd .
-cd ../gx
+cd ~/jai/gx
 source ../gx.config
 popd
 
-source ../t3d/.venv/bin/activate
+source /global/u2/j/jmlarson/jai/t3d/.venv/bin/activate
 
 export NCCL_DEBUG=WARN
 
