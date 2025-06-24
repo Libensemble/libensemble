@@ -76,12 +76,12 @@ def run_CGYRO(H, persis_info, sim_specs, libE_info):
             text=True,
             shell=True,
         )
-        with open(file_path, 'r') as f:
+        freqs = np.loadtxt("out.cgyro.freq")
+        fout = freqs[-1]
+        with open("out.cgyro.info", 'r') as f:
             lines = f.readlines()
             if lines:
                 string_out = lines[-1].strip()
-            freqs = np.loadtxt("out.cgyro.freq")
-            fout = freqs[-1]
         calc_status = WORKER_DONE
     except:
         print(f"Failed to open")
