@@ -24,5 +24,6 @@ export OMP_STACKSIZE=400M
 export MPICH_GPU_SUPPORT_ENABLED=1
 export SLURM_CPU_BIND="cores"
 ulimit -c unlimited
-python uniform_sample_CGYRO.py -n 2 --nproc=$nmpi --nomp=$nomp --numa=$numa --mpinuma=$mpinuma
+# python uniform_sample_CGYRO.py -n 2 --nproc=$nmpi --nomp=$nomp --numa=$numa --mpinuma=$mpinuma
 # python LH_sample_CGYRO.py -n 2 --nproc=$nmpi --nomp=$nomp --numa=$numa --mpinuma=$mpinuma
+python LH_sample_CGYRO_3d.py -n 2 --nproc=$nmpi --nomp=$nomp --numa=$numa --mpinuma=$mpinuma

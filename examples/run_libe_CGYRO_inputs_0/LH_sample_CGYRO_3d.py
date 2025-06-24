@@ -70,10 +70,10 @@ def main(argv):
     ensemble.sim_specs = SimSpecs(
         sim_f=run_CGYRO,
         inputs=["x"],
-        outputs=[("f", float), ("fvec", float, 2)],
+        outputs=[("f", float), ("fvec", float, 2), ("convstatement", "U100")],
         user={
             "input_filename": cgyro_input_file,
-            "input_names": ["KAPPA"],
+            "input_names": ["KAPPA","DELTA","ZETA"],
             "plot_heat_flux": False,
             "nproc": nproc,
             "nomp": nomp,
@@ -86,12 +86,12 @@ def main(argv):
         gen_f=gen_f,
         inputs=[],  # No input when start persistent generator
         persis_in=["sim_id"],  # Return sim_ids of evaluated points to generator
-        outputs=[("x", float, (1,))],
+        outputs=[("x", float, (3,))],
         user={
             # "initial_batch_size": nworkers,
             "gen_batch_size": 12,
-            "lb": np.array([0.5]),  # lower bound for input
-            "ub": np.array([4.0]),  # upper bound for input
+            "lb": np.array([0.5, -1.0, -1.0]),  # lower bound for input
+            "ub": np.array([4.0, 1.0, 1.0]),  # upper bound for input
         },
     )
 

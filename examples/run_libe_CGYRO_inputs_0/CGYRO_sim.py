@@ -66,6 +66,8 @@ def run_CGYRO(H, persis_info, sim_specs, libE_info):
 
     # Try loading final energy reading, set the sim's status
 
+
+    string_out = ""
     try:
         # Q=subprocess.run('python heat_flux_cgyro_libE.py', capture_output=True, text=True, shell=True)
         Q = subprocess.run(
@@ -74,19 +76,26 @@ def run_CGYRO(H, persis_info, sim_specs, libE_info):
             text=True,
             shell=True,
         )
-        qavg = eval(Q.stdout)
-        # outputs: qavg and qstd (latter not used currently)
+        with open(file_path, 'r') as f:
+            lines = f.readlines()
+            if lines:
+                string_out = lines[-1].strip()
+            freqs = np.loadtxt("out.cgyro.freq")
+            fout = freqs[-1]
         calc_status = WORKER_DONE
     except:
-        print(f"Failed to open {fname}")
-        qavg = np.nan*np.ones(2)
+        print(f"Failed to open")
+        fout = np.nan*np.ones(2)
         calc_status = TASK_FAILED
 
     # Define our output array, populate with energy reading
     output = np.zeros(1, dtype=sim_specs["out"])
     
-    output["fvec"] = qavg
-    output["f"] = float(qavg[0]) + float(qavg[1])
+    # output["fvec"] = qavg
+    # output["f"] = float(qavg[0]) + float(qavg[1])
+    output["fvec"] = fout
+    output["f"] = float(fout[1])
+    output["convstatement"] = string_out 
 
     # Return final information to worker, for reporting to manager
     return output, persis_info, calc_status
