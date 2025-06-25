@@ -77,10 +77,10 @@ def main(argv):
     ensemble.sim_specs = SimSpecs(
         sim_f=run_CGYRO,
         inputs=["x"],
-        outputs=[("f", float), ("fvec", float, 2)],
+        outputs=[("f", float), ("fvec", float, 2), ("convstatement", "U100")],
         user={
             "input_filename": cgyro_input_file,
-            "input_names": ["KAPPA"],
+            "input_names": ["KAPPA","DELTA","ZETA"],
             "plot_heat_flux": False,
             "nproc": nproc,
             "nomp": nomp,
@@ -89,7 +89,7 @@ def main(argv):
         },
     )
     
-    n = 1
+    n = 3
     gen_out = [
         ("x", float, n),
         ("x_on_cube", float, n),
@@ -105,9 +105,9 @@ def main(argv):
         outputs=gen_out,
         user={
             "initial_sample_size": 1,
-            "sample_points": np.atleast_2d(2.222),
-            "lb": np.array([0.5]),  # lower bound for input
-            "ub": np.array([4.0]),  # upper bound for input
+            "sample_points": np.atleast_2d([3.918767432556607, 0.731486903996517, 0.068918275083707]),
+            "lb": np.array([0.5, -1.0, -0.1]),  # lower bound for input
+            "ub": np.array([4.0, 1.0, 0.1]),  # upper bound for input
             "localopt_method": "LN_BOBYQA",
             "rk_const": 0.5 * ((gamma(1 + (n / 2)) * 5) ** (1 / n)) / sqrt(pi),
             "xtol_abs": 1e-6,

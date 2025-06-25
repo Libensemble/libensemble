@@ -5,6 +5,8 @@
 #SBATCH -N 2
 #SBATCH -J Lib_CGYRO
 #SBATCH -C gpu
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=jmlarson@anl.gov
 
 #nproc=4
 
