@@ -90,13 +90,13 @@ def main(argv):
         user={
             # "initial_batch_size": nworkers,
             "gen_batch_size": 12,
-            "lb": np.array([0.5, -0.0, -0.0]),  # lower bound for input
-            "ub": np.array([4.0, 0.0, 0.0]),  # upper bound for input
+            "lb": np.array([0.5, -1.0, -0.1]),  # lower bound for input
+            "ub": np.array([4.0, 1.0, 0.1]),  # upper bound for input
         },
     )
 
     # Instruct libEnsemble to exit after this many simulations
-    ensemble.exit_criteria = ExitCriteria(sim_max=2)
+    ensemble.exit_criteria = ExitCriteria(sim_max=12)
 
     # Seed random streams for each worker, particularly for gen_f
     ensemble.add_random_streams()
