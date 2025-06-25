@@ -74,7 +74,7 @@ class GP_CAM(LibensembleGenerator):
                 input_set=np.column_stack((self.lb, self.ub)),
                 n=n_trials,
                 pop_size=n_trials,
-                acquisition_function="total correlation",
+                acquisition_function="expected improvement",
                 max_iter=self.ask_max_iter,  # Larger takes longer. gpCAM default is 20.
             )["x"]
             print(f"Ask time:{time.time() - start}")
@@ -85,14 +85,18 @@ class GP_CAM(LibensembleGenerator):
     def ingest_numpy(self, calc_in: npt.NDArray) -> None:
         if calc_in is not None:
             if "x" in calc_in.dtype.names:  # SH should we require x in?
-                self.x_new = np.atleast_2d(calc_in["x"])
+                self.x_new = np.expand_dims(calc_in["x"], 1)
             self.y_new = np.atleast_2d(calc_in["f"]).T
             nan_indices = [i for i, fval in enumerate(self.y_new) if np.isnan(fval[0])]
             self.x_new = np.delete(self.x_new, nan_indices, axis=0)
             self.y_new = np.delete(self.y_new, nan_indices, axis=0)
 
-            self.all_x = np.vstack((self.all_x, self.x_new))
-            self.all_y = np.vstack((self.all_y, self.y_new))
+            if len(self.all_x) == 0 and len(self.all_y) == 0:
+                self.all_x = self.x_new
+                self.all_y = self.y_new
+            else:
+                self.all_x = np.concat((self.all_x, self.x_new))
+                self.all_y = np.concat((self.all_y, self.y_new))
 
             noise_var = self.noise * np.ones(len(self.all_y))
             if self.my_gp is None:
