@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH -A m4865
 #SBATCH --qos=debug
-#SBATCH --time=0:25:00
+#SBATCH --time=0:30:00
 #SBATCH -N 1
 #SBATCH -J Lib_CGYRO
 #SBATCH -C gpu
