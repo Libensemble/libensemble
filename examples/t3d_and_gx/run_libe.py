@@ -28,6 +28,7 @@ if __name__ == "__main__":
     libE_specs = LibeSpecs(
         nworkers=num_workers,
         gen_on_manager=True,
+        save_every_k_sims=1,
         sim_dirs_make=True,
         reuse_output_dir=True,
         sim_input_dir=sim_input_dir,
