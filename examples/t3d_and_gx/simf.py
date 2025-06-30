@@ -28,9 +28,7 @@ def set_input_file_params(H, sim_specs, ints=False):
         return
     input_values = {}
     for i, name in enumerate(input_names):
-        print("jeff", H["x"])
         value = int(H["x"][0][i]) if ints else H["x"][0][i]
-        print("jeff2", value)
         input_values[name] = value
     with open(input_file, "r") as f:
         template = jinja2.Template(f.read())
@@ -51,7 +49,7 @@ def run_t3d_and_gx(H, persis_info, sim_specs, libE_info):
     # Submit our t3d_and_gx app for execution.
     task = exctr.submit(
         app_name="t3d",
-        app_args=sim_specs["user"].get("input_filename")
+        app_args=sim_specs["user"].get("input_filename"),
         auto_assign_gpus=True,
         match_procs_to_gpus=True,
     )
