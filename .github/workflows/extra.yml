@@ -96,7 +96,7 @@ jobs:
         - name: Install gpcam and octave # Neither yet support 3.13
           if: matrix.python-version <= '3.12'
           run: |
-            pip install gpcam
+            pip install gpcam==8.1.13
             conda install octave
 
         - name: Install surmise and Tasmanian
