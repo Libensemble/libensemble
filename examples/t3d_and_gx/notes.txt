@@ -1,0 +1,19 @@
+Adjust:
+
+type = "hydrogen"
+  aux_power_source = { height = 0, width = 0.2, center = 0.4 }
+
+  constraints on height: 1e-3 <= height <= 0.1
+  constraints on width:  1e-3 <= width  <= 0.2
+  constraints on center:  0.4 <= center <= 0.4 (let's keep center fixed for now)
+
+
+Look at the pickle file after the run
+
+  "t3d test-w7x-gx.in"
+
+finishes. Look at the T_i field which is a temperature profile at each time step. 
+
+W_totMJ to be maximized. but this has to be normalized, so divide by "height" and "width" 
+
+
