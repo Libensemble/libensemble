@@ -1,0 +1,73 @@
+# This is a template gx input file for use with T3D. 
+# It is missing a variety of parameters required for standalone GX calculations.
+# T3D will automatically fill in missing parameters to generate full gx input files.
+# The most critical tunable parameters are in [Dimensions], [Domain], and [Time].
+
+ debug = false
+
+[Dimensions]
+ ntheta = 64            # number of points along field line (theta) per 2pi segment    
+ ny = 64                # number of real-space grid-points in y
+ nx = 64                # number of real-space grid-points in x
+
+ nhermite = 12          # number of hermite moments (v_parallel resolution)
+ nlaguerre = 4          # number of laguerre moments (mu B resolution)
+
+[Domain]
+ y0 = 15.0                  # controls box length in y (in units of rho_ref) and minimum ky, so that ky_min*rho_ref = 1/y0 
+ boundary = "fix aspect"    # use generalized twist-shift boundary conditions along field line, and cut the field line to enforce x0 ~ y0
+
+[Physics]
+ nonlinear_mode = true           # this is a nonlinear calculation
+
+[Time]
+ t_max = 500.0         # run to t=500 (in units of L_ref/vt_ref)
+ t_add = 300.0         # on restart, run an additional 300 time units
+ cfl = 0.8            # safety multiplier on computed timestep
+ scheme = "rk3"       # use RK3 timestepping scheme
+
+[Initialization]
+ ikpar_init = 0                  # parallel wavenumber of initial perturbation
+ init_field = "density"          # initial condition set in density
+ init_amp = 1.0e-2               # amplitude of initial condition
+
+[Dissipation]
+ closure_model = "none"          # no closure assumptions (just truncation)
+ hypercollisions = true          # use hypercollision model
+ hyper = true                    # use hyperdiffusion
+
+[Diagnostics]
+ nwrite = 100                    # write diagnostics every 100 timesteps
+ fluxes = true                   # compute and write heat and particle fluxes
+
+[Wspectra]                       # spectra of W = |G_lm|**2
+species          = false
+hermite          = false
+laguerre         = false
+hermite_laguerre = true          # W(l,m) (summed over kx, ky, z)
+kx               = false
+ky               = true          # W(ky) (summed over kx, z, l, m)
+kxky             = false
+z                = false
+
+[Pspectra]                      # spectra of P = ( 1 - Gamma_0(b_s) ) |Phi|**2
+species          = false
+kx               = false
+ky               = true         # P(ky) (summed over kx, z)
+kxky             = false
+z                = true         # P(z) (summed over kx, ky)
+
+[Qspectra]                      # spectra of Q (heat flux)
+kx               = false
+ky               = true         # Q(ky) (summed over kx, z)
+kxky             = false
+z                = true         # Q(z) (summed over kx, ky)
+
+[Gamspectra]                      # spectra of Q (heat flux)
+kx               = false
+ky               = true         # Q(ky) (summed over kx, z)
+kxky             = false
+z                = true         # Q(z) (summed over kx, ky)
+
+[Restart]
+ append_on_restart = false

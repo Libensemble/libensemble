@@ -24,7 +24,8 @@ if __name__ == "__main__":
     num_workers = 1
 
 
-    sim_input_dir = "test-w7x-gx_simple"
+    # sim_input_dir = "test-w7x-gx_simple"
+    sim_input_dir = "test-w7x-gx"
 
     libE_specs = LibeSpecs(
         nworkers=num_workers,
@@ -50,7 +51,7 @@ if __name__ == "__main__":
         outputs=[("x", float, (2,))],
         user={
             # "initial_batch_size": num_workers,
-            "gen_batch_size": 20,
+            "gen_batch_size": 2,
             "lb": np.array([1e-3, 1e-3]),
             "ub": np.array([0.1, 0.2]),
         },
@@ -60,7 +61,7 @@ if __name__ == "__main__":
     #     user={"async_return": True},
     # )
 
-    exit_criteria = ExitCriteria(sim_max=20)
+    exit_criteria = ExitCriteria(sim_max=2)
 
     ensemble = Ensemble(
         libE_specs=libE_specs,
