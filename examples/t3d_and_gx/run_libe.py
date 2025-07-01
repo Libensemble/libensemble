@@ -5,9 +5,10 @@ import numpy as np
 from simf import run_t3d_and_gx
 
 from libensemble import Ensemble
-from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
+# from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
+# from libensemble.gen_funcs.persistent_sampling import persistent_uniform as gen_f
 from libensemble.executors import MPIExecutor
-from libensemble.gen_funcs.persistent_sampling import persistent_uniform as gen_f
+from libensemble.gen_funcs.sampling import latin_hypercube_sample as gen_f
 from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
 
 if __name__ == "__main__":
@@ -28,9 +29,9 @@ if __name__ == "__main__":
     libE_specs = LibeSpecs(
         nworkers=num_workers,
         gen_on_manager=True,
-        save_every_k_sims=1,
         sim_dirs_make=True,
         reuse_output_dir=True,
+        save_every_k_sims=1,
         sim_input_dir=sim_input_dir,
     )
 
@@ -48,24 +49,24 @@ if __name__ == "__main__":
         persis_in=["sim_id", "f"],
         outputs=[("x", float, (2,))],
         user={
-            "initial_batch_size": num_workers,
+            # "initial_batch_size": num_workers,
+            "gen_batch_size": 20,
             "lb": np.array([1e-3, 1e-3]),
             "ub": np.array([0.1, 0.2]),
         },
     )
 
-    alloc_specs = AllocSpecs(
-        alloc_f=alloc_f,
-        user={"async_return": True},
-    )
+    # alloc_specs = AllocSpecs(
+    #     user={"async_return": True},
+    # )
 
-    exit_criteria = ExitCriteria(sim_max=5)
+    exit_criteria = ExitCriteria(sim_max=20)
 
     ensemble = Ensemble(
         libE_specs=libE_specs,
         gen_specs=gen_specs,
         sim_specs=sim_specs,
-        alloc_specs=alloc_specs,
+        # alloc_specs=alloc_specs,
         exit_criteria=exit_criteria,
         executor=exctr
     )
