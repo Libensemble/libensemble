@@ -60,7 +60,7 @@ jobs:
             miniconda-version: "latest"
             python-version: ${{ matrix.python-version }}
             channels: conda-forge
-            channel-priority: flexible
+            channel-priority: strict
             auto-update-conda: true
 
         - name: Force-update certifi and pip
@@ -72,7 +72,7 @@ jobs:
         - name: Install Ubuntu compilers
           if: matrix.os == 'ubuntu-latest'
           run: |
-              conda install gcc_linux-64
+              conda install -c conda-forge gcc_linux-64
               pip install nlopt==2.9.0
 
         # Roundabout solution on macos for proper linking with mpicc
