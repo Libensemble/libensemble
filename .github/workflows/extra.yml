@@ -64,7 +64,7 @@ jobs:
             miniconda-version: 'latest'
             python-version: ${{ matrix.python-version }}
             channels: conda-forge
-            channel-priority: flexible
+            channel-priority: strict
             auto-update-conda: true
 
         - name: Force-update certifi
