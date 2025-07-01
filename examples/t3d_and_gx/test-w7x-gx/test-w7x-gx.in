@@ -16,7 +16,8 @@
   model = "GX"          
   adiabatic_species = "electron"
   gx_template = "gx_template.in"
-  gx_outputs = "w7x-gx-flux-tubes/"
+  #gx_outputs = "w7x-gx-flux-tubes/"
+  gx_outputs = "gx-flux-tubes/"
   overwrite = true
   gpus_per_gx = 1
   zeta_center = [0.0]
