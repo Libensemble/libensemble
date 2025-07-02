@@ -280,7 +280,7 @@ def manager(
     logger.info(f"libE version v{__version__}")
 
     if "out" in gen_specs and ("sim_id", int) in gen_specs["out"]:
-        if "libensemble.gen_funcs" not in gen_specs["gen_f"].__module__:
+        if hasattr(gen_specs["gen_f"], "__module__") and "libensemble.gen_funcs" not in gen_specs["gen_f"].__module__:
             logger.manager_warning(_USER_SIM_ID_WARNING)
 
     try:
@@ -458,6 +458,7 @@ def start_proc_team(nworkers, sim_specs, gen_specs, libE_specs, log_comm=True):
 
     for wcomm in wcomms:
         wcomm.run()
+
     return wcomms
 
 

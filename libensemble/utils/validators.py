@@ -6,13 +6,13 @@ import numpy as np
 
 from libensemble.resources.platforms import Platform
 from libensemble.utils.misc import pydanticV1
-from libensemble.utils.specs_checkers import (
+from libensemble.utils.specs_checkers import (  # _check_output_fields,
     _check_any_workers_and_disable_rm_if_tcp,
     _check_exit_criteria,
     _check_H0,
     _check_logical_cores,
-    _check_output_fields,
     _check_set_calc_dirs_on_input_dir,
+    _check_set_gen_specs_from_variables,
     _check_set_workflow_dir,
 )
 
@@ -148,8 +148,8 @@ if pydanticV1:
         return _check_exit_criteria(values)
 
     @root_validator
-    def check_output_fields(cls, values):
-        return _check_output_fields(values)
+    def check_set_gen_specs_from_variables(cls, values):
+        return _check_set_gen_specs_from_variables(values)
 
     @root_validator
     def check_H0(cls, values):
@@ -158,13 +158,12 @@ if pydanticV1:
     @root_validator
     def check_provided_ufuncs(cls, values):
         sim_specs = values.get("sim_specs")
-        assert hasattr(sim_specs, "sim_f"), "Simulation function not provided to SimSpecs."
         assert isinstance(sim_specs.sim_f, Callable), "Simulation function is not callable."
 
         if values.get("alloc_specs").alloc_f.__name__ != "give_pregenerated_sim_work":
             gen_specs = values.get("gen_specs")
-            assert hasattr(gen_specs, "gen_f"), "Generator function not provided to GenSpecs."
-            assert isinstance(gen_specs.gen_f, Callable), "Generator function is not callable."
+            if gen_specs.gen_f is not None:
+                assert isinstance(gen_specs.gen_f, Callable), "Generator function is not callable."
 
         return values
 
@@ -247,8 +246,8 @@ else:
         return _check_exit_criteria(self)
 
     @model_validator(mode="after")
-    def check_output_fields(self):
-        return _check_output_fields(self)
+    def check_set_gen_specs_from_variables(self):
+        return _check_set_gen_specs_from_variables(self)
 
     @model_validator(mode="after")
     def check_H0(self):
@@ -256,12 +255,11 @@ else:
 
     @model_validator(mode="after")
     def check_provided_ufuncs(self):
-        assert hasattr(self.sim_specs, "sim_f"), "Simulation function not provided to SimSpecs."
         assert isinstance(self.sim_specs.sim_f, Callable), "Simulation function is not callable."
 
         if self.alloc_specs.alloc_f.__name__ != "give_pregenerated_sim_work":
-            assert hasattr(self.gen_specs, "gen_f"), "Generator function not provided to GenSpecs."
-            assert isinstance(self.gen_specs.gen_f, Callable), "Generator function is not callable."
+            if self.gen_specs.gen_f is not None:
+                assert isinstance(self.gen_specs.gen_f, Callable), "Generator function is not callable."
 
         return self
 
