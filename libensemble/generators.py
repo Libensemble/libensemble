@@ -1,7 +1,4 @@
-# import queue as thread_queue
 from abc import abstractmethod
-
-# from multiprocessing import Queue as process_queue
 from typing import List, Optional
 
 import numpy as np
@@ -14,14 +11,6 @@ from libensemble.executors import Executor
 from libensemble.message_numbers import EVAL_GEN_TAG, PERSIS_STOP
 from libensemble.tools.tools import add_unique_random_streams
 from libensemble.utils.misc import list_dicts_to_np, np_to_list_dicts
-
-"""
-NOTE: These generators, implementations, methods, and subclasses are in BETA, and
-      may change in future releases.
-
-      The Generator interface is expected to roughly correspond with CAMPA's standard:
-      https://github.com/campa-consortium/generator_standard
-"""
 
 
 class GeneratorNotStartedException(Exception):
