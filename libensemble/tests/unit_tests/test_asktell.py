@@ -1,7 +1,5 @@
 import numpy as np
 
-from libensemble.utils.misc import list_dicts_to_np
-
 
 def _check_conversion(H, npp, mapping={}):
 
@@ -22,41 +20,33 @@ def _check_conversion(H, npp, mapping={}):
 
 
 def test_asktell_sampling_and_utils():
+    from generator_standard.vocs import VOCS
+
     from libensemble.gen_classes.sampling import UniformSample
 
     variables = {"x0": [-3, 3], "x1": [-2, 2]}
     objectives = {"f": "EXPLORE"}
 
+    vocs = VOCS(variables=variables, objectives=objectives)
+
     # Test initialization with libensembley parameters
-    gen = UniformSample(variables, objectives)
+    gen = UniformSample(vocs)
     assert len(gen.suggest(10)) == 10
 
-    out_np = gen.suggest_numpy(3)  # should get numpy arrays, non-flattened
     out = gen.suggest(3)  # needs to get dicts, 2d+ arrays need to be flattened
 
     assert all([len(x) == 2 for x in out])  # np_to_list_dicts is now tested
 
-    # now we test list_dicts_to_np directly
-    out_np = list_dicts_to_np(out)
-
-    # check combined values resemble flattened list-of-dicts values
-    assert out_np.dtype.names == ("x",)
-    for i, entry in enumerate(out):
-        for j, value in enumerate(entry.values()):
-            assert value == out_np["x"][i][j]
-
     variables = {"core": [-3, 3], "edge": [-2, 2]}
     objectives = {"energy": "EXPLORE"}
-    mapping = {"x": ["core", "edge"]}
 
-    gen = UniformSample(variables, objectives, mapping)
+    vocs = VOCS(variables=variables, objectives=objectives)
+
+    gen = UniformSample(vocs)
     out = gen.suggest(1)
     assert len(out) == 1
     assert out[0].get("core")
     assert out[0].get("edge")
-
-    out_np = list_dicts_to_np(out, mapping=mapping)
-    assert out_np.dtype.names[0] == "x"
 
 
 def test_awkward_list_dict():
@@ -132,41 +122,7 @@ def test_awkward_H():
     _check_conversion(H, npp)
 
 
-def test_asktell_VOCS():
-    from generator_standard import Generator
-    from generator_standard.vocs import VOCS
-
-    class UniformSampleDicts(Generator):
-        def __init__(self, VOCS: VOCS, *args, **kwargs):
-            self.VOCS = VOCS
-            self.rng = np.random.default_rng(1)
-
-        def suggest(self, n_trials):
-            H_o = []
-            for _ in range(n_trials):
-                trial = {}
-                for key in self.VOCS.variables.keys():
-                    trial[key] = self.rng.uniform(self.VOCS.variables[key][0], self.VOCS.variables[key][1])
-                H_o.append(trial)
-            return H_o
-
-        def ingest(self, calc_in):
-            pass
-
-    vocs = VOCS(
-        variables={
-            "x": [-1, 1],
-            "y": [-2, 2],
-            "z": [-3, 3],
-        }
-    )
-
-    sampler = UniformSampleDicts(vocs)
-    print(sampler.suggest(10))
-
-
 if __name__ == "__main__":
     test_asktell_sampling_and_utils()
     test_awkward_list_dict()
     test_awkward_H()
-    test_asktell_VOCS()

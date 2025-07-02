@@ -63,7 +63,7 @@ class UniformSample(Generator):
         for _ in range(n_trials):
             trial = {}
             for key in self.VOCS.variables.keys():
-                trial[key] = self.rng.uniform(self.VOCS.variables[key][0], self.VOCS.variables[key][1])
+                trial[key] = self.rng.uniform(self.VOCS.variables[key].domain[0], self.VOCS.variables[key].domain[1])
             output.append(trial)
         return output
 
