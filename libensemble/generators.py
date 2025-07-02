@@ -28,69 +28,6 @@ class GeneratorNotStartedException(Exception):
     """Exception raised by a threaded/multiprocessed generator upon being suggested without having been started"""
 
 
-# class Generator(ABC):
-#     """
-
-#     .. code-block:: python
-
-#         from libensemble.specs import GenSpecs
-#         from libensemble.generators import Generator
-
-
-#         class MyGenerator(Generator):
-#             def __init__(self, variables, objectives, param):
-#                 self.param = param
-#                 self.model = create_model(variables, objectives, self.param)
-
-#             def suggest(self, num_points):
-#                 return create_points(num_points, self.param)
-
-#             def ingest(self, results):
-#                 self.model = update_model(results, self.model)
-
-#             def finalize(self, results):
-#                 self.ingest(results)
-#                 return list(self.model)
-
-
-#         variables = {"a": [-1, 1], "b": [-2, 2]}
-#         objectives = {"f": "MINIMIZE"}
-
-#         my_generator = MyGenerator(variables, objectives, my_parameter=100)
-#         gen_specs = GenSpecs(generator=my_generator, ...)
-#     """
-
-#     @abstractmethod
-#     def __init__(self, variables: dict[str, List[float]], objectives: dict[str, str], *args, **kwargs):
-#         """
-#         Initialize the Generator object on the user-side. Constants, class-attributes,
-#         and preparation goes here.
-
-#         .. code-block:: python
-
-#             my_generator = MyGenerator(my_parameter, batch_size=10)
-#         """
-
-#     @abstractmethod
-#     def suggest(self, num_points: Optional[int]) -> List[dict]:
-#         """
-#         Request the next set of points to evaluate.
-#         """
-
-#     def ingest(self, results: List[dict]) -> None:
-#         """
-#         Send the results of evaluations to the generator.
-#         """
-
-#     def finalize(self, results: List[dict], *args, **kwargs) -> Optional[npt.NDArray]:
-#         """
-#         Send the last set of results to the generator, instruct it to cleanup, and
-#         optionally retrieve an updated final state of evaluations. This is a separate
-#         method to simplify the common pattern of noting internally if a
-#         specific ingest is the last. This will be called only once.
-#         """
-
-
 class LibensembleGenerator(Generator):
     """Internal implementation of Generator interface for use with libEnsemble, or for those who
     prefer numpy arrays. ``suggest/ingest`` methods communicate lists of dictionaries, like the standard.
@@ -112,19 +49,6 @@ class LibensembleGenerator(Generator):
         self.libE_info = libE_info
 
         self.variables_mapping = kwargs.get("variables_mapping", {})
-
-        if self.VOCS.variables:
-
-            self.n = len(self.variables)
-            # build our own lb and ub
-            lb = []
-            ub = []
-            for i, v in enumerate(self.VOCS.variables.values()):
-                if isinstance(v, list) and (isinstance(v[0], int) or isinstance(v[0], float)):
-                    lb.append(v[0])
-                    ub.append(v[1])
-            kwargs["lb"] = np.array(lb)
-            kwargs["ub"] = np.array(ub)
 
         if len(kwargs) > 0:  # so user can specify gen-specific parameters as kwargs to constructor
             if not self.gen_specs.get("user"):
