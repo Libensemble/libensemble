@@ -1,5 +1,4 @@
 import logging
-from typing import Any, Dict, List
 
 import numpy as np
 import numpy.typing as npt
@@ -12,7 +11,7 @@ logger = logging.getLogger(__name__)
 class PersistentSupport:
     """A helper class to assist with writing persistent user functions."""
 
-    def __init__(self, libE_info: Dict[str, Dict[Any, Any]], calc_type: int) -> None:
+    def __init__(self, libE_info: dict[str, dict], calc_type: int) -> None:
         """
         Instantiate a new PersistentSupport instance
 
@@ -115,7 +114,7 @@ class PersistentSupport:
         self.send(output, calc_status)
         return self.recv()
 
-    def request_cancel_sim_ids(self, sim_ids: List[int]):
+    def request_cancel_sim_ids(self, sim_ids: list[int]):
         """Request cancellation of sim_ids.
 
         :param sim_ids: A list of sim_ids to cancel.
