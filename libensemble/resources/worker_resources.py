@@ -1,11 +1,16 @@
+from __future__ import annotations
+
 import logging
 import os
 from collections import Counter, OrderedDict
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 
 from libensemble.resources.rset_resources import RSetResources
+
+if TYPE_CHECKING:
+    from libensemble.resources.resources import GlobalResources
 
 logger = logging.getLogger(__name__)
 # To change logging level for just this module
@@ -26,7 +31,7 @@ class ResourceManager(RSetResources):
     # Holds the ID of the worker this rset is assigned to or zero
     man_rset_dtype = np.dtype(RSetResources.rset_dtype + [("assigned", int)])
 
-    def __init__(self, num_workers: int, resources: "GlobalResources") -> None:  # noqa: F821
+    def __init__(self, num_workers: int, resources: GlobalResources) -> None:
         """Initializes a new ResourceManager instance
 
         Instantiates the numpy structured array that holds information for each
@@ -97,9 +102,7 @@ class ResourceManager(RSetResources):
             self.nongpu_rsets_free += np.count_nonzero(~self.rsets["gpus"][rsets_to_free])
 
     @staticmethod
-    def get_index_list(
-        num_workers: int, num_rsets: int, zero_resource_list: List[Union[int, Any]]
-    ) -> List[Optional[int]]:
+    def get_index_list(num_workers: int, num_rsets: int, zero_resource_list: list[int | Any]) -> list[int | None]:
         """Map WorkerID to index into a nodelist"""
         index = 0
         index_list = []
@@ -127,7 +130,7 @@ class WorkerResources(RSetResources):
 
     :ivar int workerID: workerID for this worker.
     :ivar list local_nodelist: A list of all nodes assigned to this worker.
-    :ivar list rset_team: List of rset IDs currently assigned to this worker.
+    :ivar list rset_team: list of rset IDs currently assigned to this worker.
     :ivar int num_rsets: The number of resource sets assigned to this worker.
     :ivar dict slots: A dictionary with a list of slot IDs for each node.
     :ivar bool even_slots: True if each node has the same number of slots.
@@ -294,7 +297,7 @@ class WorkerResources(RSetResources):
             return self.all_rsets["gpus"][self.rset_team[0]]
         return False
 
-    def set_rset_team(self, rset_team: List[int]) -> None:
+    def set_rset_team(self, rset_team: list[int]) -> None:
         """Update worker team and local attributes
 
         Updates: rset_team
@@ -348,8 +351,8 @@ class WorkerResources(RSetResources):
 
     @staticmethod
     def get_local_nodelist(
-        workerID: int, rset_team: List[int], split_list: List[List[str]], rsets_per_node: int
-    ) -> Tuple[List[str], Dict[str, List[int]]]:
+        workerID: int, rset_team: list[int], split_list: list[list[str]], rsets_per_node: int
+    ) -> tuple[list[str], dict[str, list[int]]]:
         """Returns the list of nodes available to the given worker and the slot dictionary"""
         if workerID is None:
             raise WorkerResourcesException("Worker has no workerID - aborting")

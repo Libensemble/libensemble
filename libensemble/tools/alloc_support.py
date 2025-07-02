@@ -293,7 +293,7 @@ class AllocSupport:
         return work
 
     def _filter_points(self, H_in, pt_filter, low_bound):
-        """Returns H and pt_filter filted by lower bound
+        """Returns H and pt_filter filtered by lower bound
 
         :param pt_filter: (Optional) Boolean array filtering expected returned points in ``H``.
         :param low_bound: (Optional) Lower bound for testing all returned.

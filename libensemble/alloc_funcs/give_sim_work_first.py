@@ -1,5 +1,4 @@
 import time
-from typing import Tuple
 
 import numpy as np
 import numpy.typing as npt
@@ -15,7 +14,7 @@ def give_sim_work_first(
     alloc_specs: dict,
     persis_info: dict,
     libE_info: dict,
-) -> Tuple[dict]:
+) -> tuple[dict]:
     """
     Decide what should be given to workers. This allocation function gives any
     available simulation work first, and only when all simulations are
