@@ -2,18 +2,24 @@
 Manages libensemble resources related to MPI tasks launched from nodes.
 """
 
+from __future__ import annotations
+
 import logging
 import os
 import platform
 import subprocess
-from typing import Optional, Tuple, Union
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from libensemble.resources.resources import Resources
+    from libensemble.resources.worker_resources import WorkerResources
 
 
 class MPIResourcesException(Exception):
     """Resources module exception"""
 
 
-def rassert(test: Optional[Union[int, bool]], *args) -> None:
+def rassert(test: int | bool | None, *args) -> None:
     if not test:
         raise MPIResourcesException(*args)
 
@@ -89,8 +95,8 @@ def get_MPI_runner(mpi_runner=None) -> str:
 
 
 def task_partition(
-    num_procs: Optional[int], num_nodes: Optional[int], procs_per_node: Optional[int], machinefile: Optional[str] = None
-) -> Union[Tuple[None, None, None], Tuple[int, int, int]]:
+    num_procs: int | None, num_nodes: int | None, procs_per_node: int | None, machinefile: str | None = None
+) -> tuple[None, None, None] | tuple[int, int, int]:
     """Takes provided nprocs/nodes/ranks and outputs working
     configuration of procs/nodes/ranks or error
     """
@@ -121,7 +127,7 @@ def task_partition(
     return num_procs, num_nodes, procs_per_node
 
 
-def _max_rsets_per_node(worker_resources):
+def _max_rsets_per_node(worker_resources: WorkerResources) -> int:
     """Return the maximum rsets per node for any node on this worker"""
     rset_team = worker_resources.rset_team
     local_rsets_list = worker_resources.local_rsets_list
@@ -129,7 +135,13 @@ def _max_rsets_per_node(worker_resources):
     return max(rsets_on_node)
 
 
-def get_resources(resources, num_procs=None, num_nodes=None, procs_per_node=None, hyperthreads=False):
+def get_resources(
+    resources: Resources,
+    num_procs: int = None,
+    num_nodes: int = None,
+    procs_per_node: int = None,
+    hyperthreads: bool = False,
+) -> tuple[int, int, int]:
     """Reconciles user-supplied options with available worker
     resources to produce run configuration.
 
@@ -222,13 +234,13 @@ def get_resources(resources, num_procs=None, num_nodes=None, procs_per_node=None
 
 
 def create_machinefile(
-    resources: "resources.Resources",  # noqa: F821
-    machinefile: Optional[str] = None,
+    resources: Resources,
+    machinefile: str | None = None,
     num_procs: int = None,
-    num_nodes: Optional[int] = None,
-    procs_per_node: Optional[int] = None,
+    num_nodes: int | None = None,
+    procs_per_node: int | None = None,
     hyperthreads: bool = False,
-) -> Tuple[bool, None, int, int]:
+) -> tuple[bool, None, int, int]:
     """Creates a machinefile based on user-supplied config options,
     completed by detected machine resources
     """
@@ -251,7 +263,7 @@ def create_machinefile(
     return built_mfile, num_procs, num_nodes, procs_per_node
 
 
-def get_hostlist(resources, num_nodes=None):
+def get_hostlist(resources: Resources, num_nodes=None):
     """Creates a hostlist based on user-supplied config options.
 
     completed by detected machine resources

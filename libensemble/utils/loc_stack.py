@@ -5,7 +5,6 @@ libensemble utility class -- keeps a stack of directory locations.
 import os
 import shutil
 from pathlib import Path
-from typing import List, Optional, Union
 
 
 class LocationStack:
@@ -19,7 +18,7 @@ class LocationStack:
     def copy_file(
         self,
         destdir: Path,
-        copy_files: List[Path] = [],
+        copy_files: list[Path] = [],
         ignore_FileExists: bool = False,
         allow_overwrite: bool = False,
     ) -> None:
@@ -48,7 +47,7 @@ class LocationStack:
     def symlink_file(
         self,
         destdir: Path,
-        symlink_files: List[Path] = [],
+        symlink_files: list[Path] = [],
         ignore_FileExists: bool = False,
         allow_overwrite: bool = False,
     ) -> None:
@@ -67,11 +66,11 @@ class LocationStack:
 
     def register_loc(
         self,
-        key: Union[str, int],
+        key: str | int,
         dirname: Path,
-        prefix: Optional[Path] = None,
-        copy_files: List[Path] = [],
-        symlink_files: List[Path] = [],
+        prefix: Path | None = None,
+        copy_files: list[Path] = [],
+        symlink_files: list[Path] = [],
         ignore_FileExists: bool = False,
         allow_overwrite: bool = False,
     ) -> str:

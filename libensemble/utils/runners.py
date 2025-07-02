@@ -2,7 +2,6 @@ import inspect
 import logging
 import logging.handlers
 import time
-from typing import Optional
 
 import numpy.typing as npt
 
@@ -41,7 +40,7 @@ class Runner:
         args = [calc_in, persis_info, self.specs, libE_info]
         return args[:nparams]
 
-    def _result(self, calc_in: npt.NDArray, persis_info: dict, libE_info: dict) -> (npt.NDArray, dict, Optional[int]):
+    def _result(self, calc_in: npt.NDArray, persis_info: dict, libE_info: dict) -> (npt.NDArray, dict, int | None):
         """User function called in-place"""
         args = self._truncate_args(calc_in, persis_info, libE_info)
         return self.f(*args)
@@ -49,7 +48,7 @@ class Runner:
     def shutdown(self) -> None:
         pass
 
-    def run(self, calc_in: npt.NDArray, Work: dict) -> (npt.NDArray, dict, Optional[int]):
+    def run(self, calc_in: npt.NDArray, Work: dict) -> (npt.NDArray, dict, int | None):
         if Work["persis_info"] is None:
             Work["persis_info"] = {}
         return self._result(calc_in, Work["persis_info"], Work["libE_info"])
@@ -71,7 +70,7 @@ class GlobusComputeRunner(Runner):
         else:
             return Executor
 
-    def _result(self, calc_in: npt.NDArray, persis_info: dict, libE_info: dict) -> (npt.NDArray, dict, Optional[int]):
+    def _result(self, calc_in: npt.NDArray, persis_info: dict, libE_info: dict) -> (npt.NDArray, dict, int | None):
         from libensemble.worker import Worker
 
         libE_info["comm"] = None  # 'comm' object not pickle-able
@@ -90,7 +89,7 @@ class ThreadRunner(Runner):
         super().__init__(specs)
         self.thread_handle = None
 
-    def _result(self, calc_in: npt.NDArray, persis_info: dict, libE_info: dict) -> (npt.NDArray, dict, Optional[int]):
+    def _result(self, calc_in: npt.NDArray, persis_info: dict, libE_info: dict) -> (npt.NDArray, dict, int | None):
         args = self._truncate_args(calc_in, persis_info, libE_info)
         self.thread_handle = QCommThread(self.f, None, *args, user_function=True)
         self.thread_handle.run()
@@ -151,7 +150,7 @@ class StandardGenRunner(Runner):
         final_H_in = self._start_generator_loop(tag, Work, H_in)
         return self.gen.finalize(final_H_in), FINISHED_PERSISTENT_GEN_TAG
 
-    def _result(self, calc_in: npt.NDArray, persis_info: dict, libE_info: dict) -> (npt.NDArray, dict, Optional[int]):
+    def _result(self, calc_in: npt.NDArray, persis_info: dict, libE_info: dict) -> (npt.NDArray, dict, int):
         if libE_info.get("persistent"):
             return self._persistent_result(calc_in, persis_info, libE_info)
         raise ValueError(

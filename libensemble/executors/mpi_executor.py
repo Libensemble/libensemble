@@ -15,13 +15,11 @@ resource manager when submitting tasks.
 import logging
 import os
 import time
-from typing import List, Optional, Union
 
 import libensemble.utils.launcher as launcher
 from libensemble.executors.executor import Executor, ExecutorException, Task
 from libensemble.executors.mpi_runner import MPIRunner
 from libensemble.resources.mpi_resources import get_MPI_variant
-from libensemble.resources.resources import Resources
 
 logger = logging.getLogger(__name__)
 # To change logging level for just this module
@@ -137,11 +135,11 @@ class MPIExecutor(Executor):
         self.gen_nprocs = libE_info.get("num_procs")
         self.gen_ngpus = libE_info.get("num_gpus")
 
-    def set_resources(self, resources: Resources) -> None:
+    def set_resources(self, resources) -> None:
         self.resources = resources
 
     def _launch_with_retries(
-        self, task: Task, subgroup_launch: bool, wait_on_start: bool, run_cmd: List[str], use_shell: bool
+        self, task: Task, subgroup_launch: bool, wait_on_start: bool, run_cmd: list[str], use_shell: bool
     ) -> None:
         """Launch task with retry mechanism"""
         retry_count = 0
@@ -189,25 +187,25 @@ class MPIExecutor(Executor):
 
     def submit(
         self,
-        calc_type: Optional[str] = None,
-        app_name: Optional[str] = None,
-        num_procs: Optional[int] = None,
-        num_nodes: Optional[int] = None,
-        procs_per_node: Optional[int] = None,
-        num_gpus: Optional[int] = None,
-        machinefile: Optional[str] = None,
-        app_args: Optional[str] = None,
-        stdout: Optional[str] = None,
-        stderr: Optional[str] = None,
-        stage_inout: Optional[str] = None,
-        hyperthreads: Optional[bool] = False,
-        dry_run: Optional[bool] = False,
-        wait_on_start: Optional[bool] = False,
-        extra_args: Optional[str] = None,
-        auto_assign_gpus: Optional[bool] = False,
-        match_procs_to_gpus: Optional[bool] = False,
-        env_script: Optional[str] = None,
-        mpi_runner_type: Optional[Union[str, dict]] = None,
+        calc_type: str | None = None,
+        app_name: str | None = None,
+        num_procs: int | None = None,
+        num_nodes: int | None = None,
+        procs_per_node: int | None = None,
+        num_gpus: int | None = None,
+        machinefile: str | None = None,
+        app_args: str | None = None,
+        stdout: str | None = None,
+        stderr: str | None = None,
+        stage_inout: str | None = None,
+        hyperthreads: bool | None = False,
+        dry_run: bool | None = False,
+        wait_on_start: bool | None = False,
+        extra_args: str | None = None,
+        auto_assign_gpus: bool | None = False,
+        match_procs_to_gpus: bool | None = False,
+        env_script: str | None = None,
+        mpi_runner_type: str | dict | None = None,
     ) -> Task:
         """Creates a new task, and either executes or schedules execution.
 
