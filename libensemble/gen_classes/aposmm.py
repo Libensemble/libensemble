@@ -28,12 +28,9 @@ class APOSMM(PersistentGenInterfacer):
         self.vocs = vocs
 
         gen_specs["gen_f"] = aposmm
+        self.n = len(list(self.vocs.variables.keys()))
 
         if not gen_specs.get("out"):  # gen_specs never especially changes for aposmm even as the problem varies
-            if not self.variables:
-                self.n = len(kwargs["lb"]) or len(kwargs["ub"])
-            else:
-                self.n = len(self.variables)
             gen_specs["out"] = [
                 ("x", float, self.n),
                 ("x_on_cube", float, self.n),
@@ -43,6 +40,7 @@ class APOSMM(PersistentGenInterfacer):
             ]
             gen_specs["persis_in"] = ["x", "f", "local_pt", "sim_id", "sim_ended", "x_on_cube", "local_min"]
         super().__init__(vocs, History, persis_info, gen_specs, libE_info, **kwargs)
+
         if not self.persis_info.get("nworkers"):
             self.persis_info["nworkers"] = kwargs.get("nworkers", gen_specs["user"]["max_active_runs"])
         self.all_local_minima = []
