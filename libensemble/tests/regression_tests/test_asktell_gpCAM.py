@@ -23,9 +23,10 @@ import sys
 import warnings
 
 import numpy as np
+from generator_standard.vocs import VOCS
 
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
-from libensemble.gen_classes.gpCAM import GP_CAM, GP_CAM_Covar
+from libensemble.gen_classes.gpCAM import GP_CAM, GP_CAM_Covar, Standard_GP_CAM
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
@@ -69,7 +70,7 @@ if __name__ == "__main__":
 
     gen = GP_CAM_Covar(None, persis_info[1], gen_specs, None)
 
-    for inst in range(3):
+    for inst in range(4):
         if inst == 0:
             gen_specs["generator"] = gen
             num_batches = 10
@@ -87,6 +88,13 @@ if __name__ == "__main__":
             gen_specs["generator"] = GP_CAM(None, persis_info[1], gen_specs, None)
             num_batches = 3  # Few because the ask_tell gen can be slow
             gen_specs["user"]["ask_max_iter"] = 1  # For quicker test
+            exit_criteria = {"sim_max": num_batches * batch_size, "wallclock_max": 300}
+        elif inst == 3:
+            vocs = VOCS(
+                variables={"x0": [-3, 3], "x1": [-2, 2], "x2": [-1, 1], "x3": [-1, 1]}, objectives={"f", "MINIMIZE"}
+            )
+            gen_specs["generator"] = Standard_GP_CAM(vocs, ask_max_iter=1)
+            num_batches = 3  # Few because the ask_tell gen can be slow
             exit_criteria = {"sim_max": num_batches * batch_size, "wallclock_max": 300}
 
         # Perform the run
