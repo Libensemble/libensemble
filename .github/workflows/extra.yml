@@ -12,38 +12,23 @@ jobs:
                 os: [ubuntu-latest]
                 mpi-version: [mpich]
                 python-version: ['3.10', '3.11', '3.12', '3.13']
-                pydantic-version: ['2.10.6']
                 comms-type: [m, l]
                 include:
                     - os: macos-latest
                       python-version: '3.13'
                       mpi-version: mpich
-                      pydantic-version: '2.10.6'
                       comms-type: m
                     - os: macos-latest
                       python-version: '3.13'
                       mpi-version: mpich
-                      pydantic-version: '2.10.6'
                       comms-type: l
                     - os: ubuntu-latest
                       python-version: '3.12'
                       mpi-version: mpich
-                      pydantic-version: '2.10.6'
                       comms-type: t
                     - os: ubuntu-latest
                       mpi-version: 'openmpi'
-                      pydantic-version: '2.10.6'
                       python-version: '3.12'
-                      comms-type: l
-                    - os: ubuntu-latest
-                      mpi-version: mpich
-                      python-version: '3.12'
-                      pydantic-version: '1.10.21'
-                      comms-type: m
-                    - os: ubuntu-latest
-                      mpi-version: mpich
-                      python-version: '3.12'
-                      pydantic-version: '1.10.21'
                       comms-type: l
 
         env:
@@ -110,14 +95,6 @@ jobs:
           run: |
             pip install scikit-build packaging
 
-        - name: Install Balsam on Pydantic 1
-          if: matrix.pydantic-version == '1.10.21'
-          run: |
-            conda install pyzmq
-            git clone https://github.com/argonne-lcf/balsam.git
-            sed -i -e "s/pyzmq>=22.1.0,<23.0.0/pyzmq>=23.0.0,<24.0.0/" ./balsam/setup.cfg
-            cd balsam; pip install -e .; cd ..
-
         - name: Install other testing dependencies
           run: |
             pip install -r install/testing_requirements.txt
@@ -127,7 +104,6 @@ jobs:
 
         - name: Install libEnsemble, flake8, lock environment
           run: |
-            pip install pydantic==${{ matrix.pydantic-version }}
             pip install -e .
             flake8 libensemble
 
@@ -138,22 +114,10 @@ jobs:
             rm ./libensemble/tests/regression_tests/test_persistent_aposmm_external_localopt.py # needs octave, which doesn't yet support 3.13
             rm ./libensemble/tests/regression_tests/test_gpCAM.py # needs gpcam, which doesn't build on 3.13
 
-        - name: Install redis/proxystore on Pydantic 2
-          if: matrix.pydantic-version == '2.10.6'
+        - name: Install redis/proxystore
           run: |
             pip install redis
             pip install proxystore==0.7.0
-
-        - name: Remove proxystore test on Pydantic 1
-          if: matrix.pydantic-version == '1.10.21'
-          run: |
-            rm ./libensemble/tests/regression_tests/test_proxystore_integration.py
-
-        - name: Remove Balsam/Globus-compute tests on Pydantic 2
-          if: matrix.pydantic-version == '2.10.6'
-          run: |
-            rm ./libensemble/tests/unit_tests/test_ufunc_runners.py
-            rm ./libensemble/tests/unit_tests/test_executor_balsam.py
 
         - name: Start Redis
           if: matrix.os == 'ubuntu-latest'
