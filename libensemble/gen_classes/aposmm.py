@@ -2,6 +2,7 @@ import copy
 from typing import List
 
 import numpy as np
+from generator_standard.vocs import VOCS
 from numpy import typing as npt
 
 from libensemble.generators import PersistentGenInterfacer
@@ -15,8 +16,7 @@ class APOSMM(PersistentGenInterfacer):
 
     def __init__(
         self,
-        variables: dict,
-        objectives: dict,
+        vocs: VOCS,
         History: npt.NDArray = [],
         persis_info: dict = {},
         gen_specs: dict = {},
@@ -25,8 +25,7 @@ class APOSMM(PersistentGenInterfacer):
     ) -> None:
         from libensemble.gen_funcs.persistent_aposmm import aposmm
 
-        self.variables = variables
-        self.objectives = objectives
+        self.vocs = vocs
 
         gen_specs["gen_f"] = aposmm
 
@@ -43,7 +42,7 @@ class APOSMM(PersistentGenInterfacer):
                 ("local_pt", bool),
             ]
             gen_specs["persis_in"] = ["x", "f", "local_pt", "sim_id", "sim_ended", "x_on_cube", "local_min"]
-        super().__init__(variables, objectives, History, persis_info, gen_specs, libE_info, **kwargs)
+        super().__init__(vocs, History, persis_info, gen_specs, libE_info, **kwargs)
         if not self.persis_info.get("nworkers"):
             self.persis_info["nworkers"] = kwargs.get("nworkers", gen_specs["user"]["max_active_runs"])
         self.all_local_minima = []

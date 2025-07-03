@@ -18,9 +18,14 @@ class GeneratorNotStartedException(Exception):
 
 
 class LibensembleGenerator(Generator):
-    """Internal implementation of Generator interface for use with libEnsemble, or for those who
-    prefer numpy arrays. ``suggest/ingest`` methods communicate lists of dictionaries, like the standard.
+    """
+    Generator interface that accepts the classic History, persis_info, gen_specs, libE_info parameters after VOCS.
+
+    ``suggest/ingest`` methods communicate lists of dictionaries, like the standard.
     ``suggest_numpy/ingest_numpy`` methods communicate numpy arrays containing the same data.
+
+    Providing ``variables_mapping`` is optional but highly recommended to map the internal variable names to
+    user-defined ones. For instance, ``variables_mapping = {"x": ["core", "edge", "beam"], "f": ["energy"]}``.
     """
 
     def __init__(
