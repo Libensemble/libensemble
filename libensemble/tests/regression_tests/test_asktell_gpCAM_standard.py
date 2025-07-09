@@ -68,7 +68,7 @@ if __name__ == "__main__":
 
     persis_info = add_unique_random_streams({}, nworkers + 1)
 
-    vocs = VOCS(variables={"x0": [-3, 3], "x1": [-2, 2], "x2": [-1, 1], "x3": [-1, 1]}, objectives={"f", "MINIMIZE"})
+    vocs = VOCS(variables={"x0": [-3, 3], "x1": [-2, 2], "x2": [-1, 1], "x3": [-1, 1]}, objectives={"f": "MINIMIZE"})
     gen_specs["generator"] = Standard_GP_CAM(vocs, ask_max_iter=1)
 
     num_batches = 3  # Few because the ask_tell gen can be slow

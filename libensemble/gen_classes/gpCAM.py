@@ -119,23 +119,20 @@ class Standard_GP_CAM(Generator):
         assert isinstance(self.n, int), "Dimension must be an integer"
         assert isinstance(self.lb, np.ndarray), "lb must be a numpy array"
         assert isinstance(self.ub, np.ndarray), "ub must be a numpy array"
+        self.variables_mapping = {}
 
         self.gpcam = GP_CAM(
             [], {"rand_stream": self.rng}, {"out": [("x", float, (self.n))], "user": {"lb": self.lb, "ub": self.ub}}, {}
         )
-        self.mapping = {
-            "x": [VOCS.variables[i].name for i in range(len(VOCS.variables))],
-            "f": [VOCS.objectives[i].name for i in range(len(VOCS.objectives))],
-        }
 
     def _validate_vocs(self, VOCS):
         assert len(self.VOCS.variables), "VOCS must contain variables."
 
     def suggest(self, n_trials: int) -> list[dict]:
-        return np_to_list_dicts(self.gpcam.suggest_numpy(n_trials), self.mapping)
+        return np_to_list_dicts(self.gpcam.suggest_numpy(n_trials))
 
     def ingest(self, calc_in: dict) -> None:
-        self.gpcam.ingest_numpy(list_dicts_to_np(calc_in, self.mapping))
+        self.gpcam.ingest_numpy(list_dicts_to_np(calc_in))
 
 
 class GP_CAM_Covar(GP_CAM):
