@@ -25,10 +25,14 @@ class APOSMM(PersistentGenInterfacer):
     ) -> None:
         from libensemble.gen_funcs.persistent_aposmm import aposmm
 
-        self.vocs = vocs
+        self.VOCS = vocs
 
         gen_specs["gen_f"] = aposmm
-        self.n = len(list(self.vocs.variables.keys()))
+        self.n = len(list(self.VOCS.variables.keys()))
+
+        gen_specs["user"] = {}
+        gen_specs["user"]["lb"] = np.array([vocs.variables[i].domain[0] for i in vocs.variables])
+        gen_specs["user"]["ub"] = np.array([vocs.variables[i].domain[1] for i in vocs.variables])
 
         if not gen_specs.get("out"):  # gen_specs never especially changes for aposmm even as the problem varies
             gen_specs["out"] = [
