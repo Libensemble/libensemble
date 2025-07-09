@@ -136,7 +136,7 @@ class StandardGenRunner(Runner):
 
     def _start_generator_loop(self, tag, Work, H_in):
         """Start the generator loop after choosing best way of giving initial results to gen"""
-        self.gen.ingest(np_to_list_dicts(H_in))
+        self.gen.ingest(np_to_list_dicts(H_in, mapping=self.gen.variables_mapping))
         return self._loop_over_gen(tag, Work, H_in)
 
     def _persistent_result(self, calc_in, persis_info, libE_info):

@@ -226,6 +226,7 @@ def np_to_list_dicts(array: npt.NDArray, mapping: dict = {}) -> List[dict]:
                 else:
                     new_dict[field] = row[field]
 
+            # TODO: chase down multivar bug here involving a shape being '()'
             else:  # keys from mapping and array unpacked into corresponding fields in dicts
                 assert array.dtype[field].shape[0] == len(mapping[field]), (
                     "dimension mismatch between mapping and array with field " + field
