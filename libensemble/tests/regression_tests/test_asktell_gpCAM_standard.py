@@ -2,14 +2,14 @@
 Tests libEnsemble with gpCAM
 
 Execute via one of the following commands (e.g. 3 workers):
-   mpiexec -np 4 python test_gpCAM_class.py
-   python test_gpCAM_class.py --nworkers 3 --comms local
+   mpiexec -np 3 python test_asktell_gpCAM_standard.py
+   python test_asktell_gpCAM_standard.py -n 3
 
 When running with the above commands, the number of concurrent evaluations of
 the objective function will be 2, as one of the three workers will be the
 persistent generator.
 
-See libensemble.gen_funcs.persistent_gpCAM for more details about the generator
+See libensemble.gen_classes.gpCAM for more details about the generator
 setup.
 """
 
@@ -23,9 +23,10 @@ import sys
 import warnings
 
 import numpy as np
+from generator_standard.vocs import VOCS
 
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
-from libensemble.gen_classes.gpCAM import GP_CAM, GP_CAM_Covar
+from libensemble.gen_classes.gpCAM import Standard_GP_CAM
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
@@ -67,32 +68,16 @@ if __name__ == "__main__":
 
     persis_info = add_unique_random_streams({}, nworkers + 1)
 
-    gen = GP_CAM_Covar(None, persis_info[1], gen_specs, None)
+    vocs = VOCS(variables={"x0": [-3, 3], "x1": [-2, 2], "x2": [-1, 1], "x3": [-1, 1]}, objectives={"f", "MINIMIZE"})
+    gen_specs["generator"] = Standard_GP_CAM(vocs, ask_max_iter=1)
 
-    for inst in range(3):
-        if inst == 0:
-            gen_specs["generator"] = gen
-            num_batches = 10
-            exit_criteria = {"sim_max": num_batches * batch_size, "wallclock_max": 300}
-            libE_specs["save_every_k_gens"] = 150
-            libE_specs["H_file_prefix"] = "gpCAM_nongrid"
-        if inst == 1:
-            gen_specs["user"]["use_grid"] = True
-            gen_specs["user"]["test_points_file"] = "gpCAM_nongrid_after_gen_150.npy"
-            libE_specs["final_gen_send"] = True
-            del libE_specs["H_file_prefix"]
-            del libE_specs["save_every_k_gens"]
-        elif inst == 2:
-            persis_info = add_unique_random_streams({}, nworkers + 1)
-            gen_specs["generator"] = GP_CAM(None, persis_info[1], gen_specs, None)
-            num_batches = 3  # Few because the ask_tell gen can be slow
-            gen_specs["user"]["ask_max_iter"] = 1  # For quicker test
-            exit_criteria = {"sim_max": num_batches * batch_size, "wallclock_max": 300}
+    num_batches = 3  # Few because the ask_tell gen can be slow
+    exit_criteria = {"sim_max": num_batches * batch_size, "wallclock_max": 300}
 
-        # Perform the run
-        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+    # Perform the run
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 
-        if is_manager:
-            assert len(np.unique(H["gen_ended_time"])) == num_batches
+    if is_manager:
+        assert len(np.unique(H["gen_ended_time"])) == num_batches
 
-            save_libE_output(H, persis_info, __file__, nworkers)
+        save_libE_output(H, persis_info, __file__, nworkers)
