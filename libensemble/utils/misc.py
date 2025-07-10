@@ -201,7 +201,7 @@ def _is_multidim(selection: npt.NDArray) -> bool:
 
 
 def _is_singledim(selection: npt.NDArray) -> bool:
-    return hasattr(selection, "__len__") and len(selection) == 1
+    return (hasattr(selection, "__len__") and len(selection) == 1) or selection.shape == ()
 
 
 def np_to_list_dicts(array: npt.NDArray, mapping: dict = {}) -> List[dict]:
@@ -220,20 +220,20 @@ def np_to_list_dicts(array: npt.NDArray, mapping: dict = {}) -> List[dict]:
                     for i, x in enumerate(row[field]):
                         new_dict[field + str(i)] = x
 
-                elif _is_singledim(row[field]):  # single-entry arrays, lists, etc.
-                    new_dict[field] = row[field][0]  # will still work on single-char strings
-
                 else:
                     new_dict[field] = row[field]
 
-            # TODO: chase down multivar bug here involving a shape being '()'
             else:  # keys from mapping and array unpacked into corresponding fields in dicts
-                assert array.dtype[field].shape[0] == len(mapping[field]), (
+                field_shape = array.dtype[field].shape[0] if len(array.dtype[field].shape) > 0 else 1
+                assert field_shape == len(mapping[field]), (
                     "dimension mismatch between mapping and array with field " + field
                 )
 
                 for i, name in enumerate(mapping[field]):
-                    new_dict[name] = row[field][i]
+                    if _is_multidim(row[field]):
+                        new_dict[name] = row[field][i]
+                    elif _is_singledim(row[field]):
+                        new_dict[name] = row[field]
 
         out.append(new_dict)
 
