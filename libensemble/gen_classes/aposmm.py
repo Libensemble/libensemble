@@ -46,7 +46,7 @@ class APOSMM(PersistentGenInterfacer):
         super().__init__(vocs, History, persis_info, gen_specs, libE_info, **kwargs)
 
         if not self.persis_info.get("nworkers"):
-            self.persis_info["nworkers"] = kwargs.get("nworkers", gen_specs["user"]["max_active_runs"])
+            self.persis_info["nworkers"] = kwargs.get("nworkers", gen_specs["user"].get("max_active_runs", 4))
         self.all_local_minima = []
         self._suggest_idx = 0
         self._last_suggest = None
