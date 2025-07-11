@@ -151,8 +151,9 @@ class StandardGenRunner(Runner):
             mapping=getattr(self.gen, "variables_mapping", {}),
         )
         tag, Work, H_in = self.ps.send_recv(H_out)  # evaluate the initial sample
-        final_H_in = self._start_generator_loop(tag, Work, H_in)
-        return final_H_in, FINISHED_PERSISTENT_GEN_TAG
+        final_H_out = self._start_generator_loop(tag, Work, H_in)
+        self.gen.finalize()
+        return final_H_out, FINISHED_PERSISTENT_GEN_TAG
 
     def _result(self, calc_in: npt.NDArray, persis_info: dict, libE_info: dict) -> (npt.NDArray, dict, int):
         if libE_info.get("persistent"):
@@ -213,5 +214,6 @@ class LibensembleGenThreadRunner(StandardGenRunner):
             while self.ps.comm.mail_flag():  # receive any new messages from Manager, give all to gen
                 tag, _, H_in = self.ps.recv()
                 if tag in [STOP_TAG, PERSIS_STOP]:
-                    return H_in  # this will get inserted into finalize. this breaks loop
+                    self.gen.ingest_numpy(H_in, PERSIS_STOP)
+                    return self.gen.running_gen_f.result()
                 self.gen.ingest_numpy(H_in)
