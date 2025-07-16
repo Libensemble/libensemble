@@ -80,7 +80,7 @@ class Application:
         name: str | None = None,
         calc_type: str | None = "sim",
         desc: str | None = None,
-        pyobj: Any | None = None,  # used by balsam_executor to store ApplicationDefinition
+        pyobj: Any | None = None,
         precedent: str = "",
     ) -> None:
         """Instantiates a new Application instance."""
