@@ -162,7 +162,9 @@ def check_provided_ufuncs(self):
 
     if self.alloc_specs.alloc_f.__name__ != "give_pregenerated_sim_work":
         assert hasattr(self.gen_specs, "gen_f"), "Generator function not provided to GenSpecs."
-        assert isinstance(self.gen_specs.gen_f, Callable), "Generator function is not callable."
+        assert (
+            isinstance(self.gen_specs.gen_f, Callable) if self.gen_specs.gen_f is not None else True
+        ), "Generator function is not callable."
 
     return self
 
