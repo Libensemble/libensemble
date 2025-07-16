@@ -16,7 +16,6 @@ from libensemble.utils.validators import (
     check_logical_cores,
     check_mpi_runner_type,
     check_provided_ufuncs,
-    check_set_gen_specs_from_variables,
     check_valid_comms_type,
     check_valid_in,
     check_valid_out,
@@ -77,7 +76,6 @@ if "sphinx" not in sys.modules:
         __validators__={
             "check_valid_out": check_valid_out,
             "check_valid_in": check_valid_in,
-            "check_set_gen_specs_from_variables": check_set_gen_specs_from_variables,
             "genf_set_in_out_from_attrs": genf_set_in_out_from_attrs,
         },
     )
