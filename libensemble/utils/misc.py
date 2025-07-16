@@ -7,16 +7,7 @@ from operator import itemgetter
 from typing import List
 
 import numpy as np
-import pydantic
-from numpy import typing as npt
-
-pydantic_version = pydantic.__version__[0]
-
-pydanticV1 = pydantic_version == "1"
-pydanticV2 = pydantic_version == "2"
-
-if not pydanticV1 and not pydanticV2:
-    raise ModuleNotFoundError("Pydantic not installed or current version not supported. Install v1 or v2.")
+import numpy.typing as npt
 
 
 def extract_H_ranges(Work: dict) -> str:
@@ -58,27 +49,18 @@ class _WorkerIndexer:
 
 
 def specs_dump(specs, **kwargs):
-    if pydanticV1:
-        return specs.dict(**kwargs)
-    else:
-        return specs.model_dump(**kwargs)
+    return specs.model_dump(**kwargs)
 
 
 def specs_checker_getattr(obj, key, default=None):
-    if pydanticV1:  # dict
-        return obj.get(key, default)
-    else:  # actual obj
-        try:
-            return getattr(obj, key)
-        except AttributeError:
-            return default
+    try:
+        return getattr(obj, key)
+    except AttributeError:
+        return default
 
 
 def specs_checker_setattr(obj, key, value):
-    if pydanticV1:  # dict
-        obj[key] = value
-    else:  # actual obj
-        obj.__dict__[key] = value
+    obj.__dict__[key] = value
 
 
 def _combine_names(names: list) -> list:

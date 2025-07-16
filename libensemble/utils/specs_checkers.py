@@ -25,13 +25,6 @@ def _check_exit_criteria(values):
     return values
 
 
-def _check_set_gen_specs_from_variables(values):
-    if not len(scg(values, "outputs")):
-        if scg(values, "generator") and len(scg(values, "generator").gen_specs["out"]):
-            scs(values, "outputs", scg(values, "generator").gen_specs["out"])
-    return values
-
-
 def _check_H0(values):
     if scg(values, "H0").size > 0:
         H0 = scg(values, "H0")
