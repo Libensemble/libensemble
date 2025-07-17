@@ -11,8 +11,8 @@ from libensemble.utils.specs_checkers import (
     _check_exit_criteria,
     _check_H0,
     _check_logical_cores,
-    _check_output_fields,
     _check_set_calc_dirs_on_input_dir,
+    _check_set_gen_specs_from_variables,
     _check_set_workflow_dir,
 )
 
@@ -152,13 +152,13 @@ def check_exit_criteria(self):
 
 
 @model_validator(mode="after")
-def check_output_fields(self):
-    return _check_output_fields(self)
+def check_H0(self):
+    return _check_H0(self)
 
 
 @model_validator(mode="after")
-def check_H0(self):
-    return _check_H0(self)
+def check_set_gen_specs_from_variables(self):
+    return _check_set_gen_specs_from_variables(self)
 
 
 @model_validator(mode="after")
@@ -168,7 +168,9 @@ def check_provided_ufuncs(self):
 
     if self.alloc_specs.alloc_f.__name__ != "give_pregenerated_sim_work":
         assert hasattr(self.gen_specs, "gen_f"), "Generator function not provided to GenSpecs."
-        assert isinstance(self.gen_specs.gen_f, Callable), "Generator function is not callable."
+        assert (
+            isinstance(self.gen_specs.gen_f, Callable) if self.gen_specs.gen_f is not None else True
+        ), "Generator function is not callable."
 
     return self
 

@@ -5,7 +5,7 @@ from libensemble.message_numbers import MAN_KILL_SIGNALS, TASK_FAILED, UNSET_TAG
 from libensemble.sim_funcs.surmise_test_function import borehole_true
 
 
-def subproc_borehole(H, delay):
+def subproc_borehole(H, delay, poll_manager):
     """This evaluates the Borehole function using a subprocess
     running compiled code.
 
@@ -15,14 +15,14 @@ def subproc_borehole(H, delay):
 
     """
     with open("input", "w") as f:
-        H["thetas"][0].tofile(f)
-        H["x"][0].tofile(f)
+        H["thetas"].tofile(f)
+        H["x"].tofile(f)
 
     exctr = Executor.executor
     args = "input" + " " + str(delay)
 
     task = exctr.submit(app_name="borehole", app_args=args, stdout="out.txt", stderr="err.txt")
-    calc_status = exctr.polling_loop(task, delay=0.01, poll_manager=True)
+    calc_status = exctr.polling_loop(task, delay=0.01, poll_manager=poll_manager)
 
     if calc_status in MAN_KILL_SIGNALS + [TASK_FAILED]:
         f = np.inf
@@ -45,7 +45,7 @@ def borehole(H, persis_info, sim_specs, libE_info):
     if sim_id > sim_specs["user"]["init_sample_size"]:
         delay = 2 + np.random.normal(scale=0.5)
 
-    f, calc_status = subproc_borehole(H, delay)
+    f, calc_status = subproc_borehole(H, delay, sim_specs["user"].get("poll_manager", True))
 
     if calc_status in MAN_KILL_SIGNALS and "sim_killed" in H_o.dtype.names:
         H_o["sim_killed"] = True  # For calling script to print only.

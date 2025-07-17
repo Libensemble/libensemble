@@ -38,6 +38,7 @@ per-file-ignores =
 
         # Need to set something before the APOSMM import
         libensemble/tests/regression_tests/test_persistent_aposmm*:E402
+        libensemble/tests/regression_tests/test_asktell_aposmm_nlopt.py:E402
         libensemble/tests/regression_tests/test_persistent_gp_multitask_ax.py:E402
         libensemble/tests/functionality_tests/test_uniform_sampling_then_persistent_localopt_runs.py:E402
         libensemble/tests/functionality_tests/test_stats_output.py:E402

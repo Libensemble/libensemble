@@ -4,3 +4,4 @@ ignore:
   - "libensemble/tools/live_data/*"
   - "libensemble/sim_funcs/executor_hworld.py"
   - "libensemble/gen_funcs/persistent_tasmanian.py"
+  - "libensemble/gen_classes/gpCAM.py"

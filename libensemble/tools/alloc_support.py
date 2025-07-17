@@ -280,6 +280,7 @@ class AllocSupport:
 
         H_fields = AllocSupport._check_H_fields(H_fields)
         libE_info["H_rows"] = AllocSupport._check_H_rows(H_rows)
+        libE_info["batch_size"] = len(self.avail_worker_ids(gen_workers=False))
 
         work = {
             "H_fields": H_fields,
