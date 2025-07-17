@@ -7,16 +7,7 @@ from operator import itemgetter
 from typing import List
 
 import numpy as np
-import pydantic
-from numpy import typing as npt
-
-pydantic_version = pydantic.__version__[0]
-
-pydanticV1 = pydantic_version == "1"
-pydanticV2 = pydantic_version == "2"
-
-if not pydanticV1 and not pydanticV2:
-    raise ModuleNotFoundError("Pydantic not installed or current version not supported. Install v1 or v2.")
+import numpy.typing as npt
 
 
 def extract_H_ranges(Work: dict) -> str:
@@ -58,27 +49,18 @@ class _WorkerIndexer:
 
 
 def specs_dump(specs, **kwargs):
-    if pydanticV1:
-        return specs.dict(**kwargs)
-    else:
-        return specs.model_dump(**kwargs)
+    return specs.model_dump(**kwargs)
 
 
 def specs_checker_getattr(obj, key, default=None):
-    if pydanticV1:  # dict
-        return obj.get(key, default)
-    else:  # actual obj
-        try:
-            return getattr(obj, key)
-        except AttributeError:
-            return default
+    try:
+        return getattr(obj, key)
+    except AttributeError:
+        return default
 
 
 def specs_checker_setattr(obj, key, value):
-    if pydanticV1:  # dict
-        obj[key] = value
-    else:  # actual obj
-        obj.__dict__[key] = value
+    obj.__dict__[key] = value
 
 
 def _combine_names(names: list) -> list:
@@ -201,7 +183,7 @@ def _is_multidim(selection: npt.NDArray) -> bool:
 
 
 def _is_singledim(selection: npt.NDArray) -> bool:
-    return hasattr(selection, "__len__") and len(selection) == 1
+    return (hasattr(selection, "__len__") and len(selection) == 1) or selection.shape == ()
 
 
 def np_to_list_dicts(array: npt.NDArray, mapping: dict = {}) -> List[dict]:
@@ -220,19 +202,20 @@ def np_to_list_dicts(array: npt.NDArray, mapping: dict = {}) -> List[dict]:
                     for i, x in enumerate(row[field]):
                         new_dict[field + str(i)] = x
 
-                elif _is_singledim(row[field]):  # single-entry arrays, lists, etc.
-                    new_dict[field] = row[field][0]  # will still work on single-char strings
-
                 else:
                     new_dict[field] = row[field]
 
             else:  # keys from mapping and array unpacked into corresponding fields in dicts
-                assert array.dtype[field].shape[0] == len(mapping[field]), (
+                field_shape = array.dtype[field].shape[0] if len(array.dtype[field].shape) > 0 else 1
+                assert field_shape == len(mapping[field]), (
                     "dimension mismatch between mapping and array with field " + field
                 )
 
                 for i, name in enumerate(mapping[field]):
-                    new_dict[name] = row[field][i]
+                    if _is_multidim(row[field]):
+                        new_dict[name] = row[field][i]
+                    elif _is_singledim(row[field]):
+                        new_dict[name] = row[field]
 
         out.append(new_dict)
 
