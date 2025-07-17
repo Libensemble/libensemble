@@ -14,6 +14,7 @@ The number of concurrent evaluations of the objective function will be 4-1=3.
 # TESTSUITE_NPROCS: 2 4
 
 import numpy as np
+from generator_standard.vocs import VOCS
 
 # Import libEnsemble items for this test
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
@@ -54,13 +55,15 @@ if __name__ == "__main__":
 
     objectives = {"f": "EXPLORE"}
 
+    vocs = VOCS(variables=variables, objectives=objectives)
+
     alloc_specs = {"alloc_f": alloc_f}
     exit_criteria = {"gen_max": 201}
 
     persis_info = add_unique_random_streams({}, nworkers + 1, seed=1234)
 
     # Using standard runner - pass object
-    generator = UniformSample(variables, objectives)
+    generator = UniformSample(vocs)
     gen_specs["generator"] = generator
 
     H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs=libE_specs)
