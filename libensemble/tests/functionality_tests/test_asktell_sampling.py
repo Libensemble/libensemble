@@ -52,7 +52,7 @@ if __name__ == "__main__":
     }
 
     variables = {"x0": [-3, 3], "x1": [-2, 2]}
-    objectives = {"f": "EXPLORE"}
+    objectives = {"edge": "EXPLORE"}
 
     vocs = VOCS(variables=variables, objectives=objectives)
 
@@ -65,7 +65,8 @@ if __name__ == "__main__":
             generator = StandardSample(vocs)
 
         elif test == 1:
-            generator = UniformSample(vocs, None, persis_info[1], gen_specs)
+            persis_info["num_gens_started"] = 0
+            generator = UniformSample(vocs)
 
         gen_specs["generator"] = generator
         H, persis_info, flag = libE(

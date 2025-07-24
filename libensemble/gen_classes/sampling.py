@@ -12,20 +12,7 @@ __all__ = [
 ]
 
 
-class SampleBase(LibensembleGenerator):
-    """Base class for sampling generators"""
-
-    def _get_user_params(self, user_specs):
-        """Extract user params"""
-        self.ub = user_specs["ub"]
-        self.lb = user_specs["lb"]
-        self.n = len(self.lb)  # dimension
-        assert isinstance(self.n, int), "Dimension must be an integer"
-        assert isinstance(self.lb, np.ndarray), "lb must be a numpy array"
-        assert isinstance(self.ub, np.ndarray), "ub must be a numpy array"
-
-
-class UniformSample(SampleBase):
+class UniformSample(LibensembleGenerator):
     """
     This generator returns ``gen_specs["initial_batch_size"]`` uniformly
     sampled points the first time it is called. Afterwards, it returns the
@@ -33,13 +20,18 @@ class UniformSample(SampleBase):
     mode by adjusting the allocation function.
     """
 
-    def __init__(self, VOCS: VOCS, H=[], persis_info={}, gen_specs={}, libE_info=None, **kwargs):
-        super().__init__(VOCS, H, persis_info, gen_specs, libE_info, **kwargs)
-        self._get_user_params(gen_specs["user"])
+    def __init__(self, VOCS: VOCS):
+        super().__init__(VOCS)
+        self.rng = np.random.default_rng(1)
+        self.np_dtype = [(i, float) for i in self.VOCS.variables.keys()]
 
     def suggest_numpy(self, n_trials):
-        out = np.zeros(n_trials, dtype=self.gen_specs["out"])
-        out["x"] = self.persis_info["rand_stream"].uniform(self.lb, self.ub, (n_trials, self.n))
+        out = np.zeros(n_trials, dtype=self.np_dtype)
+        for trial in range(n_trials):
+            for field in self.VOCS.variables.keys():
+                out[trial][field] = self.rng.uniform(
+                    self.VOCS.variables[field].domain[0], self.VOCS.variables[field].domain[1]
+                )
         return out
 
     def ingest_numpy(self, calc_in):
@@ -51,10 +43,10 @@ class StandardSample(Generator):
     This sampler only adheres to the complete standard interface, with no additional numpy methods.
     """
 
-    def __init__(self, VOCS: VOCS, *args, **kwargs):
+    def __init__(self, VOCS: VOCS):
         self.VOCS = VOCS
         self.rng = np.random.default_rng(1)
-        self._validate_vocs(VOCS)
+        super().__init__(VOCS)
 
     def _validate_vocs(self, VOCS):
         assert len(self.VOCS.variables), "VOCS must contain variables."

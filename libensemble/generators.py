@@ -58,6 +58,8 @@ class LibensembleGenerator(Generator):
     def _validate_vocs(self, vocs) -> None:
         pass
 
+    # TODO: Perhaps convert VOCS to gen_specs values
+
     @abstractmethod
     def suggest_numpy(self, num_points: Optional[int] = 0) -> npt.NDArray:
         """Request the next set of points to evaluate, as a NumPy array."""
