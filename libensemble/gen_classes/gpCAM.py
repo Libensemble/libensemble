@@ -4,6 +4,8 @@ import time
 from typing import List
 
 import numpy as np
+from generator_standard import Generator
+from generator_standard.vocs import VOCS
 from gpcam import GPOptimizer as GP
 from numpy import typing as npt
 
@@ -16,6 +18,7 @@ from libensemble.gen_funcs.persistent_gpCAM import (
     _read_testpoints,
 )
 from libensemble.generators import LibensembleGenerator
+from libensemble.utils.misc import list_dicts_to_np, np_to_list_dicts
 
 __all__ = [
     "GP_CAM",
@@ -100,6 +103,36 @@ class GP_CAM(LibensembleGenerator):
             else:
                 self.my_gp.tell(self.all_x, self.all_y.flatten(), noise_variances=noise_var)
             self.my_gp.train()
+
+
+class Standard_GP_CAM(Generator):
+
+    def __init__(self, VOCS: VOCS, ask_max_iter: int = 10):
+        self.VOCS = VOCS
+        self.rng = np.random.default_rng(1)
+
+        self._validate_vocs(VOCS)
+
+        self.lb = np.array([VOCS.variables[i].domain[0] for i in VOCS.variables])
+        self.ub = np.array([VOCS.variables[i].domain[1] for i in VOCS.variables])
+        self.n = len(self.lb)  # dimension
+        assert isinstance(self.n, int), "Dimension must be an integer"
+        assert isinstance(self.lb, np.ndarray), "lb must be a numpy array"
+        assert isinstance(self.ub, np.ndarray), "ub must be a numpy array"
+        self.variables_mapping = {}
+
+        self.gpcam = GP_CAM(
+            [], {"rand_stream": self.rng}, {"out": [("x", float, (self.n))], "user": {"lb": self.lb, "ub": self.ub}}, {}
+        )
+
+    def _validate_vocs(self, VOCS):
+        assert len(self.VOCS.variables), "VOCS must contain variables."
+
+    def suggest(self, n_trials: int) -> list[dict]:
+        return np_to_list_dicts(self.gpcam.suggest_numpy(n_trials))
+
+    def ingest(self, calc_in: dict) -> None:
+        self.gpcam.ingest_numpy(list_dicts_to_np(calc_in))
 
 
 class GP_CAM_Covar(GP_CAM):

@@ -615,6 +615,7 @@ class Manager:
         if self.live_data is not None:
             self.live_data.finalize(self.hist)
 
+        persis_info["num_gens_started"] = 0
         return persis_info, exit_flag, self.elapsed()
 
     def _sim_max_given(self) -> bool:

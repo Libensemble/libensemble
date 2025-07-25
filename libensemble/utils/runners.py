@@ -111,7 +111,9 @@ class StandardGenRunner(Runner):
         # no suggest_updates on external gens
         return (
             list_dicts_to_np(
-                self.gen.suggest(batch_size), dtype=self.specs.get("out"), mapping=self.gen.variables_mapping
+                self.gen.suggest(batch_size),
+                dtype=self.specs.get("out"),
+                mapping=getattr(self.gen, "variables_mapping", {}),
             ),
             None,
         )
@@ -136,7 +138,7 @@ class StandardGenRunner(Runner):
 
     def _start_generator_loop(self, tag, Work, H_in):
         """Start the generator loop after choosing best way of giving initial results to gen"""
-        self.gen.ingest(np_to_list_dicts(H_in))
+        self.gen.ingest(np_to_list_dicts(H_in, mapping=getattr(self.gen, "variables_mapping", {})))
         return self._loop_over_gen(tag, Work, H_in)
 
     def _persistent_result(self, calc_in, persis_info, libE_info):
@@ -144,11 +146,14 @@ class StandardGenRunner(Runner):
         self.ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
         # libE gens will hit the following line, but list_dicts_to_np will passthrough if the output is a numpy array
         H_out = list_dicts_to_np(
-            self._get_initial_suggest(libE_info), dtype=self.specs.get("out"), mapping=self.gen.variables_mapping
+            self._get_initial_suggest(libE_info),
+            dtype=self.specs.get("out"),
+            mapping=getattr(self.gen, "variables_mapping", {}),
         )
         tag, Work, H_in = self.ps.send_recv(H_out)  # evaluate the initial sample
-        final_H_in = self._start_generator_loop(tag, Work, H_in)
-        return self.gen.finalize(final_H_in), FINISHED_PERSISTENT_GEN_TAG
+        final_H_out = self._start_generator_loop(tag, Work, H_in)
+        self.gen.finalize()
+        return final_H_out, FINISHED_PERSISTENT_GEN_TAG
 
     def _result(self, calc_in: npt.NDArray, persis_info: dict, libE_info: dict) -> (npt.NDArray, dict, int):
         if libE_info.get("persistent"):
@@ -209,5 +214,6 @@ class LibensembleGenThreadRunner(StandardGenRunner):
             while self.ps.comm.mail_flag():  # receive any new messages from Manager, give all to gen
                 tag, _, H_in = self.ps.recv()
                 if tag in [STOP_TAG, PERSIS_STOP]:
-                    return H_in  # this will get inserted into finalize. this breaks loop
+                    self.gen.ingest_numpy(H_in, PERSIS_STOP)
+                    return self.gen.running_gen_f.result()
                 self.gen.ingest_numpy(H_in)

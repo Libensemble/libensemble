@@ -1,78 +1,80 @@
 """Generator classes providing points using sampling"""
 
 import numpy as np
+from generator_standard import Generator
+from generator_standard.vocs import VOCS
 
-from libensemble.generators import Generator, LibensembleGenerator
-from libensemble.utils.misc import list_dicts_to_np
+from libensemble.generators import LibensembleGenerator
 
 __all__ = [
     "UniformSample",
-    "UniformSampleDicts",
+    "StandardSample",
 ]
 
 
-class SampleBase(LibensembleGenerator):
-    """Base class for sampling generators"""
-
-    def _get_user_params(self, user_specs):
-        """Extract user params"""
-        self.ub = user_specs["ub"]
-        self.lb = user_specs["lb"]
-        self.n = len(self.lb)  # dimension
-        assert isinstance(self.n, int), "Dimension must be an integer"
-        assert isinstance(self.lb, np.ndarray), "lb must be a numpy array"
-        assert isinstance(self.ub, np.ndarray), "ub must be a numpy array"
-
-
-class UniformSample(SampleBase):
+class UniformSample(LibensembleGenerator):
     """
-    This generator returns ``gen_specs["initial_batch_size"]`` uniformly
-    sampled points the first time it is called. Afterwards, it returns the
-    number of points given. This can be used in either a batch or asynchronous
-    mode by adjusting the allocation function.
+    Samples over the domain specified in the VOCS.
+
+    If multidim_single_variable is True, and `suggest_numpy` is called,
+    the output will contain an N dimensional field "x" where N is the
+    number of variables in the VOCS.
     """
 
-    def __init__(self, variables: dict, objectives: dict, _=[], persis_info={}, gen_specs={}, libE_info=None, **kwargs):
-        super().__init__(variables, objectives, _, persis_info, gen_specs, libE_info, **kwargs)
-        self._get_user_params(self.gen_specs["user"])
+    def __init__(self, VOCS: VOCS, multidim_single_variable: bool = False):
+        super().__init__(VOCS)
+        self.rng = np.random.default_rng(1)
+        self.multidim_single_variable = multidim_single_variable
+
+        if self.multidim_single_variable:
+            self.np_dtype = [("x", float, (len(self.VOCS.variables.keys()),))]
+        else:
+            self.np_dtype = [(i, float) for i in self.VOCS.variables.keys()]
+
+        self.n = len(list(self.VOCS.variables.keys()))
+        self.lb = np.array([VOCS.variables[i].domain[0] for i in VOCS.variables])
+        self.ub = np.array([VOCS.variables[i].domain[1] for i in VOCS.variables])
 
     def suggest_numpy(self, n_trials):
-        return list_dicts_to_np(
-            UniformSampleDicts(
-                self.variables, self.objectives, self.History, self.persis_info, self.gen_specs, self.libE_info
-            ).suggest(n_trials)
-        )
+        out = np.zeros(n_trials, dtype=self.np_dtype)
+
+        if self.multidim_single_variable:
+            out["x"] = self.rng.uniform(self.lb, self.ub, (n_trials, self.n))
+
+        else:
+            for trial in range(n_trials):
+                for field in self.VOCS.variables.keys():
+                    out[trial][field] = self.rng.uniform(
+                        self.VOCS.variables[field].domain[0], self.VOCS.variables[field].domain[1]
+                    )
+
+        return out
 
     def ingest_numpy(self, calc_in):
         pass  # random sample so nothing to tell
 
 
-# List of dictionaries format for standard (constructor currently using numpy still)
-# Mostly standard generator interface for libE generators will use the suggest/ingest wrappers
-# to the classes above. This is for testing a function written directly with that interface.
-class UniformSampleDicts(Generator):
+class StandardSample(Generator):
     """
-    This generator returns ``gen_specs["initial_batch_size"]`` uniformly
-    sampled points the first time it is called. Afterwards, it returns the
-    number of points given. This can be used in either a batch or asynchronous
-    mode by adjusting the allocation function.
-
-    This currently adheres to the complete standard.
+    This sampler only adheres to the complete standard interface, with no additional numpy methods.
     """
 
-    def __init__(self, variables: dict, objectives: dict, _, persis_info, gen_specs, libE_info=None, **kwargs):
-        self.variables = variables
-        self.gen_specs = gen_specs
-        self.persis_info = persis_info
+    def __init__(self, VOCS: VOCS):
+        self.VOCS = VOCS
+        self.rng = np.random.default_rng(1)
+        super().__init__(VOCS)
+
+    def _validate_vocs(self, VOCS):
+        assert len(self.VOCS.variables), "VOCS must contain variables."
 
     def suggest(self, n_trials):
-        H_o = []
+        output = []
         for _ in range(n_trials):
             trial = {}
-            for key in self.variables.keys():
-                trial[key] = self.persis_info["rand_stream"].uniform(self.variables[key][0], self.variables[key][1])
-            H_o.append(trial)
-        return H_o
+            for key in self.VOCS.variables.keys():
+                trial[key] = self.rng.uniform(self.VOCS.variables[key].domain[0], self.VOCS.variables[key].domain[1])
+            output.append(trial)
+        return output
 
     def ingest(self, calc_in):
         pass  # random sample so nothing to tell

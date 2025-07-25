@@ -172,6 +172,8 @@ def test_standalone_persistent_aposmm_combined_func():
 def test_asktell_with_persistent_aposmm():
     from math import gamma, pi, sqrt
 
+    from generator_standard.vocs import VOCS
+
     import libensemble.gen_funcs
     from libensemble.gen_classes import APOSMM
     from libensemble.message_numbers import FINISHED_PERSISTENT_GEN_TAG
@@ -183,25 +185,21 @@ def test_asktell_with_persistent_aposmm():
     n = 2
     eval_max = 2000
 
-    gen_specs = {
-        "user": {
-            "initial_sample_size": 100,
-            "sample_points": np.round(minima, 1),
-            "localopt_method": "LN_BOBYQA",
-            "rk_const": 0.5 * ((gamma(1 + (n / 2)) * 5) ** (1 / n)) / sqrt(pi),
-            "xtol_abs": 1e-6,
-            "ftol_abs": 1e-6,
-            "dist_to_bound_multiple": 0.5,
-            "max_active_runs": 6,
-        },
-    }
-
     variables = {"core": [-3, 3], "edge": [-2, 2]}
     objectives = {"energy": "MINIMIZE"}
-    variables_mapping = {"x": ["core", "edge"], "f": ["energy"]}
+
+    vocs = VOCS(variables=variables, objectives=objectives)
 
     my_APOSMM = APOSMM(
-        variables=variables, objectives=objectives, gen_specs=gen_specs, variables_mapping=variables_mapping
+        vocs,
+        initial_sample_size=100,
+        sample_points=np.round(minima, 1),
+        localopt_method="LN_BOBYQA",
+        rk_const=0.5 * ((gamma(1 + (n / 2)) * 5) ** (1 / n)) / sqrt(pi),
+        xtol_abs=1e-6,
+        ftol_abs=1e-6,
+        dist_to_bound_multiple=0.5,
+        max_active_runs=6,
     )
 
     initial_sample = my_APOSMM.suggest(100)

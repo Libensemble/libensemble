@@ -14,10 +14,11 @@ The number of concurrent evaluations of the objective function will be 4-1=3.
 # TESTSUITE_NPROCS: 2 4
 
 import numpy as np
+from generator_standard.vocs import VOCS
 
 # Import libEnsemble items for this test
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
-from libensemble.gen_classes.sampling import UniformSample
+from libensemble.gen_classes.sampling import StandardSample, UniformSample
 from libensemble.libE import libE
 from libensemble.tools import add_unique_random_streams, parse_args
 
@@ -35,11 +36,11 @@ if __name__ == "__main__":
     sim_specs = {
         "sim_f": sim_f,
         "in": ["x"],
-        "out": [("f", float), ("grad", float, 2)],
+        "out": [("f", float)],
     }
 
     gen_specs = {
-        "persis_in": ["x", "f", "grad", "sim_id"],
+        "persis_in": ["x", "f", "sim_id"],
         "out": [("x", float, (2,))],
         "initial_batch_size": 20,
         "batch_size": 10,
@@ -51,20 +52,27 @@ if __name__ == "__main__":
     }
 
     variables = {"x0": [-3, 3], "x1": [-2, 2]}
+    objectives = {"edge": "EXPLORE"}
 
-    objectives = {"f": "EXPLORE"}
+    vocs = VOCS(variables=variables, objectives=objectives)
 
     alloc_specs = {"alloc_f": alloc_f}
     exit_criteria = {"gen_max": 201}
-
     persis_info = add_unique_random_streams({}, nworkers + 1, seed=1234)
 
-    # Using standard runner - pass object
-    generator = UniformSample(variables, objectives)
-    gen_specs["generator"] = generator
+    for test in range(2):
+        if test == 0:
+            generator = StandardSample(vocs)
 
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs=libE_specs)
+        elif test == 1:
+            persis_info["num_gens_started"] = 0
+            generator = UniformSample(vocs, multidim_single_variable=True)
 
-    if is_manager:
-        print(H[["sim_id", "x", "f"]][:10])
-        assert len(H) >= 201, f"H has length {len(H)}"
+        gen_specs["generator"] = generator
+        H, persis_info, flag = libE(
+            sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs=libE_specs
+        )
+
+        if is_manager:
+            print(H[["sim_id", "x", "f"]][:10])
+            assert len(H) >= 201, f"H has length {len(H)}"

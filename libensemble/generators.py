@@ -1,10 +1,9 @@
-# import queue as thread_queue
-from abc import ABC, abstractmethod
-
-# from multiprocessing import Queue as process_queue
+from abc import abstractmethod
 from typing import List, Optional
 
 import numpy as np
+from generator_standard import Generator
+from generator_standard.vocs import VOCS
 from numpy import typing as npt
 
 from libensemble.comms.comms import QCommProcess  # , QCommThread
@@ -13,121 +12,39 @@ from libensemble.message_numbers import EVAL_GEN_TAG, PERSIS_STOP
 from libensemble.tools.tools import add_unique_random_streams
 from libensemble.utils.misc import list_dicts_to_np, np_to_list_dicts
 
-"""
-NOTE: These generators, implementations, methods, and subclasses are in BETA, and
-      may change in future releases.
-
-      The Generator interface is expected to roughly correspond with CAMPA's standard:
-      https://github.com/campa-consortium/generator_standard
-"""
-
 
 class GeneratorNotStartedException(Exception):
     """Exception raised by a threaded/multiprocessed generator upon being suggested without having been started"""
 
 
-class Generator(ABC):
-    """
-
-    .. code-block:: python
-
-        from libensemble.specs import GenSpecs
-        from libensemble.generators import Generator
-
-
-        class MyGenerator(Generator):
-            def __init__(self, variables, objectives, param):
-                self.param = param
-                self.model = create_model(variables, objectives, self.param)
-
-            def suggest(self, num_points):
-                return create_points(num_points, self.param)
-
-            def ingest(self, results):
-                self.model = update_model(results, self.model)
-
-            def finalize(self, results):
-                self.ingest(results)
-                return list(self.model)
-
-
-        variables = {"a": [-1, 1], "b": [-2, 2]}
-        objectives = {"f": "MINIMIZE"}
-
-        my_generator = MyGenerator(variables, objectives, my_parameter=100)
-        gen_specs = GenSpecs(generator=my_generator, ...)
-    """
-
-    @abstractmethod
-    def __init__(self, variables: dict[str, List[float]], objectives: dict[str, str], *args, **kwargs):
-        """
-        Initialize the Generator object on the user-side. Constants, class-attributes,
-        and preparation goes here.
-
-        .. code-block:: python
-
-            my_generator = MyGenerator(my_parameter, batch_size=10)
-        """
-
-    @abstractmethod
-    def suggest(self, num_points: Optional[int]) -> List[dict]:
-        """
-        Request the next set of points to evaluate.
-        """
-
-    def ingest(self, results: List[dict]) -> None:
-        """
-        Send the results of evaluations to the generator.
-        """
-
-    def finalize(self, results: List[dict], *args, **kwargs) -> Optional[npt.NDArray]:
-        """
-        Send the last set of results to the generator, instruct it to cleanup, and
-        optionally retrieve an updated final state of evaluations. This is a separate
-        method to simplify the common pattern of noting internally if a
-        specific ingest is the last. This will be called only once.
-        """
-
-
 class LibensembleGenerator(Generator):
-    """Internal implementation of Generator interface for use with libEnsemble, or for those who
-    prefer numpy arrays. ``suggest/ingest`` methods communicate lists of dictionaries, like the standard.
+    """
+    Generator interface that accepts the classic History, persis_info, gen_specs, libE_info parameters after VOCS.
+
+    ``suggest/ingest`` methods communicate lists of dictionaries, like the standard.
     ``suggest_numpy/ingest_numpy`` methods communicate numpy arrays containing the same data.
+
+    Providing ``variables_mapping`` is optional but highly recommended to map the internal variable names to
+    user-defined ones. For instance, ``variables_mapping = {"x": ["core", "edge", "beam"], "f": ["energy"]}``.
     """
 
     def __init__(
         self,
-        variables: dict,
-        objectives: dict = {},
+        VOCS: VOCS,
         History: npt.NDArray = [],
         persis_info: dict = {},
         gen_specs: dict = {},
         libE_info: dict = {},
         **kwargs,
     ):
-        self.variables = variables
-        self.objectives = objectives
+        self.VOCS = VOCS
         self.History = History
         self.gen_specs = gen_specs
         self.libE_info = libE_info
 
         self.variables_mapping = kwargs.get("variables_mapping", {})
-
-        self._internal_variable = "x"  # need to figure these out dynamically
-        self._internal_objective = "f"
-
-        if self.variables:
-
-            self.n = len(self.variables)
-            # build our own lb and ub
-            lb = []
-            ub = []
-            for i, v in enumerate(self.variables.values()):
-                if isinstance(v, list) and (isinstance(v[0], int) or isinstance(v[0], float)):
-                    lb.append(v[0])
-                    ub.append(v[1])
-            kwargs["lb"] = np.array(lb)
-            kwargs["ub"] = np.array(ub)
+        if not self.variables_mapping:
+            self.variables_mapping = {"x": list(self.VOCS.variables.keys()), "f": list(self.VOCS.objectives.keys())}
 
         if len(kwargs) > 0:  # so user can specify gen-specific parameters as kwargs to constructor
             if not self.gen_specs.get("user"):
@@ -137,6 +54,11 @@ class LibensembleGenerator(Generator):
             self.persis_info = add_unique_random_streams({}, 4, seed=4321)[1]
         else:
             self.persis_info = persis_info
+
+    def _validate_vocs(self, vocs) -> None:
+        pass
+
+    # TODO: Perhaps convert VOCS to gen_specs values
 
     @abstractmethod
     def suggest_numpy(self, num_points: Optional[int] = 0) -> npt.NDArray:
@@ -171,15 +93,14 @@ class PersistentGenInterfacer(LibensembleGenerator):
 
     def __init__(
         self,
-        variables: dict,
-        objectives: dict = {},
+        VOCS: VOCS,
         History: npt.NDArray = [],
         persis_info: dict = {},
         gen_specs: dict = {},
         libE_info: dict = {},
         **kwargs,
     ) -> None:
-        super().__init__(variables, objectives, History, persis_info, gen_specs, libE_info, **kwargs)
+        super().__init__(VOCS, History, persis_info, gen_specs, libE_info, **kwargs)
         self.gen_f = gen_specs["gen_f"]
         self.History = History
         self.libE_info = libE_info
