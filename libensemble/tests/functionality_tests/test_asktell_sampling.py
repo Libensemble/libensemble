@@ -36,11 +36,11 @@ if __name__ == "__main__":
     sim_specs = {
         "sim_f": sim_f,
         "in": ["x"],
-        "out": [("f", float), ("grad", float, 2)],
+        "out": [("f", float)],
     }
 
     gen_specs = {
-        "persis_in": ["x", "f", "grad", "sim_id"],
+        "persis_in": ["x", "f", "sim_id"],
         "out": [("x", float, (2,))],
         "initial_batch_size": 20,
         "batch_size": 10,
@@ -66,7 +66,7 @@ if __name__ == "__main__":
 
         elif test == 1:
             persis_info["num_gens_started"] = 0
-            generator = UniformSample(vocs)
+            generator = UniformSample(vocs, multidim_single_variable=True)
 
         gen_specs["generator"] = generator
         H, persis_info, flag = libE(
