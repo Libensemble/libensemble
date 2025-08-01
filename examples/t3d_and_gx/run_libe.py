@@ -25,7 +25,8 @@ if __name__ == "__main__":
 
 
     # sim_input_dir = "test-w7x-gx_simple"
-    sim_input_dir = "test-w7x-gx"
+    # sim_input_dir = "test-w7x-gx"
+    sim_input_dir = "mini-w7x-gx"
 
     libE_specs = LibeSpecs(
         nworkers=num_workers,
@@ -40,7 +41,8 @@ if __name__ == "__main__":
         sim_f=run_t3d_and_gx,
         inputs=["x"],
         outputs=[("f", float)],
-        user={"input_filename": "test-w7x-gx.in", "input_names": ["H_height", "H_width"]},
+        # user={"input_filename": "test-w7x-gx.in", "input_names": ["H_height", "H_width"]},
+        user={"input_filename": "mini-w7x-gx.in", "input_names": ["H_height", "H_width"]},
     )
 
     n = 2
