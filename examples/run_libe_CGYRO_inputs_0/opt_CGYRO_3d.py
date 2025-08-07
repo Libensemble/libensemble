@@ -80,7 +80,7 @@ def main(argv):
         outputs=[("f", float), ("fvec", float, 2), ("convstatement", "U100")],
         user={
             "input_filename": cgyro_input_file,
-            "input_names": ["KAPPA","DELTA","ZETA"],
+            "input_names": ["KAPPA","DELTA","ZETA","S_KAPPA"],
             "plot_heat_flux": False,
             "nproc": nproc,
             "nomp": nomp,
