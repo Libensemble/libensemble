@@ -26,7 +26,7 @@ type = "hydrogen"
 density = {core = 0.35, edge = 0.29, alpha=1, evolve = false}
 temperature = {core = 1.0, edge = 0.8, evolve = true}
 aux_particle_source = { height = 0, width = 0.2, center = 0.5 }
-aux_power_source = { height = 0, width = 0.2, center = 0.4 }
+aux_power_source = { height = {{H_height}}, width = {{H_width}}, center = 0.4 }
 
 [[species]]
 type = "electron"
