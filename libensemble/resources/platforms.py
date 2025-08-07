@@ -11,7 +11,6 @@ option or the environment variable ``LIBE_PLATFORM``.
 import logging
 import os
 import subprocess
-from typing import Optional
 
 from pydantic import BaseModel
 
@@ -33,28 +32,28 @@ class Platform(BaseModel):
     All are optional, and any not defined will be determined by libEnsemble's auto-detection.
     """
 
-    mpi_runner: Optional[str] = None
+    mpi_runner: str | None = None
     """MPI runner: One of ``"mpich"``, ``"openmpi"``, ``"aprun"``,
     ``"srun"``, ``"jsrun"``, ``"msmpi"``, ``"custom"`` """
 
-    runner_name: Optional[str] = None
+    runner_name: str | None = None
     """Literal string of MPI runner command. Only needed if different to the default
 
     Note that ``"mpich"`` and ``"openmpi"`` runners have the default command ``"mpirun"``
     """
-    cores_per_node: Optional[int] = None
+    cores_per_node: int | None = None
     """Number of physical CPU cores on a compute node of the platform"""
 
-    logical_cores_per_node: Optional[int] = None
+    logical_cores_per_node: int | None = None
     """Number of logical CPU cores on a compute node of the platform"""
 
-    gpus_per_node: Optional[int] = None
+    gpus_per_node: int | None = None
     """Number of GPU devices on a compute node of the platform"""
 
-    tiles_per_gpu: Optional[int] = None
+    tiles_per_gpu: int | None = None
     """Number of tiles on a GPU"""
 
-    gpu_setting_type: Optional[str] = None
+    gpu_setting_type: str | None = None
 
     """ How GPUs will be assigned.
 
@@ -91,14 +90,14 @@ class Platform(BaseModel):
 
     """
 
-    gpu_setting_name: Optional[str] = None
+    gpu_setting_name: str | None = None
     """Name of GPU setting
 
     See :attr:`gpu_setting_type` for more details.
 
     """
 
-    gpu_env_fallback: Optional[str] = None
+    gpu_env_fallback: str | None = None
     """GPU fallback environment setting if not using an MPI runner.
 
     For example:
@@ -115,7 +114,7 @@ class Platform(BaseModel):
 
     """
 
-    scheduler_match_slots: Optional[bool] = True
+    scheduler_match_slots: bool | None = True
     """
     Whether the libEnsemble resource scheduler should only assign matching slots when
     there are multiple (partial) nodes assigned to a sim function.

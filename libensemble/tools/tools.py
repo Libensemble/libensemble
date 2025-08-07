@@ -10,6 +10,7 @@ import sys
 import time
 
 import numpy as np
+import numpy.typing as npt
 
 # Create logger
 logger = logging.getLogger(__name__)
@@ -83,7 +84,16 @@ def _get_shortname(basename):
 
 # =================== save libE output to pickle and np ========================
 
-def save_libE_output(H, persis_info, basename, nworkers, dest_path=None, mess="Run completed", append_attrs=True):
+
+def save_libE_output(
+    H: npt.NDArray,
+    persis_info: dict,
+    basename: str,
+    nworkers: int,
+    dest_path: str = None,
+    mess: str = "Run completed",
+    append_attrs: bool = True,
+) -> str:
     """
     Writes out history array and persis_info to files.
 
@@ -116,6 +126,10 @@ def save_libE_output(H, persis_info, basename, nworkers, dest_path=None, mess="R
     nworkers: :obj:`int`
 
         The number of workers in this ensemble. Added to output file names.
+
+    dest_path: :obj:`str`, optional
+
+        The path to save the file to.
 
     mess: :obj:`str`
 
@@ -153,7 +167,7 @@ def save_libE_output(H, persis_info, basename, nworkers, dest_path=None, mess="R
 # ===================== per-process numpy random-streams =======================
 
 
-def add_unique_random_streams(persis_info, nstreams, seed=""):
+def add_unique_random_streams(persis_info: dict, nstreams: int, seed: str = "") -> dict:
     """
     Creates nstreams random number streams for the libE manager and workers
     when nstreams is num_workers + 1. Stream i is initialized with seed i by default.
@@ -206,7 +220,7 @@ def add_unique_random_streams(persis_info, nstreams, seed=""):
     return persis_info
 
 
-def check_npy_file_exists(filename: str, basename: bool = False, max_wait: int = 3):
+def check_npy_file_exists(filename: str, basename: bool = False, max_wait: int = 3) -> bool:
     """Checks a file is created in a parallel environment
 
     Parameters

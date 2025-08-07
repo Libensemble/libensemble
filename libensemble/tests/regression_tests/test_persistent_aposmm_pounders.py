@@ -17,7 +17,6 @@ persistent generator.
 # TESTSUITE_COMMS: local mpi tcp
 # TESTSUITE_NPROCS: 4
 # TESTSUITE_EXTRA: true
-# TESTSUITE_EXCLUDE: true
 
 import multiprocessing
 import sys

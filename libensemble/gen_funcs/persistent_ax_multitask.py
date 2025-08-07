@@ -21,7 +21,6 @@ Ax runner handles the execution of trials - AxRunner wraps Runner to use libE tr
 import os
 import warnings
 from copy import deepcopy
-from typing import Optional
 
 import numpy as np
 import pandas as pd
@@ -88,8 +87,8 @@ MT_MTGP_trans = list(MBM_X_trans) + [
 def get_MTGP(
     experiment: Experiment,
     data: Data,
-    search_space: Optional[SearchSpace] = None,
-    trial_index: Optional[int] = None,
+    search_space: SearchSpace | None = None,
+    trial_index: int | None = None,
     device: torch.device = torch.device("cpu"),
     dtype: torch.dtype = torch.double,
 ) -> TorchModelBridge:
@@ -102,9 +101,7 @@ def get_MTGP(
     """
 
     if isinstance(experiment, MultiTypeExperiment):
-        trial_index_to_type = {
-            t.index: t.trial_type for t in experiment.trials.values()
-        }
+        trial_index_to_type = {t.index: t.trial_type for t in experiment.trials.values()}
         transforms = MT_MTGP_trans
         transform_configs = {
             "TrialAsTask": {"trial_level_map": {"trial_type": trial_index_to_type}},
@@ -275,9 +272,7 @@ def persistent_gp_mt_ax_gen_f(H, persis_info, gen_specs, libE_info):
             if not os.path.exists("model_history"):
                 os.mkdir("model_history")
             # Register metric and runner in order to be able to save to json.
-            _, encoder_registry, decoder_registry = register_metrics(
-                {AxMetric: None}
-            )
+            _, encoder_registry, decoder_registry = register_metrics({AxMetric: None})
             _, encoder_registry, decoder_registry = register_runner(
                 AxRunner,
                 encoder_registry=encoder_registry,
