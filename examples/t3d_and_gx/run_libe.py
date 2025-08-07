@@ -7,12 +7,12 @@ from simf import run_t3d_and_gx
 from libensemble import Ensemble
 # from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 # from libensemble.gen_funcs.persistent_sampling import persistent_uniform as gen_f
-from libensemble.executors import MPIExecutor
+from libensemble.executors import Executor, MPIExecutor
 from libensemble.gen_funcs.sampling import latin_hypercube_sample as gen_f
 from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
 
 if __name__ == "__main__":
-    exctr = MPIExecutor()
+    exctr = Executor()
 
     sim_app = "/global/u2/j/jmlarson/jai/t3d/.venv/bin/t3d"
 
@@ -21,7 +21,7 @@ if __name__ == "__main__":
 
     exctr.register_app(full_path=sim_app, app_name="t3d")
 
-    num_workers = 1
+    num_workers = 2
 
 
     sim_input_dir = "test-w7x-gx_simple"
