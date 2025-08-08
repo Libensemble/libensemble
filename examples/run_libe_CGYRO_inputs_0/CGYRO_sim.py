@@ -18,78 +18,96 @@ def run_CGYRO(H, persis_info, sim_specs, libE_info):
     """
     calc_status = 0
 
-    # Set inputs in input file
-    input_file = sim_specs["user"]["input_filename"]
-    input_values = {}
-    for i, name in enumerate(sim_specs["user"]["input_names"]):
-        if name == "S_KAPPA":
-            value = 0.07744/H["x"][0][0]
-        else:
+    database = "/global/u2/j/jmlarson/kappa_correction_all.npy"
+
+    DB = []
+    match = 0
+    if os.path.exists(database):
+        DB = np.load(database,allow_pickle=True)
+        for db_entry in DB:
+            if np.allclose(db_entry['var_vals'],H["x"],rtol=1e-12,atol=1e-12):
+                print("match",flush=True)
+                fout = db_entry['obj_vals']
+                string_out = db_entry['string_out']
+                match = 1
+                calc_status = WORKER_DONE
+                break
+
+    if match == 0:
+        # Set inputs in input file
+        input_file = sim_specs["user"]["input_filename"]
+        input_values = {}
+        for i, name in enumerate(sim_specs["user"]["input_names"]):
             value = H["x"][0][i]
             # if len(H["x"][0]) > 1:
             #     value = H["x"][0][i]
             # else:
             #     value = H["x"][0]
             input_values[name] = value
-    with open(input_file, "r") as f:
-        template = jinja2.Template(f.read())
-    with open(input_file, "w") as f:
-        f.write(template.render(input_values))
+        with open(input_file, "r") as f:
+            template = jinja2.Template(f.read())
+        with open(input_file, "w") as f:
+            f.write(template.render(input_values))
 
-    nproc = sim_specs["user"]["nproc"]
-    nomp = sim_specs["user"]["nomp"]
-    numa = sim_specs["user"]["numa"]
-    mpinuma = sim_specs["user"]["mpinuma"]
-    calc_status = 0
+        nproc = sim_specs["user"]["nproc"]
+        nomp = sim_specs["user"]["nomp"]
+        numa = sim_specs["user"]["numa"]
+        mpinuma = sim_specs["user"]["mpinuma"]
+        calc_status = 0
 
-    # Retrieve our MPI Executor
-    exctr = libE_info["executor"]
-    # env_script_path = "/global/homes/a/arash/bin/cgyro_libe_2"#"/global/u1/a/arash/run_libe_CGYRO_inputs/env_script_in.sh"
-    os.environ["OMP_NUM_THREADS"] = "{}".format(nomp)
-    # Submit our gx app for execution.
+        # Retrieve our MPI Executor
+        exctr = libE_info["executor"]
+        # env_script_path = "/global/homes/a/arash/bin/cgyro_libe_2"#"/global/u1/a/arash/run_libe_CGYRO_inputs/env_script_in.sh"
+        os.environ["OMP_NUM_THREADS"] = "{}".format(nomp)
+        # Submit our gx app for execution.
 
-    subprocess.run(["python", "/global/cfs/cdirs/m4493/ebelli/gacode/cgyro/bin/cgyro_parse.py"])
+        subprocess.run(["python", "/global/cfs/cdirs/m4493/ebelli/gacode/cgyro/bin/cgyro_parse.py"])
 
-    task = exctr.submit(
-        app_name="cgyro",
-        app_args="0",
-        #procs_per_node=16,  # nl01
-        #num_nodes=2, # nl01
-        procs_per_node=4,  # reg02
-        num_nodes=1, # reg02
-        num_gpus=4,
-        # auto_assign_gpus=True,
-        # match_procs_to_gpus=True,
-        # env_script= env_script_path,
-        extra_args="--cpu_bind=cores,verbose -n {} -c {}".format(nproc, nomp),
-    )
-
-    # Block until the task finishes
-    task.wait()
-
-    # Try loading final energy reading, set the sim's status
-
-
-    string_out = ""
-    try:
-        # Q=subprocess.run('python heat_flux_cgyro_libE.py', capture_output=True, text=True, shell=True)
-        Q = subprocess.run(
-            "python /global/u2/j/jmlarson/research/libensemble/examples/run_libe_CGYRO_inputs_0/heat_flux_cgyro_libE.py",
-            capture_output=True,
-            text=True,
-            shell=True,
+        task = exctr.submit(
+            app_name="cgyro",
+            app_args="0",
+            #procs_per_node=16,  # nl01
+            #num_nodes=2, # nl01
+            procs_per_node=4,  # reg02
+            num_nodes=1, # reg02
+            num_gpus=4,
+            # auto_assign_gpus=True,
+            # match_procs_to_gpus=True,
+            # env_script= env_script_path,
+            extra_args="--cpu_bind=cores,verbose -n {} -c {}".format(nproc, nomp),
         )
-        freqs = np.loadtxt("out.cgyro.freq")
-        fout = freqs[-1]
-        with open("out.cgyro.info", 'r') as f:
-            lines = f.readlines()
-            if lines:
-                string_out = lines[-1].strip()
-        calc_status = WORKER_DONE
-    except:
-        print(f"Failed to open")
-        fout = np.nan*np.ones(2)
-        calc_status = TASK_FAILED
+
+        # Block until the task finishes
+        task.wait()
+
+        # Try loading final energy reading, set the sim's status
+
+
+        string_out = ""
+        try:
+            # Q=subprocess.run('python heat_flux_cgyro_libE.py', capture_output=True, text=True, shell=True)
+            Q = subprocess.run(
+                "python /global/u2/j/jmlarson/research/libensemble/examples/run_libe_CGYRO_inputs_0/heat_flux_cgyro_libE.py",
+                capture_output=True,
+                text=True,
+                shell=True,
+            )
+            freqs = np.loadtxt("out.cgyro.freq")
+            fout = freqs[-1]
+            with open("out.cgyro.info", 'r') as f:
+                lines = f.readlines()
+                if lines:
+                    string_out = lines[-1].strip()
+            calc_status = WORKER_DONE
+        except:
+            print(f"Failed to open")
+            fout = np.nan*np.ones(2)
+            calc_status = TASK_FAILED
+
+        to_save = {'obj_vals': fout, 'var_vals': H["x"], 'string_out': string_out}
+        DB = np.append(DB, to_save)
+        np.save(database,DB)
+
 
     # Define our output array, populate with energy reading
     output = np.zeros(1, dtype=sim_specs["out"])
