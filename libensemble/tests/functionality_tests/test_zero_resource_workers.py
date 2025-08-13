@@ -36,7 +36,7 @@ if __name__ == "__main__":
     sim_app = "/path/to/fakeapp.x"
     comms = libE_specs["comms"]
 
-    libE_specs["zero_resource_workers"] = [1]
+    libE_specs["zero_resource_workers"] = [0]
     libE_specs["dedicated_mode"] = True
     libE_specs["enforce_worker_core_bounds"] = True
 
