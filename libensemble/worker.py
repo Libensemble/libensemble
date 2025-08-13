@@ -110,7 +110,7 @@ def worker_main(
         worker_logging_config(comm, workerID)
 
     LS = LocationStack()
-    LS.register_loc("workflow", Path(libE_specs.get("workflow_dir_path")))
+    LS.register_loc("workflow", Path(libE_specs.get("workflow_dir_path", ".")))
 
     # Set up and run worker
     worker = Worker(comm, dtypes, workerID, sim_specs, gen_specs, libE_specs)
