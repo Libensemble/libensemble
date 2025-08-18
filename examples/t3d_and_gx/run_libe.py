@@ -21,12 +21,12 @@ if __name__ == "__main__":
 
     exctr.register_app(full_path=sim_app, app_name="t3d")
 
-    num_workers = 2
+    num_workers = 1
 
 
     # sim_input_dir = "test-w7x-gx_simple"
-    sim_input_dir = "test-w7x-gx"
-    # sim_input_dir = "mini-w7x-gx"
+    # sim_input_dir = "test-w7x-gx"
+    sim_input_dir = "mini-w7x-gx"
 
     libE_specs = LibeSpecs(
         nworkers=num_workers,
@@ -41,8 +41,8 @@ if __name__ == "__main__":
         sim_f=run_t3d_and_gx,
         inputs=["x"],
         outputs=[("f", float)],
-        user={"input_filename": "test-w7x-gx.in", "input_names": ["H_height", "H_width"]},
-        # user={"input_filename": "mini-w7x-gx.in", "input_names": ["H_height", "H_width"]},
+        # user={"input_filename": "test-w7x-gx.in", "input_names": ["H_height", "H_width"]},
+        user={"input_filename": "mini-w7x-gx.in", "input_names": ["H_height", "H_width"]},
     )
 
     n = 2
@@ -53,7 +53,7 @@ if __name__ == "__main__":
         outputs=[("x", float, (2,))],
         user={
             # "initial_batch_size": num_workers,
-            "gen_batch_size": 2,
+            "gen_batch_size": 20,
             "lb": np.array([1e-3, 1e-3]),
             "ub": np.array([0.1, 0.2]),
         },
@@ -63,7 +63,7 @@ if __name__ == "__main__":
     #     user={"async_return": True},
     # )
 
-    exit_criteria = ExitCriteria(sim_max=2)
+    exit_criteria = ExitCriteria(sim_max=20)
 
     ensemble = Ensemble(
         libE_specs=libE_specs,
@@ -74,11 +74,10 @@ if __name__ == "__main__":
         executor=exctr
     )
 
-    ensemble.add_random_streams(seed=1)
+    ensemble.add_random_streams(seed=3)
     H, persis_info, flag = ensemble.run()
 
     if ensemble.is_manager:
         print("First 3:", H[["sim_id", "x", "f"]][:3])
         print("Last 3:", H[["sim_id", "x", "f"]][-3:])
         ensemble.save_output(__file__)
-

@@ -6,7 +6,8 @@ from libensemble.message_numbers import TASK_FAILED, WORKER_DONE
 
 def set_objective_value():
     try:
-        data = np.load("test-w7x-gx.log.npy", allow_pickle=True)
+        data = np.load("mini-w7x-gx.log.npy", allow_pickle=True)
+        # data = np.load("test-w7x-gx.log.npy", allow_pickle=True)
         out = data.flatten()[0]['Wtot_MJ'][-1]
         return out
     except Exception:

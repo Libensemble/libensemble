@@ -1,9 +1,9 @@
 #!/bin/bash
 #SBATCH --nodes=2
 #SBATCH --gpus-per-node=4
-#SBATCH --time=00:30:00
+#SBATCH --time=05:00:00
 #SBATCH --account=m4505
-#SBATCH --qos=debug
+#SBATCH --qos=regular
 #SBATCH --constraint=gpu
 #SBATCH --job-name=test-w7x-gx
 #SBATCH --mail-type=ALL
