@@ -68,7 +68,7 @@ def main(argv):
         sim_dirs_make=True,
         # sim_input_dir="/global/homes/j/jmlarson/research/libensemble/examples/run_libe_CGYRO_inputs_0/nl01",
         # sim_input_dir="/global/homes/j/jmlarson/research/libensemble/examples/run_libe_CGYRO_inputs_0/reg02",
-        sim_input_dir="/global/homes/j/jmlarson/research/libensemble/examples/run_libe_CGYRO_inputs_0/kappa_correct",
+        sim_input_dir="/global/homes/j/jmlarson/research/libensemble/examples/run_libe_CGYRO_inputs_0/kappa_correction",
         platform_specs=platform_specs,
         reuse_output_dir=True,
         save_every_k_sims=1,
@@ -106,9 +106,10 @@ def main(argv):
         outputs=gen_out,
         user={
             "initial_sample_size": 1,
-            "sample_points": np.atleast_2d([3.918767432556607, 0.731486903996517, 0.068918275083707]),
-            "lb": np.array([0.5, -1.0, -0.1]),  # lower bound for input
-            "ub": np.array([4.0, 1.0, 0.1]),  # upper bound for input
+            # "sample_points": np.atleast_2d([3.918767432556607, 0.731486903996517, 0.068918275083707]),
+            "sample_points": np.atleast_2d([2.0, -0.35, 0.0]),
+            "lb": np.array([0.5, -0.75, -0.05]),  # lower bound for input
+            "ub": np.array([4.0, 0.0, 0.05]),  # upper bound for input
             "localopt_method": "LN_BOBYQA",
             "rk_const": 0.5 * ((gamma(1 + (n / 2)) * 5) ** (1 / n)) / sqrt(pi),
             "xtol_abs": 1e-6,
