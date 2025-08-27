@@ -121,7 +121,7 @@ if __name__ == "__main__":
     H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0=H0)
 
     if is_manager:
-        assert persis_info[1].get("run_order"), "Run_order should have been given back"
+        assert persis_info[0].get("run_order"), "Run_order should have been given back"
         assert (
             len(persis_info[1]["run_order"]) >= gen_specs["user"]["stop_after_k_minima"]
         ), "This test should have many runs started."
