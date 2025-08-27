@@ -123,7 +123,7 @@ if __name__ == "__main__":
     if is_manager:
         assert persis_info[0].get("run_order"), "Run_order should have been given back"
         assert (
-            len(persis_info[1]["run_order"]) >= gen_specs["user"]["stop_after_k_minima"]
+            len(persis_info[0]["run_order"]) >= gen_specs["user"]["stop_after_k_minima"]
         ), "This test should have many runs started."
         assert len(H) < exit_criteria["sim_max"], "Test should have stopped early due to 'stop_after_k_minima'"
 
