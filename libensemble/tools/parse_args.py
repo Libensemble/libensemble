@@ -73,7 +73,7 @@ def _mpi_parse_args(args):
 def _local_parse_args(args):
     """Parses arguments for forked processes using multiprocessing."""
     libE_specs = {"comms": args.comms}
-    nworkers = args.nworkers
+    nworkers = args.nworkers + 1  # for manager
 
     if args.nresource_sets is not None:
         libE_specs["num_resource_sets"] = args.nresource_sets
