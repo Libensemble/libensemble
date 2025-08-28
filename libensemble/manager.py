@@ -431,6 +431,14 @@ class Manager:
             for i, row in enumerate(work_rows):
                 H_to_be_sent[i] = repack_fields(self.hist.H[Work["H_fields"]][row])
 
+            if Work["tag"] == EVAL_SIM_TAG and self.hist.cache_set:
+                cached_H = self.hist.get_shelved_sims()
+                for entry in H_to_be_sent:
+                    if np.allclose(entry[self.hist.new_dtype_cache_keys], cached_H, rtol=1e-8, atol=1e-8):
+                        # probably figure out indexes for entries in H_to_be_sent that
+                        # can simply be read back into History from cache?
+                        pass
+
             self.wcomms[w].send(0, H_to_be_sent)
 
     def _update_state_on_alloc(self, Work: dict, w: int):

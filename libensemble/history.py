@@ -1,5 +1,4 @@
 import logging
-import pickle
 import time
 from pathlib import Path
 
@@ -108,6 +107,11 @@ class History:
         self.last_started = -1
         self.last_ended = -1
 
+        self.cache_dir = Path.home() / ".libE"
+        self.cache_dir.mkdir(parents=True, exist_ok=True)
+        self.cache = open(self.cache_dir / "sims.pickle", "wb+")
+        self.cache_set = False
+
     def _append_new_fields(self, H_f: npt.NDArray) -> None:
         dtype_new = np.dtype(list(set(self.H.dtype.descr + H_f.dtype.descr)))
         H_new = np.zeros(len(self.H), dtype=dtype_new)
@@ -116,17 +120,26 @@ class History:
             H_new[field][: len(self.H)] = self.H[field]
         self.H = H_new
 
-    def _shelf_longrunning_sims(self, cache_file, index):
+    def _shelf_longrunning_sims(self, index):
         """Cache any f values that ran for more than a second."""
         if 1:  # self.H[index]['sim_ended_time'] - self.H[index]['sim_started_time'] > 1:
-            try:
-                cache = pickle.load(cache_file)
-            except EOFError:
-                cache = []
-            entry = self.H[index]
             presumptive_keys_to_cache = [i for i in self.H.dtype.names if i not in [k[0] for k in libE_fields]]
-            cache.append(entry[presumptive_keys_to_cache])
-            pickle.dump(cache, cache_file)
+            self.new_dtype_cache_keys = [(name, self.H.dtype.fields[name][0]) for name in presumptive_keys_to_cache]
+            try:
+                in_cache = np.load(self.cache, allow_pickle=True)
+            except EOFError:
+                in_cache = np.zeros(1, dtype=self.new_dtype_cache_keys)
+            entry = self.H[index][presumptive_keys_to_cache]
+            in_cache = np.append(in_cache, entry)
+            np.save(self.cache, in_cache)
+            self.cache_set = True
+
+    def get_shelved_sims(self) -> npt.NDArray:
+        try:
+            in_cache = np.load(self.cache, allow_pickle=True)
+        except EOFError:
+            in_cache = np.zeros(1, dtype=self.new_dtype_cache_keys)
+        return in_cache
 
     def update_history_f(self, D: dict, kill_canceled_sims: bool = False) -> None:
         """
@@ -139,10 +152,6 @@ class History:
 
         if returned_H is not None and any([field not in self.H.dtype.names for field in returned_H.dtype.names]):
             self._append_new_fields(returned_H)
-
-        cache_dir = Path.home() / ".libE"
-        cache_dir.mkdir(parents=True, exist_ok=True)
-        cache = open(cache_dir / "sims.pickle", "wb+")
 
         for j, ind in enumerate(new_inds):
             for field in fields:
@@ -165,8 +174,7 @@ class History:
             self.H["sim_ended"][ind] = True
             self.H["sim_ended_time"][ind] = time.time()
             self.sim_ended_count += 1
-            self._shelf_longrunning_sims(cache, ind)
-        cache.close()
+            self._shelf_longrunning_sims(ind)
 
         if kill_canceled_sims:
             for j in range(self.last_ended + 1, np.max(new_inds) + 1):
