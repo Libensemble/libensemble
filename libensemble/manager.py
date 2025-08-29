@@ -410,7 +410,7 @@ class Manager:
         if self.resources:
             self.resources.resource_manager.free_rsets(w)
 
-    def _send_work_order(self, Work: dict, w: int) -> None:
+    def _send_work_order(self, Work: dict, w: int) -> list:
         """Sends an allocation function order to a worker"""
         logger.debug(f"Manager sending work unit to worker {w}")
 
@@ -431,15 +431,24 @@ class Manager:
             for i, row in enumerate(work_rows):
                 H_to_be_sent[i] = repack_fields(self.hist.H[Work["H_fields"]][row])
 
+            # check if any of the generated points are already in the cache
             if Work["tag"] == EVAL_SIM_TAG and self.hist.cache_set:
                 cached_H = self.hist.get_shelved_sims()
-                for entry in H_to_be_sent:
-                    if np.allclose(entry[self.hist.new_dtype_cache_keys], cached_H, rtol=1e-8, atol=1e-8):
-                        # probably figure out indexes for entries in H_to_be_sent that
-                        # can simply be read back into History from cache?
-                        pass
+                gen_keys = [j[0] for j in self.gen_specs["out"]]
+                cache_gen_keys = [i for i in self.hist.cache_keys if i in gen_keys]
+                discovered_cache_indexes = []
+                for index, entry in enumerate(H_to_be_sent):
+                    for field in cache_gen_keys:
+                        if np.allclose(entry[field], cached_H[field], rtol=1e-8, atol=1e-8):
+                            discovered_cache_indexes.append(index)
+                            break
+                if len(discovered_cache_indexes) > 0:
+                    for index in discovered_cache_indexes:
+                        H_to_be_sent = np.delete(H_to_be_sent, index, axis=0)
+                return discovered_cache_indexes
 
             self.wcomms[w].send(0, H_to_be_sent)
+        return []
 
     def _update_state_on_alloc(self, Work: dict, w: int):
         """Updates a workers' active/idle status following an allocation order"""
@@ -702,7 +711,8 @@ class Manager:
                     if self._sim_max_given():
                         break
                     self._check_work_order(Work[w], w)
-                    self._send_work_order(Work[w], w)
+                    cache_indexes = self._send_work_order(Work[w], w)
+                    print(cache_indexes)
                     self._update_state_on_alloc(Work[w], w)
                 assert self.term_test() or any(
                     self.W["active"] != 0

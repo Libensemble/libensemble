@@ -109,7 +109,9 @@ class History:
 
         self.cache_dir = Path.home() / ".libE"
         self.cache_dir.mkdir(parents=True, exist_ok=True)
-        self.cache = open(self.cache_dir / "sims.pickle", "wb+")
+        self.cache = self.cache_dir / "cache.npy"
+        if not self.cache.exists():
+            self.cache.touch()
         self.cache_set = False
 
     def _append_new_fields(self, H_f: npt.NDArray) -> None:
@@ -123,22 +125,20 @@ class History:
     def _shelf_longrunning_sims(self, index):
         """Cache any f values that ran for more than a second."""
         if 1:  # self.H[index]['sim_ended_time'] - self.H[index]['sim_started_time'] > 1:
-            presumptive_keys_to_cache = [i for i in self.H.dtype.names if i not in [k[0] for k in libE_fields]]
-            self.new_dtype_cache_keys = [(name, self.H.dtype.fields[name][0]) for name in presumptive_keys_to_cache]
+            self.cache_keys = sorted([i for i in self.H.dtype.names if i not in [k[0] for k in libE_fields]])
+            self.cache_dtype = sorted([(name, self.H.dtype.fields[name][0]) for name in self.cache_keys])
             try:
                 in_cache = np.load(self.cache, allow_pickle=True)
             except EOFError:
-                in_cache = np.zeros(1, dtype=self.new_dtype_cache_keys)
-            entry = self.H[index][presumptive_keys_to_cache]
-            in_cache = np.append(in_cache, entry)
-            np.save(self.cache, in_cache)
+                in_cache = np.zeros(1, dtype=self.cache_dtype)
+            entry = self.H[index][self.cache_keys]
+            if entry not in in_cache:
+                in_cache = np.append(in_cache, entry)
+            np.save(self.cache, in_cache, allow_pickle=True)
             self.cache_set = True
 
     def get_shelved_sims(self) -> npt.NDArray:
-        try:
-            in_cache = np.load(self.cache, allow_pickle=True)
-        except EOFError:
-            in_cache = np.zeros(1, dtype=self.new_dtype_cache_keys)
+        in_cache = np.load(self.cache, allow_pickle=True)
         return in_cache
 
     def update_history_f(self, D: dict, kill_canceled_sims: bool = False) -> None:
