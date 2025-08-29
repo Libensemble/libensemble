@@ -712,6 +712,7 @@ class Manager:
                         break
                     self._check_work_order(Work[w], w)
                     cache_indexes = self._send_work_order(Work[w], w)
+                    # JLN TODO: take these indexes, grab the data from cache, slot into history, then what...?
                     print(cache_indexes)
                     self._update_state_on_alloc(Work[w], w)
                 assert self.term_test() or any(
