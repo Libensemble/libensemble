@@ -125,8 +125,13 @@ class History:
     def _shelf_longrunning_sims(self, index):
         """Cache any f values that ran for more than a second."""
         if 1:  # self.H[index]['sim_ended_time'] - self.H[index]['sim_started_time'] > 1:
-            self.cache_keys = sorted([i for i in self.H.dtype.names if i not in [k[0] for k in libE_fields]])
-            self.cache_dtype = sorted([(name, self.H.dtype.fields[name][0]) for name in self.cache_keys])
+            # ('f', 'x') and ('x', 'f') are not equivalent dtypes, unfortunately. So maybe sorted helps.
+            self.cache_keys = sorted(
+                [i for i in self.H.dtype.names if i not in [k[0] for k in libE_fields]]
+            )  # ('f', 'x') keys only
+            self.cache_dtype = sorted(
+                [(name, self.H.dtype.fields[name][0]) for name in self.cache_keys]
+            )  # only needed to init cache
             try:
                 in_cache = np.load(self.cache, allow_pickle=True)
             except EOFError:

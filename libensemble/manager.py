@@ -425,6 +425,8 @@ class Manager:
         work_rows = Work["libE_info"]["H_rows"]
         work_name = calc_type_strings[Work["tag"]]
         logger.debug(f"Manager sending {work_name} work to worker {w}. Rows {extract_H_ranges(Work) or None}")
+
+        discovered_cache_indexes = []
         if len(work_rows):
             new_dtype = [(name, self.hist.H.dtype.fields[name][0]) for name in Work["H_fields"]]
             H_to_be_sent = np.empty(len(work_rows), dtype=new_dtype)
@@ -433,22 +435,27 @@ class Manager:
 
             # check if any of the generated points are already in the cache
             if Work["tag"] == EVAL_SIM_TAG and self.hist.cache_set:
-                cached_H = self.hist.get_shelved_sims()
-                gen_keys = [j[0] for j in self.gen_specs["out"]]
-                cache_gen_keys = [i for i in self.hist.cache_keys if i in gen_keys]
+                cached_H = self.hist.get_shelved_sims()  # get the cache
+                gen_keys = [j[0] for j in self.gen_specs["out"]]  # get 'x' keys
+                cache_gen_keys = [i for i in self.hist.cache_keys if i in gen_keys]  # get 'x' keys in cache
                 discovered_cache_indexes = []
-                for index, entry in enumerate(H_to_be_sent):
+                for index, entry in enumerate(
+                    H_to_be_sent
+                ):  # find indexes of H_to_be_sent where 'x' fields are in cache
                     for field in cache_gen_keys:
-                        if np.allclose(entry[field], cached_H[field], rtol=1e-8, atol=1e-8):
+                        if np.allclose(
+                            entry[field], cached_H[field], rtol=1e-8, atol=1e-8
+                        ):  # iterate through cache entries too?
                             discovered_cache_indexes.append(index)
-                            break
+                            break  # but maybe the other 'x' fields are also in the cache...?
                 if len(discovered_cache_indexes) > 0:
                     for index in discovered_cache_indexes:
-                        H_to_be_sent = np.delete(H_to_be_sent, index, axis=0)
-                return discovered_cache_indexes
+                        H_to_be_sent = np.delete(
+                            H_to_be_sent, index, axis=0
+                        )  # delete rows from H_to_be_sent. we already have f
 
             self.wcomms[w].send(0, H_to_be_sent)
-        return []
+        return discovered_cache_indexes
 
     def _update_state_on_alloc(self, Work: dict, w: int):
         """Updates a workers' active/idle status following an allocation order"""
