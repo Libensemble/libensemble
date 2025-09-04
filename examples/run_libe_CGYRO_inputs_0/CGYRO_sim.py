@@ -112,7 +112,7 @@ def check_DB_and_do_run(x_to_check, sim_specs, libE_info, database_name):
     
     # output["fvec"] = qavg
     # output["f"] = float(qavg[0]) + float(qavg[1])
-    output["fvec"] = fout
+    # output["fvec"] = fout
     output["f"] = float(fout[1])
     output["convstatement"] = string_out 
 
@@ -130,11 +130,16 @@ def run_CGYRO(H, persis_info, sim_specs, libE_info):
 
 
 def run_CGYRO_over_KY(H, persis_info, sim_specs, libE_info):
-    results = []
-    for KY in np.arange(0.1,0.65,0.05):
-        x_to_check = np.hstack([H["x"], KY])
+    database_name = "/global/u2/j/jmlarson/kappa_correction_with_KY.npy"
+    output = np.zeros(1, dtype=sim_specs["out"])
+    for i, KY in enumerate(np.arange(0.1,0.65,0.05)):
+        x_to_check = np.hstack([np.squeeze(H["x"]), KY])
 
-        output, calc_status = check_DB_and_do_run(x_to_check, sim_specs, libE_info) 
+        individual_output, calc_status = check_DB_and_do_run(x_to_check, sim_specs, libE_info, database_name) 
+        output["fvec"][0][i] = individual_output["f"]
+
+    output["f"] = np.max(output["fvec"]) 
+    output["convstatement"] = individual_output["convstatement"]
 
     # Return final information to worker, for reporting to manager
     return output, persis_info, calc_status
