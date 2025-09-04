@@ -61,7 +61,8 @@ def main(argv):
         gen_on_manager=True,
         sim_dirs_make=True,
         # sim_input_dir="/global/homes/j/jmlarson/research/libensemble/examples/run_libe_CGYRO_inputs_0/nl01",
-        sim_input_dir="/global/homes/j/jmlarson/research/libensemble/examples/run_libe_CGYRO_inputs_0/reg02",
+        # sim_input_dir="/global/homes/j/jmlarson/research/libensemble/examples/run_libe_CGYRO_inputs_0/reg02",
+        sim_input_dir="/global/homes/j/jmlarson/research/libensemble/examples/run_libe_CGYRO_inputs_0/kappa_correction",
         platform_specs=platform_specs,
         reuse_output_dir=True,
         save_every_k_sims=1,
@@ -71,10 +72,10 @@ def main(argv):
     ensemble.sim_specs = SimSpecs(
         sim_f=run_CGYRO,
         inputs=["x"],
-        outputs=[("f", float), ("fvec", float, 2)],
+        outputs=[("f", float), ("fvec", float, 2), ("convstatement", "U100")],
         user={
             "input_filename": cgyro_input_file,
-            "input_names": ["KAPPA"],
+            "input_names": ["KAPPA","DELTA","ZETA"],
             "plot_heat_flux": False,
             "nproc": nproc,
             "nomp": nomp,
@@ -87,11 +88,11 @@ def main(argv):
         gen_f=gen_f,
         inputs=[],  # No input when start persistent generator
         persis_in=["sim_id"],  # Return sim_ids of evaluated points to generator
-        outputs=[("x", float, (1,))],
+        outputs=[("x", float, (3,))],
         user={
-            "initial_batch_size": nworkers,
-            "lb": np.array([0.54]),  # lower bound for input
-            "ub": np.array([0.56]),  # upper bound for input
+            "initial_batch_size": 45,
+            "lb": np.array([0.5, -0.75, -0.05]),  # lower bound for input
+            "ub": np.array([4.0, 0.0, 0.05]),  # upper bound for input
         },
     )
 
@@ -104,7 +105,7 @@ def main(argv):
     )
 
     # Instruct libEnsemble to exit after this many simulations
-    ensemble.exit_criteria = ExitCriteria(sim_max=5)
+    ensemble.exit_criteria = ExitCriteria(sim_max=45)
 
     # Seed random streams for each worker, particularly for gen_f
     ensemble.add_random_streams()

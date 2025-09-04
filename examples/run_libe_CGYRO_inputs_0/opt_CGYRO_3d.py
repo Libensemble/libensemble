@@ -107,9 +107,13 @@ def main(argv):
         user={
             "initial_sample_size": 1,
             # "sample_points": np.atleast_2d([3.918767432556607, 0.731486903996517, 0.068918275083707]),
-            "sample_points": np.atleast_2d([2.0, -0.35, 0.0]),
-            "lb": np.array([0.5, -0.75, -0.05]),  # lower bound for input
-            "ub": np.array([4.0, 0.0, 0.05]),  # upper bound for input
+            # "sample_points": np.atleast_2d([2.0, -0.35, 0.0]),
+            # "sample_points": np.atleast_2d([3.866870169989478 , -0.0859780453397936,  0.0410356935128535]),
+            "sample_points": np.atleast_2d([1.30860E+00,-2.67461E-01,-8.75397E-02]),
+            # "lb": np.array([0.5, -0.75, -0.05]),  # lower bound for input
+            # "ub": np.array([4.0, 0.0, 0.05]),  # upper bound for input
+            "lb": np.array([0.5, -0.75, -0.1]),  # lower bound for input
+            "ub": np.array([4.0, 0.0, 0.1]),  # upper bound for input
             "localopt_method": "LN_BOBYQA",
             "rk_const": 0.5 * ((gamma(1 + (n / 2)) * 5) ** (1 / n)) / sqrt(pi),
             "xtol_abs": 1e-6,
@@ -128,7 +132,7 @@ def main(argv):
     )
 
     # Instruct libEnsemble to exit after this many simulations
-    ensemble.exit_criteria = ExitCriteria(sim_max=15)
+    ensemble.exit_criteria = ExitCriteria(sim_max=30)
 
     # Seed random streams for each worker, particularly for gen_f
     ensemble.add_random_streams()

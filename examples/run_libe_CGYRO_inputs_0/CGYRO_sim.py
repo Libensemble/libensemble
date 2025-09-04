@@ -11,21 +11,19 @@ from netCDF4 import Dataset
 from libensemble.message_numbers import TASK_FAILED, WORKER_DONE
 
 
-def run_CGYRO(H, persis_info, sim_specs, libE_info):
+def check_DB_and_do_run(x_to_check, sim_specs, libE_info, database_name):
     """Launches the gx MPI app and auto-assigns ranks and GPU resources.
 
     Assigns one MPI rank to each GPU assigned to the worker.
     """
     calc_status = 0
 
-    database = "/global/u2/j/jmlarson/kappa_correction_all.npy"
-
     DB = []
     match = 0
-    if os.path.exists(database):
-        DB = np.load(database,allow_pickle=True)
+    if os.path.exists(database_name):
+        DB = np.load(database_name,allow_pickle=True)
         for db_entry in DB:
-            if np.allclose(db_entry['var_vals'],H["x"],rtol=1e-12,atol=1e-12):
+            if np.allclose(db_entry['var_vals'], x_to_check, rtol=1e-12,atol=1e-12):
                 print("match",flush=True)
                 fout = db_entry['obj_vals']
                 string_out = db_entry['string_out']
@@ -38,7 +36,7 @@ def run_CGYRO(H, persis_info, sim_specs, libE_info):
         input_file = sim_specs["user"]["input_filename"]
         input_values = {}
         for i, name in enumerate(sim_specs["user"]["input_names"]):
-            value = H["x"][0][i]
+            value = x_to_check[i]
             # if len(H["x"][0]) > 1:
             #     value = H["x"][0][i]
             # else:
@@ -104,9 +102,9 @@ def run_CGYRO(H, persis_info, sim_specs, libE_info):
             fout = np.nan*np.ones(2)
             calc_status = TASK_FAILED
 
-        to_save = {'obj_vals': fout, 'var_vals': H["x"], 'string_out': string_out}
+        to_save = {'obj_vals': fout, 'var_vals': x_to_check, 'string_out': string_out}
         DB = np.append(DB, to_save)
-        np.save(database,DB)
+        np.save(database_name,DB)
 
 
     # Define our output array, populate with energy reading
@@ -117,6 +115,26 @@ def run_CGYRO(H, persis_info, sim_specs, libE_info):
     output["fvec"] = fout
     output["f"] = float(fout[1])
     output["convstatement"] = string_out 
+
+    return output, calc_status
+
+def run_CGYRO(H, persis_info, sim_specs, libE_info):
+
+    # database_name = "/global/u2/j/jmlarson/kappa_correction_all.npy"
+    database_name = "/global/u2/j/jmlarson/kappa_correction_error.npy"
+
+    output, calc_status = check_DB_and_do_run(np.squeeze(H["x"]), sim_specs, libE_info, database_name) 
+
+    # Return final information to worker, for reporting to manager
+    return output, persis_info, calc_status
+
+
+def run_CGYRO_over_KY(H, persis_info, sim_specs, libE_info):
+    results = []
+    for KY in np.arange(0.1,0.65,0.05):
+        x_to_check = np.hstack([H["x"], KY])
+
+        output, calc_status = check_DB_and_do_run(x_to_check, sim_specs, libE_info) 
 
     # Return final information to worker, for reporting to manager
     return output, persis_info, calc_status
