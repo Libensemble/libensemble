@@ -5,7 +5,7 @@ from pathlib import Path
 import pydantic
 from pydantic import BaseModel, Field
 
-from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
+from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens
 
 __all__ = ["SimSpecs", "GenSpecs", "AllocSpecs", "ExitCriteria", "LibeSpecs", "_EnsembleSpecs"]
 
@@ -126,10 +126,14 @@ class AllocSpecs(BaseModel):
     Specifications for configuring an Allocation Function.
     """
 
-    alloc_f: object = give_sim_work_first
+    alloc_f: object = only_persistent_gens
     """
     Python function matching the ``alloc_f`` interface. Decides when simulator and generator functions
     should be called, and with what resources and parameters.
+
+    .. note::
+        For libEnsemble v2.0, the default allocation function is now ``only_persistent_gens``, instead
+        of ``give_sim_work_first``.
     """
 
     user: dict | None = {"num_active_gens": 1}
