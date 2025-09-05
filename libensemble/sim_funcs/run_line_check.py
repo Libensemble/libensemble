@@ -22,7 +22,7 @@ def exp_nodelist_for_worker(exp_list, workerID, nodes_per_worker, persis_gens):
             node_list = comp.split(",")
             for node in node_list:
                 node_name, node_num = node.split("-")
-                offset = workerID  # - (persis_gens)
+                offset = workerID
                 new_num = int(node_num) + int(nodes_per_worker * offset)
                 new_node = "-".join([node_name, str(new_num)])
                 new_node_list.append(new_node)

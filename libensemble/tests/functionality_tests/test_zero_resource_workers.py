@@ -9,8 +9,6 @@ Execute via one of the following commands (e.g. 3 workers):
 The number of concurrent evaluations of the objective function will be 4-1=3.
 """
 
-import sys
-
 import numpy as np
 
 from libensemble import logger
@@ -23,7 +21,7 @@ from libensemble.tests.regression_tests.common import create_node_file
 from libensemble.tools import add_unique_random_streams, parse_args
 
 # logger.set_level("DEBUG")  # For testing the test
-logger.set_level("INFO")
+logger.set_level("DEBUG")
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local
@@ -49,7 +47,7 @@ if __name__ == "__main__":
     # For varying size test - relate node count to nworkers
     in_place = libE_specs["zero_resource_workers"]
     n_gens = len(in_place)
-    nsim_workers = nworkers - n_gens
+    nsim_workers = nworkers  # - n_gens
 
     comms = libE_specs["comms"]
     nodes_per_worker = 2
@@ -79,8 +77,8 @@ if __name__ == "__main__":
     exctr = MPIExecutor(custom_info=mpi_customizer)
     exctr.register_app(full_path=sim_app, calc_type="sim")
 
-    if nworkers < 2:
-        sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
+    # if nworkers < 2:
+    #     sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
 
     n = 2
     sim_specs = {
