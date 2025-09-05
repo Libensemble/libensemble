@@ -15,6 +15,7 @@ import os
 import numpy as np
 
 import libensemble.sim_funcs.six_hump_camel as six_hump_camel
+from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 from libensemble.executors.mpi_executor import MPIExecutor
 from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
 
@@ -85,6 +86,10 @@ if __name__ == "__main__":
         },
     }
 
+    alloc_specs = {
+        "alloc_f": give_sim_work_first,
+    }
+
     persis_info = add_unique_random_streams({}, nworkers + 1)
 
     exit_criteria = {"wallclock_max": 10}
@@ -97,7 +102,9 @@ if __name__ == "__main__":
 
     for i in range(iterations):
         # Perform the run
-        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
+        H, persis_info, flag = libE(
+            sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs=libE_specs
+        )
 
         if is_manager:
             print("\nChecking expected task status against Workers ...\n")

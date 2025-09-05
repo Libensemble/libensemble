@@ -3,7 +3,8 @@ from sine_gen import gen_random_sample
 from sine_sim import sim_find_sine
 
 from libensemble import Ensemble
-from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
+from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
+from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
 
 if __name__ == "__main__":  # Python-quirk required on macOS and windows
     libE_specs = LibeSpecs(nworkers=4, comms="local")
@@ -27,6 +28,7 @@ if __name__ == "__main__":  # Python-quirk required on macOS and windows
     exit_criteria = ExitCriteria(sim_max=80)  # Stop libEnsemble after 80 simulations
 
     ensemble = Ensemble(sim_specs, gen_specs, exit_criteria, libE_specs)
+    ensemble.alloc_specs = AllocSpecs(alloc_f=give_sim_work_first)
     ensemble.add_random_streams()  # setup the random streams unique to each worker
     ensemble.run()  # start the ensemble. Blocks until completion.
 

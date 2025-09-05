@@ -17,11 +17,12 @@ The number of concurrent evaluations of the objective function will be 4-1=3.
 import numpy as np
 
 from libensemble import Ensemble
+from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 from libensemble.gen_funcs.sampling import latin_hypercube_sample as gen_f
 
 # Import libEnsemble items for this test
 from libensemble.sim_funcs.simple_sim import norm_eval as sim_f
-from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
+from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
 from libensemble.tools import check_npy_file_exists
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
@@ -55,6 +56,7 @@ if __name__ == "__main__":
     )
 
     sampling.add_random_streams()
+    sampling.alloc_specs = AllocSpecs(alloc_f=give_sim_work_first)
     H, persis_info, flag = sampling.run()
 
     if sampling.is_manager:

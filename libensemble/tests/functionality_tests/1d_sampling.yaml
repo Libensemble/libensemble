@@ -22,3 +22,6 @@ gen_specs:
             size: 1
     user:
         gen_batch_size: 500
+
+alloc_specs:
+    alloc_f: libensemble.alloc_funcs.give_sim_work_first.give_sim_work_first

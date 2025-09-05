@@ -15,6 +15,7 @@ The number of concurrent evaluations of the objective function will be 4-1=3.
 
 import numpy as np
 
+from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 from libensemble.gen_funcs.sampling import latin_hypercube_sample as gen_f
 
 # Import libEnsemble items for this test
@@ -55,7 +56,13 @@ if __name__ == "__main__":
 
     exit_criteria = {"gen_max": 501}
 
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
+    alloc_specs = {
+        "alloc_f": give_sim_work_first,
+    }
+
+    H, persis_info, flag = libE(
+        sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs=alloc_specs, libE_specs=libE_specs
+    )
 
     if is_manager:
         assert len(H) >= 501
