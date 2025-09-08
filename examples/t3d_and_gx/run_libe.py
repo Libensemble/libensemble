@@ -26,7 +26,8 @@ if __name__ == "__main__":
 
     # sim_input_dir = "test-w7x-gx_simple"
     # sim_input_dir = "test-w7x-gx"
-    sim_input_dir = "mini-w7x-gx"
+    # sim_input_dir = "mini-w7x-gx"
+    sim_input_dir = "reg-w7x-gx"
 
     libE_specs = LibeSpecs(
         nworkers=num_workers,
@@ -42,7 +43,8 @@ if __name__ == "__main__":
         inputs=["x"],
         outputs=[("f", float)],
         # user={"input_filename": "test-w7x-gx.in", "input_names": ["H_height", "H_width"]},
-        user={"input_filename": "mini-w7x-gx.in", "input_names": ["H_height", "H_width"]},
+        # user={"input_filename": "mini-w7x-gx.in", "input_names": ["H_height", "H_width"]},
+        user={"input_filename": "reg-w7x-gx.in", "input_names": ["H_height", "H_width"]},
     )
 
     n = 2
@@ -63,7 +65,7 @@ if __name__ == "__main__":
     #     user={"async_return": True},
     # )
 
-    exit_criteria = ExitCriteria(sim_max=20)
+    exit_criteria = ExitCriteria(sim_max=3)
 
     ensemble = Ensemble(
         libE_specs=libE_specs,
