@@ -1,6 +1,8 @@
 import os
 import sys
 import subprocess
+from pathlib import Path
+import shutil
 
 import jinja2
 import numpy as np
@@ -132,14 +134,80 @@ def run_CGYRO(H, persis_info, sim_specs, libE_info):
 def run_CGYRO_over_KY(H, persis_info, sim_specs, libE_info):
     database_name = "/global/u2/j/jmlarson/kappa_correction_with_KY.npy"
     output = np.zeros(1, dtype=sim_specs["out"])
+
+
+    input_file = Path(sim_specs["user"]["input_filename"])
+    backup_file = input_file.with_suffix(input_file.suffix + ".safe") if input_file.suffix else Path(str(input_file) + ".safe")
+
+    # Create the backup if it doesn't exist
+    if not backup_file.exists():
+        shutil.copy2(input_file, backup_file)
+
+    workdir = Path.cwd()
+
     for i, KY in enumerate(np.arange(0.1,0.65,0.05)):
         x_to_check = np.hstack([np.squeeze(H["x"]), KY])
+
+        # pristine template before running for this KY 
+        shutil.copy2(backup_file, input_file)
+
+        # Snapshot files present before the run (after rendering)
+        pre_files = set(os.listdir(workdir))
 
         individual_output, calc_status = check_DB_and_do_run(x_to_check, sim_specs, libE_info, database_name) 
         output["fvec"][0][i] = individual_output["f"]
 
-    output["f"] = np.max(output["fvec"]) 
-    output["convstatement"] = individual_output["convstatement"]
+        # --- Move outputs into a KY-specific directory ---
+        run_dir = workdir / f"KY_{KY:.2f}"
+        run_dir.mkdir(exist_ok=True)
+
+        # Files that appeared during the run
+        post_files = set(os.listdir(workdir))
+        new_items = sorted(post_files - pre_files)
+
+        # Exclusions we should never move
+        exclusions = {
+            backup_file.name,              # keep the .safe backup in place
+            run_dir.name,                  # don't move the destination into itself
+            Path(database_name).name,      # don't relocate your DB
+        }
+        # Move newly created files/dirs
+        for name in new_items:
+            if name in exclusions:
+                continue
+            src = workdir / name
+            try:
+                shutil.move(str(src), run_dir / name)
+            except Exception:
+                # If something resists move (e.g., open/locked), fall back to copy
+                if src.is_dir():
+                    shutil.copytree(src, run_dir / name, dirs_exist_ok=True)
+                    shutil.rmtree(src, ignore_errors=True)
+                else:
+                    shutil.copy2(src, run_dir / name)
+                    try:
+                        src.unlink()
+                    except Exception:
+                        pass
+
+        # Also archive the rendered input file used for this run
+        # (It existed before the run snapshot, so it won't be in new_items.)
+        try:
+            shutil.move(str(input_file), run_dir / input_file.name)
+        except Exception:
+            shutil.copy2(input_file, run_dir / input_file.name)
+            try:
+                input_file.unlink()
+            except Exception:
+                pass
+
+        # (Optional) save a tiny manifest with KY and x_to_check for traceability
+        with open(run_dir / "run_manifest.txt", "w") as mf:
+            mf.write(f"KY = {KY:.5f}\n")
+            mf.write("x_to_check = " + np.array2string(x_to_check, precision=6) + "\n")
+
+        output["f"] = np.max(output["fvec"]) 
+        output["convstatement"] = individual_output["convstatement"]
 
     # Return final information to worker, for reporting to manager
     return output, persis_info, calc_status
