@@ -139,6 +139,7 @@ class History:
             entry = self.H[index][self.cache_keys]
             if entry not in in_cache:
                 in_cache = np.append(in_cache, entry)
+            in_cache = np.unique(in_cache, axis=0)
             np.save(self.cache, in_cache, allow_pickle=True)
             self.cache_set = True
 
