@@ -410,7 +410,7 @@ class Manager:
         if self.resources:
             self.resources.resource_manager.free_rsets(w)
 
-    def _send_work_order(self, Work: dict, w: int) -> list:
+    def _send_work_order(self, Work: dict, w: int) -> None:
         """Sends an allocation function order to a worker"""
         logger.debug(f"Manager sending work unit to worker {w}")
 
@@ -425,37 +425,13 @@ class Manager:
         work_rows = Work["libE_info"]["H_rows"]
         work_name = calc_type_strings[Work["tag"]]
         logger.debug(f"Manager sending {work_name} work to worker {w}. Rows {extract_H_ranges(Work) or None}")
-
-        discovered_cache_indexes = []
         if len(work_rows):
             new_dtype = [(name, self.hist.H.dtype.fields[name][0]) for name in Work["H_fields"]]
             H_to_be_sent = np.empty(len(work_rows), dtype=new_dtype)
             for i, row in enumerate(work_rows):
                 H_to_be_sent[i] = repack_fields(self.hist.H[Work["H_fields"]][row])
 
-            # check if any of the generated points are already in the cache
-            if Work["tag"] == EVAL_SIM_TAG and self.hist.cache_set:
-                cached_H = self.hist.get_shelved_sims()  # get the cache
-                gen_keys = [j[0] for j in self.gen_specs["out"]]  # get 'x' keys
-                cache_gen_keys = [i for i in self.hist.cache_keys if i in gen_keys]  # get 'x' keys in cache
-                discovered_cache_indexes = []
-                for index, entry in enumerate(
-                    H_to_be_sent
-                ):  # find indexes of H_to_be_sent where 'x' fields are in cache
-                    for field in cache_gen_keys:
-                        if np.allclose(
-                            entry[field], cached_H[field], rtol=1e-8, atol=1e-8
-                        ):  # iterate through cache entries too?
-                            discovered_cache_indexes.append(index)
-                            break  # but maybe the other 'x' fields are also in the cache...?
-                if len(discovered_cache_indexes) > 0:
-                    for index in discovered_cache_indexes:
-                        H_to_be_sent = np.delete(
-                            H_to_be_sent, index, axis=0
-                        )  # delete rows from H_to_be_sent. we already have f
-
             self.wcomms[w].send(0, H_to_be_sent)
-        return discovered_cache_indexes
 
     def _update_state_on_alloc(self, Work: dict, w: int):
         """Updates a workers' active/idle status following an allocation order"""
@@ -650,6 +626,8 @@ class Manager:
     def _get_alloc_libE_info(self) -> dict:
         """Selected statistics useful for alloc_f"""
 
+        cache = self.hist.get_shelved_sims() if self.hist.cache_set else []
+
         return {
             "any_idle_workers": any(self.W["active"] == 0),
             "exit_criteria": self.exit_criteria,
@@ -664,6 +642,8 @@ class Manager:
             "gen_num_procs": self.gen_num_procs,
             "gen_num_gpus": self.gen_num_gpus,
             "gen_on_manager": self.libE_specs.get("gen_on_manager", False),
+            "cache": cache,
+            "hist": self.hist,
         }
 
     def _alloc_work(self, H: npt.NDArray, persis_info: dict) -> dict:
@@ -718,9 +698,7 @@ class Manager:
                     if self._sim_max_given():
                         break
                     self._check_work_order(Work[w], w)
-                    cache_indexes = self._send_work_order(Work[w], w)
-                    # JLN TODO: take these indexes, grab the data from cache, slot into history, then what...?
-                    print(cache_indexes)
+                    self._send_work_order(Work[w], w)
                     self._update_state_on_alloc(Work[w], w)
                 assert self.term_test() or any(
                     self.W["active"] != 0

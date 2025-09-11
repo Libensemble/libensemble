@@ -64,6 +64,20 @@ def give_sim_work_first(
 
     points_to_evaluate = ~H["sim_started"] & ~H["cancel_requested"]
 
+    if len(libE_info["cache"]) and np.any(points_to_evaluate):
+        for H_index, H_entry in enumerate(H):
+            for cache_index, cache_entry in enumerate(libE_info["cache"]):
+                for field in [j[0] for j in gen_specs["out"]]:
+                    if field in libE_info["cache"].dtype.names and np.allclose(
+                        H_entry[field], cache_entry[field], rtol=1e-8, atol=1e-8
+                    ):
+                        H[H_index][field] = cache_entry[field]
+                        libE_info["hist"].update_history_x_out(q_inds=np.array([H_index]), sim_worker=1)
+                        libE_info["hist"].update_history_to_gen(q_inds=np.array([H_index]))
+                        print(f"Using cache entry {cache_index} for History index {H_index}. Field: {field}")
+
+    points_to_evaluate = ~H["sim_started"] & ~H["cancel_requested"]
+
     if np.any(points_to_evaluate):
         for wid in support.avail_worker_ids(gen_workers=False):
             sim_ids_to_send = support.points_by_priority(H, points_avail=points_to_evaluate, batch=batch_give)
