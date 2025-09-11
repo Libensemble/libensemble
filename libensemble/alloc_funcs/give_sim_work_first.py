@@ -72,6 +72,7 @@ def give_sim_work_first(
                         H_entry[field], cache_entry[field], rtol=1e-8, atol=1e-8
                     ):
                         H[H_index][field] = cache_entry[field]
+                        H[H_index]["sim_started"] = True
                         libE_info["hist"].update_history_x_out(q_inds=np.array([H_index]), sim_worker=1)
                         libE_info["hist"].update_history_to_gen(q_inds=np.array([H_index]))
                         print(f"Using cache entry {cache_index} for History index {H_index}. Field: {field}")
