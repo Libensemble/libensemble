@@ -180,12 +180,23 @@ globus-compute-sdk = ">=4.10.2,<5"
 
 # Dependencies for libEnsemble
 [tool.pixi.dependencies]
+<<<<<<< HEAD
 python = ">=3.11,<3.15"
 pip = ">=25.2,<26"
 setuptools = ">=80.8.0,<81"
 numpy = ">=2.2.6,<3"
 pydantic = ">=2.12.4,<3"
 gest-api = ">=0.1,<0.2"
+=======
+python = ">=3.10,<3.14"
+pip = "*"
+setuptools = "*"
+numpy = "*"
+pydantic = "*"
+pyyaml = "*"
+tomli = "*"
+psutil = "*"
+>>>>>>> df29125a9 (moving cache logic into manager, into handle_msg_from_worker that overrides .recv, and in _send_work_order that forms a buffer from corresponding cache entries)
 
 
 # macOS dependencies
