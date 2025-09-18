@@ -419,14 +419,15 @@ class Manager:
         work_rows = Work["libE_info"]["H_rows"]
         new_dtype = [(name, self.hist.H.dtype.fields[name][0]) for name in Work["H_fields"]]
 
-        if Work["tag"] == EVAL_SIM_TAG:
+        if Work["tag"] == EVAL_SIM_TAG and len(work_rows):
             cache = self.hist.get_shelved_sims()
             dtype_with_idx = np.dtype(cache.dtype.descr + np.dtype([("H_row", int)]).descr)
-            self.from_cache = np.zeros(len(work_rows), dtype=dtype_with_idx)  # all work may be in cache
+            if not len(self.from_cache):
+                self.from_cache = np.zeros(len(work_rows), dtype=dtype_with_idx)  # all work may be in cache
+            else:
+                self.from_cache = np.append(self.from_cache, np.zeros(len(work_rows), dtype=dtype_with_idx))
 
             for field in np.dtype(new_dtype).names:
-                if not len(self.from_cache):
-                    break
                 if field in cache.dtype.names:
                     for row in work_rows:
                         for cache_row in cache:
@@ -462,6 +463,9 @@ class Manager:
 
             if all([i in self.from_cache["H_row"] for i in work_rows]):  # if all rows in work_rows are found in cache
                 return
+
+            if self.cache_hit:
+                work_rows = [row for row in work_rows if row not in self.from_cache["H_row"]]
 
             H_to_be_sent = np.empty(len(work_rows), dtype=new_dtype)
             for i, row in enumerate(work_rows):
