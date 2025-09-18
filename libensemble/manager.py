@@ -218,6 +218,7 @@ class Manager:
         self.persis_pending = []
         self.live_data = libE_specs.get("live_data")
         self.from_cache = []
+        self.cache_index = 0
         self.cache_hit = False
 
         dyn_keys = ("resource_sets", "num_procs", "num_gpus")
@@ -419,9 +420,9 @@ class Manager:
         work_rows = Work["libE_info"]["H_rows"]
         new_dtype = [(name, self.hist.H.dtype.fields[name][0]) for name in Work["H_fields"]]
 
-        if Work["tag"] == EVAL_SIM_TAG and len(work_rows):
+        if Work["tag"] == EVAL_SIM_TAG and len(work_rows) and self.hist.cache_set:
             cache = self.hist.get_shelved_sims()
-            dtype_with_idx = np.dtype(cache.dtype.descr + np.dtype([("H_row", int)]).descr)
+            dtype_with_idx = np.dtype(cache.dtype.descr + np.dtype([("H_row", int), ("worker_id", int)]).descr)
             if not len(self.from_cache):
                 self.from_cache = np.zeros(len(work_rows), dtype=dtype_with_idx)  # all work may be in cache
             else:
@@ -439,17 +440,18 @@ class Manager:
                                     1, dtype=dtype_with_idx
                                 )  # make an entry for this row, plus H_row
                                 from_cache_entry["H_row"] = row
+                                from_cache_entry["worker_id"] = w
                                 for remaining_field in cache.dtype.names:
                                     from_cache_entry[remaining_field] = cache_row[remaining_field]
-                                self.from_cache[row] = from_cache_entry
+                                self.from_cache[self.cache_index] = from_cache_entry
+                                self.cache_index += 1
 
         if self.resources:
             self._set_resources(Work, w)
 
-        self.wcomms[w].send(Work["tag"], Work)
-
-        if Work["tag"] == EVAL_GEN_TAG:
+        elif Work["tag"] == EVAL_GEN_TAG:
             self.W[w]["gen_started_time"] = time.time()
+            self.wcomms[w].send(Work["tag"], Work)
 
         work_name = calc_type_strings[Work["tag"]]
         if self.cache_hit:
@@ -461,16 +463,18 @@ class Manager:
 
         if len(work_rows):
 
-            if all([i in self.from_cache["H_row"] for i in work_rows]):  # if all rows in work_rows are found in cache
-                return
-
             if self.cache_hit:
                 work_rows = [row for row in work_rows if row not in self.from_cache["H_row"]]
+                if all(
+                    [i in self.from_cache["H_row"] for i in work_rows]
+                ):  # if all rows in work_rows are found in cache
+                    return
 
             H_to_be_sent = np.empty(len(work_rows), dtype=new_dtype)
             for i, row in enumerate(work_rows):
                 H_to_be_sent[i] = repack_fields(self.hist.H[Work["H_fields"]][row])
 
+            self.wcomms[w].send(Work["tag"], Work)
             self.wcomms[w].send(0, H_to_be_sent)
 
     def _update_state_on_alloc(self, Work: dict, w: int):
@@ -499,14 +503,17 @@ class Manager:
         looped back over.
         """
         time.sleep(0.0001)  # Critical for multiprocessing performance
+
+        if self.cache_hit or len(self.from_cache):
+            self.cache_hit = False
+            for w in self.from_cache["worker_id"]:
+                self._handle_msg_from_worker(persis_info, w, process_cache=True)
+            self.from_cache = []
+            self.cache_index = 0
+
         new_stuff = True
         while new_stuff:
             new_stuff = False
-            if self.cache_hit or len(self.from_cache):
-                self.cache_hit = False
-                new_stuff = True
-                self._handle_msg_from_worker(persis_info, 0, process_cache=True)
-                self.from_cache = []
             for w in self.W["worker_id"]:
                 if self.wcomms[w].mail_flag():
                     new_stuff = True
@@ -566,10 +573,13 @@ class Manager:
         try:
             if process_cache:
                 D_recv = {
-                    "calc_out": self.from_cache,  # need cache entries without H_row
+                    "calc_out": self.from_cache[[name[0] for name in self.sim_specs["out"]]],
                     "libE_info": {
                         "H_rows": self.from_cache["H_row"],
+                        "workerID": w,
                     },
+                    "calc_status": 0,
+                    "calc_type": 1,
                 }
             else:
                 msg = self.wcomms[w].recv()
