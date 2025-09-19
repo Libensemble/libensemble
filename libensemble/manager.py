@@ -413,6 +413,44 @@ class Manager:
         if self.resources:
             self.resources.resource_manager.free_rsets(w)
 
+    def _refresh_from_cache(
+        self, cache: npt.NDArray, dtype_with_idx: np.dtype, cache_row: npt.NDArray, work_row: int, w: int
+    ) -> None:
+        """Add a cache entry, workerID, and H_row to the record array."""
+        self.cache_hit = True
+        from_cache_entry = np.empty(1, dtype=dtype_with_idx)
+        from_cache_entry["H_row"] = work_row
+        from_cache_entry["worker_id"] = w
+        for remaining_field in cache.dtype.names:
+            from_cache_entry[remaining_field] = cache_row[remaining_field]
+        self.from_cache[self.cache_index] = from_cache_entry
+        self.cache_index += 1
+
+    def _cache_scan(
+        self, cache: npt.NDArray, Work: dict, w: int, dtype_with_idx: np.dtype, new_dtype: np.dtype
+    ) -> None:
+        """Check if any work rows are in the cache, and if so, call the above, _refresh_from_cache."""
+
+        for field in np.dtype(new_dtype).names:
+            if field in cache.dtype.names:
+                for work_row in Work["libE_info"]["H_rows"]:
+                    for cache_row in cache:
+                        if (
+                            np.allclose(cache_row[field], self.hist.H[field][work_row])
+                            and work_row not in self.from_cache["H_row"]
+                        ):  # we found outbound work in cache, that's not already been retrieved
+                            self._refresh_from_cache(cache, dtype_with_idx, cache_row, work_row, w)
+
+    def _update_state_from_cache(self, Work: dict, work_rows: npt.NDArray, w: int, new_dtype: np.dtype) -> None:
+        """Retrieve saved cache from history, create local record-array of matching cache entries."""
+        cache = self.hist.get_shelved_sims()
+        dtype_with_idx = np.dtype(cache.dtype.descr + np.dtype([("H_row", int), ("worker_id", int)]).descr)
+        if not len(self.from_cache):
+            self.from_cache = np.zeros(len(work_rows), dtype=dtype_with_idx)  # all work may be in cache
+        else:
+            self.from_cache = np.append(self.from_cache, np.zeros(len(work_rows), dtype=dtype_with_idx))
+        self._cache_scan(cache, Work, w, dtype_with_idx, new_dtype)
+
     def _send_work_order(self, Work: dict, w: int) -> None:
         """Sends an allocation function order to a worker"""
         logger.debug(f"Manager sending work unit to worker {w}")
@@ -421,29 +459,7 @@ class Manager:
         new_dtype = [(name, self.hist.H.dtype.fields[name][0]) for name in Work["H_fields"]]
 
         if Work["tag"] == EVAL_SIM_TAG and len(work_rows) and self.hist.cache_set:
-            cache = self.hist.get_shelved_sims()
-            dtype_with_idx = np.dtype(cache.dtype.descr + np.dtype([("H_row", int), ("worker_id", int)]).descr)
-            if not len(self.from_cache):
-                self.from_cache = np.zeros(len(work_rows), dtype=dtype_with_idx)  # all work may be in cache
-            else:
-                self.from_cache = np.append(self.from_cache, np.zeros(len(work_rows), dtype=dtype_with_idx))
-
-            for field in np.dtype(new_dtype).names:
-                if field in cache.dtype.names:
-                    for row in work_rows:
-                        for cache_row in cache:
-                            if (
-                                np.allclose(cache_row[field], self.hist.H[field][row])
-                                and row not in self.from_cache["H_row"]
-                            ):  # we found outbound work in cache, that's not already been retrieved
-                                self.cache_hit = True
-                                from_cache_entry = np.empty(1, dtype=dtype_with_idx)
-                                from_cache_entry["H_row"] = row
-                                from_cache_entry["worker_id"] = w
-                                for remaining_field in cache.dtype.names:
-                                    from_cache_entry[remaining_field] = cache_row[remaining_field]
-                                self.from_cache[self.cache_index] = from_cache_entry
-                                self.cache_index += 1
+            self._update_state_from_cache(Work, work_rows, w, new_dtype)
 
         if self.resources:
             self._set_resources(Work, w)
@@ -467,6 +483,7 @@ class Manager:
                 if (
                     all([i in self.from_cache["H_row"] for i in work_rows]) and Work["tag"] == EVAL_SIM_TAG
                 ):  # if all rows in work_rows are found in cache
+                    logger.debug("Manager skipping sending work to worker %s due to cache", w)
                     return
 
             H_to_be_sent = np.empty(len(work_rows), dtype=new_dtype)
@@ -495,8 +512,19 @@ class Manager:
 
     # --- Handle incoming messages from workers
 
-    def _receive_from_workers(self, persis_info: dict) -> dict:
-        """Receives calculation output from workers. Loops over all
+    def _receive_from_workers_or_cache(self, persis_info: dict) -> dict:
+        """
+        Two stage process of handling either:
+        1. Messages that could've been sent to a worker, but are already in the cache.
+        2. Messages that have been sent by a worker.
+
+        1.
+        If the cache is not empty, the cache is scanned for messages that could've been sent.
+        Messages are processed as though they came from their corresponding worker. The local
+        record of the cache is then cleared to prevent duplicate processing.
+
+        2.
+        Receives calculation output from workers. Loops over all
         active workers and probes to see if worker is ready to
         communticate. If any output is received, all other workers are
         looped back over.
@@ -568,7 +596,11 @@ class Manager:
             persis_info.setdefault(int(w), {}).update(D_recv["persis_info"])
 
     def _handle_msg_from_worker(self, persis_info: dict, w: int, process_cache: bool = False) -> None:
-        """Handles a message from worker w"""
+        """Handles a message from worker w.
+
+        If processing from the cache, create a simulated worker message containing
+        the cache entry.
+        """
         try:
             if process_cache:
                 cache_entry_by_worker = self.from_cache["worker_id"] == w
@@ -662,7 +694,7 @@ class Manager:
 
         exit_flag = 0
         while (any(self.W["active"]) or any(self.W["persis_state"])) and exit_flag == 0:
-            persis_info = self._receive_from_workers(persis_info)
+            persis_info = self._receive_from_workers_or_cache(persis_info)
             if self.term_test(logged=False) == 2:
                 # Elapsed Wallclock has expired
                 if not any(self.W["persis_state"]):
@@ -751,7 +783,7 @@ class Manager:
         try:
             while not self.term_test():
                 self._kill_cancelled_sims()
-                persis_info = self._receive_from_workers(persis_info)
+                persis_info = self._receive_from_workers_or_cache(persis_info)
                 Work, persis_info, flag = self._alloc_work(self.hist.trim_H(), persis_info)
                 if flag:
                     break
