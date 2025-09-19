@@ -173,11 +173,9 @@ Optional Dependencies for Additional Features
 
 The following packages may be installed separately to enable additional features:
 
-* Balsam_ - Manage and submit applications to the Balsam service with our :ref:`BalsamExecutor<balsam-exctr>`
 * pyyaml_ and tomli_ - Parameterize libEnsemble via yaml or toml
 * `Globus Compute`_ - Submit simulation or generator function instances to remote Globus Compute endpoints
 
-.. _Balsam: https://balsam.readthedocs.io/en/latest/
 .. _conda-forge: https://conda-forge.org/
 .. _Conda: https://docs.conda.io/en/latest/
 .. _GitHub: https://github.com/Libensemble/libensemble

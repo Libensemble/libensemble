@@ -22,6 +22,9 @@ and inference problems on the world's leading supercomputers such as Frontier, A
 
 `Quickstart`_
 
+**New:** Try out the |ScriptCreator| to generate customized scripts for running
+ensembles with your MPI applications.
+
 Installation
 ============
 
@@ -182,3 +185,7 @@ Resources
 
 .. |Surrogate Modeling| image:: https://colab.research.google.com/assets/colab-badge.svg
   :target:  https://colab.research.google.com/github/Libensemble/libensemble/blob/develop/examples/tutorials/gpcam_surrogate_model/gpcam.ipynb
+
+.. |ScriptCreator| image:: https://img.shields.io/badge/Script_Creator-purple?logo=magic
+   :target: https://libensemble.github.io/script-creator/
+   :alt: Script Creator

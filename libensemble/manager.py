@@ -12,7 +12,7 @@ import socket
 import sys
 import time
 import traceback
-from typing import Any, Union
+from typing import Any
 
 import numpy as np
 import numpy.typing as npt
@@ -291,7 +291,7 @@ class Manager:
         H = self.hist.H
         return np.any(filter_nans(H[key][H["sim_ended"]]) <= val)
 
-    def term_test(self, logged: bool = True) -> Union[bool, int]:
+    def term_test(self, logged: bool = True) -> bool | int:
         """Checks termination criteria"""
         for retval, key, testf in self.term_tests:
             if key in self.exit_criteria:

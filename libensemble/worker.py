@@ -3,6 +3,8 @@ libEnsemble worker class
 ====================================================
 """
 
+from __future__ import annotations
+
 import logging
 import logging.handlers
 import socket
@@ -10,6 +12,10 @@ from itertools import count
 from pathlib import Path
 from traceback import format_exc
 from traceback import format_exception_only as format_exc_msg
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from libensemble.comms.comms import Comm
 
 import numpy as np
 import numpy.typing as npt
@@ -42,7 +48,7 @@ task_timing = False
 
 
 def worker_main(
-    comm: "communicator",  # noqa: F821
+    comm: Comm,
     sim_specs: dict,
     gen_specs: dict,
     libE_specs: dict,
@@ -50,7 +56,7 @@ def worker_main(
     log_comm: bool = True,
     resources: Resources = None,
     executor: Executor = None,
-) -> None:  # noqa: F821
+) -> None:
     """Evaluates calculations given to it by the manager.
 
     Creates a worker object, receives work from manager, runs worker,
@@ -153,13 +159,13 @@ class Worker:
 
     def __init__(
         self,
-        comm: "communicator",  # noqa: F821
+        comm: Comm,
         dtypes: npt.DTypeLike,
         workerID: int,
         sim_specs: dict,
         gen_specs: dict,
         libE_specs: dict,
-    ) -> None:  # noqa: F821
+    ) -> None:
         """Initializes new worker object"""
         self.comm = comm
         self.dtypes = dtypes
@@ -198,7 +204,7 @@ class Worker:
             return False
 
     @staticmethod
-    def _set_executor(workerID: int, comm: "communicator") -> bool:  # noqa: F821
+    def _set_executor(workerID: int, comm: Comm) -> bool:
         """Sets worker ID in the executor, return True if set"""
         exctr = Executor.executor
         if isinstance(exctr, Executor):
@@ -209,7 +215,7 @@ class Worker:
             return False
 
     @staticmethod
-    def _set_resources(workerID, comm: "communicator") -> bool:  # noqa: F821
+    def _set_resources(workerID, comm: Comm) -> bool:
         """Sets worker ID in the resources, return True if set"""
         resources = Resources.resources
         if isinstance(resources, Resources):

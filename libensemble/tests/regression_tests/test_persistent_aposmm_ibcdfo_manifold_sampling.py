@@ -31,17 +31,17 @@ import numpy as np
 
 import libensemble.gen_funcs
 from libensemble.libE import libE
-from libensemble.sim_funcs.chwirut1 import chwirut_eval
 
-libensemble.gen_funcs.rc.aposmm_optimizers = "ibcdfo_pounders"
+libensemble.gen_funcs.rc.aposmm_optimizers = "ibcdfo_manifold_sampling"
 
 from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc as alloc_f
 from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
 from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
 
 try:
-    from ibcdfo.pounders import pounders  # noqa: F401
-    from ibcdfo.pounders.general_h_funs import emittance_combine, emittance_h
+    from ibcdfo.manifold_sampling import manifold_sampling_primal  # noqa: F401
+    from ibcdfo.manifold_sampling.h_examples import pw_maximum as hfun
+
 except ModuleNotFoundError:
     sys.exit("Please 'pip install ibcdfo'")
 
@@ -50,10 +50,6 @@ try:
 
 except ModuleNotFoundError:
     sys.exit("Ensure https://github.com/POptUS/minq has been cloned and that minq/py/minq5/ is on the PYTHONPATH")
-
-
-def sum_squared(x):
-    return np.sum(np.power(x, 2))
 
 
 def synthetic_beamline_mapping(H, _, sim_specs):
@@ -66,7 +62,7 @@ def synthetic_beamline_mapping(H, _, sim_specs):
 
     Out = np.zeros(1, dtype=sim_specs["out"])
     Out["fvec"] = y
-    Out["f"] = y[0] * y[1] - y[2] ** 2
+    Out["f"] = np.max(y)
     return Out
 
 
@@ -78,64 +74,56 @@ if __name__ == "__main__":
 
     assert nworkers == 2, "This test is just for two workers"
 
-    for inst in range(2):
-        if inst == 0:
-            # Declare the run parameters/functions
-            m = 214
-            n = 3
-            sim_f = chwirut_eval
-        elif inst == 1:
-            m = 3
-            n = 4
-            sim_f = synthetic_beamline_mapping
+    m = 3
+    n = 4
+    sim_f = synthetic_beamline_mapping
 
-        sim_specs = {
-            "sim_f": sim_f,
-            "in": ["x"],
-            "out": [("f", float), ("fvec", float, m)],
-        }
+    sim_specs = {
+        "sim_f": sim_f,
+        "in": ["x"],
+        "out": [("f", float), ("fvec", float, m)],
+    }
 
-        gen_out = [
-            ("x", float, n),
-            ("x_on_cube", float, n),
-            ("sim_id", int),
-            ("local_min", bool),
-            ("local_pt", bool),
-            ("started_run", bool),
-        ]
+    gen_out = [
+        ("x", float, n),
+        ("x_on_cube", float, n),
+        ("sim_id", int),
+        ("local_min", bool),
+        ("local_pt", bool),
+        ("started_run", bool),
+    ]
 
-        gen_specs = {
-            "gen_f": gen_f,
-            "persis_in": ["f", "fvec"] + [n[0] for n in gen_out],
-            "out": gen_out,
-            "user": {
-                "initial_sample_size": 1,
-                "stop_after_k_runs": 1,
-                "max_active_runs": 1,
-                "sample_points": np.atleast_2d(0.1 * (np.arange(n) + 1)),
-                "localopt_method": "ibcdfo_pounders",
-                "run_max_eval": 100 * (n + 1),
-                "components": m,
-                "lb": -1 * np.ones(n),
-                "ub": np.ones(n),
-            },
-        }
+    gen_specs = {
+        "gen_f": gen_f,
+        "persis_in": ["f", "fvec"] + [n[0] for n in gen_out],
+        "out": gen_out,
+        "user": {
+            "initial_sample_size": 1,
+            "stop_after_k_runs": 1,
+            "max_active_runs": 1,
+            "sample_points": np.atleast_2d(0.1 * (np.arange(n) + 1)),
+            "localopt_method": "ibcdfo_manifold_sampling",
+            "run_max_eval": 100 * (n + 1),
+            "components": m,
+            "lb": -1 * np.ones(n),
+            "ub": np.ones(n),
+        },
+    }
 
-        if inst == 1:
-            gen_specs["user"]["hfun"] = emittance_h
-            gen_specs["user"]["combinemodels"] = emittance_combine
+    gen_specs["user"]["hfun"] = hfun
 
-        alloc_specs = {"alloc_f": alloc_f}
+    alloc_specs = {"alloc_f": alloc_f}
 
-        persis_info = add_unique_random_streams({}, nworkers + 1)
+    persis_info = add_unique_random_streams({}, nworkers + 1)
 
-        exit_criteria = {"sim_max": 500}
+    exit_criteria = {"sim_max": 500}
 
-        # Perform the run
-        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+    # Perform the run
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 
-        if is_manager:
-            assert persis_info[1].get("run_order"), "Run_order should have been given back"
-            assert flag == 0
+    if is_manager:
+        assert np.min(H["f"]) == 2.0, "The best is 2"
+        assert persis_info[1].get("run_order"), "Run_order should have been given back"
+        assert flag == 0
 
-            save_libE_output(H, persis_info, __file__, nworkers)
+        save_libE_output(H, persis_info, __file__, nworkers)
