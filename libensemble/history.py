@@ -1,4 +1,5 @@
 import logging
+import sys
 import time
 from pathlib import Path
 
@@ -109,7 +110,7 @@ class History:
 
         self.cache_dir = Path.home() / ".libE"
         self.cache_dir.mkdir(parents=True, exist_ok=True)
-        self.cache = self.cache_dir / "cache.npy"
+        self.cache = self.cache_dir / Path("".join(sys.argv) + ".npy")
         if not self.cache.exists():
             self.cache.touch()
         self.cache_set = False
