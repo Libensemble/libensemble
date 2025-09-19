@@ -59,7 +59,6 @@ def main(argv):
     # Parse number of workers, comms type, etc. from arguments
     ensemble = Ensemble(parse_args=True, executor=exctr)
     nworkers = ensemble.nworkers
-    assert nworkers == 2, "This test is just for two workers"
 
     platform_specs = {"gpu_setting_type": "option_gpus_per_node"}
 
@@ -103,10 +102,10 @@ def main(argv):
     ]
 
     ensemble.gen_specs = GenSpecs(
-        "gen_f": gen_f,
-        "persis_in": ["f", "fvec"] + [n[0] for n in gen_out],
-        "out": gen_out,
-        "user": {
+        gen_f= gen_f,
+        persis_in= ["f", "fvec"] + [n[0] for n in gen_out],
+        out= gen_out,
+        user= {
             "initial_sample_size": 1,
             "stop_after_k_runs": 1,
             "max_active_runs": 1,
@@ -117,7 +116,7 @@ def main(argv):
             "lb": np.array([0.5, -0.75, -0.1]),  # lower bound for input
             "ub": np.array([4.0, 0.0, 0.1]),  # upper bound for input
         },
-    }
+    )
 
     gen_specs["user"]["hfun"] = hfun
 
