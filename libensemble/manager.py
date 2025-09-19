@@ -432,13 +432,12 @@ class Manager:
                 if field in cache.dtype.names:
                     for row in work_rows:
                         for cache_row in cache:
-                            if np.allclose(
-                                cache_row[field], self.hist.H[field][row]
-                            ):  # we found outbound work in cache
+                            if (
+                                np.allclose(cache_row[field], self.hist.H[field][row])
+                                and row not in self.from_cache["H_row"]
+                            ):  # we found outbound work in cache, that's not already been retrieved
                                 self.cache_hit = True
-                                from_cache_entry = np.empty(
-                                    1, dtype=dtype_with_idx
-                                )  # make an entry for this row, plus H_row
+                                from_cache_entry = np.empty(1, dtype=dtype_with_idx)
                                 from_cache_entry["H_row"] = row
                                 from_cache_entry["worker_id"] = w
                                 for remaining_field in cache.dtype.names:
@@ -449,7 +448,7 @@ class Manager:
         if self.resources:
             self._set_resources(Work, w)
 
-        elif Work["tag"] == EVAL_GEN_TAG:
+        if Work["tag"] == EVAL_GEN_TAG:
             self.W[w]["gen_started_time"] = time.time()
             self.wcomms[w].send(Work["tag"], Work)
 
@@ -465,8 +464,8 @@ class Manager:
 
             if self.cache_hit:
                 work_rows = [row for row in work_rows if row not in self.from_cache["H_row"]]
-                if all(
-                    [i in self.from_cache["H_row"] for i in work_rows]
+                if (
+                    all([i in self.from_cache["H_row"] for i in work_rows]) and Work["tag"] == EVAL_SIM_TAG
                 ):  # if all rows in work_rows are found in cache
                     return
 
@@ -504,7 +503,7 @@ class Manager:
         """
         time.sleep(0.0001)  # Critical for multiprocessing performance
 
-        if self.cache_hit or len(self.from_cache):
+        if self.cache_hit:
             self.cache_hit = False
             for w in self.from_cache["worker_id"]:
                 self._handle_msg_from_worker(persis_info, w, process_cache=True)
@@ -572,10 +571,11 @@ class Manager:
         """Handles a message from worker w"""
         try:
             if process_cache:
+                cache_entry_by_worker = self.from_cache["worker_id"] == w
                 D_recv = {
-                    "calc_out": self.from_cache[[name[0] for name in self.sim_specs["out"]]],
+                    "calc_out": self.from_cache[cache_entry_by_worker][[name[0] for name in self.sim_specs["out"]]],
                     "libE_info": {
-                        "H_rows": self.from_cache["H_row"],
+                        "H_rows": self.from_cache[cache_entry_by_worker]["H_row"],
                         "workerID": w,
                     },
                     "calc_status": 0,
@@ -598,7 +598,10 @@ class Manager:
             logger.vdebug(f"Manager received a log message from worker {w}")
             logging.getLogger(D_recv.name).handle(D_recv)
         else:
-            logger.debug(f"Manager received data message from worker {w}")
+            if process_cache:
+                logger.debug(f"Manager retrieved cached message redirected from worker {w}")
+            else:
+                logger.debug(f"Manager received data message from worker {w}")
             self._update_state_on_worker_msg(persis_info, D_recv, w)
 
     def _kill_cancelled_sims(self) -> None:
