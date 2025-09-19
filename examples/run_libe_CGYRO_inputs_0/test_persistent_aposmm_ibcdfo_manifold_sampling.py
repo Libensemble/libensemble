@@ -115,12 +115,16 @@ def main(argv):
             "components": 11,
             "lb": np.array([0.5, -0.75, -0.1]),  # lower bound for input
             "ub": np.array([4.0, 0.0, 0.1]),  # upper bound for input
+            "hfun": hfun,
         },
     )
 
-    gen_specs["user"]["hfun"] = hfun
-
-    alloc_specs = {"alloc_f": alloc_f}
+    ensemble.alloc_specs = AllocSpecs(
+        alloc_f=alloc_f,
+        user={
+            "async_return": False,  # False causes batch returns
+        },
+    )
 
     # Instruct libEnsemble to exit after this many simulations
     ensemble.exit_criteria = ExitCriteria(sim_max=30)
