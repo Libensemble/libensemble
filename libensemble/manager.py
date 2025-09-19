@@ -483,14 +483,15 @@ class Manager:
                 if (
                     all([i in self.from_cache["H_row"] for i in work_rows]) and Work["tag"] == EVAL_SIM_TAG
                 ):  # if all rows in work_rows are found in cache
-                    logger.debug("Manager skipping sending work to worker %s due to cache", w)
+                    logger.debug("Manager skipping sending *all* work to worker %s due to cache", w)
                     return
 
             H_to_be_sent = np.empty(len(work_rows), dtype=new_dtype)
             for i, row in enumerate(work_rows):
                 H_to_be_sent[i] = repack_fields(self.hist.H[Work["H_fields"]][row])
 
-            self.wcomms[w].send(Work["tag"], Work)
+            if Work["tag"] == EVAL_SIM_TAG:
+                self.wcomms[w].send(Work["tag"], Work)
             self.wcomms[w].send(0, H_to_be_sent)
 
     def _update_state_on_alloc(self, Work: dict, w: int):
