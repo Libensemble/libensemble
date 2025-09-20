@@ -69,21 +69,21 @@ if __name__ == "__main__":
         max_active_runs=workflow.nworkers,  # should this match nworkers always? practically?
     )
 
-    # SH TODO - dont want this stuff duplicated
+    # SH initial_batch_size conflicts with initial_sample_size
+    # with server type gen, deciding outside seems correct way.
     workflow.gen_specs = GenSpecs(
-        persis_in=["x", "x_on_cube", "sim_id", "local_min", "local_pt", "f"],
         generator=aposmm,
-        batch_size=5,
-        initial_batch_size=10,
-        user={"initial_sample_size": 100},
+        batch_size=5,  # SH what happens if not set - test this
+        initial_batch_size=10,  # SH what happens if not set - does it get from gen? - test this
+        # persis_in=["x", "x_on_cube", "sim_id", "local_min", "local_pt", "f"],
+        # user={"initial_sample_size": 100},
     )
 
     workflow.libE_specs.gen_on_manager = True
     workflow.add_random_streams()
 
-    H, _, _ = workflow.run()
-
     # Perform the run
+    H, _, _ = workflow.run()
 
     if workflow.is_manager:
         print("[Manager]:", H[np.where(H["local_min"])]["x"])

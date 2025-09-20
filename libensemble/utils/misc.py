@@ -10,6 +10,8 @@ import numpy as np
 import numpy.typing as npt
 
 
+# SH TODO - some of these need docstrings.
+
 def extract_H_ranges(Work: dict) -> str:
     """Convert received H_rows into ranges for labeling"""
     work_H_rows = Work["libE_info"]["H_rows"]
@@ -272,3 +274,43 @@ def np_to_list_dicts(array: npt.NDArray, mapping: dict = {}, allow_arrays: bool 
             entry["_id"] = entry.pop("sim_id")
 
     return out
+
+
+def _merge_fields(a, b):
+    """Merge dict or list fields from b into a."""
+    if isinstance(a, dict):
+        for k, v in b.items():
+            if k not in a:
+                a[k] = v
+    elif isinstance(a, list):
+        a.extend(x for x in b if x not in a)
+
+
+def _find_generator(gen_specs):
+    """Find the generator object in the gen_specs"""
+    from libensemble.generators import LibensembleGenerator
+    #SH TODO - import in here to avoid circular import. but i will move these to diff file in utils or 
+    #SH TODO - do within the gens as a generator function.
+    #SH TMP TEST - dont think optimas sould need but lets see.
+    generator = gen_specs.get("generator") or gen_specs.get("user").get('generator')
+    if generator and not isinstance(generator, LibensembleGenerator):
+        if hasattr(generator, 'gen') and isinstance(generator.gen, LibensembleGenerator):
+            generator = generator.gen
+   
+    return generator
+
+
+def sync_gen_specs(gen_specs):
+    """Automatically populate gen_specs with values from generator if available."""
+    generator = _find_generator(gen_specs)
+    if not generator or not hasattr(generator, "gen_specs"):
+        return
+                
+    for field_name, field_value in generator.gen_specs.items():
+        if isinstance(field_value, (dict, list)) and field_value:
+            if field_name not in gen_specs:
+                gen_specs[field_name] = field_value.copy()
+            else:
+                _merge_fields(gen_specs[field_name], field_value)
+        elif field_name not in gen_specs:
+            gen_specs[field_name] = field_value

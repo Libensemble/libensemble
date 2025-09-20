@@ -167,7 +167,18 @@ class PersistentGenInterfacer(LibensembleGenerator):
             (name, results.dtype[name]) for name in results.dtype.names if name in self.gen_specs["persis_in"]
         ]
 
-        new_dtype = filtered_dtype + [("sim_ended", bool)]
+        # SH TODO - only add if not there and also is this not APOSMM specific?
+        # SH TODO - can remove as its added in aposmm persis_in (mirrored in gen_specs due to the _sync_gen_specs function)
+        # SH TODO - however as set to True below should only be APOSMM subclass.
+        # SH TODO - works in libE - but will need to check in Optimas - till then add if not there. But may not be needed.
+        # SH TODO - also test here if need the new dtype when using the merged gen_specs. *wrs now rply||
+
+        print(f'filtered_dtype: {filtered_dtype}')
+        if "sim_ended" not in [name for name, _ in filtered_dtype]:
+            new_dtype = filtered_dtype + [("sim_ended", bool)]
+        else:
+            new_dtype = filtered_dtype
+
         new_results = np.zeros(len(results), dtype=new_dtype)
 
         for field in new_results.dtype.names:
@@ -176,7 +187,7 @@ class PersistentGenInterfacer(LibensembleGenerator):
             except ValueError:
                 continue
 
-        new_results["sim_ended"] = True
+        new_results["sim_ended"] = True  #SH TODO - APOSMM specific and only needed if was added here.
         return new_results
 
     def ingest(self, results: List[dict], tag: int = EVAL_GEN_TAG) -> None:
@@ -201,6 +212,8 @@ class PersistentGenInterfacer(LibensembleGenerator):
                 tag, np.copy(results)
             )  # SH for threads check - might need deepcopy due to dtype=object
         else:
+            print(f'\n=======self.running_gen_f: {self.running_gen_f} type ({type(self.running_gen_f)})\n')
+            import pdb; pdb.set_trace()
             self.running_gen_f.send(tag, None)
 
     def finalize(self) -> None:

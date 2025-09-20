@@ -137,7 +137,7 @@ from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, Sim
 from libensemble.tools.alloc_support import AllocSupport
 from libensemble.tools.tools import _USER_SIM_ID_WARNING
 from libensemble.utils import launcher
-from libensemble.utils.misc import specs_dump
+from libensemble.utils.misc import specs_dump, sync_gen_specs
 from libensemble.utils.pydantic_bindings import libE_wrapper
 from libensemble.utils.timer import Timer
 from libensemble.version import __version__
@@ -241,6 +241,7 @@ def libE(
         for spec in [ensemble.sim_specs, ensemble.gen_specs, ensemble.alloc_specs, ensemble.libE_specs]
     ]
     exit_criteria = specs_dump(ensemble.exit_criteria, by_alias=True, exclude_none=True)
+    sync_gen_specs(gen_specs)
 
     # Extract platform info from settings or environment
     platform_info = get_platform(libE_specs)
