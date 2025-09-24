@@ -1,7 +1,7 @@
 flake8==7.3.0
 coverage>=7.5
-pytest==8.4.1
-pytest-cov==6.2.1
+pytest==8.4.2
+pytest-cov==7.0.0
 pytest-timeout==2.4.0
 mock==5.2.0
 python-dateutil==2.9.0.post0
