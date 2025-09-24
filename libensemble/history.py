@@ -95,6 +95,7 @@ class History:
         self.index = len(H0)
         self.grow_count = 0
         self.safe_mode = False
+        self.use_cache = False
 
         self.sim_started_count = np.sum(H["sim_started"])
         self.sim_ended_count = np.sum(H["sim_ended"])
@@ -108,6 +109,7 @@ class History:
         self.last_started = -1
         self.last_ended = -1
 
+    def init_cache(self) -> None:
         self.cache_dir = Path.home() / ".libE"
         self.cache_dir.mkdir(parents=True, exist_ok=True)
         self.cache = self.cache_dir / Path("".join(sys.argv) + ".npy")
@@ -140,7 +142,7 @@ class History:
             entry = self.H[index][self.cache_keys]
             if entry not in in_cache:
                 in_cache = np.append(in_cache, entry)
-            in_cache = np.unique(in_cache, axis=0)
+            in_cache = np.unique(in_cache, axis=0)  # attempt to remove duplicates
             np.save(self.cache, in_cache, allow_pickle=True)
             self.cache_set = True
 
@@ -181,7 +183,8 @@ class History:
             self.H["sim_ended"][ind] = True
             self.H["sim_ended_time"][ind] = time.time()
             self.sim_ended_count += 1
-            self._shelf_longrunning_sims(ind)
+            if self.use_cache:
+                self._shelf_longrunning_sims(ind)
 
         if kill_canceled_sims:
             for j in range(self.last_ended + 1, np.max(new_inds) + 1):

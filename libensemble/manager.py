@@ -204,9 +204,11 @@ class Manager:
         timer.start()
         self.date_start = timer.date_start.replace(" ", "_")
         self.safe_mode = libE_specs.get("safe_mode")
+        self.use_cache = libE_specs.get("cache_long_sims")
         self.kill_canceled_sims = libE_specs.get("kill_canceled_sims")
         self.hist = hist
         self.hist.safe_mode = self.safe_mode
+        self.hist.use_cache = self.use_cache
         self.libE_specs = libE_specs
         self.alloc_specs = alloc_specs
         self.sim_specs = sim_specs
@@ -217,8 +219,10 @@ class Manager:
         self.WorkerExc = False
         self.persis_pending = []
         self.live_data = libE_specs.get("live_data")
-        self.from_cache = []
-        self.cache_index = 0
+        if self.use_cache:
+            self.hist.init_cache()
+            self.from_cache = []
+            self.cache_index = 0
         self.cache_hit = False
 
         dyn_keys = ("resource_sets", "num_procs", "num_gpus")
@@ -416,7 +420,11 @@ class Manager:
     def _refresh_from_cache(
         self, cache: npt.NDArray, dtype_with_idx: np.dtype, cache_row: npt.NDArray, work_row: int, w: int
     ) -> None:
-        """Add a cache entry, workerID, and H_row to the record array."""
+        """Add a cache entry, workerID, and H_row to the local record array.
+
+        Later on when we iterate over the cache for entries that could've been sent to a worker (but weren't),
+        we'll process that entry as though it came from this worker, with these H_rows.
+        """
         self.cache_hit = True
         from_cache_entry = np.empty(1, dtype=dtype_with_idx)
         from_cache_entry["H_row"] = work_row
@@ -429,7 +437,10 @@ class Manager:
     def _cache_scan(
         self, cache: npt.NDArray, Work: dict, w: int, dtype_with_idx: np.dtype, new_dtype: np.dtype
     ) -> None:
-        """Check if any work rows are in the cache, and if so, call the above, _refresh_from_cache."""
+        """
+        Check if any work rows are in the cache, and if so, call the above, _refresh_from_cache
+        to update the local `from_cache` record.
+        """
 
         for field in np.dtype(new_dtype).names:
             if field in cache.dtype.names:
@@ -438,17 +449,33 @@ class Manager:
                         if (
                             np.allclose(cache_row[field], self.hist.H[field][work_row])
                             and work_row not in self.from_cache["H_row"]
-                        ):  # we found outbound work in cache, that's not already been retrieved
+                        ):  # we found outbound work in cache, that's not already in the local record
                             self._refresh_from_cache(cache, dtype_with_idx, cache_row, work_row, w)
 
     def _update_state_from_cache(self, Work: dict, work_rows: npt.NDArray, w: int, new_dtype: np.dtype) -> None:
-        """Retrieve saved cache from history, create local record-array of matching cache entries."""
+        """Retrieve saved cache from history, create local record-array of matching cache entries.
+
+        The `from_cache` local record contains cache entries and the workerID and H_rows they are associated with, had
+        they been sent to a worker.
+
+        Cache entries *must* be associated with the preempted outbound worker and H_rows because those values
+        are always associated with actual inbound results. Later on, when we iterate over the cache for entries that
+        could've been sent to a worker (but weren't), we'll process that entry as though it came from that worker,
+        with those H_rows.
+        """
+
         cache = self.hist.get_shelved_sims()
+
+        # our local record resembles the cache, but additionally with the worker_id and H_row from the alloc_f
         dtype_with_idx = np.dtype(cache.dtype.descr + np.dtype([("H_row", int), ("worker_id", int)]).descr)
+
+        # initialize or grow the local record, then call _cache_scan to fill it
         if not len(self.from_cache):
-            self.from_cache = np.zeros(len(work_rows), dtype=dtype_with_idx)  # all work may be in cache
+            self.from_cache = np.zeros(len(work_rows), dtype=dtype_with_idx)
         else:
             self.from_cache = np.append(self.from_cache, np.zeros(len(work_rows), dtype=dtype_with_idx))
+
+        # populates the local record
         self._cache_scan(cache, Work, w, dtype_with_idx, new_dtype)
 
     def _send_work_order(self, Work: dict, w: int) -> None:
@@ -458,7 +485,7 @@ class Manager:
         work_rows = Work["libE_info"]["H_rows"]
         new_dtype = [(name, self.hist.H.dtype.fields[name][0]) for name in Work["H_fields"]]
 
-        if Work["tag"] == EVAL_SIM_TAG and len(work_rows) and self.hist.cache_set:
+        if self.use_cache and Work["tag"] == EVAL_SIM_TAG and len(work_rows) and self.hist.cache_set:
             self._update_state_from_cache(Work, work_rows, w, new_dtype)
 
         if self.resources:
@@ -532,6 +559,7 @@ class Manager:
         """
         time.sleep(0.0001)  # Critical for multiprocessing performance
 
+        # Process messages from the cache
         if self.cache_hit:
             self.cache_hit = False
             for w in self.from_cache["worker_id"]:
@@ -539,6 +567,7 @@ class Manager:
             self.from_cache = []
             self.cache_index = 0
 
+        # Process messages from workers
         new_stuff = True
         while new_stuff:
             new_stuff = False
@@ -596,6 +625,21 @@ class Manager:
         if D_recv.get("persis_info"):
             persis_info.setdefault(int(w), {}).update(D_recv["persis_info"])
 
+    def _create_simulated_D_recv(self, w: int) -> dict:
+        """Create a simulated worker message containing the cache entry instead of a message from a worker."""
+
+        cache_entry_by_worker = self.from_cache[self.from_cache["worker_id"] == w]
+        D_recv = {
+            "calc_out": cache_entry_by_worker[[name[0] for name in self.sim_specs["out"]]],
+            "libE_info": {
+                "H_rows": cache_entry_by_worker["H_row"],
+                "workerID": w,
+            },
+            "calc_status": 0,
+            "calc_type": 1,
+        }
+        return D_recv
+
     def _handle_msg_from_worker(self, persis_info: dict, w: int, process_cache: bool = False) -> None:
         """Handles a message from worker w.
 
@@ -604,16 +648,7 @@ class Manager:
         """
         try:
             if process_cache:
-                cache_entry_by_worker = self.from_cache["worker_id"] == w
-                D_recv = {
-                    "calc_out": self.from_cache[cache_entry_by_worker][[name[0] for name in self.sim_specs["out"]]],
-                    "libE_info": {
-                        "H_rows": self.from_cache[cache_entry_by_worker]["H_row"],
-                        "workerID": w,
-                    },
-                    "calc_status": 0,
-                    "calc_type": 1,
-                }
+                D_recv = self._create_simulated_D_recv(w)
             else:
                 msg = self.wcomms[w].recv()
                 tag, D_recv = msg

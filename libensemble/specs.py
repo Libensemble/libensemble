@@ -306,6 +306,16 @@ class LibeSpecs(BaseModel):
     Forms the base of a generator directory.
     """
 
+    cache_long_sims: bool | None = False
+    """
+    Cache simulation results with runtimes >1s to disk. Subsequent runs of the same
+    base script with the same command-line arguments will access this cache.
+
+    Upon the generator creating points already in the cache, those points will be skipped from
+    being sent for evaluation. Instead the corresponding cached results are retrieved and returned
+    to the generator.
+    """
+
     calc_dir_id_width: int | None = 4
     """
     The width of the numerical ID component of a calculation directory name. Leading
