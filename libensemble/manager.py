@@ -19,8 +19,10 @@ import numpy.typing as npt
 from numpy.lib.recfunctions import repack_fields
 
 from libensemble.comms.comms import CommFinishedException, QCommThread
+from libensemble.comms.logs import LogConfig
 from libensemble.executors.executor import Executor
 from libensemble.message_numbers import (
+    CACHE_RETRIEVE,
     EVAL_GEN_TAG,
     EVAL_SIM_TAG,
     FINISHED_PERSISTENT_GEN_TAG,
@@ -29,6 +31,7 @@ from libensemble.message_numbers import (
     MAN_SIGNAL_KILL,
     PERSIS_STOP,
     STOP_TAG,
+    calc_status_strings,
     calc_type_strings,
 )
 from libensemble.resources.resources import Resources
@@ -37,7 +40,7 @@ from libensemble.tools.tools import _PERSIS_RETURN_WARNING, _USER_CALC_DIR_WARNI
 from libensemble.utils.misc import _WorkerIndexer, extract_H_ranges
 from libensemble.utils.output_directory import EnsembleDirectory
 from libensemble.utils.timer import Timer
-from libensemble.worker import WorkerErrMsg, worker_main
+from libensemble.worker import Worker, WorkerErrMsg, worker_main
 
 logger = logging.getLogger(__name__)
 # For debug messages - uncomment
@@ -442,15 +445,17 @@ class Manager:
         to update the local `from_cache` record.
         """
 
-        for field in np.dtype(new_dtype).names:
-            if field in cache.dtype.names:
-                for work_row in Work["libE_info"]["H_rows"]:
-                    for cache_row in cache:
-                        if (
-                            np.allclose(cache_row[field], self.hist.H[field][work_row])
-                            and work_row not in self.from_cache["H_row"]
-                        ):  # we found outbound work in cache, that's not already in the local record
-                            self._refresh_from_cache(cache, dtype_with_idx, cache_row, work_row, w)
+        self.cache_timer = Timer()
+        with self.cache_timer:
+            for field in np.dtype(new_dtype).names:
+                if field in cache.dtype.names:
+                    for work_row in Work["libE_info"]["H_rows"]:
+                        for cache_row in cache:
+                            if (
+                                np.allclose(cache_row[field], self.hist.H[field][work_row])
+                                and work_row not in self.from_cache["H_row"]
+                            ):  # we found outbound work in cache, that's not already in the local record
+                                self._refresh_from_cache(cache, dtype_with_idx, cache_row, work_row, w)
 
     def _update_state_from_cache(self, Work: dict, work_rows: npt.NDArray, w: int, new_dtype: np.dtype) -> None:
         """Retrieve saved cache from history, create local record-array of matching cache entries.
@@ -635,7 +640,7 @@ class Manager:
                 "H_rows": cache_entry_by_worker["H_row"],
                 "workerID": w,
             },
-            "calc_status": 0,
+            "calc_status": CACHE_RETRIEVE,
             "calc_type": 1,
         }
         return D_recv
@@ -649,6 +654,7 @@ class Manager:
         try:
             if process_cache:
                 D_recv = self._create_simulated_D_recv(w)
+                enum_desc, calc_id = Worker._extract_debug_data(1, D_recv)
             else:
                 msg = self.wcomms[w].recv()
                 tag, D_recv = msg
@@ -668,6 +674,9 @@ class Manager:
         else:
             if process_cache:
                 logger.debug(f"Manager retrieved cached message redirected from worker {w}")
+                calc_msg = f"{enum_desc} {calc_id}: {"sim"} {self.cache_timer}"
+                calc_msg += f" Status: {calc_status_strings[CACHE_RETRIEVE]}"
+                logging.getLogger(LogConfig.config.stats_name).info(calc_msg)
             else:
                 logger.debug(f"Manager received data message from worker {w}")
             self._update_state_on_worker_msg(persis_info, D_recv, w)
