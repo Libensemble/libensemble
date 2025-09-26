@@ -56,6 +56,7 @@ if __name__ == "__main__":
         print(f"\nCores req: {cores_all_tasks} Cores avail: {logical_cores}\n  {mess_resources}\n")
 
     libE_specs["cache_long_sims"] = True
+    libE_specs["cache_name"] = "asdf"
 
     sim_app = "./my_simtask.x"
     if not os.path.isfile(sim_app):

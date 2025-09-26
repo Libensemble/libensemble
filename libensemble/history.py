@@ -1,5 +1,4 @@
 import logging
-import sys
 import time
 from pathlib import Path
 
@@ -109,12 +108,13 @@ class History:
         self.last_started = -1
         self.last_ended = -1
 
-    def init_cache(self) -> None:
+    def init_cache(self, cache_name: str) -> None:
         self.cache_dir = Path.home() / ".libE"
         self.cache_dir.mkdir(parents=True, exist_ok=True)
-        self.cache = self.cache_dir / Path("".join(sys.argv) + ".npy")
+        self.cache = self.cache_dir / Path(cache_name + ".npy")
         if not self.cache.exists():
             self.cache.touch()
+        self.use_cache = True
         self.cache_set = False
 
     def _append_new_fields(self, H_f: npt.NDArray) -> None:
@@ -147,7 +147,10 @@ class History:
             self.cache_set = True
 
     def get_shelved_sims(self) -> npt.NDArray:
-        in_cache = np.load(self.cache, allow_pickle=True)
+        try:
+            in_cache = np.load(self.cache, allow_pickle=True)
+        except EOFError:
+            in_cache = np.zeros(1, dtype=self.cache_dtype)
         return in_cache
 
     def update_history_f(self, D: dict, kill_canceled_sims: bool = False) -> None:

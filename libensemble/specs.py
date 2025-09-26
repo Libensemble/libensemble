@@ -1,4 +1,5 @@
 import random
+import sys
 import warnings
 from pathlib import Path
 
@@ -314,6 +315,13 @@ class LibeSpecs(BaseModel):
     Upon the generator creating points already in the cache, those points will be skipped from
     being sent for evaluation. Instead the corresponding cached results are retrieved and returned
     to the generator.
+
+    The cache is saved in $HOME/.libE, and by default is named after the joined command-line arguments.
+    """
+
+    cache_name: str | None = Path.home() / ".libE" / Path("".join(sys.argv) + ".npy")
+    """
+    The name of the cache file. By default is the joined command-line arguments.
     """
 
     calc_dir_id_width: int | None = 4

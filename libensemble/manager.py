@@ -211,7 +211,6 @@ class Manager:
         self.kill_canceled_sims = libE_specs.get("kill_canceled_sims")
         self.hist = hist
         self.hist.safe_mode = self.safe_mode
-        self.hist.use_cache = self.use_cache
         self.libE_specs = libE_specs
         self.alloc_specs = alloc_specs
         self.sim_specs = sim_specs
@@ -223,7 +222,7 @@ class Manager:
         self.persis_pending = []
         self.live_data = libE_specs.get("live_data")
         if self.use_cache:
-            self.hist.init_cache()
+            self.hist.init_cache(self.libE_specs.get("cache_name"))
             self.from_cache = []
             self.cache_index = 0
         self.cache_hit = False
@@ -655,6 +654,8 @@ class Manager:
             if process_cache:
                 D_recv = self._create_simulated_D_recv(w)
                 enum_desc, calc_id = Worker._extract_debug_data(1, D_recv)
+                if calc_id.startswith("0_0"):
+                    print("why do we have weird sim_id values?")
             else:
                 msg = self.wcomms[w].recv()
                 tag, D_recv = msg
@@ -676,7 +677,7 @@ class Manager:
                 logger.debug(f"Manager retrieved cached message redirected from worker {w}")
                 calc_msg = f"{enum_desc} {calc_id}: {"sim"} {self.cache_timer}"
                 calc_msg += f" Status: {calc_status_strings[CACHE_RETRIEVE]}"
-                logging.getLogger(LogConfig.config.stats_name).info(calc_msg)
+                logging.getLogger(LogConfig.config.stats_name).info(calc_msg)  # libE_stats
             else:
                 logger.debug(f"Manager received data message from worker {w}")
             self._update_state_on_worker_msg(persis_info, D_recv, w)
