@@ -9,6 +9,10 @@ Larson in the summer of 2019.
 
 __all__ = ["aposmm", "initialize_APOSMM", "decide_where_to_start_localopt", "update_history_dist"]
 
+import glob
+import os
+import pickle
+
 from math import log, pi, sqrt
 
 import numpy as np
@@ -33,6 +37,17 @@ def cdist(XA, XB, metric="euclidean"):
     diff = XA[:, np.newaxis, :] - XB[np.newaxis, :, :]
     distances = np.sqrt(np.sum(diff**2, axis=2))
     return distances
+
+
+def write_persis_info(persis_info, iteration):
+    fname = "gen_data_after_gen_{}.pickle"
+    filename = fname.format(iteration)
+    for old_file in glob.glob(
+        fname.format("*")
+    ):
+        os.remove(old_file)
+    with open(filename, "wb") as f:
+        pickle.dump(persis_info, f)
 
 
 def aposmm(H, persis_info, gen_specs, libE_info):
@@ -188,6 +203,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
 
         tag = None
         first_pass = True
+        iteration = 0
         while 1:
             new_opt_inds_to_send_mgr = []
             new_inds_to_send_mgr = []
@@ -283,9 +299,14 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                 ps.send(local_H[new_inds_to_send_mgr + new_opt_inds_to_send_mgr][[i[0] for i in gen_specs["out"]]])
             something_sent = True
 
+            iteration+=1
+            write_persis_info(persis_info, iteration)            
+
         return local_H, persis_info, FINISHED_PERSISTENT_GEN_TAG
     finally:
         try:
+            # Final write of persis_info
+            write_persis_info(persis_info, iteration)            
             clean_up_and_stop(local_opters)
         except NameError:
             pass
