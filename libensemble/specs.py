@@ -319,7 +319,7 @@ class LibeSpecs(BaseModel):
     The cache is saved in $HOME/.libE, and by default is named after the joined command-line arguments.
     """
 
-    cache_name: str | None = Path.home() / ".libE" / Path("".join(sys.argv) + ".npy")
+    cache_name: str | Path | None = Path.home() / ".libE" / Path("".join(sys.argv) + ".npy")
     """
     The name of the cache file. By default is the joined command-line arguments.
     """
