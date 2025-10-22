@@ -521,7 +521,7 @@ class Manager:
             for i, row in enumerate(work_rows):
                 H_to_be_sent[i] = repack_fields(self.hist.H[Work["H_fields"]][row])
 
-            if Work["tag"] == EVAL_SIM_TAG:
+            if Work["tag"] in [EVAL_SIM_TAG, PERSIS_STOP]:  # inclusion of PERSIS_STOP for final_gen_send
                 self.wcomms[w].send(Work["tag"], Work)
             self.wcomms[w].send(0, H_to_be_sent)
 
