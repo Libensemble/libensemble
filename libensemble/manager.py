@@ -675,7 +675,7 @@ class Manager:
         else:
             if process_cache:
                 logger.debug(f"Manager retrieved cached message redirected from worker {w}")
-                calc_msg = f"{enum_desc} {calc_id}: {"sim"} {self.cache_timer}"
+                calc_msg = f"""{enum_desc} {calc_id}: {"sim"} {self.cache_timer}"""
                 calc_msg += f" Status: {calc_status_strings[CACHE_RETRIEVE]}"
                 logging.getLogger(LogConfig.config.stats_name).info(calc_msg)  # libE_stats
             else:
