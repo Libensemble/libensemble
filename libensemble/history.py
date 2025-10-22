@@ -147,11 +147,7 @@ class History:
             self.cache_set = True
 
     def get_shelved_sims(self) -> npt.NDArray:
-        try:
-            in_cache = np.load(self.cache, allow_pickle=True)
-        except EOFError:
-            in_cache = np.zeros(1, dtype=self.cache_dtype)
-        return in_cache
+        return np.load(self.cache, allow_pickle=True)
 
     def update_history_f(self, D: dict, kill_canceled_sims: bool = False) -> None:
         """
