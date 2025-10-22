@@ -567,7 +567,8 @@ class Manager:
         if self.cache_hit:
             self.cache_hit = False
             for w in self.from_cache["worker_id"]:
-                self._handle_msg_from_worker(persis_info, w, process_cache=True)
+                if w > 0:  # actual cache entry - not blank. assuming w0 gets no sim work
+                    self._handle_msg_from_worker(persis_info, w, process_cache=True)
             self.from_cache = []
             self.cache_index = 0
 
@@ -654,8 +655,6 @@ class Manager:
             if process_cache:
                 D_recv = self._create_simulated_D_recv(w)
                 enum_desc, calc_id = Worker._extract_debug_data(1, D_recv)
-                if calc_id.startswith("0_0"):
-                    print("why do we have weird sim_id values?")
             else:
                 msg = self.wcomms[w].recv()
                 tag, D_recv = msg
