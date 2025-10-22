@@ -9,6 +9,7 @@ __all__ = [
     "run_local_tao",
     "run_local_dfols",
     "run_local_ibcdfo_pounders",
+    "run_local_ibcdfo_manifold_sampling",
     "run_local_scipy_opt",
     "run_external_localopt",
 ]
@@ -26,7 +27,7 @@ class APOSMMException(Exception):
     """Raised for any exception in APOSMM"""
 
 
-optimizer_list = ["petsc", "nlopt", "dfols", "scipy", "ibcdfo", "external"]
+optimizer_list = ["petsc", "nlopt", "dfols", "scipy", "ibcdfo_pounders", "ibcdfo_manifold_sampling", "external"]
 optimizers = libensemble.gen_funcs.rc.aposmm_optimizers
 
 if optimizers is not None:
@@ -42,8 +43,10 @@ if optimizers is not None:
         import nlopt  # noqa: F401
     if "dfols" in optimizers:
         import dfols  # noqa: F401
-    if "ibcdfo" in optimizers:
-        from ibcdfo import pounders  # noqa: F401
+    if "ibcdfo_pounders" in optimizers:
+        from ibcdfo.pounders import pounders  # noqa: F401
+    if "ibcdfo_manifold_sampling" in optimizers:
+        from ibcdfo.manifold_sampling import manifold_sampling_primal  # noqa: F401
     if "scipy" in optimizers:
         from scipy import optimize as sp_opt  # noqa: F401
     if "external_localopt" in optimizers:
@@ -79,6 +82,7 @@ class LocalOptInterfacer(object):
     - PETSc/TAO [``'pounders'``, ``'blmvm'``, ``'nm'``]
     - SciPy [``'scipy_Nelder-Mead'``, ``'scipy_COBYLA'``, ``'scipy_BFGS'``]
     - DFOLS [``'dfols'``]
+    - IBCDFO [``'pounders'``, ``'manifold_sampling_primal'``]
     - External local optimizer [``'external_localopt'``] (which use files to pass/receive ``x/f`` values)
     """
 
@@ -123,6 +127,8 @@ class LocalOptInterfacer(object):
             run_local_opt = run_local_dfols
         elif user_specs["localopt_method"] in ["ibcdfo_pounders"]:
             run_local_opt = run_local_ibcdfo_pounders
+        elif user_specs["localopt_method"] in ["ibcdfo_manifold_sampling"]:
+            run_local_opt = run_local_ibcdfo_manifold_sampling
         elif user_specs["localopt_method"] in ["external_localopt"]:
             run_local_opt = run_external_localopt
         else:
@@ -417,6 +423,60 @@ def run_local_dfols(user_specs, comm_queue, x0, f0, child_can_read, parent_can_r
     finish_queue(x_opt, opt_flag, comm_queue, parent_can_read, user_specs)
 
 
+def run_local_ibcdfo_manifold_sampling(user_specs, comm_queue, x0, f0, child_can_read, parent_can_read):
+    """
+    Runs a IBCDFO local optimization run starting at ``x0``, governed by the
+    parameters in ``user_specs``.
+
+    Although IBCDFO methods can receive previous evaluations, few other methods
+    support that, so APOSMM assumes the first point will be re-evaluated (but
+    not be sent back to the manager).
+    """
+    n = len(x0)
+    # Define bound constraints (lower <= x <= upper)
+    lb = np.zeros(n)
+    ub = np.ones(n)
+
+    # Set random seed (for reproducibility)
+    np.random.seed(0)
+
+    # dist_to_bound = min(min(ub - x0), min(x0 - lb))
+    # assert dist_to_bound > np.finfo(np.float64).eps, "The distance to the boundary is too small"
+
+    run_max_eval = user_specs.get("run_max_eval", 100 * (n + 1))
+    # g_tol = 1e-8
+    # delta_0 = 0.5 * dist_to_bound
+    # m = len(f0)
+    subprob_switch = "linprog"
+
+    [X, F, hF, xkin, flag] = manifold_sampling_primal(
+        user_specs["hfun"],
+        lambda x: scipy_dfols_callback_fun(x, comm_queue, child_can_read, parent_can_read, user_specs),
+        x0,
+        lb,
+        ub,
+        run_max_eval,
+        subprob_switch,
+    )
+
+    assert flag >= 0 or flag == -6, "IBCDFO errored"
+
+    x_opt = X[xkin]
+
+    if flag > 0:
+        opt_flag = 1
+    else:
+        print(
+            "[APOSMM] The IBCDFO run started from " + str(x0) + " stopped with an exit "
+            "flag of " + str(flag) + ". No point from this run will be "
+            "ruled as a minimum! APOSMM may start a new run from some point "
+            "in this run."
+        )
+        opt_flag = 0
+
+    finish_queue(x_opt, opt_flag, comm_queue, parent_can_read, user_specs)
+
+
 def run_local_ibcdfo_pounders(user_specs, comm_queue, x0, f0, child_can_read, parent_can_read):
     """
     Runs a IBCDFO local optimization run starting at ``x0``, governed by the
@@ -447,7 +507,7 @@ def run_local_ibcdfo_pounders(user_specs, comm_queue, x0, f0, child_can_read, pa
     else:
         Options = None
 
-    [X, F, hF, flag, xkin] = pounders.pounders(
+    [X, F, hF, flag, xkin] = pounders(
         lambda x: scipy_dfols_callback_fun(x, comm_queue, child_can_read, parent_can_read, user_specs),
         x0,
         n,

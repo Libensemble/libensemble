@@ -124,7 +124,7 @@ def test_custom_log_levels():
     logger_test.manager_warning("This manager_warning message should log")
     logger_test.vdebug("This vdebug message should log")
 
-    with open(LogConfig.config.filename, 'r') as f:
+    with open(LogConfig.config.filename, "r") as f:
         file_content = f.read()
         assert "This manager_warning message should log" in file_content
         assert "This vdebug message should log" in file_content
