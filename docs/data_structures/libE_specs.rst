@@ -9,12 +9,7 @@ libEnsemble is primarily customized by setting options within a ``LibeSpecs`` cl
 
     from libensemble.specs import LibeSpecs
 
-    specs = LibeSpecs(
-        gen_on_manager=True,
-        save_every_k_gens=100,
-        sim_dirs_make=True,
-        nworkers=4
-    )
+    specs = LibeSpecs(gen_on_manager=True, save_every_k_gens=100, sim_dirs_make=True, nworkers=4)
 
 .. dropdown:: Settings by Category
     :open:
@@ -59,6 +54,20 @@ libEnsemble is primarily customized by setting options within a ``LibeSpecs`` cl
                 **gen_workers** [list of ints]:
                     List of workers that should run only generators. All other workers will run
                     only simulator functions.
+
+                **cache_long_sims** [bool] = ``False``:
+                    Cache simulation results with runtimes >1s to disk. Subsequent runs of the same
+                    base script with the same command-line arguments will access this cache.
+
+                    Upon the generator creating points already in the cache, those points will be skipped from
+                    being sent for evaluation. Instead the corresponding cached results are retrieved and returned
+                    to the generator.
+
+                    The cache is saved in ``$HOME/.libE``, and by default is named after the joined command-line arguments.
+
+                **cache_name** [str] = ``"".join(sys.argv)``
+                    The name of the cache file. Stored in ``$HOME/.libE``, and by default is named after the
+                    joined command-line arguments.
 
         .. tab-item:: Directories
 

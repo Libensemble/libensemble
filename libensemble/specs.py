@@ -321,8 +321,8 @@ class LibeSpecs(BaseModel):
 
     cache_name: str | None = "".join(sys.argv)
     """
-    The name of the cache file. By default is the joined command-line arguments.
-    Stored in $HOME/.libE, and by default is named after the joined command-line arguments.
+    The name of the cache file. Stored in $HOME/.libE, and by default is named after the
+    joined command-line arguments.
     """
 
     calc_dir_id_width: int | None = 4
