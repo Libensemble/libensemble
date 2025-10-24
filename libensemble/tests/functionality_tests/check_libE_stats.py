@@ -1,4 +1,4 @@
-""" Script to check format of libE_stats.txt
+"""Script to check format of libE_stats.txt
 
 Checks matching start and end times existing for calculation and tasks if
 required. Checks that dates/times are in a valid format.

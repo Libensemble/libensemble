@@ -30,7 +30,7 @@ def _get_user_params(user_specs):
 
 
 @persistent_input_fields(["sim_id"])
-@output_data([("x", float, (2,))])  # The dimesion of 2 is  a default and can be overwritten
+@output_data([("x", float, (2,))])  # The dimension of 2 is  a default and can be overwritten
 def persistent_uniform(_, persis_info, gen_specs, libE_info):
     """
     This generation function always enters into persistent mode and returns

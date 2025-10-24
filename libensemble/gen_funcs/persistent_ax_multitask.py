@@ -376,9 +376,9 @@ def max_utility_from_GP(n, m, gr, hifi_task):
     f, cov = m.predict(obsf)
     # Compute expected utility
     u = -np.array(f["hifi_metric"])
-    best_arm_indx = np.flip(np.argsort(u))[:n]
+    best_arm_index = np.flip(np.argsort(u))[:n]
     gr_new = GeneratorRun(
-        arms=[gr.arms[i] for i in best_arm_indx],
+        arms=[gr.arms[i] for i in best_arm_index],
         weights=[1.0] * n,
     )
     return gr_new

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-""" Histogram of user function run-times (completed & killed).
+"""Histogram of user function run-times (completed & killed).
 
 Script to produce a histogram plot giving a count of user function (sim or
 gen) calls by run-time intervals. Color shows completed versus killed versus
