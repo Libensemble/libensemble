@@ -45,12 +45,6 @@ To remove output before the next run:
 
     ./cleanup.sh
 
-### Using YAML in calling script (optional)
-
-An alternative calling script `run_libe_forces_from_yaml.py` can be run in the same
-way as `run_libe_forces.py` above. This uses an alternative libEnsemble interface, where
-an ensemble object is created and parameters can be read from the `forces.yaml` file.
-
 ### Using batch scripts
 
 See `examples/libE_submission_scripts`
