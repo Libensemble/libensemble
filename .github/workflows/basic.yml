@@ -17,7 +17,7 @@ jobs:
             matrix:
                 os: [ubuntu-latest]
                 mpi-version: [mpich]
-                python-version: ["3.10", "3.11", "3.12", "3.13"]
+                python-version: ["py310", "py311", "py312", "py313"]
                 comms-type: [m, l]
                 include:
                     - os: macos-latest
@@ -25,7 +25,7 @@ jobs:
                       mpi-version: mpich
                       comms-type: m
                     - os: macos-latest
-                      python-version: "3.11"
+                      python-version: "py3.11"
                       mpi-version: mpich
                       comms-type: l
 
@@ -71,7 +71,7 @@ jobs:
         - name: Run simple tests, Ubuntu
           if: matrix.os == 'ubuntu-latest'
           run: |
-           ./libensemble/tests/run_tests.py -A "-W error" -${{ matrix.comms-type }}
+            ./libensemble/tests/run_tests.py -A "-W error" -${{ matrix.comms-type }}
 
         - name: Run simple tests, macOS
           if: matrix.os == 'macos-latest'

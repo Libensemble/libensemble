@@ -28,7 +28,7 @@ jobs:
                       comms-type: t
                     - os: ubuntu-latest
                       mpi-version: 'openmpi'
-                      python-version: '3.12'
+                      python-version: 'py312e'
                       comms-type: l
 
         env:
@@ -75,11 +75,6 @@ jobs:
             rm ./libensemble/tests/regression_tests/test_persistent_fd_param_finder.py # needs octave, which doesn't yet support 3.13
             rm ./libensemble/tests/regression_tests/test_persistent_aposmm_external_localopt.py # needs octave, which doesn't yet support 3.13
             rm ./libensemble/tests/regression_tests/test_gpCAM.py # needs gpcam, which doesn't build on 3.13
-
-        - name: Install redis/proxystore
-          run: |
-            pip install redis
-            pip install proxystore==0.7.0
 
         - name: Start Redis
           if: matrix.os == 'ubuntu-latest'
