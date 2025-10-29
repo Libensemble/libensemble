@@ -2,7 +2,6 @@ import os
 import re
 import shutil
 from pathlib import Path
-from typing import Optional
 
 from libensemble.message_numbers import EVAL_SIM_TAG, calc_type_strings
 from libensemble.tools.fields_keys import libE_spec_calc_dir_misc, libE_spec_gen_dir_keys, libE_spec_sim_dir_keys
@@ -40,7 +39,7 @@ class EnsembleDirectory:
         A LocationStack object from libEnsemble's internal libensemble.utils.loc_stack module.
     """
 
-    def __init__(self, libE_specs: dict, loc_stack: Optional[LocationStack] = None):
+    def __init__(self, libE_specs: dict, loc_stack: LocationStack | None = None):
         self.specs = libE_specs
         self.loc_stack = loc_stack
 

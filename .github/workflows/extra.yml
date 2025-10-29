@@ -12,38 +12,23 @@ jobs:
                 os: [ubuntu-latest]
                 mpi-version: [mpich]
                 python-version: ["py310e", "py311e", "py312e", "py313e"]
-                pydantic-version: ['2.11.4']
                 comms-type: [m, l]
                 include:
                     - os: macos-latest
                       python-version: "py313e"
                       mpi-version: mpich
-                      pydantic-version: '2.11.4'
                       comms-type: m
                     - os: macos-latest
                       python-version: "py313e"
                       mpi-version: mpich
-                      pydantic-version: '2.11.4'
                       comms-type: l
                     - os: ubuntu-latest
                       python-version: "py312e"
                       mpi-version: mpich
-                      pydantic-version: '2.11.4'
                       comms-type: t
                     - os: ubuntu-latest
                       mpi-version: 'openmpi'
-                      pydantic-version: '2.11.4'
-                      python-version: "py312e"
-                      comms-type: l
-                    - os: ubuntu-latest
-                      mpi-version: mpich
-                      python-version: "py312e"
-                      pydantic-version: '1.10.22'
-                      comms-type: m
-                    - os: ubuntu-latest
-                      mpi-version: mpich
-                      python-version: "py312e"
-                      pydantic-version: '1.10.22'
+                      python-version: '3.12'
                       comms-type: l
 
         env:
@@ -74,21 +59,13 @@ jobs:
           run: |
             pip install --upgrade git+https://github.com/bandframework/surmise.git
 
-        - name: Install Balsam on Pydantic 1
-          if: matrix.pydantic-version == '1.10.22'
-          run: |
-            git clone https://github.com/argonne-lcf/balsam.git
-            sed -i -e "s/pyzmq>=22.1.0,<23.0.0/pyzmq>=23.0.0,<24.0.0/" ./balsam/setup.cfg
-            cd balsam; pip install -e .; cd ..
-
-        - name: Install GPCAM and IBCDFO
+        - name: Install other testing dependencies
           run: |
             pixi run -e ${{ matrix.python-version }} pip install gpcam==8.2.0
             pixi run -e ${{ matrix.python-version }} ./install/install_ibcdfo.sh
 
         - name: Install libEnsemble, flake8, lock environment
           run: |
-            pip install pydantic==${{ matrix.pydantic-version }}
             pip install -e .
             flake8 libensemble
 
@@ -99,16 +76,10 @@ jobs:
             rm ./libensemble/tests/regression_tests/test_persistent_aposmm_external_localopt.py # needs octave, which doesn't yet support 3.13
             rm ./libensemble/tests/regression_tests/test_gpCAM.py # needs gpcam, which doesn't build on 3.13
 
-        - name: Remove proxystore test on Pydantic 1
-          if: matrix.pydantic-version == '1.10.22'
+        - name: Install redis/proxystore
           run: |
-            rm ./libensemble/tests/regression_tests/test_proxystore_integration.py
-
-        - name: Remove Balsam/Globus-compute tests on Pydantic 2
-          if: matrix.pydantic-version == '2.11.4'
-          run: |
-            rm ./libensemble/tests/unit_tests/test_ufunc_runners.py
-            rm ./libensemble/tests/unit_tests/test_executor_balsam.py
+            pip install redis
+            pip install proxystore==0.7.0
 
         - name: Start Redis
           if: matrix.os == 'ubuntu-latest'
@@ -134,5 +105,5 @@ jobs:
         if: contains(github.base_ref, 'develop')
         runs-on: ubuntu-latest
         steps:
-        - uses: actions/checkout@v4
-        - uses: crate-ci/typos@v1.32.0
+        - uses: actions/checkout@v5
+        - uses: crate-ci/typos@v1.38.1

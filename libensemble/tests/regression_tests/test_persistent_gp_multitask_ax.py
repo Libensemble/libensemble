@@ -50,7 +50,7 @@ def run_simulation(H, persis_info, sim_specs, libE_info):
         z = 8
     elif task == "cheap_model":
         z = 1
-    print('in sim', task)
+    print("in sim", task)
 
     libE_output = np.zeros(1, dtype=sim_specs["out"])
     calc_status = WORKER_DONE
