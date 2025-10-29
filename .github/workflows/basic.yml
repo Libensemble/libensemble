@@ -25,7 +25,7 @@ jobs:
                       mpi-version: mpich
                       comms-type: m
                     - os: macos-latest
-                      python-version: "py3.11"
+                      python-version: "py311"
                       mpi-version: mpich
                       comms-type: l
 
