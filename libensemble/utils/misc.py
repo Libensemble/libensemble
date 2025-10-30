@@ -145,7 +145,10 @@ def list_dicts_to_np(list_dicts: list, dtype: list = None, mapping: dict = {}) -
             entry["sim_id"] = entry.pop("_id")
 
     # first entry is used to determine dtype
-    first = list_dicts[0]
+    try:
+        first = list_dicts[0]
+    except IndexError:
+        raise IndexError("Generator returned empty list upon internal suggest.")
 
     # build a presumptive dtype
     new_dtype_names = _get_new_dtype_fields(first, mapping)
