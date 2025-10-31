@@ -172,7 +172,7 @@ gxx_linux-64 = ">=14.2.0,<15"
 
 # Extra dependencies, from pypi
 [dependency-groups]
-extra = ["pyenchant", "enchant>=0.0.1,<0.0.2", "proxystore>=0.7.0", "redis>=6.0.0,<7", "globus-compute-sdk>=2.28.0,<3", "tasmanian>=8.1,<9"]
+extra = ["pyenchant", "enchant>=0.0.1,<0.0.2", "proxystore>=0.7.0", "redis>=6.0.0,<7", "globus-compute-sdk>=2.28.0,<3"]
 dev = ["wat>=0.7.0,<0.8"]
 
 # Various config from here onward
