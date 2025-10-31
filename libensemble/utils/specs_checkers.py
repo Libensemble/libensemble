@@ -32,6 +32,11 @@ def _check_set_gen_specs_from_variables(values):
     return values
 
 
+def _check_set_gen_specs_from_vocs(values):
+    if not len(scg(values, "persis_in")) and scg(values, "generator"):
+        print("asdlkhfgasdoijhf")
+
+
 def _check_H0(values):
     if scg(values, "H0").size > 0:
         H0 = scg(values, "H0")

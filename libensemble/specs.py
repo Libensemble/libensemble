@@ -3,6 +3,7 @@ import warnings
 from pathlib import Path
 
 import pydantic
+from gest_api.vocs import VOCS
 from pydantic import BaseModel, Field
 
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
@@ -85,6 +86,12 @@ class GenSpecs(BaseModel):
     generator: object | None = None
     """
     A pre-initialized generator object.
+    """
+
+    vocs: VOCS | None = None
+    """
+    A `VOCS <https://github.com/campa-consortium/gest-api?tab=readme-ov-file#vocs>`_ object.
+    Required if specifying a generator object that adheres to the GEST API.
     """
 
     inputs: list[str] | None = Field(default=[], alias="in")

@@ -13,6 +13,7 @@ from libensemble.utils.specs_checkers import (
     _check_logical_cores,
     _check_set_calc_dirs_on_input_dir,
     _check_set_gen_specs_from_variables,
+    _check_set_gen_specs_from_vocs,
     _check_set_workflow_dir,
 )
 
@@ -159,6 +160,11 @@ def check_H0(self):
 @model_validator(mode="after")
 def check_set_gen_specs_from_variables(self):
     return _check_set_gen_specs_from_variables(self)
+
+
+@model_validator(mode="after")
+def check_set_gen_specs_from_vocs(self):
+    return _check_set_gen_specs_from_vocs(self)
 
 
 @model_validator(mode="after")
