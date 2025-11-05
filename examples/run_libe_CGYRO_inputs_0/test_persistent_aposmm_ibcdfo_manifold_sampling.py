@@ -18,7 +18,8 @@ libensemble.gen_funcs.rc.aposmm_optimizers = "ibcdfo_manifold_sampling"
 from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
 from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
 
-from ibcdfo.manifold_sampling.h_examples import pw_maximum as hfun
+# from ibcdfo.manifold_sampling.h_examples import pw_maximum as hfun
+from ibcdfo.manifold_sampling.h_examples import max_gamma_over_KY as hfun
 
 
 def main(argv):
@@ -127,7 +128,7 @@ def main(argv):
     )
 
     # Instruct libEnsemble to exit after this many simulations
-    ensemble.exit_criteria = ExitCriteria(sim_max=30)
+    ensemble.exit_criteria = ExitCriteria(sim_max=40)
 
     # Seed random streams for each worker, particularly for gen_f
     ensemble.add_random_streams()

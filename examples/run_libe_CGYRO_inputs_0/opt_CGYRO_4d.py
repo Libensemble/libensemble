@@ -133,7 +133,7 @@ def main(argv):
     )
 
     # Instruct libEnsemble to exit after this many simulations
-    ensemble.exit_criteria = ExitCriteria(sim_max=30)
+    ensemble.exit_criteria = ExitCriteria(sim_max=40)
 
     # Seed random streams for each worker, particularly for gen_f
     ensemble.add_random_streams()
