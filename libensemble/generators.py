@@ -190,6 +190,10 @@ class PersistentGenInterfacer(LibensembleGenerator):
 
     def ingest_numpy(self, results: npt.NDArray, tag: int = EVAL_GEN_TAG) -> None:
         """Send the results of evaluations to the generator, as a NumPy array."""
+        if self.running_gen_f is None:
+            self.setup()
+            self.running_gen_f.run()
+
         if results is not None:
             results = self._prep_fields(results)
             Work = {"libE_info": {"H_rows": np.copy(results["sim_id"]), "persistent": True, "executor": None}}
