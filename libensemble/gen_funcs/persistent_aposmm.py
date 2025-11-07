@@ -177,6 +177,12 @@ def aposmm(H, persis_info, gen_specs, libE_info):
         if user_specs["initial_sample_size"] != 0:
             # Send our initial sample. We don't need to check that n_s is large enough:
             # the alloc_func only returns when the initial sample has function values.
+
+            if user_specs.get("do_not_produce_sample_points", False):  # add an extra receive for the sample points
+                tag, Work, presumptive_user_sample = ps.recv()
+                if presumptive_user_sample is not None:
+                    user_specs["sample_points"] = presumptive_user_sample
+
             persis_info = add_k_sample_points_to_local_H(
                 user_specs["initial_sample_size"], user_specs, persis_info, n, comm, local_H, sim_id_to_child_inds
             )

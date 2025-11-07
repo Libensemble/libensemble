@@ -23,19 +23,21 @@ class APOSMM(PersistentGenInterfacer):
 
     VOCS variables must include both regular and *_on_cube versions. E.g.,:
 
+    ```python
     vars_std = {
         "var1": [-10.0, 10.0],
         "var2": [0.0, 100.0],
         "var3": [1.0, 50.0],
         "var1_on_cube": [0, 1.0],
         "var2_on_cube": [0, 1.0],
-        "var3_on_cube": [0, 1.0]
+        "var3_on_cube": [0, 1.0],
     }
     variables_mapping = {
         "x": ["var1", "var2", "var3"],
         "x_on_cube": ["var1_on_cube", "var2_on_cube", "var3_on_cube"],
     }
     gen = APOSMM(vocs, 3, 3, variables_mapping=variables_mapping, ...)
+    ```
 
     Parameters
     ----------
@@ -46,8 +48,46 @@ class APOSMM(PersistentGenInterfacer):
         Bound on number of runs APOSMM is advancing.
 
     initial_sample_size: int
-        Number of uniformly sampled points to be evaluated internally before starting
-        the localopt runs. `.suggest()` will return samples from these points.
+
+        Minimal sample points required before starting optimization.
+
+            1. Retrieve these points via `.suggest()`,
+            2. Calculate thair objective values, updating these points in-place.
+            3. Ingest these points into APOSMM via `.ingest()`.
+
+        This many points *must* be retrieved and ingested by APOSMM before APOSMM
+        will provide any local optimization points.
+
+        ```python
+        gen = APOSMM(vocs, max_active_runs=2, initial_sample_size=10)
+
+        # ask APOSMM for some sample points
+        initial_sample = gen.suggest(10)
+        for point in initial_sample:
+            point["f"] = func(point["x"])
+        gen.ingest(initial_sample)
+
+        # APOSMM will now provide local-optimization points.
+        points = gen.suggest(10)
+        ...
+        ```
+
+    do_not_produce_sample_points: bool = False
+
+        If `True`, APOSMM can ingest sample points (with matching objective values)
+        provided by the user instead of producing its own. Use in tandem with `initial_sample_size`
+        to prepare APOSMM for an external sample.
+
+        ```python
+        gen = APOSMM(vocs, max_active_runs=2, initial_sample_size=10, do_not_produce_sample_points=True)
+
+        # Provide own sample points
+        gen.ingest(my_chosen_sample_points)
+
+        # APOSMM will now provide local-optimization points.
+        points = gen.suggest(10)
+        ...
+        ```
 
     History: npt.NDArray = []
         An optional history of previously evaluated points.
@@ -117,6 +157,7 @@ class APOSMM(PersistentGenInterfacer):
             "ftol_abs",
             "dist_to_bound_multiple",
             "max_active_runs",
+            "do_not_produce_sample_points",
         ]
 
         for k in FIELDS:

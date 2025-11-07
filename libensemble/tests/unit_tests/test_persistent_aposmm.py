@@ -256,6 +256,56 @@ def test_asktell_with_persistent_aposmm():
     _evaluate_aposmm_instance(my_APOSMM)
 
 
+@pytest.mark.extra
+def test_asktell_with_completed_sample():
+    from math import gamma, pi, sqrt
+
+    from gest_api.vocs import VOCS
+
+    import libensemble.gen_funcs
+    from libensemble.gen_classes import APOSMM
+
+    # from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
+
+    libensemble.gen_funcs.rc.aposmm_optimizers = "nlopt"
+    # from libensemble.utils.misc import np_to_list_dicts
+
+    n = 2
+
+    variables = {"core": [-3, 3], "edge": [-2, 2], "core_on_cube": [0, 1], "edge_on_cube": [0, 1]}
+    objectives = {"energy": "MINIMIZE"}
+
+    variables_mapping = {
+        "x": ["core", "edge"],
+        "x_on_cube": ["core_on_cube", "edge_on_cube"],
+        "f": ["energy"],
+    }
+
+    vocs = VOCS(variables=variables, objectives=objectives)
+
+    my_APOSMM = APOSMM(
+        vocs,
+        max_active_runs=2,
+        initial_sample_size=6,  # needs to count ingested points as part of this
+        variables_mapping=variables_mapping,
+        localopt_method="LD_MMA",
+        rk_const=0.5 * ((gamma(1 + (n / 2)) * 5) ** (1 / n)) / sqrt(pi),
+        xtol_abs=1e-6,
+        ftol_abs=1e-6,
+    )
+
+    # initial sample
+    my_APOSMM.ingest(1)  # need 5
+    my_APOSMM.suggest(5)  # out of the initial sample.
+    my_APOSMM.ingest(5)
+
+    # can no longer ingest unknown points
+
+    my_APOSMM.ingest(100)
+
+    _evaluate_aposmm_instance(my_APOSMM)
+
+
 def _run_aposmm_export_test(variables_mapping):
     """Helper function to run APOSMM export tests with given variables_mapping"""
     from gest_api.vocs import VOCS
@@ -343,4 +393,5 @@ if __name__ == "__main__":
     test_standalone_persistent_aposmm()
     test_standalone_persistent_aposmm_combined_func()
     test_asktell_with_persistent_aposmm()
+    test_asktell_with_completed_sample()
     test_aposmm_export()
