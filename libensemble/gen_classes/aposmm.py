@@ -123,6 +123,7 @@ class APOSMM(PersistentGenInterfacer):
         vocs: VOCS,
         max_active_runs: int,
         initial_sample_size: int,
+        do_not_produce_sample_points: bool = False,
         History: npt.NDArray = [],
         sample_points: npt.NDArray = None,
         localopt_method: str = "LN_BOBYQA",

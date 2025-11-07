@@ -264,11 +264,11 @@ def test_asktell_with_completed_sample():
 
     import libensemble.gen_funcs
     from libensemble.gen_classes import APOSMM
-
-    # from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
+    from libensemble.sim_funcs.six_hump_camel import six_hump_camel_func
+    from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
 
     libensemble.gen_funcs.rc.aposmm_optimizers = "nlopt"
-    # from libensemble.utils.misc import np_to_list_dicts
+    from libensemble.utils.misc import np_to_list_dicts
 
     n = 2
 
@@ -287,6 +287,7 @@ def test_asktell_with_completed_sample():
         vocs,
         max_active_runs=2,
         initial_sample_size=6,  # needs to count ingested points as part of this
+        do_not_produce_sample_points=True,  # class should ingest first, to satisfy initial sample
         variables_mapping=variables_mapping,
         localopt_method="LD_MMA",
         rk_const=0.5 * ((gamma(1 + (n / 2)) * 5) ** (1 / n)) / sqrt(pi),
@@ -294,14 +295,43 @@ def test_asktell_with_completed_sample():
         ftol_abs=1e-6,
     )
 
-    # initial sample
-    my_APOSMM.ingest(1)  # need 5
-    my_APOSMM.suggest(5)  # out of the initial sample.
-    my_APOSMM.ingest(5)
+    sample = np.round(minima, 1)
+
+    sample_with_dtype = np.zeros(
+        len(sample),
+        dtype=[
+            ("core", float),
+            ("edge", float),
+            ("core_on_cube", float),
+            ("edge_on_cube", float),
+            ("energy", float),
+            ("sim_id", int),
+        ],
+    )
+    sample_with_dtype["core"] = sample[:, 0]
+    sample_with_dtype["edge"] = sample[:, 1]
+
+    # (point - lb) / (ub - lb)
+    sample_with_dtype["core_on_cube"] = np.array(
+        [(point - variables["core"][0]) / (variables["core"][1] - variables["core"][0]) for point in sample[:, 0]]
+    )
+    sample_with_dtype["edge_on_cube"] = np.array(
+        [(point - variables["edge"][0]) / (variables["edge"][1] - variables["edge"][0]) for point in sample[:, 1]]
+    )
+
+    for entry in sample_with_dtype:
+        entry["energy"] = six_hump_camel_func([entry["core"], entry["edge"]])
+
+    sample_with_dtype["sim_id"] = np.arange(len(sample_with_dtype))
+
+    sample = np_to_list_dicts(sample_with_dtype)
+
+    my_APOSMM.ingest(sample)
 
     # can no longer ingest unknown points
 
-    my_APOSMM.ingest(100)
+    points = my_APOSMM.suggest(100)
+    print(points)
 
     _evaluate_aposmm_instance(my_APOSMM)
 
