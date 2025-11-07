@@ -130,6 +130,7 @@ class APOSMM(PersistentGenInterfacer):
         x_mapping = self.variables_mapping["x"]
         self.gen_specs["user"]["lb"] = np.array([vocs.variables[var].domain[0] for var in x_mapping])
         self.gen_specs["user"]["ub"] = np.array([vocs.variables[var].domain[1] for var in x_mapping])
+        self.gen_specs["user"]["do_not_produce_sample_points"] = True
 
         x_size = len(self.variables_mapping.get("x", []))
         x_on_cube_size = len(self.variables_mapping.get("x_on_cube", []))

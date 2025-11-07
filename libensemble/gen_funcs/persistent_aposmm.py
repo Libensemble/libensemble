@@ -174,7 +174,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
             fields_to_pass,
         ) = initialize_children(user_specs)
 
-        if user_specs["initial_sample_size"] != 0:
+        if user_specs["initial_sample_size"] != 0 and not user_specs.get("do_not_produce_sample_points", True):
             # Send our initial sample. We don't need to check that n_s is large enough:
             # the alloc_func only returns when the initial sample has function values.
             persis_info = add_k_sample_points_to_local_H(
