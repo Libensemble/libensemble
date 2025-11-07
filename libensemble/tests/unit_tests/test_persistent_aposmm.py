@@ -333,6 +333,8 @@ def test_asktell_with_completed_sample():
     assert not any(
         [point["core"] in sample_with_dtype["core"] for point in points]
     ), "initial sample returned to user instead of new points created"
+    # TODO: ingested points not be returned to user - should start localopt points instead
+    # TODO: objective values ingested should be considered "compeleted sample"
 
 
 def _run_aposmm_export_test(variables_mapping):
