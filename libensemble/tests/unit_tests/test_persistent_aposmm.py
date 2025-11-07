@@ -272,7 +272,7 @@ def test_asktell_with_completed_sample():
 
     n = 2
 
-    variables = {"core": [-3, 3], "edge": [-2, 2], "core_on_cube": [0, 1], "edge_on_cube": [0, 1]}
+    variables = {"core": [-3.0, 3.0], "edge": [-2.0, 2.0], "core_on_cube": [0.0, 1.0], "edge_on_cube": [0.0, 1.0]}
     objectives = {"energy": "MINIMIZE"}
 
     variables_mapping = {
@@ -328,12 +328,11 @@ def test_asktell_with_completed_sample():
 
     my_APOSMM.ingest(sample)
 
-    # can no longer ingest unknown points
-
-    points = my_APOSMM.suggest(100)
+    points = my_APOSMM.suggest(2)
     print(points)
-
-    _evaluate_aposmm_instance(my_APOSMM)
+    assert not any(
+        [point["core"] in sample_with_dtype["core"] for point in points]
+    ), "initial sample returned to user instead of new points created"
 
 
 def _run_aposmm_export_test(variables_mapping):
