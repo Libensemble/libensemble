@@ -179,6 +179,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
             # the alloc_func only returns when the initial sample has function values.
 
             if user_specs.get("do_not_produce_sample_points", False):  # add an extra receive for the sample points
+                # gonna loop here while the user suggests/ingests sample points until we reach the desired sample size
                 tag, Work, presumptive_user_sample = ps.recv()
                 if presumptive_user_sample is not None:
                     user_specs["sample_points"] = np.array([i for i in presumptive_user_sample["x"]])
