@@ -253,7 +253,8 @@ class APOSMM(PersistentGenInterfacer):
 
         if self._n_buffd_results == 0:
             self._ingest_buf = np.zeros(self.gen_specs["user"]["initial_sample_size"], dtype=results.dtype)
-            self._ingest_buf["sim_id"] = -1
+            if "sim_id" in results.dtype.names and not self._told_initial_sample:
+                self._ingest_buf["sim_id"] = -1
 
         if not self._enough_initial_sample():
             self._slot_in_data(np.copy(results))
