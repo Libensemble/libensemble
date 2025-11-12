@@ -196,7 +196,10 @@ class PersistentGenInterfacer(LibensembleGenerator):
 
         if results is not None:
             results = self._prep_fields(results)
-            Work = {"libE_info": {"H_rows": np.copy(results["sim_id"]), "persistent": True, "executor": None}}
+            if "sim_id" in results.dtype.names:
+                Work = {"libE_info": {"H_rows": np.copy(results["sim_id"]), "persistent": True, "executor": None}}
+            else:  # maybe ingesting an initial sample without sim_ids
+                Work = {"libE_info": {"H_rows": np.arange(len(results)), "persistent": True, "executor": None}}
             self.running_gen_f.send(tag, Work)
             self.running_gen_f.send(
                 tag, np.copy(results)
