@@ -122,7 +122,7 @@ def test_standalone_persistent_aposmm():
     assert min_found >= 6, f"Found {min_found} minima"
 
 
-def _evaluate_aposmm_instance(my_APOSMM):
+def _evaluate_aposmm_instance(my_APOSMM, minimum_minima=6):
     from libensemble.message_numbers import FINISHED_PERSISTENT_GEN_TAG
     from libensemble.sim_funcs.six_hump_camel import six_hump_camel_func
     from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
@@ -166,7 +166,7 @@ def _evaluate_aposmm_instance(my_APOSMM):
         print(np.min(np.sum((H[H["local_min"]]["x"] - m) ** 2, 1)), flush=True)
         if np.min(np.sum((H[H["local_min"]]["x"] - m) ** 2, 1)) < tol:
             min_found += 1
-    assert min_found >= 6, f"Found {min_found} minima"
+    assert min_found >= minimum_minima, f"Found {min_found} minima"
 
 
 @pytest.mark.extra
@@ -256,6 +256,61 @@ def test_asktell_with_persistent_aposmm():
     _evaluate_aposmm_instance(my_APOSMM)
 
 
+@pytest.mark.extra
+def test_asktell_ingest_first():
+    from math import gamma, pi, sqrt
+
+    from gest_api.vocs import VOCS
+
+    import libensemble.gen_funcs
+    from libensemble.gen_classes import APOSMM
+    from libensemble.sim_funcs.six_hump_camel import six_hump_camel_func
+    from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
+
+    libensemble.gen_funcs.rc.aposmm_optimizers = "nlopt"
+
+    n = 2
+
+    variables = {"core": [-3, 3], "edge": [-2, 2], "core_on_cube": [0, 1], "edge_on_cube": [0, 1]}
+    objectives = {"energy": "MINIMIZE"}
+
+    variables_mapping = {
+        "x": ["core", "edge"],
+        "x_on_cube": ["core_on_cube", "edge_on_cube"],
+        "f": ["energy"],
+    }
+
+    vocs = VOCS(variables=variables, objectives=objectives)
+
+    my_APOSMM = APOSMM(
+        vocs,
+        max_active_runs=6,
+        initial_sample_size=6,
+        variables_mapping=variables_mapping,
+        localopt_method="LN_BOBYQA",
+        rk_const=0.5 * ((gamma(1 + (n / 2)) * 5) ** (1 / n)) / sqrt(pi),
+        xtol_abs=1e-6,
+        ftol_abs=1e-6,
+        dist_to_bound_multiple=0.5,
+        do_not_produce_sample_points=True,
+    )
+
+    # local_H["x_on_cube"][-num_pts:] = (pts - lb) / (ub - lb)
+    initial_sample = [
+        {
+            "core": minima[i][0],
+            "edge": minima[i][1],
+            "core_on_cube": (minima[i][0] - variables["core"][0]) / (variables["core"][1] - variables["core"][0]),
+            "edge_on_cube": (minima[i][1] - variables["edge"][0]) / (variables["edge"][1] - variables["edge"][0]),
+            "energy": six_hump_camel_func(np.array([minima[i][0], minima[i][1]])),
+        }
+        for i in range(6)
+    ]
+
+    my_APOSMM.ingest(initial_sample)
+    _evaluate_aposmm_instance(my_APOSMM, minimum_minima=4)
+
+
 def _run_aposmm_export_test(variables_mapping):
     """Helper function to run APOSMM export tests with given variables_mapping"""
     from gest_api.vocs import VOCS
@@ -343,4 +398,5 @@ if __name__ == "__main__":
     test_standalone_persistent_aposmm()
     test_standalone_persistent_aposmm_combined_func()
     test_asktell_with_persistent_aposmm()
+    test_asktell_ingest_first()
     test_aposmm_export()
