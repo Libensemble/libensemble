@@ -46,7 +46,7 @@ class APOSMM(PersistentGenInterfacer):
         The VOCS object, adhering to the VOCS interface from the Generator Standard.
 
     max_active_runs: int
-        Bound on number of runs APOSMM is advancing.
+        Bound on number of runs APOSMM is *concurrently* advancing.
 
     initial_sample_size: int
 
@@ -77,7 +77,8 @@ class APOSMM(PersistentGenInterfacer):
 
         If `True`, APOSMM can ingest sample points (with matching objective values)
         provided by the user instead of producing its own. Use in tandem with `initial_sample_size`
-        to prepare APOSMM for an external sample.
+        to prepare APOSMM for an external sample. Note that compared to the routine above,
+        `ingest()` is called first after initializing the generator.
 
         ```python
         gen = APOSMM(vocs, max_active_runs=2, initial_sample_size=10, do_not_produce_sample_points=True)
@@ -229,6 +230,9 @@ class APOSMM(PersistentGenInterfacer):
         self._ingest_buf = None
         self._n_buffd_results = 0
         self._told_initial_sample = False
+        self._first_call = None
+        self._last_call = None
+        self._last_num_points = 0
 
     def _slot_in_data(self, results):
         """Slot in libE_calc_in and trial data into corresponding array fields. *Initial sample only!!*"""
@@ -247,6 +251,7 @@ class APOSMM(PersistentGenInterfacer):
             - all points given out have returned AND we've been suggested *at least* as many points as we cached
         - When we're done with the initial sample:
             - we've been suggested *at least* as many points as we cached
+            - we've just ingested some results
         """
         if not self._told_initial_sample and self._last_suggest is not None:
             cond = all([i in self._ingest_buf["sim_id"] for i in self._last_suggest["sim_id"]])
@@ -256,8 +261,22 @@ class APOSMM(PersistentGenInterfacer):
 
     def suggest_numpy(self, num_points: int = 0) -> npt.NDArray:
         """Request the next set of points to evaluate, as a NumPy array."""
+
+        if not self._first_call:
+            self._first_call = "suggest"
+
+        if self.gen_specs["user"].get("do_not_produce_sample_points", False) and self._first_call == "suggest":
+            self.finalize()
+            raise RuntimeError(
+                "Cannot suggest points since APOSMM is currently expecting"
+                + " to receive a sample (do_not_produce_sample_points is True)."
+            )
+
         if self._ready_to_suggest_genf():
             self._suggest_idx = 0
+            if self._last_call == "suggest" and num_points == 0 and self._last_num_points == 0:
+                self.finalize()
+                raise RuntimeError("Cannot suggest points since APOSMM is currently expecting to receive a sample")
             self._last_suggest = super().suggest_numpy(num_points)
 
             if self._last_suggest["local_min"].any():  # filter out local minima rows
@@ -273,11 +292,25 @@ class APOSMM(PersistentGenInterfacer):
             results = np.copy(self._last_suggest)
             self._last_suggest = None
 
+        self._last_call = "suggest"
+        self._last_num_points = num_points
         return results
 
     def ingest_numpy(self, results: npt.NDArray, tag: int = EVAL_GEN_TAG) -> None:
+
+        if not self._first_call:
+            self._first_call = "ingest"
+
+        if self._first_call == "ingest" and not self.gen_specs["user"].get("do_not_produce_sample_points", False):
+            self.finalize()
+            raise RuntimeError(
+                "Cannot ingest points since APOSMM has prepared an initial sample"
+                + " for retrieval via suggest (do_not_produce_sample_points is False)."
+            )
+
         if (results is None and tag == PERSIS_STOP) or self._told_initial_sample:
             super().ingest_numpy(results, tag)
+            self._last_call = "ingest"
             return
 
         # Initial sample buffering here:
@@ -295,6 +328,8 @@ class APOSMM(PersistentGenInterfacer):
             super().ingest_numpy(self._ingest_buf, tag)
             self._told_initial_sample = True
             self._n_buffd_results = 0
+
+        self._last_call = "ingest"
 
     def suggest_updates(self) -> List[npt.NDArray]:
         """Request a list of NumPy arrays containing entries that have been identified as minima."""

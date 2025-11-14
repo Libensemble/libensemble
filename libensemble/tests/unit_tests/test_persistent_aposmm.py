@@ -322,6 +322,64 @@ def test_asktell_errors():
         )
         pytest.fail("Should have raised error for bad mapping")
 
+    variables_mapping = {
+        "x": ["core", "edge"],
+        "x_on_cube": ["core_on_cube", "edge_on_cube"],
+        "f": ["energy"],
+    }
+
+    vocs = VOCS(variables=variables, objectives=objectives)
+
+    my_APOSMM = APOSMM(
+        vocs,
+        max_active_runs=6,
+        initial_sample_size=6,
+        variables_mapping=variables_mapping,
+        localopt_method="LN_BOBYQA",
+        rk_const=0.5 * ((gamma(1 + (n / 2)) * 5) ** (1 / n)) / sqrt(pi),
+        xtol_abs=1e-6,
+        ftol_abs=1e-6,
+        dist_to_bound_multiple=0.5,
+    )
+
+    my_APOSMM.suggest()
+    with pytest.raises(RuntimeError):
+        my_APOSMM.suggest()
+        pytest.fail("Should've failed on consecutive empty suggests")
+
+    my_APOSMM = APOSMM(
+        vocs,
+        max_active_runs=6,
+        initial_sample_size=6,
+        variables_mapping=variables_mapping,
+        localopt_method="LN_BOBYQA",
+        rk_const=0.5 * ((gamma(1 + (n / 2)) * 5) ** (1 / n)) / sqrt(pi),
+        xtol_abs=1e-6,
+        ftol_abs=1e-6,
+        dist_to_bound_multiple=0.5,
+    )
+
+    with pytest.raises(RuntimeError):
+        my_APOSMM.ingest(np.round(minima, 1))
+        pytest.fail("Should've failed since APOSMM shouldn't be able to ingest initially")
+
+    my_APOSMM = APOSMM(
+        vocs,
+        max_active_runs=6,
+        initial_sample_size=6,
+        variables_mapping=variables_mapping,
+        localopt_method="LN_BOBYQA",
+        rk_const=0.5 * ((gamma(1 + (n / 2)) * 5) ** (1 / n)) / sqrt(pi),
+        xtol_abs=1e-6,
+        ftol_abs=1e-6,
+        dist_to_bound_multiple=0.5,
+        do_not_produce_sample_points=True,
+    )
+
+    with pytest.raises(RuntimeError):
+        my_APOSMM.suggest()
+        pytest.fail("Should've failed since APOSMM shouldn't be able to suggest initially")
+
 
 @pytest.mark.extra
 def test_asktell_ingest_first():
@@ -373,7 +431,6 @@ def test_asktell_ingest_first():
         }
         for i in range(6)
     ]
-
     my_APOSMM.ingest(initial_sample)
     _evaluate_aposmm_instance(my_APOSMM, minimum_minima=4)
 

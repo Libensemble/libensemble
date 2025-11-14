@@ -209,6 +209,9 @@ class PersistentGenInterfacer(LibensembleGenerator):
 
     def finalize(self) -> None:
         """Stop the generator process and store the returned data."""
+        if self._running_gen_f is None:
+            self.gen_result = None
+            return
         self.ingest_numpy(None, PERSIS_STOP)  # conversion happens in ingest
         self.gen_result = self._running_gen_f.result()
 
