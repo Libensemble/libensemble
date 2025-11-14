@@ -257,6 +257,73 @@ def test_asktell_with_persistent_aposmm():
 
 
 @pytest.mark.extra
+def test_asktell_errors():
+    from math import gamma, pi, sqrt
+
+    from gest_api.vocs import VOCS
+
+    import libensemble.gen_funcs
+    from libensemble.gen_classes import APOSMM
+    from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
+
+    libensemble.gen_funcs.rc.aposmm_optimizers = "nlopt"
+
+    n = 2
+
+    variables = {"core": [-3, 3], "edge": [-2, 2], "core_on_cube": [0, 1], "edge_on_cube": [0, 1]}
+    objectives = {"energy": "MINIMIZE"}
+
+    bad_mapping = {
+        "x": ["core", "edge"],
+        "f": ["energy"],
+    }
+
+    vocs = VOCS(
+        variables=variables,
+        objectives=objectives,
+        constraints={"c1": ["LESS_THAN", 0]},
+        constants={"alpha": 0.55},
+        observables={"o1"},
+    )
+
+    with pytest.raises(ValueError):
+        APOSMM(
+            vocs,
+            max_active_runs=6,
+            variables_mapping=bad_mapping,
+            initial_sample_size=100,
+            sample_points=np.round(minima, 1),
+            localopt_method="LN_BOBYQA",
+            rk_const=0.5 * ((gamma(1 + (n / 2)) * 5) ** (1 / n)) / sqrt(pi),
+            xtol_abs=1e-6,
+            ftol_abs=1e-6,
+            dist_to_bound_multiple=0.5,
+        )
+        pytest.fail("Should have raised error for bad mapping")
+
+    bad_mapping = {
+        "x": ["core", "edge"],
+        "x_on_cube": ["core_on_cube", "edge_on_cube", "blah"],
+        "f": ["energy"],
+    }
+
+    with pytest.raises(ValueError):
+        APOSMM(
+            vocs,
+            max_active_runs=6,
+            variables_mapping=bad_mapping,
+            initial_sample_size=100,
+            sample_points=np.round(minima, 1),
+            localopt_method="LN_BOBYQA",
+            rk_const=0.5 * ((gamma(1 + (n / 2)) * 5) ** (1 / n)) / sqrt(pi),
+            xtol_abs=1e-6,
+            ftol_abs=1e-6,
+            dist_to_bound_multiple=0.5,
+        )
+        pytest.fail("Should have raised error for bad mapping")
+
+
+@pytest.mark.extra
 def test_asktell_ingest_first():
     from math import gamma, pi, sqrt
 
@@ -399,4 +466,5 @@ if __name__ == "__main__":
     test_standalone_persistent_aposmm_combined_func()
     test_asktell_with_persistent_aposmm()
     test_asktell_ingest_first()
+    test_asktell_errors()
     test_aposmm_export()

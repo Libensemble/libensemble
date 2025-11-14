@@ -194,7 +194,7 @@ class LibensembleGenThreadRunner(StandardGenRunner):
 
     def _suggest_and_send(self):
         """Loop over generator's outbox contents, send to manager"""
-        while not self.gen.running_gen_f.outbox.empty():  # recv/send any outstanding messages
+        while not self.gen._running_gen_f.outbox.empty():  # recv/send any outstanding messages
             points = self.gen.suggest_numpy()
             if callable(getattr(self.gen, "suggest_updates", None)):
                 updates = self.gen.suggest_updates()
@@ -216,5 +216,5 @@ class LibensembleGenThreadRunner(StandardGenRunner):
                 tag, _, H_in = self.ps.recv()
                 if tag in [STOP_TAG, PERSIS_STOP]:
                     self.gen.ingest_numpy(H_in, PERSIS_STOP)
-                    return self.gen.running_gen_f.result()
+                    return self.gen._running_gen_f.result()
                 self.gen.ingest_numpy(H_in)

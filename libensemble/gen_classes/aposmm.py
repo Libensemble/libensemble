@@ -1,4 +1,5 @@
 import copy
+import warnings
 from math import gamma, pi, sqrt
 from typing import List
 
@@ -118,6 +119,14 @@ class APOSMM(PersistentGenInterfacer):
         Seed for the random number generator.
     """
 
+    def _validate_vocs(self, vocs: VOCS):
+        if len(vocs.constraints):
+            warnings.warn("APOSMM's constraints are provided as keyword arguments on initialization.")
+        if len(vocs.constants):
+            warnings.warn("APOSMM's constants are provided as keyword arguments on initialization.")
+        if len(vocs.observables):
+            warnings.warn("APOSMM does not support observables within VOCS at this time.")
+
     def __init__(
         self,
         vocs: VOCS,
@@ -175,8 +184,30 @@ class APOSMM(PersistentGenInterfacer):
 
         x_size = len(self.variables_mapping.get("x", []))
         x_on_cube_size = len(self.variables_mapping.get("x_on_cube", []))
-        assert x_size > 0 and x_on_cube_size > 0, "Both x and x_on_cube must be specified in variables_mapping"
-        assert x_size == x_on_cube_size, f"x and x_on_cube must have same length but got {x_size} and {x_on_cube_size}"
+
+        try:
+            assert x_size > 0 and x_on_cube_size > 0
+        except AssertionError:
+            raise ValueError(
+                """ User must provide a variables_mapping dictionary in the following format:
+
+                    variables = {"core": [-3, 3], "edge": [-2, 2], "core_on_cube": [0, 1], "edge_on_cube": [0, 1]}
+                    objectives = {"energy": "MINIMIZE"}
+
+                    variables_mapping = {
+                        "x": ["core", "edge"],
+                        "x_on_cube": ["core_on_cube", "edge_on_cube"],
+                        "f": ["energy"],
+                    }
+                """
+            )
+        try:
+            assert x_size == x_on_cube_size
+        except AssertionError:
+            raise ValueError(
+                "Within the variables_mapping dictionary, x and x_on_cube "
+                + f"must have same length but got {x_size} and {x_on_cube_size}"
+            )
 
         gen_specs["out"] = [
             ("x", float, x_size),
