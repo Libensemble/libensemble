@@ -126,16 +126,16 @@ def test_vocs_to_sim_specs():
         variables={"x1": [0, 1], "x2": [0, 10]},
         constants={"c1": 1.0},
         objectives={"y1": "MINIMIZE"},
-        observables={"obs1": float, "obs2": int},
+        observables={"o1": float, "o2": int, "o3": (float, (3,))},
         constraints={"con1": ["GREATER_THAN", 0]},
     )
 
     ss = SimSpecs(sim_f=norm_eval, vocs=vocs)
 
     assert ss.inputs == ["x1", "x2", "c1"]
-    assert len(ss.outputs) == 4
+    assert len(ss.outputs) == 5
     output_dict = {name: dtype for name, dtype in ss.outputs}
-    assert output_dict["obs1"] == float and output_dict["obs2"] == int, "Should extract dtypes from VOCS"
+    assert output_dict["o1"] == float and output_dict["o2"] == int and output_dict["o3"] == (float, (3,))
 
     # Explicit values take precedence
     ss2 = SimSpecs(sim_f=norm_eval, vocs=vocs, inputs=["custom"], outputs=[("custom_out", int)])
