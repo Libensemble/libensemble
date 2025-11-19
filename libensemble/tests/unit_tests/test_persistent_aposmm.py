@@ -418,7 +418,7 @@ def test_asktell_ingest_first():
         xtol_abs=1e-6,
         ftol_abs=1e-6,
         dist_to_bound_multiple=0.5,
-    )  # generate_sample_points=False
+    )
 
     # local_H["x_on_cube"][-num_pts:] = (pts - lb) / (ub - lb)
     initial_sample = [
@@ -432,7 +432,38 @@ def test_asktell_ingest_first():
         for i in range(6)
     ]
     my_APOSMM.ingest(initial_sample)
-    _evaluate_aposmm_instance(my_APOSMM, minimum_minima=4)
+
+    total_evals = 0
+    eval_max = 2000
+
+    potential_minima = []
+
+    while total_evals < eval_max:
+
+        sample, detected_minima = my_APOSMM.suggest(6), my_APOSMM.suggest_updates()
+        if len(detected_minima):
+            for m in detected_minima:
+                potential_minima.append(m)
+        for point in sample:
+            point["energy"] = six_hump_camel_func(np.array([point["core"], point["edge"]]))
+            total_evals += 1
+        my_APOSMM.ingest(sample)
+    my_APOSMM.finalize()
+    H, persis_info, exit_code = my_APOSMM.export()
+
+    assert persis_info.get("run_order"), "Standalone persistent_aposmm didn't do any localopt runs"
+
+    assert len(potential_minima) >= 6, f"Found {len(potential_minima)} minima"
+
+    tol = 1e-3
+    min_found = 0
+    for m in minima:
+        # The minima are known on this test problem.
+        # We use their values to test APOSMM has identified all minima
+        print(np.min(np.sum((H[H["local_min"]]["x"] - m) ** 2, 1)), flush=True)
+        if np.min(np.sum((H[H["local_min"]]["x"] - m) ** 2, 1)) < tol:
+            min_found += 1
+    assert min_found >= 4, f"Found {min_found} minima"
 
 
 def _run_aposmm_export_test(variables_mapping):

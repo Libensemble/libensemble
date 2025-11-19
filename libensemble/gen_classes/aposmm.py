@@ -212,7 +212,7 @@ class APOSMM(PersistentGenInterfacer):
             "ftol_abs",
             "dist_to_bound_multiple",
             "max_active_runs",
-            "do_not_produce_sample_points",
+            "generate_sample_points",
         ]
 
         for k in FIELDS:
@@ -309,11 +309,11 @@ class APOSMM(PersistentGenInterfacer):
         if not self._first_call:
             self._first_call = "suggest"
 
-        if self.gen_specs["user"].get("do_not_produce_sample_points", False) and self._first_call == "suggest":
+        if not self.gen_specs["user"].get("generate_sample_points", False) and self._first_call == "suggest":
             self.finalize()
             raise RuntimeError(
                 "Cannot suggest points since APOSMM is currently expecting"
-                + " to receive a sample (do_not_produce_sample_points is True)."
+                + " to receive a sample (generate_sample_points is False)."
             )
 
         if self._ready_to_suggest_genf():
@@ -345,11 +345,11 @@ class APOSMM(PersistentGenInterfacer):
         if not self._first_call:
             self._first_call = "ingest"
 
-        if self._first_call == "ingest" and not self.gen_specs["user"].get("do_not_produce_sample_points", False):
+        if self._first_call == "ingest" and self.gen_specs["user"].get("generate_sample_points", False):
             self.finalize()
             raise RuntimeError(
                 "Cannot ingest points since APOSMM has prepared an initial sample"
-                + " for retrieval via suggest (do_not_produce_sample_points is False)."
+                + " for retrieval via suggest (generate_sample_points is False)."
             )
 
         if (results is None and tag == PERSIS_STOP) or self._told_initial_sample:

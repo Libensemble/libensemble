@@ -202,11 +202,9 @@ class PersistentGenInterfacer(LibensembleGenerator):
             if "sim_id" in results.dtype.names:
                 Work = {"libE_info": {"H_rows": np.copy(results["sim_id"]), "persistent": True, "executor": None}}
             else:  # maybe ingesting an initial sample without sim_ids
-                Work = {"libE_info": {"H_rows": np.arange(len(results)), "persistent": True, "executor": None}}
+                Work = {"libE_info": {"H_rows": None, "persistent": True, "executor": None}}
             self._running_gen_f.send(tag, Work)
-            self._running_gen_f.send(
-                tag, np.copy(results)
-            )  # SH for threads check - might need deepcopy due to dtype=object
+            self._running_gen_f.send(tag, np.copy(results))
         else:
             self._running_gen_f.send(tag, None)
 
