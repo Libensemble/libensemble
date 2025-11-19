@@ -95,7 +95,9 @@ class SimSpecs(BaseModel):
             out_fields = []
             for attr in ["objectives", "observables", "constraints"]:
                 if (obj := getattr(self.vocs, attr, None)):
-                    out_fields.extend([(name, float) for name in obj.keys()])
+                    for name, field in obj.items():
+                        dtype = getattr(field, "dtype", None) or float
+                        out_fields.append((name, dtype))
             self.outputs = out_fields
 
         return self
@@ -198,7 +200,9 @@ class GenSpecs(BaseModel):
             out_fields = []
             for attr in ["variables", "constants"]:
                 if (obj := getattr(self.vocs, attr, None)):
-                    out_fields.extend([(name, float) for name in obj.keys()])
+                    for name, field in obj.items():
+                        dtype = getattr(field, "dtype", None) or float
+                        out_fields.append((name, dtype))
             self.outputs = out_fields
 
         return self
