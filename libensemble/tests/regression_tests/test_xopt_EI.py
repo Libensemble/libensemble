@@ -74,12 +74,7 @@ if __name__ == "__main__":
         # initial_batch_size=4,
         generator=gen,
         batch_size=batch_size,
-        persis_in=["x1", "x2", "constant1", "y1","c1"],
-        out=[("x1", float), ("x2", float), ("constant1", float)],
-        user={
-            "lb": np.array([0, 0]),
-            "ub": np.array([0, 10.0]),
-        },
+        vocs=vocs,
     )
 
     print(f'gen_specs.persis_in: {gen_specs.persis_in}')
@@ -95,7 +90,6 @@ if __name__ == "__main__":
     print(f'sim_specs.inputs: {sim_specs.inputs}')
     print(f'sim_specs.outputs: {sim_specs.outputs}')
 
-    import pdb; pdb.set_trace()
 
     alloc_specs = AllocSpecs(alloc_f=alloc_f)
     exit_criteria = ExitCriteria(sim_max=20)

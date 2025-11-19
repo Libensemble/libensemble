@@ -3,7 +3,7 @@ import warnings
 from pathlib import Path
 
 import pydantic
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 
@@ -142,6 +142,36 @@ class GenSpecs(BaseModel):
     A user-data dictionary to place bounds, constants, settings, or other parameters for
     customizing the generator function
     """
+
+    vocs: object | None = None
+    """
+    A VOCS object. If provided and persis_in/outputs are not explicitly set,
+    they will be automatically derived from VOCS.
+    """
+
+    @model_validator(mode="after")
+    def set_fields_from_vocs(self):
+        """Set persis_in and outputs from VOCS if vocs is provided and fields are not set."""
+        if self.vocs is None:
+            return self
+
+        # Set persis_in: ALL VOCS fields (variables + constants + objectives + observables + constraints)
+        if not self.persis_in:
+            persis_in_fields = []
+            for attr in ["variables", "constants", "objectives", "observables", "constraints"]:
+                if (obj := getattr(self.vocs, attr, None)):
+                    persis_in_fields.extend(list(obj.keys()))
+            self.persis_in = persis_in_fields
+
+        # Set outputs: variables + constants (what the generator produces)
+        if not self.outputs:
+            out_fields = []
+            for attr in ["variables", "constants"]:
+                if (obj := getattr(self.vocs, attr, None)):
+                    out_fields.extend([(name, float) for name in obj.keys()])
+            self.outputs = out_fields
+
+        return self
 
 
 class AllocSpecs(BaseModel):
