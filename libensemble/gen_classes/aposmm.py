@@ -40,6 +40,47 @@ class APOSMM(PersistentGenInterfacer):
     gen = APOSMM(vocs, 3, 3, variables_mapping=variables_mapping, ...)
     ```
 
+    Getting started
+    ---------------
+
+    APOSMM requires a minimal sample size before starting optimization. This is typically
+    retrieved via `.suggest()`, updated with objective values, and ingested via `.ingest()`.
+
+    ```python
+    gen = APOSMM(vocs, max_active_runs=2, initial_sample_size=10)
+
+    # ask APOSMM for some sample points
+    initial_sample = gen.suggest(10)
+    for point in initial_sample:
+        point["f"] = func(point["x"])
+    gen.ingest(initial_sample)
+
+    # APOSMM will now provide local-optimization points.
+    points = gen.suggest(10)
+    ...
+    ```
+
+    *Important Note*: After the initial sample phase, APOSMM cannot accept additional sample points
+    that are not associated with local optimization runs.
+
+    ```python
+    gen = APOSMM(vocs, max_active_runs=2, initial_sample_size=10)
+
+    # ask APOSMM for some sample points
+    initial_sample = gen.suggest(10)
+    for point in initial_sample:
+        point["f"] = func(point["x"])
+    gen.ingest(initial_sample)
+
+    # APOSMM will now provide local-optimization points.
+    points_from_aposmm = gen.suggest(10)
+    for point in points_from_aposmm:
+        point["f"] = func(point["x"])
+    gen.ingest(points_from_aposmm)
+
+    gen.ingest(another_sample)  # THIS CRASHES
+    ```
+
     Parameters
     ----------
     vocs: VOCS
@@ -75,7 +116,7 @@ class APOSMM(PersistentGenInterfacer):
 
     do_not_produce_sample_points: bool = False
 
-        If `True`, APOSMM can ingest sample points (with matching objective values)
+        If `True`, APOSMM can ingest evaluated sample points
         provided by the user instead of producing its own. Use in tandem with `initial_sample_size`
         to prepare APOSMM for an external sample. Note that compared to the routine above,
         `ingest()` is called first after initializing the generator.
@@ -84,7 +125,9 @@ class APOSMM(PersistentGenInterfacer):
         gen = APOSMM(vocs, max_active_runs=2, initial_sample_size=10, do_not_produce_sample_points=True)
 
         # Provide own sample points
-        gen.ingest(my_chosen_sample_points)
+        gen.ingest(five_sample_points)
+        # multiple ingests are allowed sequentially as long as they're part of the initial sample
+        gen.ingest(five_more_sample_points)
 
         # APOSMM will now provide local-optimization points.
         points = gen.suggest(10)
@@ -122,11 +165,11 @@ class APOSMM(PersistentGenInterfacer):
 
     def _validate_vocs(self, vocs: VOCS):
         if len(vocs.constraints):
-            warnings.warn("APOSMM's constraints are provided as keyword arguments on initialization.")
+            warnings.warn("APOSMM does not support constraints in VOCS. Ignoring.")
         if len(vocs.constants):
-            warnings.warn("APOSMM's constants are provided as keyword arguments on initialization.")
+            warnings.warn("APOSMM does not support constants in VOCS. Ignoring.")
         if len(vocs.observables):
-            warnings.warn("APOSMM does not support observables within VOCS at this time.")
+            warnings.warn("APOSMM does not support observables within VOCS at this time. Ignoring.")
 
     def __init__(
         self,
