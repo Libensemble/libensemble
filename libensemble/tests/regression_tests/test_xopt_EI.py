@@ -20,14 +20,11 @@ import warnings
 
 import numpy as np
 from gest_api.vocs import VOCS
-
-from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
-
 from xopt.generators.bayesian.expected_improvement import ExpectedImprovementGenerator
 
-# Import libEnsemble items for this test
 from libensemble import Ensemble
 from libensemble.sim_funcs.rosenbrock import rosenbrock_eval as sim_f
+from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
 
 warnings.filterwarnings("ignore", message="Default hyperparameter_bounds")
