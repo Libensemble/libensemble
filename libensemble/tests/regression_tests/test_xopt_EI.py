@@ -52,10 +52,9 @@ if __name__ == "__main__":
 
     # SH TODO - We must enable this to be set by VOCS
     gen_specs = GenSpecs(
+        batch_size=batch_size,
         persis_in=["x", "f", "sim_id"],
         out=[("x", float, (n,))],
-
-        batch_size=batch_size,
         generator=gen,
         user={
             "lb": np.array([0,0]),
