@@ -26,6 +26,7 @@ from libensemble import Ensemble
 from libensemble.sim_funcs.rosenbrock import rosenbrock_eval as sim_f
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
+import pdb_si
 
 warnings.filterwarnings("ignore", message="Default hyperparameter_bounds")
 
@@ -34,10 +35,9 @@ warnings.filterwarnings("ignore", message="Default hyperparameter_bounds")
 if __name__ == "__main__":
 
     n = 2
-    # batch_size = 15
-    # num_batches = 10
+    batch_size = 4
 
-    libE_specs = LibeSpecs(gen_on_manager=True)
+    libE_specs = LibeSpecs(gen_on_manager=True, nworkers=batch_size)
     
     vocs = VOCS(
         variables={"x1": [0, 1.0], "x2": [0, 10.0]},
@@ -52,7 +52,8 @@ if __name__ == "__main__":
     gen_specs = GenSpecs(
         persis_in=["x", "f", "sim_id"],
         out=[("x", float, (n,))],
-        # batch_size=batch_size,
+
+        batch_size=batch_size,
         generator=gen,
         user={
             "lb": np.array([0,0]),
@@ -65,7 +66,6 @@ if __name__ == "__main__":
     exit_criteria = ExitCriteria(sim_max=20)
 
     workflow = Ensemble(
-        parse_args=True,
         libE_specs=libE_specs,
         sim_specs=sim_specs,
         alloc_specs=alloc_specs,
