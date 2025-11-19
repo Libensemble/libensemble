@@ -47,7 +47,7 @@ class APOSMM(PersistentGenInterfacer):
     retrieved via `.suggest()`, updated with objective values, and ingested via `.ingest()`.
 
     ```python
-    gen = APOSMM(vocs, max_active_runs=2, initial_sample_size=10)
+    gen = APOSMM(vocs, max_active_runs=2, initial_sample_size=10, generate_sample_points=True)
 
     # ask APOSMM for some sample points
     initial_sample = gen.suggest(10)
@@ -64,7 +64,7 @@ class APOSMM(PersistentGenInterfacer):
     that are not associated with local optimization runs.
 
     ```python
-    gen = APOSMM(vocs, max_active_runs=2, initial_sample_size=10)
+    gen = APOSMM(vocs, max_active_runs=2, initial_sample_size=10, generate_sample_points=True)
 
     # ask APOSMM for some sample points
     initial_sample = gen.suggest(10)
@@ -114,7 +114,7 @@ class APOSMM(PersistentGenInterfacer):
         ...
         ```
 
-    do_not_produce_sample_points: bool = False
+    generate_sample_points: bool = False
 
         If `True`, APOSMM can ingest evaluated sample points
         provided by the user instead of producing its own. Use in tandem with `initial_sample_size`
@@ -122,7 +122,7 @@ class APOSMM(PersistentGenInterfacer):
         `ingest()` is called first after initializing the generator.
 
         ```python
-        gen = APOSMM(vocs, max_active_runs=2, initial_sample_size=10, do_not_produce_sample_points=True)
+        gen = APOSMM(vocs, max_active_runs=2, initial_sample_size=10, generate_sample_points=False)
 
         # Provide own sample points
         gen.ingest(five_sample_points)
@@ -138,6 +138,7 @@ class APOSMM(PersistentGenInterfacer):
         An optional history of previously evaluated points.
 
     sample_points: npt.NDArray = None
+        Included for compatibility with the underlying algorithm.
         Points to be sampled (original domain).
         If more sample points are needed by APOSMM during the course of the
         optimization, points will be drawn uniformly over the domain.
@@ -176,7 +177,7 @@ class APOSMM(PersistentGenInterfacer):
         vocs: VOCS,
         max_active_runs: int,
         initial_sample_size: int,
-        do_not_produce_sample_points: bool = False,
+        generate_sample_points: bool = False,
         History: npt.NDArray = [],
         sample_points: npt.NDArray = None,
         localopt_method: str = "LN_BOBYQA",

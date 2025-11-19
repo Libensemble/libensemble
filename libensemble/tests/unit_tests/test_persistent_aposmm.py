@@ -251,6 +251,7 @@ def test_asktell_with_persistent_aposmm():
         xtol_abs=1e-6,
         ftol_abs=1e-6,
         dist_to_bound_multiple=0.5,
+        generate_sample_points=True,
     )
 
     _evaluate_aposmm_instance(my_APOSMM)
@@ -373,7 +374,7 @@ def test_asktell_errors():
         xtol_abs=1e-6,
         ftol_abs=1e-6,
         dist_to_bound_multiple=0.5,
-        do_not_produce_sample_points=True,
+        generate_sample_points=False,
     )
 
     with pytest.raises(RuntimeError):
@@ -417,8 +418,7 @@ def test_asktell_ingest_first():
         xtol_abs=1e-6,
         ftol_abs=1e-6,
         dist_to_bound_multiple=0.5,
-        do_not_produce_sample_points=True,
-    )
+    )  # generate_sample_points=False
 
     # local_H["x_on_cube"][-num_pts:] = (pts - lb) / (ub - lb)
     initial_sample = [

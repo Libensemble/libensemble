@@ -209,7 +209,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
             # Send our initial sample. We don't need to check that n_s is large enough:
             # the alloc_func only returns when the initial sample has function values.
 
-            if user_specs.get("do_not_produce_sample_points", False):  # add an extra receive for the sample points
+            if not user_specs.get("generate_sample_points", True):  # add an extra receive for the sample points
                 # gonna loop here while the user suggests/ingests sample points until we reach the desired sample size
                 n_received_points = 0
                 while n_received_points < user_specs["initial_sample_size"]:
@@ -224,11 +224,9 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                 persis_info = add_k_sample_points_to_local_H(
                     user_specs["initial_sample_size"], user_specs, persis_info, n, comm, local_H, sim_id_to_child_inds
                 )
-            if not user_specs.get("standalone") or not user_specs.get("do_not_produce_sample_points", False):
+            if not user_specs.get("standalone") and user_specs.get("generate_sample_points", True):
                 ps.send(local_H[-user_specs["initial_sample_size"] :][[i[0] for i in gen_specs["out"]]])
-                something_sent = True
-            else:
-                something_sent = False
+            something_sent = True
         else:
             something_sent = False
 
