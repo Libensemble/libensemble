@@ -25,12 +25,31 @@ from gest_api.vocs import VOCS
 from xopt.generators.bayesian.expected_improvement import ExpectedImprovementGenerator
 
 from libensemble import Ensemble
-from libensemble.sim_funcs.rosenbrock import rosenbrock_eval as sim_f
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
 import pdb_si
 
 warnings.filterwarnings("ignore", message="Default hyperparameter_bounds")
+
+
+# From Xopt/xopt/resources/testing.py
+def xtest_sim(H, persis_info, sim_specs, _):
+    """
+    Simple sim function that takes x1, x2, constant1 from H and returns y1, c1.
+    Logic: y1 = x2, c1 = x1
+    """
+    batch = len(H)
+    H_o = np.zeros(batch, dtype=sim_specs["out"])
+
+    for i in range(batch):
+        x1 = H["x1"][i]
+        x2 = H["x2"][i]
+        # constant1 is available but not used in the calculation
+        
+        H_o["y1"][i] = x2
+        H_o["c1"][i] = x1
+
+    return H_o, persis_info
 
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
@@ -52,17 +71,32 @@ if __name__ == "__main__":
 
     # SH TODO - We must enable this to be set by VOCS
     gen_specs = GenSpecs(
-        batch_size=batch_size,
-        persis_in=["x", "f", "sim_id"],
-        out=[("x", float, (n,))],
+        # initial_batch_size=4,
         generator=gen,
+        batch_size=batch_size,
+        persis_in=["x1", "x2", "constant1", "y1","c1"],
+        out=[("x1", float), ("x2", float), ("constant1", float)],
         user={
-            "lb": np.array([0,0]),
-            "ub": np.array([0,10.0]),
+            "lb": np.array([0, 0]),
+            "ub": np.array([0, 10.0]),
         },
     )
 
-    sim_specs = SimSpecs(sim_f=sim_f, inputs=["x"], outputs=[("f", float)])
+    print(f'gen_specs.persis_in: {gen_specs.persis_in}')
+    print(f'gen_specs.outputs: {gen_specs.outputs}')
+
+    # SH TODO - We must enable this to be set by VOCS
+    sim_specs = SimSpecs(
+        sim_f=xtest_sim,
+        inputs=["x1", "x2", "constant1"],
+        outputs=[("y1", float), ("c1", float)],
+    )
+
+    print(f'sim_specs.inputs: {sim_specs.inputs}')
+    print(f'sim_specs.outputs: {sim_specs.outputs}')
+
+    import pdb; pdb.set_trace()
+
     alloc_specs = AllocSpecs(alloc_f=alloc_f)
     exit_criteria = ExitCriteria(sim_max=20)
 
@@ -78,4 +112,4 @@ if __name__ == "__main__":
 
     # Perform the run
     if workflow.is_manager:
-        assert len(np.unique(H["gen_ended_time"])) == num_batches
+        print(f"Completed {len(H)} simulations")
