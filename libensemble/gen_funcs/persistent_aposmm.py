@@ -23,7 +23,7 @@ from libensemble.tools.persistent_support import PersistentSupport
 UNEXPECTED_SIMID_ERR = """APOSMM received unexpected input data.
 
 APOSMM *typically* expects to provide sample points itself following initialization.
-If you wish to provide sample points with matching objective values to APOSMM,
+If you wish to provide evaluated sample points to APOSMM,
 please set `do_not_produce_sample_points=True` in APOSMM:
 
     aposmm = APOSMM(
@@ -224,10 +224,10 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                 persis_info = add_k_sample_points_to_local_H(
                     user_specs["initial_sample_size"], user_specs, persis_info, n, comm, local_H, sim_id_to_child_inds
                 )
-            if not user_specs.get("standalone"):
+            if not user_specs.get("standalone") or not user_specs.get("do_not_produce_sample_points", False):
                 ps.send(local_H[-user_specs["initial_sample_size"] :][[i[0] for i in gen_specs["out"]]])
-            something_sent = True
-            if user_specs.get("do_not_produce_sample_points", False):
+                something_sent = True
+            else:
                 something_sent = False
         else:
             something_sent = False

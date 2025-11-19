@@ -139,11 +139,6 @@ def list_dicts_to_np(list_dicts: list, dtype: list = None, mapping: dict = {}) -
     if not isinstance(list_dicts, list):  # presumably already a numpy array, conversion not necessary
         return list_dicts
 
-    # entering gen: convert _id to sim_id
-    for entry in list_dicts:
-        if "_id" in entry:
-            entry["sim_id"] = entry.pop("_id")
-
     # first entry is used to determine dtype
     first = list_dicts[0]
 
