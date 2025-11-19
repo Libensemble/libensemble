@@ -32,6 +32,7 @@ import pdb_si
 warnings.filterwarnings("ignore", message="Default hyperparameter_bounds")
 
 
+# SH TODO - should check constant1 is present 
 # From Xopt/xopt/resources/testing.py
 def xtest_sim(H, persis_info, sim_specs, _):
     """
@@ -77,19 +78,19 @@ if __name__ == "__main__":
         vocs=vocs,
     )
 
+    #SH TEMP PRINTS TO CHECK VOCS WORKING
     print(f'gen_specs.persis_in: {gen_specs.persis_in}')
     print(f'gen_specs.outputs: {gen_specs.outputs}')
 
     # SH TODO - We must enable this to be set by VOCS
     sim_specs = SimSpecs(
         sim_f=xtest_sim,
-        inputs=["x1", "x2", "constant1"],
-        outputs=[("y1", float), ("c1", float)],
+        vocs=vocs,
     )
-
+    
+    #SH TEMP PRINTS TO CHECK VOCS WORKING
     print(f'sim_specs.inputs: {sim_specs.inputs}')
     print(f'sim_specs.outputs: {sim_specs.outputs}')
-
 
     alloc_specs = AllocSpecs(alloc_f=alloc_f)
     exit_criteria = ExitCriteria(sim_max=20)

@@ -70,6 +70,36 @@ class SimSpecs(BaseModel):
     the simulator function.
     """
 
+    vocs: object | None = None
+    """
+    A VOCS object. If provided and inputs/outputs are not explicitly set,
+    they will be automatically derived from VOCS.
+    """
+
+    @model_validator(mode="after")
+    def set_fields_from_vocs(self):
+        """Set inputs and outputs from VOCS if vocs is provided and fields are not set."""
+        if self.vocs is None:
+            return self
+
+        # Set inputs: variables + constants (what the sim receives)
+        if not self.inputs:
+            input_fields = []
+            for attr in ["variables", "constants"]:
+                if (obj := getattr(self.vocs, attr, None)):
+                    input_fields.extend(list(obj.keys()))
+            self.inputs = input_fields
+
+        # Set outputs: objectives + observables + constraints (what the sim produces)
+        if not self.outputs:
+            out_fields = []
+            for attr in ["objectives", "observables", "constraints"]:
+                if (obj := getattr(self.vocs, attr, None)):
+                    out_fields.extend([(name, float) for name in obj.keys()])
+            self.outputs = out_fields
+
+        return self
+
 
 class GenSpecs(BaseModel):
     """
