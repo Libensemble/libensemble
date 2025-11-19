@@ -1,6 +1,8 @@
 """
 Tests libEnsemble with Xopt ExpectedImprovementGenerator
 
+*****currently fixing nworkers to batch_size*****
+
 Execute via one of the following commands (e.g. 3 workers):
    mpiexec -np 4 python test_xopt_EI.py
    python test_xopt_EI.py --nworkers 3 --comms local
