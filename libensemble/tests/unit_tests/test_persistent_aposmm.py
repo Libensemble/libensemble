@@ -341,28 +341,13 @@ def test_asktell_errors():
         xtol_abs=1e-6,
         ftol_abs=1e-6,
         dist_to_bound_multiple=0.5,
+        generate_sample_points=True,
     )
 
     my_APOSMM.suggest()
     with pytest.raises(RuntimeError):
         my_APOSMM.suggest()
         pytest.fail("Should've failed on consecutive empty suggests")
-
-    my_APOSMM = APOSMM(
-        vocs,
-        max_active_runs=6,
-        initial_sample_size=6,
-        variables_mapping=variables_mapping,
-        localopt_method="LN_BOBYQA",
-        rk_const=0.5 * ((gamma(1 + (n / 2)) * 5) ** (1 / n)) / sqrt(pi),
-        xtol_abs=1e-6,
-        ftol_abs=1e-6,
-        dist_to_bound_multiple=0.5,
-    )
-
-    with pytest.raises(RuntimeError):
-        my_APOSMM.ingest(np.round(minima, 1))
-        pytest.fail("Should've failed since APOSMM shouldn't be able to ingest initially")
 
     my_APOSMM = APOSMM(
         vocs,
@@ -490,6 +475,7 @@ def _run_aposmm_export_test(variables_mapping):
         xtol_abs=1e-6,
         ftol_abs=1e-6,
         dist_to_bound_multiple=0.5,
+        generate_sample_points=True,
     )
     # Test basic export before finalize
     H, _, _ = aposmm.export()

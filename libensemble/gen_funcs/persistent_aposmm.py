@@ -220,14 +220,15 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                         )
                     n_received_points += len(presumptive_user_sample)
                     n_s += len(presumptive_user_sample)
-
+                something_sent = False
             else:
                 persis_info = add_k_sample_points_to_local_H(
                     user_specs["initial_sample_size"], user_specs, persis_info, n, comm, local_H, sim_id_to_child_inds
                 )
+                something_sent = True
             if not user_specs.get("standalone") and user_specs.get("generate_sample_points", True):
                 ps.send(local_H[-user_specs["initial_sample_size"] :][[i[0] for i in gen_specs["out"]]])
-            something_sent = True
+                something_sent = True
         else:
             something_sent = False
 
