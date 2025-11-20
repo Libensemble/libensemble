@@ -114,26 +114,6 @@ class APOSMM(PersistentGenInterfacer):
         ...
         ```
 
-    generate_sample_points: bool = False
-
-        If `True`, APOSMM can ingest evaluated sample points
-        provided by the user instead of producing its own. Use in tandem with `initial_sample_size`
-        to prepare APOSMM for an external sample. Note that compared to the routine above,
-        `ingest()` is called first after initializing the generator.
-
-        ```python
-        gen = APOSMM(vocs, max_active_runs=2, initial_sample_size=10, generate_sample_points=False)
-
-        # Provide own sample points
-        gen.ingest(five_sample_points)
-        # multiple ingests are allowed sequentially as long as they're part of the initial sample
-        gen.ingest(five_more_sample_points)
-
-        # APOSMM will now provide local-optimization points.
-        points = gen.suggest(10)
-        ...
-        ```
-
     History: npt.NDArray = []
         An optional history of previously evaluated points.
 
@@ -177,7 +157,6 @@ class APOSMM(PersistentGenInterfacer):
         vocs: VOCS,
         max_active_runs: int,
         initial_sample_size: int,
-        generate_sample_points: bool = False,
         History: npt.NDArray = [],
         sample_points: npt.NDArray = None,
         localopt_method: str = "LN_BOBYQA",
@@ -212,7 +191,6 @@ class APOSMM(PersistentGenInterfacer):
             "ftol_abs",
             "dist_to_bound_multiple",
             "max_active_runs",
-            "generate_sample_points",
         ]
 
         for k in FIELDS:
@@ -308,13 +286,7 @@ class APOSMM(PersistentGenInterfacer):
 
         if not self._first_call:
             self._first_call = "suggest"
-
-        if not self.gen_specs["user"].get("generate_sample_points", False) and self._first_call == "suggest":
-            self.finalize()
-            raise RuntimeError(
-                "Cannot suggest points since APOSMM is currently expecting"
-                + " to receive a sample (generate_sample_points is False)."
-            )
+            self.gen_specs["user"]["generate_sample_points"] = True
 
         if self._ready_to_suggest_genf():
             self._suggest_idx = 0
@@ -344,13 +316,7 @@ class APOSMM(PersistentGenInterfacer):
 
         if not self._first_call:
             self._first_call = "ingest"
-
-        if self._first_call == "ingest" and self.gen_specs["user"].get("generate_sample_points", False):
-            self.finalize()
-            raise RuntimeError(
-                "Cannot ingest points since APOSMM has prepared an initial sample"
-                + " for retrieval via suggest (generate_sample_points is False)."
-            )
+            self.gen_specs["user"]["generate_sample_points"] = False
 
         if (results is None and tag == PERSIS_STOP) or self._told_initial_sample:
             super().ingest_numpy(results, tag)
