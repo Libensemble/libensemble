@@ -219,6 +219,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                             local_H, n, n_s, user_specs, Work, presumptive_user_sample, fields_to_pass, init=True
                         )
                     n_received_points += len(presumptive_user_sample)
+                    n_s += len(presumptive_user_sample)
 
             else:
                 persis_info = add_k_sample_points_to_local_H(
