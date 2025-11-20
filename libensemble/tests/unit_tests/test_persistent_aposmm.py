@@ -347,6 +347,40 @@ def test_asktell_errors():
         my_APOSMM.suggest()
         pytest.fail("Should've failed on consecutive empty suggests")
 
+    my_APOSMM = APOSMM(
+        vocs,
+        max_active_runs=6,
+        initial_sample_size=6,
+        variables_mapping=variables_mapping,
+        localopt_method="LN_BOBYQA",
+        rk_const=0.5 * ((gamma(1 + (n / 2)) * 5) ** (1 / n)) / sqrt(pi),
+        xtol_abs=1e-6,
+        ftol_abs=1e-6,
+        dist_to_bound_multiple=0.5,
+    )
+
+    with pytest.raises(RuntimeError):
+        my_APOSMM.finalize()
+        pytest.fail("Should've failed on finalize before start")
+
+    my_APOSMM = APOSMM(
+        vocs,
+        max_active_runs=6,
+        initial_sample_size=6,
+        variables_mapping=variables_mapping,
+        localopt_method="LN_BOBYQA",
+        rk_const=0.5 * ((gamma(1 + (n / 2)) * 5) ** (1 / n)) / sqrt(pi),
+        xtol_abs=1e-6,
+        ftol_abs=1e-6,
+        dist_to_bound_multiple=0.5,
+    )
+
+    my_APOSMM.suggest()
+    with pytest.raises(RuntimeError):
+        my_APOSMM.setup()
+        pytest.fail("Should've failed on consecutive setup")
+    my_APOSMM.finalize()
+
 
 @pytest.mark.extra
 def test_asktell_ingest_first():
@@ -414,6 +448,91 @@ def test_asktell_ingest_first():
             point["energy"] = six_hump_camel_func(np.array([point["core"], point["edge"]]))
             total_evals += 1
         my_APOSMM.ingest(sample)
+    my_APOSMM.finalize()
+    H, persis_info, exit_code = my_APOSMM.export()
+
+    assert persis_info.get("run_order"), "Standalone persistent_aposmm didn't do any localopt runs"
+
+    assert len(potential_minima) >= 6, f"Found {len(potential_minima)} minima"
+
+    tol = 1e-3
+    min_found = 0
+    for m in minima:
+        # The minima are known on this test problem.
+        # We use their values to test APOSMM has identified all minima
+        print(np.min(np.sum((H[H["local_min"]]["x"] - m) ** 2, 1)), flush=True)
+        if np.min(np.sum((H[H["local_min"]]["x"] - m) ** 2, 1)) < tol:
+            min_found += 1
+    assert min_found >= 4, f"Found {min_found} minima"
+
+
+@pytest.mark.extra
+def test_asktell_consecutive_during_sample():
+    """Test consecutive suggest and ingest during sample"""
+    from math import gamma, pi, sqrt
+
+    from gest_api.vocs import VOCS
+
+    import libensemble.gen_funcs
+    from libensemble.gen_classes import APOSMM
+    from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
+
+    libensemble.gen_funcs.rc.aposmm_optimizers = "nlopt"
+
+    n = 2
+
+    variables = {"core": [-3, 3], "edge": [-2, 2], "core_on_cube": [0, 1], "edge_on_cube": [0, 1]}
+    objectives = {"energy": "MINIMIZE"}
+
+    variables_mapping = {
+        "x": ["core", "edge"],
+        "x_on_cube": ["core_on_cube", "edge_on_cube"],
+        "f": ["energy"],
+    }
+
+    vocs = VOCS(variables=variables, objectives=objectives)
+
+    my_APOSMM = APOSMM(
+        vocs,
+        max_active_runs=6,
+        initial_sample_size=6,
+        variables_mapping=variables_mapping,
+        localopt_method="LN_BOBYQA",
+        rk_const=0.5 * ((gamma(1 + (n / 2)) * 5) ** (1 / n)) / sqrt(pi),
+        xtol_abs=1e-6,
+        ftol_abs=1e-6,
+        dist_to_bound_multiple=0.5,
+    )
+
+    # Test consecutive suggest
+    first = my_APOSMM.suggest(1)
+    first[0]["energy"] = six_hump_camel_func(np.array([first[0]["core"], first[0]["edge"]]))
+    my_APOSMM.ingest(first)
+    second = my_APOSMM.suggest(1)
+    second += my_APOSMM.suggest(4)
+    for point in second:
+        point["energy"] = six_hump_camel_func(np.array([point["core"], point["edge"]]))
+    # Test consecutive ingest
+    my_APOSMM.ingest(second[:3])
+    my_APOSMM.ingest(second[3:])
+
+    total_evals = 0
+    eval_max = 2000
+
+    potential_minima = []
+
+    while total_evals < eval_max:
+
+        sample, detected_minima = my_APOSMM.suggest(3), my_APOSMM.suggest_updates()
+        sample += my_APOSMM.suggest(3)
+        if len(detected_minima):
+            for m in detected_minima:
+                potential_minima.append(m)
+        for point in sample:
+            point["energy"] = six_hump_camel_func(np.array([point["core"], point["edge"]]))
+            total_evals += 1
+        my_APOSMM.ingest(sample)
+
     my_APOSMM.finalize()
     H, persis_info, exit_code = my_APOSMM.export()
 
@@ -520,5 +639,6 @@ if __name__ == "__main__":
     test_standalone_persistent_aposmm_combined_func()
     test_asktell_with_persistent_aposmm()
     test_asktell_ingest_first()
+    test_asktell_consecutive_during_sample()
     test_asktell_errors()
     test_aposmm_export()

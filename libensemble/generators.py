@@ -142,7 +142,7 @@ class PersistentGenInterfacer(LibensembleGenerator):
     def setup(self) -> None:
         """Must be called once before calling suggest/ingest. Initializes the background thread."""
         if self._running_gen_f is not None:
-            return
+            raise RuntimeError("Generator has already been started.")
         # SH this contains the thread lock -  removing.... wrong comm to pass on anyway.
         if hasattr(Executor.executor, "comm"):
             del Executor.executor.comm
@@ -199,10 +199,7 @@ class PersistentGenInterfacer(LibensembleGenerator):
 
         if results is not None:
             results = self._prep_fields(results)
-            if "sim_id" in results.dtype.names:
-                Work = {"libE_info": {"H_rows": np.copy(results["sim_id"]), "persistent": True, "executor": None}}
-            else:  # maybe ingesting an initial sample without sim_ids
-                Work = {"libE_info": {"H_rows": None, "persistent": True, "executor": None}}
+            Work = {"libE_info": {"H_rows": np.copy(results["sim_id"]), "persistent": True, "executor": None}}
             self._running_gen_f.send(tag, Work)
             self._running_gen_f.send(tag, np.copy(results))
         else:
@@ -211,8 +208,7 @@ class PersistentGenInterfacer(LibensembleGenerator):
     def finalize(self) -> None:
         """Stop the generator process and store the returned data."""
         if self._running_gen_f is None:
-            self.gen_result = None
-            return
+            raise RuntimeError("Generator has not been started.")
         self.ingest_numpy(None, PERSIS_STOP)  # conversion happens in ingest
         self.gen_result = self._running_gen_f.result()
 

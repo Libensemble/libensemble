@@ -20,37 +20,6 @@ from libensemble.tools.persistent_support import PersistentSupport
 
 # from scipy.spatial.distance import cdist
 
-UNEXPECTED_SIMID_ERR = """APOSMM received unexpected input data.
-
-APOSMM *typically* expects to provide sample points itself following initialization.
-If you wish to provide evaluated sample points to APOSMM,
-please set `do_not_produce_sample_points=True` in APOSMM:
-
-    aposmm = APOSMM(
-            vocs,
-            max_active_runs=6,
-            initial_sample_size=6,
-            variables_mapping=variables_mapping,
-            ...
-            do_not_produce_sample_points=True,
-        )
-
-*or* provide a "History" array in the libEnsemble style:
-
-    History = np.zeros(4, dtype=[("f", float), ("x", float, n), ("sim_id", bool), ("sim_ended", bool)])
-    History["sim_ended"] = True
-    History["sim_id"] = range(len(H))
-    History["x"] = create_input_data()
-    History["f"] = [f(x) for x in History["x"]]
-
-    aposmm = APOSMM(
-            vocs,
-            max_active_runs=6,
-            variables_mapping=variables_mapping,
-            History=History,
-            ...
-        )"""
-
 
 # Due to recursion error in scipy cdist function
 def cdist(XA, XB, metric="euclidean"):
@@ -211,15 +180,12 @@ def aposmm(H, persis_info, gen_specs, libE_info):
 
             if not user_specs.get("generate_sample_points", True):  # add an extra receive for the sample points
                 # gonna loop here while the user suggests/ingests sample points until we reach the desired sample size
-                n_received_points = 0
-                while n_received_points < user_specs["initial_sample_size"]:
+                while n_s < user_specs["initial_sample_size"]:
                     tag, Work, presumptive_user_sample = ps.recv()
                     if presumptive_user_sample is not None:
                         n_s, n_r = update_local_H_after_receiving(
                             local_H, n, n_s, user_specs, Work, presumptive_user_sample, fields_to_pass, init=True
                         )
-                    n_received_points += len(presumptive_user_sample)
-                    n_s += len(presumptive_user_sample)
                 something_sent = False
             else:
                 persis_info = add_k_sample_points_to_local_H(
@@ -260,30 +226,27 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                 n_s, n_r = update_local_H_after_receiving(local_H, n, n_s, user_specs, Work, calc_in, fields_to_pass)
 
                 for row in calc_in:
-                    try:
-                        if sim_id_to_child_inds.get(row["sim_id"]):
-                            # Point came from a child local opt run
-                            for child_idx in sim_id_to_child_inds[row["sim_id"]]:
-                                x_new = local_opters[child_idx].iterate(row[fields_to_pass])
-                                if isinstance(x_new, ConvergedMsg):
-                                    x_opt = x_new.x
-                                    opt_flag = x_new.opt_flag
-                                    opt_ind = update_history_optimal(x_opt, opt_flag, local_H, run_order[child_idx])
-                                    new_opt_inds_to_send_mgr.append(opt_ind)
-                                    local_opters.pop(child_idx)
-                                    ended_runs.append(child_idx)
-                                else:
-                                    add_to_local_H(local_H, x_new, user_specs, local_flag=1, on_cube=True)
-                                    new_inds_to_send_mgr.append(len(local_H) - 1)
+                    if sim_id_to_child_inds.get(row["sim_id"]):
+                        # Point came from a child local opt run
+                        for child_idx in sim_id_to_child_inds[row["sim_id"]]:
+                            x_new = local_opters[child_idx].iterate(row[fields_to_pass])
+                            if isinstance(x_new, ConvergedMsg):
+                                x_opt = x_new.x
+                                opt_flag = x_new.opt_flag
+                                opt_ind = update_history_optimal(x_opt, opt_flag, local_H, run_order[child_idx])
+                                new_opt_inds_to_send_mgr.append(opt_ind)
+                                local_opters.pop(child_idx)
+                                ended_runs.append(child_idx)
+                            else:
+                                add_to_local_H(local_H, x_new, user_specs, local_flag=1, on_cube=True)
+                                new_inds_to_send_mgr.append(len(local_H) - 1)
 
-                                    run_order[child_idx].append(local_H[-1]["sim_id"])
-                                    run_pts[child_idx].append(x_new)
-                                    if local_H[-1]["sim_id"] in sim_id_to_child_inds:
-                                        sim_id_to_child_inds[local_H[-1]["sim_id"]] += (child_idx,)
-                                    else:
-                                        sim_id_to_child_inds[local_H[-1]["sim_id"]] = (child_idx,)
-                    except ValueError:
-                        raise ValueError(UNEXPECTED_SIMID_ERR)
+                                run_order[child_idx].append(local_H[-1]["sim_id"])
+                                run_pts[child_idx].append(x_new)
+                                if local_H[-1]["sim_id"] in sim_id_to_child_inds:
+                                    sim_id_to_child_inds[local_H[-1]["sim_id"]] += (child_idx,)
+                                else:
+                                    sim_id_to_child_inds[local_H[-1]["sim_id"]] = (child_idx,)
 
             starting_inds = decide_where_to_start_localopt(local_H, n, n_s, rk_const, ld, mu, nu)
 
