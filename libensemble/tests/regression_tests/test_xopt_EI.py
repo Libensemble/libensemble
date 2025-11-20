@@ -3,12 +3,12 @@ Tests libEnsemble with Xopt ExpectedImprovementGenerator
 
 *****currently fixing nworkers to batch_size*****
 
-Execute via one of the following commands (e.g. 3 workers):
-   mpiexec -np 4 python test_xopt_EI.py
-   python test_xopt_EI.py --nworkers 3 --comms local
+Execute via one of the following commands (e.g. 4 workers):
+   mpiexec -np 5 python test_xopt_EI.py
+   python test_xopt_EI.py -n 4
 
 When running with the above commands, the number of concurrent evaluations of
-the objective function will be 3 as the generator is on the manager.
+the objective function will be 4 as the generator is on the manager.
 
 """
 
@@ -27,9 +27,6 @@ from xopt.generators.bayesian.expected_improvement import ExpectedImprovementGen
 from libensemble import Ensemble
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
-import pdb_si
-
-warnings.filterwarnings("ignore", message="Default hyperparameter_bounds")
 
 
 # SH TODO - should check constant1 is present 
@@ -70,7 +67,6 @@ if __name__ == "__main__":
 
     gen = ExpectedImprovementGenerator(vocs=vocs)
 
-    # SH TODO - We must enable this to be set by VOCS
     gen_specs = GenSpecs(
         # initial_batch_size=4,
         generator=gen,
@@ -78,19 +74,10 @@ if __name__ == "__main__":
         vocs=vocs,
     )
 
-    #SH TEMP PRINTS TO CHECK VOCS WORKING
-    print(f'gen_specs.persis_in: {gen_specs.persis_in}')
-    print(f'gen_specs.outputs: {gen_specs.outputs}')
-
-    # SH TODO - We must enable this to be set by VOCS
     sim_specs = SimSpecs(
         sim_f=xtest_sim,
         vocs=vocs,
     )
-    
-    #SH TEMP PRINTS TO CHECK VOCS WORKING
-    print(f'sim_specs.inputs: {sim_specs.inputs}')
-    print(f'sim_specs.outputs: {sim_specs.outputs}')
 
     alloc_specs = AllocSpecs(alloc_f=alloc_f)
     exit_criteria = ExitCriteria(sim_max=20)
