@@ -67,8 +67,16 @@ if __name__ == "__main__":
 
     gen = ExpectedImprovementGenerator(vocs=vocs)
 
+    # Create 4 initial points and ingest them
+    initial_points = [
+        {"x1": 0.2, "x2": 2.0, "constant1": 1.0, "y1": 2.0, "c1": 0.2},
+        {"x1": 0.5, "x2": 5.0, "constant1": 1.0, "y1": 5.0, "c1": 0.5},
+        {"x1": 0.7, "x2": 7.0, "constant1": 1.0, "y1": 7.0, "c1": 0.7},
+        {"x1": 0.9, "x2": 9.0, "constant1": 1.0, "y1": 9.0, "c1": 0.9},
+    ]
+    gen.ingest(initial_points)
+
     gen_specs = GenSpecs(
-        # initial_batch_size=4,
         generator=gen,
         batch_size=batch_size,
         vocs=vocs,
