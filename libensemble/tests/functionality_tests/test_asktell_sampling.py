@@ -17,10 +17,13 @@ import numpy as np
 from gest_api import Generator
 from gest_api.vocs import VOCS
 
+import libensemble.sim_funcs.six_hump_camel as six_hump_camel
+
 # Import libEnsemble items for this test
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.gen_classes.sampling import UniformSample
 from libensemble.libE import libE
+from libensemble.sim_funcs.executor_hworld import executor_hworld as sim_f_exec
 from libensemble.tools import add_unique_random_streams, parse_args
 
 
@@ -87,7 +90,7 @@ if __name__ == "__main__":
     exit_criteria = {"gen_max": 201}
     persis_info = add_unique_random_streams({}, nworkers + 1, seed=1234)
 
-    for test in range(3):
+    for test in range(4):
         if test == 0:
             generator = StandardSample(vocs)
 
@@ -98,6 +101,23 @@ if __name__ == "__main__":
         elif test == 2:
             persis_info["num_gens_started"] = 0
             generator = UniformSample(vocs, variables_mapping={"x": ["x0", "x1"], "f": ["energy"]})
+
+        elif test == 3:
+            from libensemble.executors.mpi_executor import MPIExecutor
+
+            persis_info["num_gens_started"] = 0
+            generator = UniformSample(vocs, variables_mapping={"x": ["x0", "x1"], "f": ["energy"]})
+            sim_app2 = six_hump_camel.__file__
+
+            executor = MPIExecutor()
+            executor.register_app(full_path=sim_app2, app_name="six_hump_camel", calc_type="sim")  # Named app
+
+            sim_specs = {
+                "sim_f": sim_f_exec,
+                "in": ["x"],
+                "out": [("f", float), ("cstat", int)],
+                "user": {"cores": 1},
+            }
 
         gen_specs["generator"] = generator
         H, persis_info, flag = libE(

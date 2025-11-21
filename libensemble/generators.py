@@ -67,9 +67,8 @@ class LibensembleGenerator(Generator):
                 len(list(self.VOCS.objectives.keys())) > 1 or list(self.VOCS.objectives.keys())[0] != "f"
             ):  # e.g. {"f": ["f"]} doesn't need mapping
                 self.variables_mapping["f"] = self._get_unmapped_keys(self.VOCS.objectives, "f")
-        # Map sim_id to _id if not already mapped
-        if "sim_id" not in self.variables_mapping:
-            self.variables_mapping["sim_id"] = ["_id"]
+        # Map sim_id to _id
+        self.variables_mapping["sim_id"] = ["_id"]
 
         if len(kwargs) > 0:  # so user can specify gen-specific parameters as kwargs to constructor
             if not self.gen_specs.get("user"):
@@ -143,9 +142,6 @@ class PersistentGenInterfacer(LibensembleGenerator):
         """Must be called once before calling suggest/ingest. Initializes the background thread."""
         if self._running_gen_f is not None:
             raise RuntimeError("Generator has already been started.")
-        # SH this contains the thread lock -  removing.... wrong comm to pass on anyway.
-        if hasattr(Executor.executor, "comm"):
-            del Executor.executor.comm
         self.libE_info["executor"] = Executor.executor
 
         self._running_gen_f = QCommProcess(

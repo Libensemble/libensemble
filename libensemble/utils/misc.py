@@ -87,6 +87,10 @@ def _get_new_dtype_fields(first: dict, mapping: dict = {}) -> list:
     new_dtype_names = [i for i in new_dtype_names if i not in fields_to_convert] + list(
         mapping.keys()
     )  # array dtype needs "x". avoid fields from mapping values since we're converting those to "x"
+
+    # We need to accomodate "_id" getting mapped to "sim_id", but if it's not present
+    # in the input dictionary, then perhaps we're doing an initial sample.
+    # I wonder if this loop is generalizable to other fields.
     if "_id" not in first and "sim_id" in mapping:
         new_dtype_names.remove("sim_id")
     return new_dtype_names
