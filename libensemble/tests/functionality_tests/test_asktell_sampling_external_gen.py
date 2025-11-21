@@ -18,7 +18,7 @@ The number of concurrent evaluations of the objective function will be 3.
 import numpy as np
 from gest_api import Generator
 from gest_api.vocs import VOCS
-from gest_api.vocs import ContinuousVariable
+# from gest_api.vocs import ContinuousVariable
 
 # Import libEnsemble items for this test
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
