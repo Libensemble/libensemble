@@ -19,6 +19,21 @@ Pydantic-version agnostic
 """
 
 
+def _convert_dtype_to_output_tuple(name: str, dtype):
+    """Convert dtype to proper output tuple format for NumPy dtype specification."""
+    if dtype is None:
+        dtype = float
+    if isinstance(dtype, tuple):
+        # Check if first element is a type (type, (shape,)) format
+        if len(dtype) > 1 and (isinstance(dtype[0], type) or isinstance(dtype[0], str)):
+            return (name, dtype[0], dtype[1])
+        else:
+            # Just shape (shape,) format, default to float
+            return (name, float, dtype)
+    else:
+        return (name, dtype)
+
+
 class SimSpecs(BaseModel):
     """
     Specifications for configuring a Simulation Function.
@@ -96,8 +111,8 @@ class SimSpecs(BaseModel):
             for attr in ["objectives", "observables", "constraints"]:
                 if (obj := getattr(self.vocs, attr, None)):
                     for name, field in obj.items():
-                        dtype = getattr(field, "dtype", None) or float
-                        out_fields.append((name, dtype))
+                        dtype = getattr(field, "dtype", None)
+                        out_fields.append(_convert_dtype_to_output_tuple(name, dtype))
             self.outputs = out_fields
 
         return self
@@ -201,8 +216,8 @@ class GenSpecs(BaseModel):
             for attr in ["variables", "constants"]:
                 if (obj := getattr(self.vocs, attr, None)):
                     for name, field in obj.items():
-                        dtype = getattr(field, "dtype", None) or float
-                        out_fields.append((name, dtype))
+                        dtype = getattr(field, "dtype", None)
+                        out_fields.append(_convert_dtype_to_output_tuple(name, dtype))
             self.outputs = out_fields
 
         return self
