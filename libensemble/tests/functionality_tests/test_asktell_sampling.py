@@ -21,33 +21,8 @@ from gest_api.vocs import VOCS
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.gen_classes.sampling import UniformSample
 from libensemble.libE import libE
+from libensemble.specs import GenSpecs
 from libensemble.tools import add_unique_random_streams, parse_args
-
-
-class StandardSample(Generator):
-    """
-    This sampler only adheres to the complete standard interface, with no additional numpy methods.
-    """
-
-    def __init__(self, VOCS: VOCS):
-        self.VOCS = VOCS
-        self.rng = np.random.default_rng(1)
-        super().__init__(VOCS)
-
-    def _validate_vocs(self, VOCS):
-        assert len(self.VOCS.variables), "VOCS must contain variables."
-
-    def suggest(self, n_trials):
-        output = []
-        for _ in range(n_trials):
-            trial = {}
-            for key in self.VOCS.variables.keys():
-                trial[key] = self.rng.uniform(self.VOCS.variables[key].domain[0], self.VOCS.variables[key].domain[1])
-            output.append(trial)
-        return output
-
-    def ingest(self, calc_in):
-        pass  # random sample so nothing to tell
 
 
 def sim_f(In):
@@ -87,18 +62,13 @@ if __name__ == "__main__":
     exit_criteria = {"gen_max": 201}
     persis_info = add_unique_random_streams({}, nworkers + 1, seed=1234)
 
-    for test in range(3):
+    for test in range(2):
         if test == 0:
-            generator = StandardSample(vocs)
-
-        elif test == 1:
             persis_info["num_gens_started"] = 0
             generator = UniformSample(vocs)
-
-        elif test == 2:
+        elif test == 1:
             persis_info["num_gens_started"] = 0
             generator = UniformSample(vocs, variables_mapping={"x": ["x0", "x1"], "f": ["energy"]})
-
         gen_specs["generator"] = generator
         H, persis_info, flag = libE(
             sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs=libE_specs
