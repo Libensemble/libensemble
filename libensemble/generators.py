@@ -142,6 +142,9 @@ class PersistentGenInterfacer(LibensembleGenerator):
         """Must be called once before calling suggest/ingest. Initializes the background thread."""
         if self._running_gen_f is not None:
             raise RuntimeError("Generator has already been started.")
+        # SH this contains the thread lock -  removing.... wrong comm to pass on anyway.
+        if hasattr(Executor.executor, "comm"):
+            del Executor.executor.comm
         self.libE_info["executor"] = Executor.executor
 
         self._running_gen_f = QCommProcess(
