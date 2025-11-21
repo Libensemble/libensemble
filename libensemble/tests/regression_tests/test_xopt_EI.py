@@ -17,9 +17,6 @@ the objective function will be 4 as the generator is on the manager.
 # TESTSUITE_NPROCS: 4
 # TESTSUITE_EXTRA: true
 
-import sys
-import warnings
-
 import numpy as np
 from gest_api.vocs import VOCS
 from xopt.generators.bayesian.expected_improvement import ExpectedImprovementGenerator
@@ -29,7 +26,7 @@ from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens a
 from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
 
 
-# SH TODO - should check constant1 is present 
+# SH TODO - should check constant1 is present
 # From Xopt/xopt/resources/testing.py
 def xtest_sim(H, persis_info, sim_specs, _):
     """
@@ -43,7 +40,7 @@ def xtest_sim(H, persis_info, sim_specs, _):
         x1 = H["x1"][i]
         x2 = H["x2"][i]
         # constant1 is available but not used in the calculation
-        
+
         H_o["y1"][i] = x2
         H_o["c1"][i] = x1
 
@@ -57,12 +54,12 @@ if __name__ == "__main__":
     batch_size = 4
 
     libE_specs = LibeSpecs(gen_on_manager=True, nworkers=batch_size)
-    
+
     vocs = VOCS(
         variables={"x1": [0, 1.0], "x2": [0, 10.0]},
         objectives={"y1": "MINIMIZE"},
         constraints={"c1": ["GREATER_THAN", 0.5]},
-        constants={"constant1": 1.0},     
+        constants={"constant1": 1.0},
     )
 
     gen = ExpectedImprovementGenerator(vocs=vocs)

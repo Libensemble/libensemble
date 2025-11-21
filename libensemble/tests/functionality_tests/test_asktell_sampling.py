@@ -14,14 +14,12 @@ The number of concurrent evaluations of the objective function will be 4-1=3.
 # TESTSUITE_NPROCS: 2 4
 
 import numpy as np
-from gest_api import Generator
 from gest_api.vocs import VOCS
 
 # Import libEnsemble items for this test
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.gen_classes.sampling import UniformSample
 from libensemble.libE import libE
-from libensemble.specs import GenSpecs
 from libensemble.tools import add_unique_random_streams, parse_args
 
 

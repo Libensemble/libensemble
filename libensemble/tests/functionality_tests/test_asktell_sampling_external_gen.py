@@ -16,7 +16,6 @@ The number of concurrent evaluations of the objective function will be 3.
 # TESTSUITE_NPROCS: 2 4
 
 import numpy as np
-from gest_api import Generator
 from gest_api.vocs import VOCS
 # from gest_api.vocs import ContinuousVariable
 
@@ -37,7 +36,7 @@ def sim_f_array(In):
 def sim_f_scalar(In):
     Out = np.zeros(1, dtype=[("f", float)])
     Out["f"] = np.linalg.norm(In["x0"], In["x1"])
-    return Out 
+    return Out
 
 
 if __name__ == "__main__":
@@ -45,7 +44,7 @@ if __name__ == "__main__":
     libE_specs = LibeSpecs(gen_on_manager=True)
 
     for test in range(1):  # 2
-        
+
         objectives = {"f": "EXPLORE"}
 
         if test == 0:
