@@ -76,7 +76,6 @@ if __name__ == "__main__":
         alloc_specs = AllocSpecs(alloc_f=alloc_f)
         exit_criteria = ExitCriteria(gen_max=201)
 
-        gen_specs.generator = generator
         ensemble = Ensemble(
             parse_args=True,
             sim_specs=sim_specs,
