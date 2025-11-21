@@ -99,7 +99,6 @@ if __name__ == "__main__":
         workflow.add_random_streams()
 
         H, _, _ = workflow.run()
-        aposmm.finalize()
 
         # Perform the run
 
