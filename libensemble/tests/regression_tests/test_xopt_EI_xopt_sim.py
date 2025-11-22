@@ -4,8 +4,8 @@ Tests libEnsemble with Xopt ExpectedImprovementGenerator and a gest-api form sim
 *****currently fixing nworkers to batch_size*****
 
 Execute via one of the following commands (e.g. 4 workers):
-   mpiexec -np 5 python test_xopt_EI.py
-   python test_xopt_EI.py -n 4
+   mpiexec -np 5 python test_xopt_EI_xopt_sim.py
+   python test_xopt_EI_xopt_sim.py -n 4
 
 When running with the above commands, the number of concurrent evaluations of
 the objective function will be 4 as the generator is on the manager.
