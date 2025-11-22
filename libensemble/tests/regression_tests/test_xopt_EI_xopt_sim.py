@@ -1,5 +1,5 @@
 """
-Tests libEnsemble with Xopt ExpectedImprovementGenerator
+Tests libEnsemble with Xopt ExpectedImprovementGenerator and a gest-api form simulator.
 
 *****currently fixing nworkers to batch_size*****
 
@@ -27,24 +27,18 @@ from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, Sim
 
 
 # SH TODO - should check constant1 is present
-# Adapted from Xopt/xopt/resources/testing.py
-def xtest_sim(H, persis_info, sim_specs, _):
-    """
-    Simple sim function that takes x1, x2, constant1 from H and returns y1, c1.
-    Logic: y1 = x2, c1 = x1
-    """
-    batch = len(H)
-    H_o = np.zeros(batch, dtype=sim_specs["out"])
+# From Xopt/xopt/resources/testing.py
+def xtest_callable(input_dict: dict, a=0) -> dict:
+    """Single-objective callable test function"""
+    assert isinstance(input_dict, dict)
+    x1 = input_dict["x1"]
+    x2 = input_dict["x2"]
 
-    for i in range(batch):
-        x1 = H["x1"][i]
-        x2 = H["x2"][i]
-        # constant1 is available but not used in the calculation
+    assert "constant1" in input_dict
 
-        H_o["y1"][i] = x2
-        H_o["c1"][i] = x1
-
-    return H_o, persis_info
+    y1 = x2
+    c1 = x1
+    return {"y1": y1, "c1": c1}
 
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
@@ -80,7 +74,7 @@ if __name__ == "__main__":
     )
 
     sim_specs = SimSpecs(
-        sim_f=xtest_sim,
+        simulator=xtest_callable,
         vocs=vocs,
     )
 
