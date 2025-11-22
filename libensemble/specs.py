@@ -45,6 +45,12 @@ class SimSpecs(BaseModel):
     produced by a generator function.
     """
 
+    simulator: object | None = None
+    """
+    A pre-initialized simulator object or callable in gest-api format.
+    When provided, sim_f defaults to gest_api_sim wrapper.
+    """
+
     inputs: list[str] | None = Field(default=[], alias="in")
     """
     list of **field names** out of the complete history to pass
@@ -94,6 +100,11 @@ class SimSpecs(BaseModel):
     @model_validator(mode="after")
     def set_fields_from_vocs(self):
         """Set inputs and outputs from VOCS if vocs is provided and fields are not set."""
+        # If simulator is provided but sim_f is not, default to gest_api_sim
+        if self.simulator is not None and self.sim_f is None:
+            from libensemble.sim_funcs.gest_api_wrapper import gest_api_sim
+            self.sim_f = gest_api_sim
+        
         if self.vocs is None:
             return self
 
