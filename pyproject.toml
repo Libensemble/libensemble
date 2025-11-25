@@ -4,7 +4,7 @@ authors = [{name = "Jeffrey Larson"}, {name = "Stephen Hudson"},
             {name = "Stefan M. Wild"}, {name = "David Bindel"},
             {name = "John-Luke Navarro"}]
 
-dependencies = ["numpy", "psutil", "pyyaml", "tomli", "gest @ git+https://github.com/campa-consortium/gest-api@main", "pydantic"]
+dependencies = ["numpy", "psutil", "pyyaml", "tomli", "gest-api @ git+https://github.com/campa-consortium/gest-api@main", "pydantic"]
 
 description = "A Python toolkit for coordinating asynchronous and dynamic ensembles of calculations."
 name = "libensemble"
