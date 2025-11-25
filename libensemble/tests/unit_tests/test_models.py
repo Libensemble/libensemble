@@ -134,11 +134,19 @@ def test_vocs_to_sim_specs():
 
     assert ss.inputs == ["x1", "x2", "c1"]
     assert len(ss.outputs) == 5
-    output_dict = {name: dtype for name, dtype in ss.outputs}
+    output_dict = {}
+    for item in ss.outputs:
+        if len(item) == 2:
+            name, dtype = item
+            output_dict[name] = dtype
+        else:
+            name, dtype, shape = item
+            output_dict[name] = (dtype, shape)
     assert output_dict["o1"] == float and output_dict["o2"] == int and output_dict["o3"] == (float, (3,))
 
     # Explicit values take precedence
     ss2 = SimSpecs(sim_f=norm_eval, vocs=vocs, inputs=["custom"], outputs=[("custom_out", int)])
+
     assert ss2.inputs == ["custom"] and ss2.outputs == [("custom_out", int)]
 
 
@@ -167,10 +175,10 @@ def test_vocs_to_gen_specs():
 
 
 if __name__ == "__main__":
-    test_sim_gen_alloc_exit_specs()
-    test_sim_gen_alloc_exit_specs_invalid()
-    test_libe_specs()
-    test_libe_specs_invalid()
-    test_ensemble_specs()
+    # test_sim_gen_alloc_exit_specs()
+    # test_sim_gen_alloc_exit_specs_invalid()
+    # test_libe_specs()
+    # test_libe_specs_invalid()
+    # test_ensemble_specs()
     test_vocs_to_sim_specs()
-    test_vocs_to_gen_specs()
+    # test_vocs_to_gen_specs()
