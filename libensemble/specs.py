@@ -103,8 +103,9 @@ class SimSpecs(BaseModel):
         # If simulator is provided but sim_f is not, default to gest_api_sim
         if self.simulator is not None and self.sim_f is None:
             from libensemble.sim_funcs.gest_api_wrapper import gest_api_sim
+
             self.sim_f = gest_api_sim
-        
+
         if self.vocs is None:
             return self
 
@@ -112,7 +113,7 @@ class SimSpecs(BaseModel):
         if not self.inputs:
             input_fields = []
             for attr in ["variables", "constants"]:
-                if (obj := getattr(self.vocs, attr, None)):
+                if obj := getattr(self.vocs, attr, None):
                     input_fields.extend(list(obj.keys()))
             self.inputs = input_fields
 
@@ -120,7 +121,7 @@ class SimSpecs(BaseModel):
         if not self.outputs:
             out_fields = []
             for attr in ["objectives", "observables", "constraints"]:
-                if (obj := getattr(self.vocs, attr, None)):
+                if obj := getattr(self.vocs, attr, None):
                     for name, field in obj.items():
                         dtype = getattr(field, "dtype", None)
                         out_fields.append(_convert_dtype_to_output_tuple(name, dtype))
@@ -217,7 +218,7 @@ class GenSpecs(BaseModel):
         if not self.persis_in:
             persis_in_fields = []
             for attr in ["variables", "constants", "objectives", "observables", "constraints"]:
-                if (obj := getattr(self.vocs, attr, None)):
+                if obj := getattr(self.vocs, attr, None):
                     persis_in_fields.extend(list(obj.keys()))
             self.persis_in = persis_in_fields
 
@@ -225,7 +226,7 @@ class GenSpecs(BaseModel):
         if not self.outputs:
             out_fields = []
             for attr in ["variables", "constants"]:
-                if (obj := getattr(self.vocs, attr, None)):
+                if obj := getattr(self.vocs, attr, None):
                     for name, field in obj.items():
                         dtype = getattr(field, "dtype", None)
                         out_fields.append(_convert_dtype_to_output_tuple(name, dtype))

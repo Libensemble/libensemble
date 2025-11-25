@@ -56,10 +56,7 @@ class UniformSampleArray(Generator):
         key = list(self.VOCS.variables.keys())[0]
         var = self.VOCS.variables[key]
         for _ in range(n_trials):
-            trial = {key: np.array([
-                self.rng.uniform(bounds[0], bounds[1])
-                for bounds in var.domain
-            ])}
+            trial = {key: np.array([self.rng.uniform(bounds[0], bounds[1]) for bounds in var.domain])}
             output.append(trial)
         return output
 
