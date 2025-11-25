@@ -241,10 +241,10 @@ def libE(
         for spec in [ensemble.sim_specs, ensemble.gen_specs, ensemble.alloc_specs, ensemble.libE_specs]
     ]
     exit_criteria = specs_dump(ensemble.exit_criteria, by_alias=True, exclude_none=True)
-    
+
     # Restore the generator object (don't use serialized version)
-    if hasattr(ensemble.gen_specs, 'generator') and ensemble.gen_specs.generator is not None:
-        gen_specs['generator'] = ensemble.gen_specs.generator
+    if hasattr(ensemble.gen_specs, "generator") and ensemble.gen_specs.generator is not None:
+        gen_specs["generator"] = ensemble.gen_specs.generator
 
     # Extract platform info from settings or environment
     platform_info = get_platform(libE_specs)

@@ -19,6 +19,21 @@ Pydantic-version agnostic
 """
 
 
+def _convert_dtype_to_output_tuple(name: str, dtype):
+    """Convert dtype to proper output tuple format for NumPy dtype specification."""
+    if dtype is None:
+        dtype = float
+    if isinstance(dtype, tuple):
+        # Check if first element is a type (type, (shape,)) format
+        if len(dtype) > 1 and (isinstance(dtype[0], type) or isinstance(dtype[0], str)):
+            return (name, dtype[0], dtype[1])
+        else:
+            # Just shape (shape,) format, default to float
+            return (name, float, dtype)
+    else:
+        return (name, dtype)
+
+
 class SimSpecs(BaseModel):
     """
     Specifications for configuring a Simulation Function.
@@ -28,6 +43,12 @@ class SimSpecs(BaseModel):
     """
     Python function matching the ``sim_f`` interface. Evaluates parameters
     produced by a generator function.
+    """
+
+    simulator: object | None = None
+    """
+    A pre-initialized simulator object or callable in gest-api format.
+    When provided, sim_f defaults to gest_api_sim wrapper.
     """
 
     inputs: list[str] | None = Field(default=[], alias="in")
@@ -79,6 +100,12 @@ class SimSpecs(BaseModel):
     @model_validator(mode="after")
     def set_fields_from_vocs(self):
         """Set inputs and outputs from VOCS if vocs is provided and fields are not set."""
+        # If simulator is provided but sim_f is not, default to gest_api_sim
+        if self.simulator is not None and self.sim_f is None:
+            from libensemble.sim_funcs.gest_api_wrapper import gest_api_sim
+
+            self.sim_f = gest_api_sim
+
         if self.vocs is None:
             return self
 
@@ -86,7 +113,7 @@ class SimSpecs(BaseModel):
         if not self.inputs:
             input_fields = []
             for attr in ["variables", "constants"]:
-                if (obj := getattr(self.vocs, attr, None)):
+                if obj := getattr(self.vocs, attr, None):
                     input_fields.extend(list(obj.keys()))
             self.inputs = input_fields
 
@@ -94,10 +121,10 @@ class SimSpecs(BaseModel):
         if not self.outputs:
             out_fields = []
             for attr in ["objectives", "observables", "constraints"]:
-                if (obj := getattr(self.vocs, attr, None)):
+                if obj := getattr(self.vocs, attr, None):
                     for name, field in obj.items():
-                        dtype = getattr(field, "dtype", None) or float
-                        out_fields.append((name, dtype))
+                        dtype = getattr(field, "dtype", None)
+                        out_fields.append(_convert_dtype_to_output_tuple(name, dtype))
             self.outputs = out_fields
 
         return self
@@ -191,7 +218,7 @@ class GenSpecs(BaseModel):
         if not self.persis_in:
             persis_in_fields = []
             for attr in ["variables", "constants", "objectives", "observables", "constraints"]:
-                if (obj := getattr(self.vocs, attr, None)):
+                if obj := getattr(self.vocs, attr, None):
                     persis_in_fields.extend(list(obj.keys()))
             self.persis_in = persis_in_fields
 
@@ -199,10 +226,10 @@ class GenSpecs(BaseModel):
         if not self.outputs:
             out_fields = []
             for attr in ["variables", "constants"]:
-                if (obj := getattr(self.vocs, attr, None)):
+                if obj := getattr(self.vocs, attr, None):
                     for name, field in obj.items():
-                        dtype = getattr(field, "dtype", None) or float
-                        out_fields.append((name, dtype))
+                        dtype = getattr(field, "dtype", None)
+                        out_fields.append(_convert_dtype_to_output_tuple(name, dtype))
             self.outputs = out_fields
 
         return self
