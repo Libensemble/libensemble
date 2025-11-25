@@ -100,3 +100,5 @@ if __name__ == "__main__":
     # Perform the run
     if workflow.is_manager:
         print(f"Completed {len(H)} simulations")
+        assert np.array_equal(H['y1'], H['x2'])
+        assert np.array_equal(H['c1'], H['x1'])
