@@ -19,6 +19,31 @@ Pydantic-version agnostic
 """
 
 
+def _get_dtype(field, name: str):
+    """Get dtype from a VOCS field, handling discrete variables."""
+    dtype = getattr(field, "dtype", None)
+    # For discrete variables, infer dtype from values if not specified
+    if dtype is None and hasattr(field, "values"):
+        values = field.values
+        if values:
+            # Validate all values are the same type (required for NumPy array)
+            value_types = {type(v) for v in values}
+            if len(value_types) > 1:
+                raise ValueError(
+                    f"Discrete variable '{name}' has mixed types {value_types}. "
+                    "All values must be the same type to be stored in NumPy array."
+                )
+            # Infer dtype from any value (all same type, scalar)
+            # next(iter(values)) gets an element without creating a list
+            sample_val = next(iter(values))
+            if isinstance(sample_val, str):
+                max_len = max(len(v) for v in values)
+                dtype = f"U{max_len}"
+            else:
+                dtype = type(sample_val)
+    return dtype
+
+
 def _convert_dtype_to_output_tuple(name: str, dtype):
     """Convert dtype to proper output tuple format for NumPy dtype specification."""
     if dtype is None:
@@ -228,7 +253,7 @@ class GenSpecs(BaseModel):
             for attr in ["variables", "constants"]:
                 if obj := getattr(self.vocs, attr, None):
                     for name, field in obj.items():
-                        dtype = getattr(field, "dtype", None)
+                        dtype = _get_dtype(field, name)
                         out_fields.append(_convert_dtype_to_output_tuple(name, dtype))
             self.outputs = out_fields
 
