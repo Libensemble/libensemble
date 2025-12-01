@@ -149,8 +149,6 @@ class APOSMM(PersistentGenInterfacer):
             warnings.warn("APOSMM does not support constraints in VOCS. Ignoring.")
         if len(vocs.constants):
             warnings.warn("APOSMM does not support constants in VOCS. Ignoring.")
-        if len(vocs.observables):
-            warnings.warn("APOSMM does not support observables within VOCS at this time. Ignoring.")
 
     def __init__(
         self,
@@ -191,6 +189,7 @@ class APOSMM(PersistentGenInterfacer):
             "ftol_abs",
             "dist_to_bound_multiple",
             "max_active_runs",
+            "random_seed",
         ]
 
         for k in FIELDS:
@@ -252,7 +251,7 @@ class APOSMM(PersistentGenInterfacer):
         self._ingest_buf = None
         self._n_buffd_results = 0
         self._told_initial_sample = False
-        self._first_call = None
+        self._first_called_method = None
         self._last_call = None
         self._last_num_points = 0
 
@@ -284,8 +283,8 @@ class APOSMM(PersistentGenInterfacer):
     def suggest_numpy(self, num_points: int = 0) -> npt.NDArray:
         """Request the next set of points to evaluate, as a NumPy array."""
 
-        if not self._first_call:
-            self._first_call = "suggest"
+        if self._first_called_method is None:
+            self._first_called_method = "suggest"
             self.gen_specs["user"]["generate_sample_points"] = True
 
         if self._ready_to_suggest_genf():
@@ -314,8 +313,8 @@ class APOSMM(PersistentGenInterfacer):
 
     def ingest_numpy(self, results: npt.NDArray, tag: int = EVAL_GEN_TAG) -> None:
 
-        if not self._first_call:
-            self._first_call = "ingest"
+        if self._first_called_method is None:
+            self._first_called_method = "ingest"
             self.gen_specs["user"]["generate_sample_points"] = False
 
         if (results is None and tag == PERSIS_STOP) or self._told_initial_sample:
