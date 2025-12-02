@@ -175,10 +175,10 @@ def test_vocs_to_gen_specs():
 
 
 if __name__ == "__main__":
-    # test_sim_gen_alloc_exit_specs()
-    # test_sim_gen_alloc_exit_specs_invalid()
-    # test_libe_specs()
-    # test_libe_specs_invalid()
-    # test_ensemble_specs()
+    test_sim_gen_alloc_exit_specs()
+    test_sim_gen_alloc_exit_specs_invalid()
+    test_libe_specs()
+    test_libe_specs_invalid()
+    test_ensemble_specs()
     test_vocs_to_sim_specs()
-    # test_vocs_to_gen_specs()
+    test_vocs_to_gen_specs()
