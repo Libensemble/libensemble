@@ -75,7 +75,8 @@ jobs:
             pip install -r install/misc_feature_requirements.txt
             source install/install_ibcdfo.sh
             conda install numpy scipy
-            pip install git+https://github.com/xopt-org/xopt.git@generator_standard
+            conda install -c conda-forge pytorch-cpu
+            pip install --upgrade-strategy=only-if-needed git+https://github.com/xopt-org/xopt.git@generator_standard
             pip install --no-deps git+https://github.com/optimas-org/optimas.git@main
 
         - name: Install mpi4py and MPI from conda
