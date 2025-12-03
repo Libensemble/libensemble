@@ -75,6 +75,8 @@ jobs:
             pip install -r install/misc_feature_requirements.txt
             source install/install_ibcdfo.sh
             conda install numpy scipy
+            pip install git+https://github.com/xopt-org/xopt.git@generator_standard
+            pip install --no-deps optimas
 
         - name: Install mpi4py and MPI from conda
           run: |
