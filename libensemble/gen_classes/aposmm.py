@@ -43,43 +43,63 @@ class APOSMM(PersistentGenInterfacer):
     Getting started
     ---------------
 
-    APOSMM requires a minimal sample size before starting optimization. This is typically
-    retrieved via `.suggest()`, updated with objective values, and ingested via `.ingest()`.
+    APOSMM requires a minimal sample before starting optimization. A random sample across the domain
+    can either be retrieved via a `suggest()` call right after initialization, or the user can ingest
+    a set of sample points via `ingest()`. The minimal sample size is specified via the `initial_sample_size`
+    parameter. This many evaluated sample points *must* be provided to APOSMM before it will provide any
+    local optimization points.
 
-    ```python
-    gen = APOSMM(vocs, max_active_runs=2, initial_sample_size=10, generate_sample_points=True)
+        ```python
+        # Approach 1: Retrieve sample points via suggest()
+        gen = APOSMM(vocs, max_active_runs=2, initial_sample_size=10)
 
-    # ask APOSMM for some sample points
-    initial_sample = gen.suggest(10)
-    for point in initial_sample:
-        point["f"] = func(point["x"])
-    gen.ingest(initial_sample)
+        # ask APOSMM for some sample points
+        initial_sample = gen.suggest(10)
+        for point in initial_sample:
+            point["f"] = func(point["x"])
+        gen.ingest(initial_sample)
 
-    # APOSMM will now provide local-optimization points.
-    points = gen.suggest(10)
-    ...
-    ```
+        # APOSMM will now provide local-optimization points.
+        points = gen.suggest(10)
 
-    *Important Note*: After the initial sample phase, APOSMM cannot accept additional sample points
-    that are not associated with local optimization runs.
+        # ----------------
 
-    ```python
-    gen = APOSMM(vocs, max_active_runs=2, initial_sample_size=10, generate_sample_points=True)
+        # Approach 2: Ingest pre-computed sample points via ingest()
+        gen = APOSMM(vocs, max_active_runs=2, initial_sample_size=10)
 
-    # ask APOSMM for some sample points
-    initial_sample = gen.suggest(10)
-    for point in initial_sample:
-        point["f"] = func(point["x"])
-    gen.ingest(initial_sample)
+        initial_sample = create_initial_sample()
+        for point in initial_sample:
+            point["f"] = func(point["x"])
 
-    # APOSMM will now provide local-optimization points.
-    points_from_aposmm = gen.suggest(10)
-    for point in points_from_aposmm:
-        point["f"] = func(point["x"])
-    gen.ingest(points_from_aposmm)
+        # provide APOSMM with sample points
+        gen.ingest(initial_sample)
 
-    gen.ingest(another_sample)  # THIS CRASHES
-    ```
+        # APOSMM will now provide local-optimization points.
+        points = gen.suggest(10)
+
+        ...
+        ```
+
+    *Important Note*: After the initial sample phase, APOSMM cannot accept additional "arbitrary"
+    sample points that are not associated with local optimization runs.
+
+        ```python
+        gen = APOSMM(vocs, max_active_runs=2, initial_sample_size=10)
+
+        # ask APOSMM for some sample points
+        initial_sample = gen.suggest(10)
+        for point in initial_sample:
+            point["f"] = func(point["x"])
+        gen.ingest(initial_sample)
+
+        # APOSMM will now provide local-optimization points.
+        points_from_aposmm = gen.suggest(10)
+        for point in points_from_aposmm:
+            point["f"] = func(point["x"])
+        gen.ingest(points_from_aposmm)
+
+        gen.ingest(another_sample)  # THIS CRASHES
+        ```
 
     Parameters
     ----------
@@ -93,12 +113,11 @@ class APOSMM(PersistentGenInterfacer):
 
         Minimal sample points required before starting optimization.
 
-            1. Retrieve these points via `.suggest()`,
-            2. Calculate thair objective values, updating these points in-place.
-            3. Ingest these points into APOSMM via `.ingest()`.
+        If `suggest(N)` is called first, APOSMM produces this many random sample points across the domain,
+        with N <= initial_sample_size.
 
-        This many points *must* be retrieved and ingested by APOSMM before APOSMM
-        will provide any local optimization points.
+        If `ingest(sample)` is called first, multiple calls like `ingest(sample)` are required until
+        the total number of points ingested is >= initial_sample_size.
 
         ```python
         gen = APOSMM(vocs, max_active_runs=2, initial_sample_size=10)
