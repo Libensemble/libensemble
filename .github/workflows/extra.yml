@@ -101,11 +101,8 @@ jobs:
             pip install -r install/misc_feature_requirements.txt
             source install/install_ibcdfo.sh
             conda install numpy scipy
-
-        - name: Install libEnsemble, flake8, lock environment
-          run: |
-            pip install -e .
-            flake8 libensemble
+            pip install xopt
+            pip install --no-deps optimas
 
         - name: Remove test using octave, gpcam on Python 3.13
           if: matrix.python-version >= '3.13'
