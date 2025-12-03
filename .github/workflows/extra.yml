@@ -112,6 +112,12 @@ jobs:
             rm ./libensemble/tests/regression_tests/test_gpCAM.py # needs gpcam, which doesn't build on 3.13
             rm ./libensemble/tests/regression_tests/test_asktell_gpCAM.py # needs gpcam, which doesn't build on 3.13
 
+        - name: Install libEnsemble, flake8
+          run: |
+            pip install git+https://github.com/campa-consortium/gest-api@main
+            pip install -e .
+            flake8 libensemble
+
         - name: Install redis/proxystore
           run: |
             pip install redis
