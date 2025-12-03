@@ -15,16 +15,11 @@ the objective function will be 4 as the generator is on the manager.
 # TESTSUITE_NPROCS: 2
 # TESTSUITE_EXTRA: false
 
-import warnings
-
 import numpy as np
-import pydantic
 from gest_api.vocs import VOCS
 from xopt.generators.sequential.neldermead import NelderMeadGenerator
 
 from libensemble import Ensemble
-
-warnings.filterwarnings("ignore", category=pydantic.warnings.PydanticDeprecatedSince212)
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
 
