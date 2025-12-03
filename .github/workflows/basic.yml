@@ -75,9 +75,6 @@ jobs:
             pip install -r install/misc_feature_requirements.txt
             source install/install_ibcdfo.sh
             conda install numpy scipy
-            conda install -c conda-forge pytorch-cpu
-            pip install --upgrade-strategy=only-if-needed git+https://github.com/xopt-org/xopt.git@generator_standard
-            pip install --no-deps git+https://github.com/optimas-org/optimas.git@main
 
         - name: Install mpi4py and MPI from conda
           run: |
@@ -96,12 +93,12 @@ jobs:
         - name: Run simple tests, Ubuntu
           if: matrix.os == 'ubuntu-latest'
           run: |
-           ./libensemble/tests/run_tests.py -A "-W error -W ignore::pydantic.warnings.PydanticDeprecatedSince212 -W ignore::pydantic.warnings.PydanticDeprecatedSince20" -${{ matrix.comms-type }}
+           ./libensemble/tests/run_tests.py -A "-W error" -${{ matrix.comms-type }}
 
         - name: Run simple tests, macOS
           if: matrix.os == 'macos-latest'
           run: |
-            ./libensemble/tests/run_tests.py -A "-W error -W ignore::pydantic.warnings.PydanticDeprecatedSince212 -W ignore::pydantic.warnings.PydanticDeprecatedSince20" -${{ matrix.comms-type }}
+            ./libensemble/tests/run_tests.py -A "-W error" -${{ matrix.comms-type }}
 
         - name: Merge coverage
           run: |
