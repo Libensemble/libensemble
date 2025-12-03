@@ -107,4 +107,3 @@ if __name__ == "__main__":
         for x0_step in x0_steps:
             x1_in_x0_step = x1_gen[x0_gen == x0_step]
             np.testing.assert_array_equal(x1_in_x0_step, x1_steps)
-
