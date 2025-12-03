@@ -312,6 +312,7 @@ def update_local_H_after_receiving(local_H, n, n_s, user_specs, Work, calc_in, f
 
     if init:
         local_H.resize(len(calc_in), refcheck=False)
+        initialize_dists_and_inds(local_H, len(calc_in))
 
     for name in calc_in.dtype.names:
         local_H[name][Work["libE_info"]["H_rows"]] = calc_in[name]
