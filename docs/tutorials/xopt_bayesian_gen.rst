@@ -1,5 +1,5 @@
-Bayesian Optimization with Xopt generator
-=========================================
+Bayesian Optimization with Xopt
+===============================
 
 **Requires**: libensemble, xopt, gest-api
 
@@ -7,6 +7,8 @@ This tutorial demonstrates using Xopt's Bayesian **ExpectedImprovementGenerator*
 We'll show two approaches:
 1. Using an xopt-style simulator (callable function)
 2. Using a libEnsemble-style simulator function
+
+|Open in Colab|
 
 Imports
 -------
@@ -162,3 +164,6 @@ Reset generator and change to libEnsemble-style simulator:
         print(H[["x1", "x2", "y1", "c1"]])
         assert np.array_equal(H["y1"], H["x2"])
         assert np.array_equal(H["c1"], H["x1"])
+
+.. |Open in Colab| image:: https://colab.research.google.com/assets/colab-badge.svg
+  :target:  http://colab.research.google.com/github/Libensemble/libensemble/blob/examples/xopt_generators/examples/tutorials/xopt_bayesian_gen/xopt_EI_example.ipynb
