@@ -1,5 +1,5 @@
-Xopt Expected Improvement Generator Example
-============================================
+Bayesian Optimization with Xopt generator
+=========================================
 
 **Requires**: libensemble, xopt, gest-api
 
