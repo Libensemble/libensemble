@@ -26,7 +26,6 @@ from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens a
 from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
 
 
-# SH TODO - should check constant1 is present
 # Adapted from Xopt/xopt/resources/testing.py
 def xtest_sim(H, persis_info, sim_specs, _):
     """
