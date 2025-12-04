@@ -4,7 +4,9 @@ Bayesian Optimization with Xopt
 **Requires**: libensemble, xopt, gest-api
 
 This tutorial demonstrates using Xopt's Bayesian **ExpectedImprovementGenerator** with libEnsemble.
+
 We'll show two approaches:
+
 1. Using an xopt-style simulator (callable function)
 2. Using a libEnsemble-style simulator function
 
