@@ -9,3 +9,4 @@ Tutorials
    gpcam_tutorial
    aposmm_tutorial
    calib_cancel_tutorial
+   xopt_bayesian_gen
