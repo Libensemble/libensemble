@@ -13,7 +13,7 @@ the objective function will be 4 as the generator is on the manager.
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local
 # TESTSUITE_NPROCS: 2
-# TESTSUITE_EXTRA: false
+# TESTSUITE_EXTRA: true
 
 import numpy as np
 from gest_api.vocs import VOCS

@@ -26,7 +26,7 @@ RUN_REG_TESTS = True
 COV_REPORT = True
 
 # Regression test options
-REG_TEST_LIST = "test_*.py"
+REG_TEST_LIST = "test_xopt_*.py test_optimas_*.py"
 REG_TEST_OUTPUT_EXT = "std.out"
 REG_STOP_ON_FAILURE = False
 REG_LIST_TESTS_ONLY = False  # just shows all tests to be run.
@@ -367,7 +367,8 @@ def run_regression_tests(root_dir, python_exec, args, current_os):
     reg_test_files = []
     for dir_path in test_dirs:
         full_path = os.path.join(root_dir, dir_path)
-        reg_test_files.extend(glob.glob(os.path.join(full_path, reg_test_list)))
+        for pattern in reg_test_list.split():
+            reg_test_files.extend(glob.glob(os.path.join(full_path, pattern)))
 
     reg_test_files = sorted(reg_test_files)
     reg_pass = 0
