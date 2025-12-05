@@ -51,7 +51,7 @@ if __name__ == "__main__":
         "user": {
             "lb": np.array([0.0, 0.0]),
             "ub": np.array([1.0, 1.0]),
-            "n_init_samples": 4,
+            "n_init_samples": 4,  # Each of these points will have a high-fidelity and low-fidelity evaluation 
             "q": 2,
         },
     }
