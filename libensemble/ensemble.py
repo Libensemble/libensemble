@@ -375,3 +375,11 @@ class Ensemble:
                 )
             else:
                 save_libE_output(self.H, self.persis_info, basename, self.nworkers, append_attrs=append_attrs)
+
+    def _get_option(self, specs, name):
+        """Gets a specs value, underlying spec is either a dict or a class"""
+        attr = getattr(self, specs)
+        if isinstance(attr, dict):
+            return attr.get(name)
+        else:
+            return getattr(attr, name)

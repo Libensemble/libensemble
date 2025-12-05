@@ -48,7 +48,7 @@ include = ["libensemble*"]
 [tool.setuptools.dynamic]
 version = {attr = "libensemble.version.__version__"}
 
-[tool.pixi.project]
+[tool.pixi.workspace]
 channels = ["conda-forge"]
 platforms = ["osx-arm64", "linux-64", "osx-64"]
 
