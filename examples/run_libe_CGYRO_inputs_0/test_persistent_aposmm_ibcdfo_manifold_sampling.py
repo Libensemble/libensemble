@@ -70,7 +70,9 @@ def main(argv):
         # sim_input_dir="/global/homes/j/jmlarson/research/libensemble/examples/run_libe_CGYRO_inputs_0/nl01",
         # sim_input_dir="/global/homes/j/jmlarson/research/libensemble/examples/run_libe_CGYRO_inputs_0/reg02",
         # sim_input_dir="/global/homes/j/jmlarson/research/libensemble/examples/run_libe_CGYRO_inputs_0/kappa_correction",
-        sim_input_dir="/global/homes/j/jmlarson/research/libensemble/examples/run_libe_CGYRO_inputs_0/kappa_correction_with_KY",
+        # sim_input_dir="/global/homes/j/jmlarson/research/libensemble/examples/run_libe_CGYRO_inputs_0/kappa_correction_with_KY",
+        # sim_input_dir="/global/homes/j/jmlarson/research/libensemble/examples/run_libe_CGYRO_inputs_0/kappa_correction_with_KY_Belli",
+        sim_input_dir="/global/homes/j/jmlarson/research/libensemble/examples/run_libe_CGYRO_inputs_0/kappa_correction_with_KY_Belli_two",
         platform_specs=platform_specs,
         # reuse_output_dir=True,
         save_every_k_sims=1,
@@ -114,8 +116,8 @@ def main(argv):
             "localopt_method": "ibcdfo_manifold_sampling",
             "run_max_eval": 100 * (n + 1),
             "components": 11,
-            "lb": np.array([0.5, -0.75, -0.1]),  # lower bound for input
-            "ub": np.array([4.0, 0.0, 0.1]),  # upper bound for input
+            "lb": np.array([1.0, -0.75, -0.1]),  # lower bound for input
+            "ub": np.array([4.0, 0.75, 0.1]),  # upper bound for input
             "hfun": hfun,
         },
     )
