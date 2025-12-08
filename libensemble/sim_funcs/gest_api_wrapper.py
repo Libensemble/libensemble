@@ -52,7 +52,7 @@ def gest_api_sim(H, persis_info, sim_specs, libE_info):
 
     simulator = sim_specs["simulator"]
     vocs = sim_specs["vocs"]
-    sim_kwargs = sim_specs.get("user", {}).get("simulator_kwargs", {})
+    user_specs = sim_specs.get("user", {})
 
     batch = len(H)
     H_o = np.zeros(batch, dtype=sim_specs["out"])
@@ -80,10 +80,10 @@ def gest_api_sim(H, persis_info, sim_specs, libE_info):
 
         # Try to pass libE_info, fall back if function doesn't accept it
         try:
-            output_dict = simulator(input_dict, libE_info=libE_info, **sim_kwargs)
+            output_dict = simulator(input_dict, libE_info=libE_info, **user_specs)
         except TypeError:
             # Function doesn't accept libE_info, call without it
-            output_dict = simulator(input_dict, **sim_kwargs)
+            output_dict = simulator(input_dict, **user_specs)
 
         # Extract outputs from the returned dict
         for field in output_fields:
