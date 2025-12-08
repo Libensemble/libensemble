@@ -3,7 +3,9 @@ import os
 import sys
 
 import numpy as np
-from forces_simf import run_forces  # Sim func from current dir
+from forces_simf import run_forces  # Classic libEnsemble sim_f.
+# from forces_simf import run_forces_dict  # gest-api/xopt style simulator.
+
 from gest_api.vocs import VOCS
 from xopt.generators.random import RandomGenerator
 
@@ -50,6 +52,7 @@ if __name__ == "__main__":
 
     ensemble.sim_specs = SimSpecs(
         sim_f=run_forces,
+        # simulator=run_forces_dict,
         vocs=vocs,
     )
 

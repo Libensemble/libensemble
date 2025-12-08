@@ -45,6 +45,9 @@ def gest_api_sim(H, persis_info, sim_specs, libE_info):
 
     Where input_dict contains VOCS variables and constants,
     and the return dict contains VOCS objectives, observables, and constraints.
+
+    If the simulator function accepts ``libE_info``, it will be passed. This
+    allows simulators to access libEnsemble information such as the executor.
     """
 
     simulator = sim_specs["simulator"]
@@ -75,8 +78,12 @@ def gest_api_sim(H, persis_info, sim_specs, libE_info):
         for field in input_fields:
             input_dict[field] = H[field][i]
 
-        # Call the gest-api simulator
-        output_dict = simulator(input_dict, **sim_kwargs)
+        # Try to pass libE_info, fall back if function doesn't accept it
+        try:
+            output_dict = simulator(input_dict, libE_info=libE_info, **sim_kwargs)
+        except TypeError:
+            # Function doesn't accept libE_info, call without it
+            output_dict = simulator(input_dict, **sim_kwargs)
 
         # Extract outputs from the returned dict
         for field in output_fields:
