@@ -15,6 +15,7 @@ __all__ = [
     "run_forces_dict",
 ]
 
+
 def run_forces(H, persis_info, sim_specs, libE_info):
     """Runs the forces MPI application.
 
