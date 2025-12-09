@@ -127,7 +127,8 @@ class StandardGenRunner(Runner):
             batch_size = self.specs.get("batch_size") or len(H_in)
             H_out, _ = self._get_points_updates(batch_size)
             tag, Work, H_in = self.ps.send_recv(H_out)
-            self._convert_ingest(H_in)
+            if H_in is not None:
+                self._convert_ingest(H_in)
         return H_in
 
     def _get_initial_suggest(self, libE_info) -> npt.NDArray:

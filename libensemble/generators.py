@@ -239,7 +239,7 @@ class PersistentGenInterfacer(LibensembleGenerator):
             local_H = unmap_numpy_array(local_H, self.variables_mapping)
         if as_dicts and local_H is not None:
             if user_fields and self.variables_mapping:
-                local_H = np_to_list_dicts(local_H, self.variables_mapping, allow_arrays=True)
+                local_H = np_to_list_dicts(local_H, self.variables_mapping)
             else:
-                local_H = np_to_list_dicts(local_H, allow_arrays=True)
+                local_H = np_to_list_dicts(local_H)
         return (local_H, persis_info, tag)

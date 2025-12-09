@@ -3,7 +3,7 @@ import warnings
 from pathlib import Path
 
 import pydantic
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 
@@ -19,6 +19,46 @@ Pydantic-version agnostic
 """
 
 
+def _get_dtype(field, name: str):
+    """Get dtype from a VOCS field, handling discrete variables."""
+    dtype = getattr(field, "dtype", None)
+    # For discrete variables, infer dtype from values if not specified
+    if dtype is None and hasattr(field, "values"):
+        values = field.values
+        if values:
+            # Validate all values are the same type (required for NumPy array)
+            value_types = {type(v) for v in values}
+            if len(value_types) > 1:
+                raise ValueError(
+                    f"Discrete variable '{name}' has mixed types {value_types}. "
+                    "All values must be the same type to be stored in NumPy array."
+                )
+            # Infer dtype from any value (all same type, scalar)
+            # next(iter(values)) gets an element without creating a list
+            sample_val = next(iter(values))
+            if isinstance(sample_val, str):
+                max_len = max(len(v) for v in values)
+                dtype = f"U{max_len}"
+            else:
+                dtype = type(sample_val)
+    return dtype
+
+
+def _convert_dtype_to_output_tuple(name: str, dtype):
+    """Convert dtype to proper output tuple format for NumPy dtype specification."""
+    if dtype is None:
+        dtype = float
+    if isinstance(dtype, tuple):
+        # Check if first element is a type (type, (shape,)) format
+        if len(dtype) > 1 and (isinstance(dtype[0], type) or isinstance(dtype[0], str)):
+            return (name, dtype[0], dtype[1])
+        else:
+            # Just shape (shape,) format, default to float
+            return (name, float, dtype)
+    else:
+        return (name, dtype)
+
+
 class SimSpecs(BaseModel):
     """
     Specifications for configuring a Simulation Function.
@@ -28,6 +68,12 @@ class SimSpecs(BaseModel):
     """
     Python function matching the ``sim_f`` interface. Evaluates parameters
     produced by a generator function.
+    """
+
+    simulator: object | None = None
+    """
+    A pre-initialized simulator object or callable in gest-api format.
+    When provided, sim_f defaults to gest_api_sim wrapper.
     """
 
     inputs: list[str] | None = Field(default=[], alias="in")
@@ -69,6 +115,44 @@ class SimSpecs(BaseModel):
     A user-data dictionary to place bounds, constants, settings, or other parameters for customizing
     the simulator function.
     """
+
+    vocs: object | None = None
+    """
+    A VOCS object. If provided and inputs/outputs are not explicitly set,
+    they will be automatically derived from VOCS.
+    """
+
+    @model_validator(mode="after")
+    def set_fields_from_vocs(self):
+        """Set inputs and outputs from VOCS if vocs is provided and fields are not set."""
+        # If simulator is provided but sim_f is not, default to gest_api_sim
+        if self.simulator is not None and self.sim_f is None:
+            from libensemble.sim_funcs.gest_api_wrapper import gest_api_sim
+
+            self.sim_f = gest_api_sim
+
+        if self.vocs is None:
+            return self
+
+        # Set inputs: variables + constants (what the sim receives)
+        if not self.inputs:
+            input_fields = []
+            for attr in ["variables", "constants"]:
+                if obj := getattr(self.vocs, attr, None):
+                    input_fields.extend(list(obj.keys()))
+            self.inputs = input_fields
+
+        # Set outputs: objectives + observables + constraints (what the sim produces)
+        if not self.outputs:
+            out_fields = []
+            for attr in ["objectives", "observables", "constraints"]:
+                if obj := getattr(self.vocs, attr, None):
+                    for name, field in obj.items():
+                        dtype = getattr(field, "dtype", None)
+                        out_fields.append(_convert_dtype_to_output_tuple(name, dtype))
+            self.outputs = out_fields
+
+        return self
 
 
 class GenSpecs(BaseModel):
@@ -142,6 +226,38 @@ class GenSpecs(BaseModel):
     A user-data dictionary to place bounds, constants, settings, or other parameters for
     customizing the generator function
     """
+
+    vocs: object | None = None
+    """
+    A VOCS object. If provided and persis_in/outputs are not explicitly set,
+    they will be automatically derived from VOCS.
+    """
+
+    @model_validator(mode="after")
+    def set_fields_from_vocs(self):
+        """Set persis_in and outputs from VOCS if vocs is provided and fields are not set."""
+        if self.vocs is None:
+            return self
+
+        # Set persis_in: ALL VOCS fields (variables + constants + objectives + observables + constraints)
+        if not self.persis_in:
+            persis_in_fields = []
+            for attr in ["variables", "constants", "objectives", "observables", "constraints"]:
+                if obj := getattr(self.vocs, attr, None):
+                    persis_in_fields.extend(list(obj.keys()))
+            self.persis_in = persis_in_fields
+
+        # Set outputs: variables + constants (what the generator produces)
+        if not self.outputs:
+            out_fields = []
+            for attr in ["variables", "constants"]:
+                if obj := getattr(self.vocs, attr, None):
+                    for name, field in obj.items():
+                        dtype = _get_dtype(field, name)
+                        out_fields.append(_convert_dtype_to_output_tuple(name, dtype))
+            self.outputs = out_fields
+
+        return self
 
 
 class AllocSpecs(BaseModel):

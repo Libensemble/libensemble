@@ -101,11 +101,9 @@ jobs:
             pip install -r install/misc_feature_requirements.txt
             source install/install_ibcdfo.sh
             conda install numpy scipy
-
-        - name: Install libEnsemble, flake8, lock environment
-          run: |
-            pip install -e .
-            flake8 libensemble
+            conda install -c conda-forge pytorch-cpu
+            pip install --upgrade-strategy=only-if-needed git+https://github.com/xopt-org/xopt.git@generator_standard
+            pip install --no-deps git+https://github.com/optimas-org/optimas.git@main
 
         - name: Remove test using octave, gpcam on Python 3.13
           if: matrix.python-version >= '3.13'
@@ -114,6 +112,12 @@ jobs:
             rm ./libensemble/tests/regression_tests/test_persistent_aposmm_external_localopt.py # needs octave, which doesn't yet support 3.13
             rm ./libensemble/tests/regression_tests/test_gpCAM.py # needs gpcam, which doesn't build on 3.13
             rm ./libensemble/tests/regression_tests/test_asktell_gpCAM.py # needs gpcam, which doesn't build on 3.13
+
+        - name: Install libEnsemble, flake8
+          run: |
+            pip install git+https://github.com/campa-consortium/gest-api@main
+            pip install -e .
+            flake8 libensemble
 
         - name: Install redis/proxystore
           run: |

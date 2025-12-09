@@ -64,18 +64,8 @@ def specs_checker_setattr(obj, key, value):
 
 
 def _combine_names(names: list) -> list:
-    """combine fields with same name *except* for final digits"""
-    out_names = []
-    stripped = list(i.rstrip("0123456789") for i in names)  # ['x', 'x', y', 'z', 'a']
-    for name in names:
-        stripped_name = name.rstrip("0123456789")
-        if stripped.count(stripped_name) > 1:  # if name appears >= 1, will combine, don't keep int suffix
-            out_names.append(stripped_name)
-        else:
-            out_names.append(name)  # name appears once, keep integer suffix, e.g. "co2"
-
-    # intending [x, y, z, a0] from [x0, x1, y, z0, z1, z2, z3, a0]
-    return list(set(out_names))
+    """Return unique field names without auto-combining"""
+    return list(dict.fromkeys(names))  # preserves order, removes duplicates
 
 
 def _get_new_dtype_fields(first: dict, mapping: dict = {}) -> list:
@@ -97,15 +87,8 @@ def _get_new_dtype_fields(first: dict, mapping: dict = {}) -> list:
 
 
 def _get_combinable_multidim_names(first: dict, new_dtype_names: list) -> list:
-    """inspect the input dict for fields that can be combined (e.g. x0, x1)"""
-    combinable_names = []
-    for name in new_dtype_names:
-        combinable_group = [i for i in first.keys() if i.rstrip("0123456789") == name]
-        if len(combinable_group) > 1:  # multiple similar names, e.g. x0, x1
-            combinable_names.append(combinable_group)
-        else:  # single name, e.g. local_pt, a0 *AS LONG AS THERE ISNT AN A1*
-            combinable_names.append([name])
-    return combinable_names
+    """Return each field name as a single-element list without auto-grouping"""
+    return [[name] for name in new_dtype_names]
 
 
 def _decide_dtype(name: str, entry, size: int) -> tuple:
@@ -231,7 +214,7 @@ def unmap_numpy_array(array: npt.NDArray, mapping: dict = {}) -> npt.NDArray:
     return unmapped_array
 
 
-def np_to_list_dicts(array: npt.NDArray, mapping: dict = {}, allow_arrays: bool = False) -> List[dict]:
+def np_to_list_dicts(array: npt.NDArray, mapping: dict = {}) -> List[dict]:
     if array is None:
         return None
     out = []
@@ -240,15 +223,9 @@ def np_to_list_dicts(array: npt.NDArray, mapping: dict = {}, allow_arrays: bool 
         new_dict = {}
 
         for field in row.dtype.names:
-            # non-string arrays, lists, etc.
             if field not in list(mapping.keys()):
-                if _is_multidim(row[field]) and not allow_arrays:
-                    for i, x in enumerate(row[field]):
-                        new_dict[field + str(i)] = x
-
-                else:
-                    new_dict[field] = row[field]
-
+                # Unmapped fields: copy directly (no auto-unpacking)
+                new_dict[field] = row[field]
             else:  # keys from mapping and array unpacked into corresponding fields in dicts
                 field_shape = array.dtype[field].shape[0] if len(array.dtype[field].shape) > 0 else 1
                 assert field_shape == len(mapping[field]), (

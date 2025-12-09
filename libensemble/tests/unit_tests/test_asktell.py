@@ -20,64 +20,64 @@ def _check_conversion(H, npp, mapping={}):
             raise TypeError(f"Unhandled or mismatched types in field {field}: {type(H[field])} vs {type(npp[field])}")
 
 
-def test_awkward_list_dict():
-    from libensemble.utils.misc import list_dicts_to_np
+# def test_awkward_list_dict():
+#     from libensemble.utils.misc import list_dicts_to_np
 
-    # test list_dicts_to_np on a weirdly formatted dictionary
-    # Unfortunately, we're not really checking against some original
-    #  libE-styled source of truth, like H.
+#     # test list_dicts_to_np on a weirdly formatted dictionary
+#     # Unfortunately, we're not really checking against some original
+#     #  libE-styled source of truth, like H.
 
-    weird_list_dict = [
-        {
-            "x0": "abcd",
-            "x1": "efgh",
-            "y": 56,
-            "z0": 1,
-            "z1": 2,
-            "z2": 3,
-            "z3": 4,
-            "z4": 5,
-            "z5": 6,
-            "z6": 7,
-            "z7": 8,
-            "z8": 9,
-            "z9": 10,
-            "z10": 11,
-            "a0": "B",
-        }
-    ]
+#     weird_list_dict = [
+#         {
+#             "x0": "abcd",
+#             "x1": "efgh",
+#             "y": 56,
+#             "z0": 1,
+#             "z1": 2,
+#             "z2": 3,
+#             "z3": 4,
+#             "z4": 5,
+#             "z5": 6,
+#             "z6": 7,
+#             "z7": 8,
+#             "z8": 9,
+#             "z9": 10,
+#             "z10": 11,
+#             "a0": "B",
+#         }
+#     ]
 
-    out_np = list_dicts_to_np(weird_list_dict)
+#     out_np = list_dicts_to_np(weird_list_dict)
 
-    assert all([i in ("x", "y", "z", "a0") for i in out_np.dtype.names])
+#     assert all([i in ("x", "y", "z", "a0") for i in out_np.dtype.names])
 
-    weird_list_dict = [
-        {
-            "sim_id": 77,
-            "core": 89,
-            "edge": 10.1,
-            "beam": 76.5,
-            "energy": 12.34,
-            "local_pt": True,
-            "local_min": False,
-        },
-        {
-            "sim_id": 10,
-            "core": 32.8,
-            "edge": 16.2,
-            "beam": 33.5,
-            "energy": 99.34,
-            "local_pt": False,
-            "local_min": False,
-        },
-    ]
+#     weird_list_dict = [
+#         {
+#             "sim_id": 77,
+#             "core": 89,
+#             "edge": 10.1,
+#             "beam": 76.5,
+#             "energy": 12.34,
+#             "local_pt": True,
+#             "local_min": False,
+#         },
+#         {
+#             "sim_id": 10,
+#             "core": 32.8,
+#             "edge": 16.2,
+#             "beam": 33.5,
+#             "energy": 99.34,
+#             "local_pt": False,
+#             "local_min": False,
+#         },
+#     ]
 
-    # target dtype: [("sim_id", int), ("x, float, (3,)), ("f", float), ("local_pt", bool), ("local_min", bool)]
+#     # target dtype: [("sim_id", int), ("x, float, (3,)), ("f", float), ("local_pt", bool), ("local_min", bool)]
 
-    mapping = {"x": ["core", "edge", "beam"], "f": ["energy"]}
-    out_np = list_dicts_to_np(weird_list_dict, mapping=mapping)
+#     mapping = {"x": ["core", "edge", "beam"], "f": ["energy"]}
+#     out_np = list_dicts_to_np(weird_list_dict, mapping=mapping)
 
-    assert all([i in ("sim_id", "x", "f", "local_pt", "local_min") for i in out_np.dtype.names])
+#     assert all([i in ("sim_id", "x", "f", "local_pt", "local_min") for i in out_np.dtype.names])
 
 
 def test_awkward_H():
@@ -149,7 +149,7 @@ def test_unmap_numpy_array_edge_cases():
 
 
 if __name__ == "__main__":
-    test_awkward_list_dict()
+    # test_awkward_list_dict()
     test_awkward_H()
     test_unmap_numpy_array_basic()
     test_unmap_numpy_array_single_dimension()
