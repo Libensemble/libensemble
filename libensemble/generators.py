@@ -67,6 +67,8 @@ class LibensembleGenerator(Generator):
                 len(list(self.VOCS.objectives.keys())) > 1 or list(self.VOCS.objectives.keys())[0] != "f"
             ):  # e.g. {"f": ["f"]} doesn't need mapping
                 self.variables_mapping["f"] = self._get_unmapped_keys(self.VOCS.objectives, "f")
+        # Map sim_id to _id
+        self.variables_mapping["sim_id"] = ["_id"]
 
         if len(kwargs) > 0:  # so user can specify gen-specific parameters as kwargs to constructor
             if not self.gen_specs.get("user"):
@@ -98,7 +100,7 @@ class LibensembleGenerator(Generator):
         """Send the results, as a NumPy array, of evaluations to the generator."""
 
     @staticmethod
-    def convert_np_types(dict_list):
+    def _convert_np_types(dict_list):
         return [
             {key: (value.item() if isinstance(value, np.generic) else value) for key, value in item.items()}
             for item in dict_list
@@ -106,7 +108,7 @@ class LibensembleGenerator(Generator):
 
     def suggest(self, num_points: Optional[int] = 0) -> List[dict]:
         """Request the next set of points to evaluate."""
-        return LibensembleGenerator.convert_np_types(
+        return LibensembleGenerator._convert_np_types(
             np_to_list_dicts(self.suggest_numpy(num_points), mapping=self.variables_mapping)
         )
 
@@ -133,19 +135,19 @@ class PersistentGenInterfacer(LibensembleGenerator):
         self.gen_f = gen_specs["gen_f"]
         self.History = History
         self.libE_info = libE_info
-        self.running_gen_f = None
+        self._running_gen_f = None
         self.gen_result = None
 
     def setup(self) -> None:
         """Must be called once before calling suggest/ingest. Initializes the background thread."""
-        if self.running_gen_f is not None:
-            return
+        if self._running_gen_f is not None:
+            raise RuntimeError("Generator has already been started.")
         # SH this contains the thread lock -  removing.... wrong comm to pass on anyway.
         if hasattr(Executor.executor, "comm"):
             del Executor.executor.comm
         self.libE_info["executor"] = Executor.executor
 
-        self.running_gen_f = QCommProcess(
+        self._running_gen_f = QCommProcess(
             self.gen_f,
             None,
             self.History,
@@ -156,7 +158,7 @@ class PersistentGenInterfacer(LibensembleGenerator):
         )
 
         # This can be set here since the object isnt started until the first suggest
-        self.libE_info["comm"] = self.running_gen_f.comm
+        self.libE_info["comm"] = self._running_gen_f.comm
 
     def _prep_fields(self, results: npt.NDArray) -> npt.NDArray:
         """Filter out fields that are not in persis_in and add sim_ended to the dtype"""
@@ -182,28 +184,32 @@ class PersistentGenInterfacer(LibensembleGenerator):
 
     def suggest_numpy(self, num_points: int = 0) -> npt.NDArray:
         """Request the next set of points to evaluate, as a NumPy array."""
-        if self.running_gen_f is None:
+        if self._running_gen_f is None:
             self.setup()
-            self.running_gen_f.run()
-        _, suggest_full = self.running_gen_f.recv()
+            self._running_gen_f.run()
+        _, suggest_full = self._running_gen_f.recv()
         return suggest_full["calc_out"]
 
     def ingest_numpy(self, results: npt.NDArray, tag: int = EVAL_GEN_TAG) -> None:
         """Send the results of evaluations to the generator, as a NumPy array."""
+        if self._running_gen_f is None:
+            self.setup()
+            self._running_gen_f.run()
+
         if results is not None:
             results = self._prep_fields(results)
             Work = {"libE_info": {"H_rows": np.copy(results["sim_id"]), "persistent": True, "executor": None}}
-            self.running_gen_f.send(tag, Work)
-            self.running_gen_f.send(
-                tag, np.copy(results)
-            )  # SH for threads check - might need deepcopy due to dtype=object
+            self._running_gen_f.send(tag, Work)
+            self._running_gen_f.send(tag, np.copy(results))
         else:
-            self.running_gen_f.send(tag, None)
+            self._running_gen_f.send(tag, None)
 
     def finalize(self) -> None:
         """Stop the generator process and store the returned data."""
+        if self._running_gen_f is None:
+            raise RuntimeError("Generator has not been started.")
         self.ingest_numpy(None, PERSIS_STOP)  # conversion happens in ingest
-        self.gen_result = self.running_gen_f.result()
+        self.gen_result = self._running_gen_f.result()
 
     def export(
         self, user_fields: bool = False, as_dicts: bool = False
