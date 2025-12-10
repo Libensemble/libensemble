@@ -130,6 +130,9 @@ def list_dicts_to_np(list_dicts: list, dtype: list = None, mapping: dict = {}) -
     if not isinstance(list_dicts, list):  # presumably already a numpy array, conversion not necessary
         return list_dicts
 
+    if "sim_id" not in mapping:
+        mapping["sim_id"] = ["_id"]
+
     # first entry is used to determine dtype
     first = list_dicts[0]
 
@@ -148,9 +151,11 @@ def list_dicts_to_np(list_dicts: list, dtype: list = None, mapping: dict = {}) -
 
     # append dtype of mapped float fields
     if len(mapping):
+        existing_names = [f[0] for f in dtype]
         for name in mapping:
-            size = len(mapping[name])
-            dtype.append(_decide_dtype(name, 0.0, size))  # float
+            if name not in existing_names:
+                size = len(mapping[name])
+                dtype.append(_decide_dtype(name, 0.0, size))  # float
 
     out = np.zeros(len(list_dicts), dtype=dtype)
 
