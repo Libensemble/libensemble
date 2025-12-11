@@ -339,7 +339,7 @@ class Manager:
     def _save_every_k_sims(self, complete: bool) -> None:
         """Saves history every kth sim step"""
         self._save_every_k(
-            Path(self.libE_specs["workflow_dir_path"]) / "{}_{}after_sim_{}.npy",
+            str(Path(self.libE_specs["workflow_dir_path"]) / "{}_{}after_sim_{}.npy"),
             self.hist.sim_ended_count,
             self.libE_specs["save_every_k_sims"],
             complete,

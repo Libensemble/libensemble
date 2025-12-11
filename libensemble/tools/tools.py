@@ -161,10 +161,10 @@ def save_libE_output(
     logger.info(f"{status_mess}\nSaving results to file: {h_filename}")
     np.save(h_filename, H)
 
-    with open(p_filename + ".pickle", "wb") as f:
+    with open(p_filename.with_suffix(".pickle"), "wb") as f:
         pickle.dump(persis_info, f)
 
-    return h_filename + ".npy"
+    return str(h_filename.with_suffix(".npy"))
 
 
 # ===================== per-process numpy random-streams =======================
