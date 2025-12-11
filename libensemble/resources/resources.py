@@ -296,7 +296,7 @@ class GlobalResources:
 
         In dedicated mode, any node with a libE worker is removed from the list.
         """
-        top_level_dir = Path(rundir) or Path.cwd()
+        top_level_dir = Path(rundir) if rundir else Path.cwd()
         node_filepath = top_level_dir / node_file
         global_nodelist = []
         if os.path.isfile(node_filepath):
