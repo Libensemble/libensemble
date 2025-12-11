@@ -8,6 +8,7 @@ import os
 import pickle
 import sys
 import time
+from pathlib import Path
 
 import numpy as np
 import numpy.typing as npt
@@ -141,7 +142,9 @@ def save_libE_output(
 
     """
     if dest_path is None:
-        dest_path = os.getcwd()
+        dest_path = Path.cwd()
+    else:
+        dest_path = Path(dest_path)
 
     short_name = _get_shortname(basename)
 
@@ -151,8 +154,8 @@ def save_libE_output(
         hist_name = "_history_" + prob_str
         persis_name = "_persis_info_" + prob_str
 
-    h_filename = os.path.join(dest_path, short_name + hist_name)
-    p_filename = os.path.join(dest_path, short_name + persis_name)
+    h_filename = dest_path / (short_name + hist_name)
+    p_filename = dest_path / (short_name + persis_name)
 
     status_mess = " ".join(["------------------", mess, "-------------------"])
     logger.info(f"{status_mess}\nSaving results to file: {h_filename}")

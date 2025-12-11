@@ -175,11 +175,11 @@ class Task:
 
     def file_exists_in_workdir(self, filename: str) -> bool:
         """Returns true if the named file exists in the task's workdir"""
-        return self.workdir and os.path.exists(os.path.join(self.workdir, filename))
+        return self.workdir and os.path.exists(Path(self.workdir) / filename)
 
     def read_file_in_workdir(self, filename: str) -> str:
         """Opens and reads the named file in the task's workdir"""
-        path = os.path.join(self.workdir, filename)
+        path = Path(self.workdir) / filename
         if not os.path.exists(path):
             raise ValueError(f"{filename} not found in working directory")
         with open(path) as f:

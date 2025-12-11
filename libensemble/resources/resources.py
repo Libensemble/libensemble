@@ -6,6 +6,7 @@ This module detects and returns system resources
 import logging
 import os
 import socket
+from pathlib import Path
 
 from libensemble.resources import node_resources
 from libensemble.resources.env_resources import EnvResources
@@ -295,8 +296,8 @@ class GlobalResources:
 
         In dedicated mode, any node with a libE worker is removed from the list.
         """
-        top_level_dir = rundir or os.getcwd()
-        node_filepath = os.path.join(top_level_dir, node_file)
+        top_level_dir = Path(rundir) or Path.cwd()
+        node_filepath = top_level_dir / node_file
         global_nodelist = []
         if os.path.isfile(node_filepath):
             with open(node_filepath, "r") as f:

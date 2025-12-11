@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import os
 import sys
+from pathlib import Path
 
 import numpy as np
 from forces_simf import run_forces  # Sim func from current dir
@@ -28,7 +29,7 @@ logger.set_level("INFO")  # INFO is now default
 
 nworkers, is_manager, libE_specs, _ = parse_args()
 
-sim_app = os.path.join(os.getcwd(), "../forces_app/forces.x")
+sim_app = Path.cwd() / "../forces_app/forces.x"
 
 if not os.path.isfile(sim_app):
     sys.exit("forces.x not found - please build first in ../forces_app dir")

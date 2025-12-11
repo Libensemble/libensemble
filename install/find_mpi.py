@@ -2,11 +2,12 @@ import os
 
 import mpi4py
 from mpi4py import MPI
+from pathlib import Path
 
-path = mpi4py.__path__[0]
+path = Path(mpi4py.__path__[0])
 print("\nmpi4py path found is:", path)
 
-configfile = os.path.join(path, "mpi.cfg")
+configfile = path / "mpi.cfg"
 print("\nShowing config file: ", configfile, "\n")
 
 with open(configfile, "r") as confile_handle:
