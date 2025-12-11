@@ -134,6 +134,7 @@ HPE = "HPE"
 RO = "RO"
 lst = "lst"
 noy = "noy"
+inpt = "inpt"
 
 [tool.typos.files]
 extend-exclude = ["*.bib", "*.xml", "docs/nitpicky"]
