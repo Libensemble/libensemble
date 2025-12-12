@@ -124,11 +124,15 @@ def _pack_field(input_dict: dict, field_names: list) -> tuple:
 
 
 def list_dicts_to_np(list_dicts: list, dtype: list = None, mapping: dict = {}) -> npt.NDArray:
+    """Convert list of dicts to numpy structured array"""
     if list_dicts is None:
         return None
 
-    if not isinstance(list_dicts, list):  # presumably already a numpy array, conversion not necessary
+    if not isinstance(list_dicts, list):
         return list_dicts
+
+    if not list_dicts:
+        return np.array([], dtype=dtype if dtype else [])
 
     # first entry is used to determine dtype
     first = list_dicts[0]
@@ -142,7 +146,7 @@ def list_dicts_to_np(list_dicts: list, dtype: list = None, mapping: dict = {}) -
 
     if (
         dtype is None
-    ):  # rather roundabout. I believe default value gets set upon function instantiation. (default is mutable!)
+    ):  # Default value gets set upon function instantiation (default is mutable).
         dtype = []
 
     # build dtype of non-mapped fields. appending onto empty dtype
@@ -155,7 +159,7 @@ def list_dicts_to_np(list_dicts: list, dtype: list = None, mapping: dict = {}) -
         for name in mapping:
             if name not in existing_names:
                 size = len(mapping[name])
-                dtype.append(_decide_dtype(name, 0.0, size))  # float
+                dtype.append(_decide_dtype(name, 0.0, size))  # default to float
 
     out = np.zeros(len(list_dicts), dtype=dtype)
 
@@ -221,6 +225,7 @@ def unmap_numpy_array(array: npt.NDArray, mapping: dict = {}) -> npt.NDArray:
 
 
 def np_to_list_dicts(array: npt.NDArray, mapping: dict = {}) -> List[dict]:
+    """Convert numpy structured array to list of dicts"""
     if array is None:
         return None
     out = []
