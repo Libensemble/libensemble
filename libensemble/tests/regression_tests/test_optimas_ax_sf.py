@@ -18,9 +18,8 @@ the objective function will be 4 as the generator is on the manager.
 # TESTSUITE_EXTRA: true
 
 import numpy as np
-from gest_api.vocs import VOCS
 
-from optimas.core import Task
+from gest_api.vocs import VOCS
 from optimas.generators import AxSingleFidelityGenerator
 
 from libensemble import Ensemble
@@ -30,7 +29,6 @@ from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, Sim
 
 def eval_func_sf(input_params):
     """Evaluation function for single-fidelity test. """
-
     x0 = input_params["x0"]
     x1 = input_params["x1"]
     result = -(x0 + 10 * np.cos(x0)) * (x1 + 5 * np.cos(x1))

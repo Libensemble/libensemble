@@ -18,9 +18,8 @@ the objective function will be 4 as the generator is on the manager.
 # TESTSUITE_EXTRA: true
 
 import numpy as np
-from gest_api.vocs import VOCS
 
-from optimas.core import Task
+from gest_api.vocs import VOCS
 from optimas.generators import AxMultiFidelityGenerator
 
 from libensemble import Ensemble
