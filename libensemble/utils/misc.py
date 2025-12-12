@@ -130,11 +130,11 @@ def list_dicts_to_np(list_dicts: list, dtype: list = None, mapping: dict = {}) -
     if not isinstance(list_dicts, list):  # presumably already a numpy array, conversion not necessary
         return list_dicts
 
-    if "sim_id" not in mapping:
-        mapping["sim_id"] = ["_id"]
-
     # first entry is used to determine dtype
     first = list_dicts[0]
+
+    if "_id" in first and "sim_id" not in mapping:
+        mapping["sim_id"] = ["_id"]
 
     # build a presumptive dtype
     new_dtype_names = _get_new_dtype_fields(first, mapping)
@@ -166,6 +166,7 @@ def list_dicts_to_np(list_dicts: list, dtype: list = None, mapping: dict = {}) -
                 out[output_name][j] = _pack_field(input_dict, input_names)
             else:
                 out[output_name][j] = _pack_field(input_dict, mapping[output_name])
+
     return out
 
 
