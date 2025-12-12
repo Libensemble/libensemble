@@ -117,7 +117,7 @@ def main(argv):
             "run_max_eval": 100 * (n + 1),
             "components": 11,
             "lb": np.array([1.0, -0.75, -0.1]),  # lower bound for input
-            "ub": np.array([4.0, 0.75, 0.1]),  # upper bound for input
+            "ub": np.array([4.0, 0.0, 0.1]),  # upper bound for input
             "hfun": hfun,
         },
     )
