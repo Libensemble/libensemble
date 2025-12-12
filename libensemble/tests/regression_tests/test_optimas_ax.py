@@ -22,10 +22,9 @@ from gest_api.vocs import VOCS
 
 from optimas.core import Task
 from optimas.generators import (
-    AxSingleFidelityGenerator,
-    AxMultiFidelityGenerator,
+    # AxSingleFidelityGenerator,
+    # AxMultiFidelityGenerator,
     AxMultitaskGenerator,
-    AxClientGenerator,
 )
 
 from libensemble import Ensemble
@@ -69,7 +68,7 @@ if __name__ == "__main__":
 
     # gen = AxSingleFidelityGenerator(vocs=vocs)
     # gen = AxMultiFidelityGenerator(vocs=vocs)
-    
+
     task1 = Task("task_1", n_init=2, n_opt=1)
     task2 = Task("task_2", n_init=5, n_opt=3)
     gen = AxMultitaskGenerator(vocs=vocs, hifi_task=task1, lofi_task=task2)
@@ -103,4 +102,3 @@ if __name__ == "__main__":
     if workflow.is_manager:
         workflow.save_output(__file__)
         print(f"Completed {len(H)} simulations")
-
