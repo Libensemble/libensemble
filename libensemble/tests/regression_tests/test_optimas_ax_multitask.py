@@ -1,6 +1,8 @@
 """
 Tests libEnsemble with Optimas Multitask Ax Generator
 
+Runs an initial ensemble, followed by another using the first as an H0.
+
 *****currently fixing nworkers to batch_size*****
 
 Execute via one of the following commands (e.g. 4 workers):
@@ -61,16 +63,6 @@ if __name__ == "__main__":
         objectives={"f": "MAXIMIZE"},
     )
 
-    task1 = Task("task_1", n_init=2, n_opt=1)
-    task2 = Task("task_2", n_init=5, n_opt=3)
-    gen = AxMultitaskGenerator(vocs=vocs, hifi_task=task1, lofi_task=task2)
-
-    gen_specs = GenSpecs(
-        generator=gen,
-        batch_size=batch_size,
-        vocs=vocs,
-    )
-
     sim_specs = SimSpecs(
         simulator=eval_func_multitask,
         vocs=vocs,
@@ -79,17 +71,33 @@ if __name__ == "__main__":
     alloc_specs = AllocSpecs(alloc_f=alloc_f)
     exit_criteria = ExitCriteria(sim_max=15)
 
-    workflow = Ensemble(
-        libE_specs=libE_specs,
-        sim_specs=sim_specs,
-        alloc_specs=alloc_specs,
-        gen_specs=gen_specs,
-        exit_criteria=exit_criteria,
-    )
+    H0 = None
+    for run_num in range(2):
+        task1 = Task("task_1", n_init=2, n_opt=1)
+        task2 = Task("task_2", n_init=5, n_opt=3)
+        gen = AxMultitaskGenerator(vocs=vocs, hifi_task=task1, lofi_task=task2)
 
-    H, _, _ = workflow.run()
+        gen_specs = GenSpecs(
+            generator=gen,
+            batch_size=batch_size,
+            vocs=vocs,
+        )
 
-    # Perform the run
-    if workflow.is_manager:
-        workflow.save_output(__file__)
-        print(f"Completed {len(H)} simulations")
+        workflow = Ensemble(
+            libE_specs=libE_specs,
+            sim_specs=sim_specs,
+            alloc_specs=alloc_specs,
+            gen_specs=gen_specs,
+            exit_criteria=exit_criteria,
+            H0=H0,
+        )
+
+        H, _, _ = workflow.run()
+
+        if run_num == 0:
+            H0 = H
+
+        if workflow.is_manager:
+            if run_num == 1:
+                workflow.save_output("multitask_with_H0")
+                print(f"Second run completed: {len(H)} simulations")
