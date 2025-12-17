@@ -17,7 +17,7 @@ jobs:
             matrix:
                 os: [ubuntu-latest]
                 mpi-version: [mpich]
-                python-version: ["py310", "py311", "py312", "py313"]
+                python-version: ["py310", "py311", "py312", "py313", "py314"]
                 comms-type: [m, l]
                 include:
                     - os: macos-latest
@@ -64,7 +64,7 @@ jobs:
             flake8 libensemble
 
         - name: Remove various tests on newer pythons
-          if: matrix.python-version == 'py311' || matrix.python-version == 'py312' || matrix.python-version == 'py313'
+          if: matrix.python-version == 'py311' || matrix.python-version == 'py312' || matrix.python-version == 'py313' || matrix.python-version == 'py314'
           run: |
             rm ./libensemble/tests/functionality_tests/test_local_sine_tutorial*.py # matplotlib errors on py312
 
