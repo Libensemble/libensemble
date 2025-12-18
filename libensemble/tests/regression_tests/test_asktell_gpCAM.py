@@ -24,7 +24,6 @@ import warnings
 import numpy as np
 from gest_api.vocs import VOCS
 
-from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.gen_classes.gpCAM import GP_CAM, GP_CAM_Covar
 
 # Import libEnsemble items for this test
@@ -65,8 +64,6 @@ if __name__ == "__main__":
 
     vocs = VOCS(variables={"x0": [-3, 3], "x1": [-2, 2], "x2": [-1, 1], "x3": [-1, 1]}, objectives={"f": "MINIMIZE"})
 
-    alloc_specs = {"alloc_f": alloc_f}
-
     gen = GP_CAM_Covar(vocs)
 
     for inst in range(3):
@@ -89,7 +86,7 @@ if __name__ == "__main__":
             exit_criteria = {"sim_max": num_batches * batch_size, "wallclock_max": 300}
 
         # Perform the run
-        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, {}, alloc_specs, libE_specs)
+        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, {}, libE_specs=libE_specs)
         if is_manager:
             assert len(np.unique(H["gen_ended_time"])) == num_batches
 

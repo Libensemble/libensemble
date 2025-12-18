@@ -34,9 +34,8 @@ from time import time
 from gest_api.vocs import VOCS
 
 from libensemble import Ensemble
-from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc as alloc_f
 from libensemble.gen_classes import APOSMM
-from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, SimSpecs
+from libensemble.specs import ExitCriteria, GenSpecs, SimSpecs
 from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
@@ -53,7 +52,6 @@ if __name__ == "__main__":
             sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
 
         n = 2
-        workflow.alloc_specs = AllocSpecs(alloc_f=alloc_f)
 
         vocs = VOCS(
             variables={"core": [-3, 3], "edge": [-2, 2], "core_on_cube": [-3, 3], "edge_on_cube": [-2, 2]},
