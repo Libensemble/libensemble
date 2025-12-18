@@ -105,26 +105,6 @@ To see GPU usage, ssh into the node you are on in another window and run::
 
     watch -n 0.1 nvidia-smi
 
-Running generator on the manager
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-An alternative is to run the generator on a thread on the manager. The
-number of workers can then be set to the number of simulation workers.
-
-Change the ``libE_specs`` in **run_libe_forces.py** as follows.
-
-   .. code-block:: python
-
-    nsim_workers = ensemble.nworkers
-
-    # Persistent gen does not need resources
-    ensemble.libE_specs = LibeSpecs(
-        gen_on_manager=True,
-
-and run with::
-
-    python run_libe_forces.py -n 4
-
 To watch video
 ^^^^^^^^^^^^^^
 

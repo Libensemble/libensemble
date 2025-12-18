@@ -694,23 +694,23 @@ def test_map_workerid_to_index():
 
     zero_resource_list = []
     index_list = ResourceManager.get_index_list(num_workers, num_rsets, zero_resource_list)
-    for workerID in range(1, num_workers + 1):
-        index = index_list[workerID - 1]
+    for workerID in range(0, num_workers):
+        index = index_list[workerID]
+        assert index == workerID, "index incorrect. Received: " + str(index)
+
+    zero_resource_list = [0]
+    index_list = ResourceManager.get_index_list(num_workers, num_rsets, zero_resource_list)
+    for workerID in range(1, num_workers):
+        index = index_list[workerID]
         assert index == workerID - 1, "index incorrect. Received: " + str(index)
 
-    zero_resource_list = [1]
+    zero_resource_list = [0, 1]
     index_list = ResourceManager.get_index_list(num_workers, num_rsets, zero_resource_list)
-    for workerID in range(2, num_workers + 1):
-        index = index_list[workerID - 1]
+    for workerID in range(2, num_workers):
+        index = index_list[workerID]
         assert index == workerID - 2, "index incorrect. Received: " + str(index)
 
-    zero_resource_list = [1, 2]
-    index_list = ResourceManager.get_index_list(num_workers, num_rsets, zero_resource_list)
-    for workerID in range(3, num_workers + 1):
-        index = index_list[workerID - 1]
-        assert index == workerID - 3, "index incorrect. Received: " + str(index)
-
-    zero_resource_list = [1, 3]
+    zero_resource_list = [0, 2]
     index_list = ResourceManager.get_index_list(num_workers, num_rsets, zero_resource_list)
 
     workerID = 2

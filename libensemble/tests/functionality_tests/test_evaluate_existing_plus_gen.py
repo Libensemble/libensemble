@@ -1,6 +1,6 @@
 """
 Test libEnsemble's capability to evaluate existing points and then generate
-new samples via gen_on_manager.
+new samples.
 
 Execute via one of the following commands (e.g. 3 workers):
    mpiexec -np 4 python test_evaluate_existing_sample.py
@@ -43,7 +43,6 @@ def create_H0(persis_info, gen_specs, H0_size):
 if __name__ == "__main__":
 
     sampling = Ensemble(parse_args=True)
-    sampling.libE_specs.gen_on_manager = True
     sampling.sim_specs = SimSpecs(sim_f=sim_f, inputs=["x"], out=[("f", float)])
 
     gen_specs = {

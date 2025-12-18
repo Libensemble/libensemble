@@ -110,7 +110,7 @@ def worker_main(
         worker_logging_config(comm, workerID)
 
     LS = LocationStack()
-    LS.register_loc("workflow", Path(libE_specs.get("workflow_dir_path")))
+    LS.register_loc("workflow", Path(libE_specs.get("workflow_dir_path", ".")))
 
     # Set up and run worker
     worker = Worker(comm, dtypes, workerID, sim_specs, gen_specs, libE_specs)
@@ -177,7 +177,7 @@ class Worker:
         self.runners = {EVAL_SIM_TAG: self.sim_runner.run, EVAL_GEN_TAG: self.gen_runner.run}
         self.calc_iter = {EVAL_SIM_TAG: 0, EVAL_GEN_TAG: 0}
         Worker._set_executor(self.workerID, self.comm)
-        Worker._set_resources(self.workerID, self.comm)
+        Worker._set_resources(self.workerID, self.comm, self.libE_specs)
         self.EnsembleDirectory = EnsembleDirectory(libE_specs=libE_specs)
 
     @staticmethod
@@ -215,11 +215,11 @@ class Worker:
             return False
 
     @staticmethod
-    def _set_resources(workerID, comm: Comm) -> bool:
+    def _set_resources(workerID, comm: Comm, libE_specs) -> bool:
         """Sets worker ID in the resources, return True if set"""
         resources = Resources.resources
         if isinstance(resources, Resources):
-            resources.set_worker_resources(comm.get_num_workers(), workerID)
+            resources.set_worker_resources(comm.get_num_workers() + (1 - libE_specs["gen_on_worker"]), workerID)
             return True
         else:
             logger.debug(f"No resources set on worker {workerID}")

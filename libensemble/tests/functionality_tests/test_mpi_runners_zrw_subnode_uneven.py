@@ -44,6 +44,7 @@ if __name__ == "__main__":
     comms = libE_specs["comms"]
 
     libE_specs["dedicated_mode"] = True
+    libE_specs["zero_resource_workers"] = [0]
     libE_specs["enforce_worker_core_bounds"] = True
 
     # To allow visual checking - log file not used in test
@@ -52,7 +53,7 @@ if __name__ == "__main__":
 
     # For varying size test - relate node count to nworkers
     n_gens = 1
-    nsim_workers = nworkers - n_gens
+    nsim_workers = nworkers  # - n_gens
 
     if nsim_workers % 2 == 0:
         sys.exit(

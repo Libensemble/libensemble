@@ -39,7 +39,7 @@ if __name__ == "__main__":
     sim_app = "/path/to/fakeapp.x"
     comms = libE_specs["comms"]
 
-    libE_specs["zero_resource_workers"] = [1]
+    libE_specs["zero_resource_workers"] = [0]
     libE_specs["dedicated_mode"] = True
     libE_specs["enforce_worker_core_bounds"] = True
 
@@ -100,7 +100,7 @@ if __name__ == "__main__":
     }
 
     alloc_specs = {"alloc_f": alloc_f}
-    persis_info = add_unique_random_streams({}, nworkers + 1)
+    persis_info = add_unique_random_streams({}, nworkers)
     exit_criteria = {"sim_max": (nsim_workers) * rounds}
 
     # Each worker has 2 nodes. Basic test list for portable options

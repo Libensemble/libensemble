@@ -68,4 +68,4 @@ if __name__ == "__main__":
         assert len(np.unique(H["gen_ended_time"])) == 2
         save_libE_output(H, persis_info, __file__, nworkers)
 
-        assert persis_info[1]["spin_count"] > 0, "This should have been a nonblocking receive"
+        assert persis_info[0]["spin_count"] > 0, "This should have been a nonblocking receive"
