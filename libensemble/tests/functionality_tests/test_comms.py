@@ -16,6 +16,7 @@ The number of concurrent evaluations of the objective function will be N-1.
 
 import numpy as np
 
+from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 from libensemble.executors.mpi_executor import MPIExecutor  # Only used to get workerID in float_x1000
 from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
 
@@ -55,8 +56,14 @@ if __name__ == "__main__":
 
     exit_criteria = {"sim_max": sim_max, "wallclock_max": 300}
 
+    alloc_specs = {
+        "alloc_f": give_sim_work_first,
+    }
+
     # Perform the run
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
+    H, persis_info, flag = libE(
+        sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs=alloc_specs, libE_specs=libE_specs
+    )
 
     if is_manager:
         assert flag == 0

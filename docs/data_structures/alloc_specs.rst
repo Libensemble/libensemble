@@ -19,7 +19,7 @@ Can be constructed and passed to libEnsemble as a Python class or a dictionary.
   * libEnsemble uses the following defaults if the user doesn't provide their own ``alloc_specs``:
 
   ..  literalinclude:: ../../libensemble/specs.py
-      :start-at: alloc_f: Callable = give_sim_work_first
+      :start-at: alloc_f: Callable = start_only_persistent
       :end-before: end_alloc_tag
       :caption: Default settings for alloc_specs
 

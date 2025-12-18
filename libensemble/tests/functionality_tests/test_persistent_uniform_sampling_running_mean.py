@@ -20,7 +20,6 @@ import sys
 
 import numpy as np
 
-from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.gen_funcs.persistent_sampling import persistent_uniform_final_update as gen_f
 from libensemble.libE import libE
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel_simple as sim_f
@@ -57,8 +56,6 @@ if __name__ == "__main__":
         },
     }
 
-    alloc_specs = {"alloc_f": alloc_f}
-
     sim_max = 120
     exit_criteria = {"sim_max": sim_max}
     libE_specs["final_gen_send"] = True
@@ -72,7 +69,7 @@ if __name__ == "__main__":
             }
 
         persis_info = add_unique_random_streams({}, nworkers + 1)
-        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
 
         if is_manager:
             # Check that last saved history agrees with returned history.

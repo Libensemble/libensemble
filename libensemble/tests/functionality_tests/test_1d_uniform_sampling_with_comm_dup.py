@@ -19,6 +19,7 @@ import sys
 
 import numpy as np
 
+from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
 
 # Import libEnsemble items for this test
@@ -62,8 +63,12 @@ if __name__ == "__main__":
 
     exit_criteria = {"gen_max": 501}
 
+    alloc_specs = {
+        "alloc_f": give_sim_work_first,
+    }
+
     # Perform the run
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info)
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs=alloc_specs)
 
     if is_manager:
         # assert libE_specs["comms"] == "mpi", "MPI default comms should be set"

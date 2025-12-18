@@ -19,6 +19,7 @@ import time
 
 import numpy as np
 
+from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 from libensemble.gen_funcs.sampling import latin_hypercube_sample as gen_f
 from libensemble.libE import libE
 from libensemble.sim_funcs.simple_sim import norm_eval as sim_f
@@ -50,10 +51,16 @@ if __name__ == "__main__":
 
     persis_info = add_unique_random_streams({}, nworkers + 1)
 
+    alloc_specs = {
+        "alloc_f": give_sim_work_first,
+    }
+
     exit_criteria = {"sim_max": 501}
 
     # Perform the run
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
+    H, persis_info, flag = libE(
+        sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs=alloc_specs, libE_specs=libE_specs
+    )
 
     if is_manager:
         assert len(H) >= 501

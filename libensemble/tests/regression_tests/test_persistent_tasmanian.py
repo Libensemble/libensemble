@@ -22,7 +22,6 @@ from time import time
 
 import numpy as np
 
-from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.gen_funcs.persistent_tasmanian import sparse_grid_batched as gen_f_batched
 
 # Import libEnsemble items for this test
@@ -74,8 +73,6 @@ if __name__ == "__main__":
         "out": [("x", float, num_dimensions)],
     }
 
-    alloc_specs = {"alloc_f": alloc_f}
-
     grid_files = []
 
     for run in range(3):
@@ -116,7 +113,7 @@ if __name__ == "__main__":
             gen_specs["user"]["sCriteria"] = "classic"
             gen_specs["user"]["iOutput"] = 0
 
-        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
 
         if is_manager:
             grid_files.append(gen_specs["user"]["tasmanian_checkpoint_file"])
