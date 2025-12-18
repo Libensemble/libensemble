@@ -469,7 +469,7 @@ class LibeSpecs(BaseModel):
     libEnsemble processes (manager and workers) are running.
     """
 
-    zero_resource_workers: list[int] | None = []
+    zero_resource_workers: list[int] | None = [0]
     """
     list of workers that require no resources. For when a fixed mapping of workers
     to resources is required. Otherwise, use ``num_resource_sets``.
