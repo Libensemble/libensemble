@@ -9,7 +9,7 @@ only run ``gen_f`` functions in-place (i.e., they do not use the Executor
 to submit applications to allocated nodes). Suppose the user is using the
 :meth:`parse_args()<tools.parse_args>` function and runs::
 
-    python run_ensemble_persistent_gen.py --comms local --nworkers 3
+    python run_ensemble_persistent_gen.py --nworkers 3
 
 If three nodes are available in the node allocation, the result may look like the
 following.
@@ -21,7 +21,7 @@ following.
 
 To avoid the the wasted node above, add an extra worker::
 
-    python run_ensemble_persistent_gen.py --comms local --nworkers 4
+    python run_ensemble_persistent_gen.py --nworkers 4
 
 and in the calling script (*run_ensemble_persistent_gen.py*), explicitly set the
 number of resource sets to the number of workers that will be running simulations.
@@ -53,7 +53,7 @@ concurrency desired by the ensemble, taking into account generators and simulato
 
 Users can set generator resources using the *libE_specs* options
 ``gen_num_procs`` and/or ``gen_num_gpus``, which take integer values.
-If only  ``gen_num_gpus`` is set, then the number of processors is set to match.
+If only ``gen_num_gpus`` is set, then the number of processors is set to match.
 
 To vary generator resources, ``persis_info`` settings can be used in allocation
 functions before calling the ``gen_work`` support function. This takes the

@@ -15,13 +15,13 @@ my_spec = {
     "cores_per_node": 32,
 }
 
-summit_spec = {
-    "mpi_runner": "jsrun",
-    "cores_per_node": 42,
-    "logical_cores_per_node": 168,
-    "gpus_per_node": 6,
-    "gpu_setting_type": "option_gpus_per_task",
-    "gpu_setting_name": "-g",
+frontier_spec = {
+    "mpi_runner": "srun",
+    "cores_per_node": 64,
+    "logical_cores_per_node": 128,
+    "gpus_per_node": 8,
+    "gpu_setting_type": "runner_default",
+    "gpu_env_fallback": "ROCR_VISIBLE_DEVICES",
     "scheduler_match_slots": False,
 }
 
@@ -101,10 +101,10 @@ def test_known_sys_detect(monkeypatch):
     monkeypatch.delenv("NERSC_HOST", raising=False)
 
     known_platforms = specs_dump(Known_platforms(), exclude_none=True)
-    get_sys_cmd = "echo summit.olcf.ornl.gov"  # Overrides default "hostname -d"
+    get_sys_cmd = "echo frontier.olcf.ornl.gov"  # Overrides default "hostname -d"
     name = known_system_detect(cmd=get_sys_cmd)
     platform_info = known_platforms[name]
-    assert platform_info == summit_spec, f"Summit spec does not match expected ({platform_info})"
+    assert platform_info == frontier_spec, f"Frontier spec does not match expected ({platform_info})"
 
     # Try unknown system
     get_sys_cmd = "echo madeup.system"  # Overrides default "hostname -d"

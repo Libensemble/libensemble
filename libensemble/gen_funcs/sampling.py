@@ -1,7 +1,5 @@
 """
-This module contains multiple generation functions for sampling a domain. All
-use (and return) a random stream in ``persis_info``, given by the allocation
-function.
+This module contains multiple generator functions for sampling a domain.
 """
 
 import numpy as np

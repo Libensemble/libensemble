@@ -117,7 +117,7 @@ busy.
 In practice, since a single worker becomes "persistent" for APOSMM, users
 should initiate one more worker than the number of parallel simulations::
 
-    python my_aposmm_routine.py --comms local --nworkers 4
+    python my_aposmm_routine.py --nworkers 4
 
 results in three workers running simulations and one running APSOMM.
 
@@ -265,7 +265,7 @@ optimization method::
 
 Finally, run this libEnsemble / APOSMM optimization routine with the following::
 
-    python my_first_aposmm.py --comms local --nworkers 4
+    python my_first_aposmm.py --nworkers 4
 
 Please note that one worker will be "persistent" for APOSMM for the duration of
 the routine.
@@ -314,6 +314,6 @@ can be found in libEnsemble's `WarpX Scaling Test`_.
 .. _PETSc/TAO: https://www.mcs.anl.gov/petsc/
 .. _SciPy: https://scipy.org/
 .. _Six-Hump Camel function: https://www.sfu.ca/~ssurjano/camel6.html
-.. _WarpX Scaling Test: https://github.com/Libensemble/libensemble/tree/main/libensemble/tests/scaling_tests/warpx
+.. _WarpX Scaling Test: https://github.com/Libensemble/libe-community-examples/tree/main/warpx
 .. |Open in Colab| image:: https://colab.research.google.com/assets/colab-badge.svg
   :target:  http://colab.research.google.com/github/Libensemble/libensemble/blob/develop/examples/tutorials/aposmm/aposmm_tutorial_notebook.ipynb

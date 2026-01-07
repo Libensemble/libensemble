@@ -122,7 +122,6 @@ import sys
 import traceback
 import warnings
 from pathlib import Path
-from typing import Callable, Dict
 
 import numpy as np
 
@@ -155,11 +154,11 @@ def libE(
     sim_specs: SimSpecs,
     gen_specs: GenSpecs,
     exit_criteria: ExitCriteria,
-    persis_info: Dict = {},
+    persis_info: dict = {},
     alloc_specs: AllocSpecs = AllocSpecs(),
     libE_specs: LibeSpecs = {},
     H0=None,
-) -> (np.ndarray, Dict, int):
+) -> (np.ndarray, dict, int):
     """
     Parameters
     ----------
@@ -274,8 +273,8 @@ def manager(
     alloc_specs,
     libE_specs,
     hist: History,
-    on_abort: Callable = None,
-    on_cleanup: Callable = None,
+    on_abort=None,
+    on_cleanup=None,
 ):
     """Generic manager routine run."""
     logger.info("Logger initializing: [workerID] precedes each line. [0] = Manager")

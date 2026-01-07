@@ -7,7 +7,7 @@ procs when using mpi4py).
 
 Execute via one of the following commands (e.g. 3 workers):
    mpiexec -np 4 python test_zero_resource_workers_subnode.py
-   python test_zero_resource_workers_subnode.py --nworkers 3 --comms local
+   python test_zero_resource_workers_subnode.py --nworkers 3
    python test_zero_resource_workers_subnode.py --nworkers 3 --comms tcp
 """
 

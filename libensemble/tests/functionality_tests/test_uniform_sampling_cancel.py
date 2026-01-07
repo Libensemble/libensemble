@@ -4,7 +4,7 @@ some points.
 
 Execute via one of the following commands (e.g. 3 workers):
    mpiexec -np 4 python test_uniform_sampling_cancel.py
-   python test_uniform_sampling_cancel.py --nworkers 3 --comms local
+   python test_uniform_sampling_cancel.py --nworkers 3
    python test_uniform_sampling_cancel.py --nworkers 3 --comms tcp
 
 The number of concurrent evaluations of the objective function will be 4-1=3.
@@ -88,7 +88,7 @@ if __name__ == "__main__":
     sim_max = 500
     exit_criteria = {"sim_max": sim_max, "wallclock_max": 300}
 
-    aspec1 = {
+    a_spec_1 = {
         "alloc_f": gswf,
         "user": {
             "batch_mode": True,
@@ -96,7 +96,7 @@ if __name__ == "__main__":
         },
     }
 
-    aspec2 = {
+    a_spec_2 = {
         "alloc_f": gswf,
         "user": {
             "batch_mode": True,
@@ -104,22 +104,22 @@ if __name__ == "__main__":
         },
     }
 
-    aspec3 = {
+    a_spec_3 = {
         "alloc_f": fast_gswf,
         "user": {},
     }
 
-    aspec4 = {
+    a_spec_4 = {
         "alloc_f": ensure_one_active_gen,
         "user": {},
     }
 
-    aspec5 = {
+    a_spec_5 = {
         "alloc_f": give_pregenerated_sim_work,
         "user": {},
     }
 
-    allocs = {1: aspec1, 2: aspec2, 3: aspec3, 4: aspec4, 5: aspec5}
+    allocs = {1: a_spec_1, 2: a_spec_2, 3: a_spec_3, 4: a_spec_4, 5: a_spec_5}
 
     if is_manager:
         print("Testing cancellations with non-persistent gen functions")

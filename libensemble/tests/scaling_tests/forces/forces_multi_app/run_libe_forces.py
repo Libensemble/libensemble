@@ -16,10 +16,10 @@ It is recommended to run this test such that:
     ((nworkers - 1) - gpus_on_node) >= gen_specs["user"][max_procs]
 
 E.g., if running on one node with four GPUs, then use:
-    python run_libE_forces.py --comms local --nworkers 9
+    python run_libE_forces.py --nworkers 9
 
 E.g., if running on one node with eight GPUs, then use:
-    python run_libE_forces.py --comms local --nworkers 17
+    python run_libE_forces.py --nworkers 17
 """
 
 import os

@@ -2,12 +2,12 @@
 Example of multi-fidelity optimization using a persistent GP gen_func (calling
 Ax).
 
-Test is set to use the gen_on_manager option (persistent generator runs on
+This test uses the gen_on_manager option (persistent generator runs on
 a thread). Therefore nworkers is the number of simulation workers.
 
 Execute via one of the following commands:
    mpiexec -np 4 python test_persistent_gp_multitask_ax.py
-   python test_persistent_gp_multitask_ax.py --nworkers 3 --comms local
+   python test_persistent_gp_multitask_ax.py --nworkers 3
    python test_persistent_gp_multitask_ax.py --nworkers 3 --comms tcp
 
 When running with the above commands, the number of concurrent evaluations of
@@ -50,7 +50,7 @@ def run_simulation(H, persis_info, sim_specs, libE_info):
         z = 8
     elif task == "cheap_model":
         z = 1
-    print('in sim', task)
+    print("in sim", task)
 
     libE_output = np.zeros(1, dtype=sim_specs["out"])
     calc_status = WORKER_DONE

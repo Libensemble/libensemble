@@ -3,7 +3,7 @@ Tests libEnsemble's capability to kill/cancel  simulations that are in progress.
 
 Execute via one of the following commands (e.g. 3 workers):
    mpiexec -np 4 python test_persistent_surmise_killsims.py
-   python test_persistent_surmise_killsims.py --nworkers 3 --comms local
+   python test_persistent_surmise_killsims.py --nworkers 3
    python test_persistent_surmise_killsims.py --nworkers 3 --comms tcp
 
 When running with the above commands, the number of concurrent evaluations of
@@ -74,7 +74,7 @@ if __name__ == "__main__":
 
     # Subprocess variant creates input and output files for each sim
     libE_specs["sim_dirs_make"] = True  # To keep all - make sim dirs
-    # libE_specs["use_worker_dirs"] = True  # To overwrite - make worker dirs only
+    libE_specs["kill_canceled_sims"] = True
 
     # Rename ensemble dir for non-interference with other regression tests
     en_suffix = str(nworkers) + "_" + libE_specs.get("comms")

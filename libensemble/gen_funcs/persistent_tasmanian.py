@@ -1,6 +1,6 @@
 """
 A persistent generator using the uncertainty quantification capabilities in
-`Tasmanian <https://tasmanian.ornl.gov/>`_.
+`Tasmanian <https://github.com/ORNL/Tasmanian>`_.
 """
 
 import numpy as np

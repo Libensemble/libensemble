@@ -14,9 +14,9 @@ position <x>, momentum <p_x>, and the correlation between them <x p_x>.
 These values are then mapped to the normalized emittance <x> <p_x> - <x p_x>.
 
 Execute via one of the following commands:
-   mpiexec -np 3 python test_persistent_aposmm_ibcdfo.py
-   python test_persistent_aposmm_ibcdfo.py --nworkers 2 --comms local
-Both will run with 1 manager, 1 worker running APOSMM+IBCDFO), and 1 worker
+   mpiexec -np 3 python test_persistent_aposmm_ibcdfo_pounders.py
+   python test_persistent_aposmm_ibcdfo_pounders.py --nworkers 2
+Both will run with 1 manager, 1 worker running APOSMM+IBCDFO, and 1 worker
 doing the simulation evaluations.
 """
 
@@ -33,7 +33,7 @@ import libensemble.gen_funcs
 from libensemble.libE import libE
 from libensemble.sim_funcs.chwirut1 import chwirut_eval
 
-libensemble.gen_funcs.rc.aposmm_optimizers = "ibcdfo"
+libensemble.gen_funcs.rc.aposmm_optimizers = "ibcdfo_pounders"
 
 from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc as alloc_f
 from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f

@@ -5,7 +5,7 @@ simulation evaluation.
 
 Execute via one of the following commands (e.g. 3 workers):
    mpiexec -np 4 python test_persistent_aposmm_pounders.py
-   python test_persistent_aposmm_pounders.py --nworkers 3 --comms local
+   python test_persistent_aposmm_pounders.py --nworkers 3
    python test_persistent_aposmm_pounders.py --nworkers 3 --comms tcp
 
 When running with the above commands, the number of concurrent evaluations of
@@ -17,7 +17,6 @@ persistent generator.
 # TESTSUITE_COMMS: local mpi tcp
 # TESTSUITE_NPROCS: 4
 # TESTSUITE_EXTRA: true
-# TESTSUITE_EXCLUDE: true
 
 import multiprocessing
 import sys

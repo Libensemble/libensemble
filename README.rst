@@ -10,7 +10,8 @@
 libEnsemble: A complete toolkit for dynamic ensembles of calculations
 =====================================================================
 
-Adaptive, portable, and scalable software for connecting "deciders" to experiments or simulations.
+libEnsemble empowers model-driven ensembles to solve design, decision,
+and inference problems on the world's leading supercomputers such as Frontier, Aurora, and Perlmutter.
 
 • **Dynamic ensembles**: Generate parallel tasks on-the-fly based on previous computations.
 • **Extreme portability and scaling**: Run on or across laptops, clusters, and leadership-class machines.
@@ -19,9 +20,10 @@ Adaptive, portable, and scalable software for connecting "deciders" to experimen
 • **Data-flow between tasks**: Running ensemble members can send and receive data.
 • **Low start-up cost**: No additional background services or processes required.
 
-libEnsemble is effective at solving design, decision, and inference problems on parallel resources.
-
 `Quickstart`_
+
+**New:** Try out the |ScriptCreator| to generate customized scripts for running
+ensembles with your MPI applications.
 
 Installation
 ============
@@ -96,8 +98,10 @@ Try some other examples live in Colab.
 +---------------------------------------------------------------+-------------------------------------+
 | Optimization example that finds multiple minima.              | |Optimization example|              |
 +---------------------------------------------------------------+-------------------------------------+
+| Surrogate model generation with gpCAM.                        | |Surrogate Modeling|                |
++---------------------------------------------------------------+-------------------------------------+
 
-There are many more examples in the `regression tests`_.
+There are many more examples in the `regression tests`_ and `Community Examples repository`_.
 
 Resources
 =========
@@ -178,3 +182,10 @@ Resources
 
 .. |Optimization example| image:: https://colab.research.google.com/assets/colab-badge.svg
   :target:  http://colab.research.google.com/github/Libensemble/libensemble/blob/develop/examples/tutorials/aposmm/aposmm_tutorial_notebook.ipynb
+
+.. |Surrogate Modeling| image:: https://colab.research.google.com/assets/colab-badge.svg
+  :target:  https://colab.research.google.com/github/Libensemble/libensemble/blob/develop/examples/tutorials/gpcam_surrogate_model/gpcam.ipynb
+
+.. |ScriptCreator| image:: https://img.shields.io/badge/Script_Creator-purple?logo=magic
+   :target: https://libensemble.github.io/script-creator/
+   :alt: Script Creator

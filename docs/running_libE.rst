@@ -53,7 +53,7 @@ supercomputers.
         or an :class:`Ensemble<libensemble.ensemble.Ensemble>` object with ``Ensemble(parse_args=True)``,
         you can specify these on the command line::
 
-            python myscript.py --comms local --nworkers N
+            python myscript.py --nworkers N
 
         This will launch one manager and ``N`` workers.
 
@@ -100,9 +100,8 @@ supercomputers.
         **Limitations of MPI mode**
 
         If launching MPI applications from workers, then MPI is nested. **This is not
-        supported with Open MPI**. This can be overcome by using a proxy launcher
-        (see :doc:`Balsam<executor/balsam_2_executor>`). This nesting does work
-        with MPICH_ and its derivative MPI implementations.
+        supported with Open MPI**. This can be overcome by using a proxy launcher.
+        This nesting does work with MPICH_ and its derivative MPI implementations.
 
         It is also unsuitable to use this mode when running on the **launch** nodes of
         three-tier systems (e.g., Summit). In that case ``local`` mode is recommended.

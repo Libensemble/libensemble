@@ -5,7 +5,7 @@ This test must be run on an odd number of workers >= 3 and <= 31 (e.g. even no. 
 
 Execute via one of the following commands (e.g. 5 workers):
    mpiexec -np 6 python test_mpi_runners_subnode_uneven.py
-   python test_mpi_runners_subnode_uneven.py --nworkers 5 --comms local
+   python test_mpi_runners_subnode_uneven.py --nworkers 5
    python test_mpi_runners_subnode_uneven.py --nworkers 5 --comms tcp
 """
 

@@ -34,6 +34,10 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info, l
     async_return: Boolean, optional
         Return results to gen as they come in (after sample). Default: False (batch return).
 
+    give_all_with_same_priority: Boolean, optional
+        If True, then all points with the same priority value are given as a batch to the sim.
+        Default is False
+
     active_recv_gen: Boolean, optional
         Create gen in active receive mode. If True, the manager does not need to wait
         for a return from the generator before sending further returned points.

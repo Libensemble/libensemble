@@ -11,7 +11,6 @@ option or the environment variable ``LIBE_PLATFORM``.
 import logging
 import os
 import subprocess
-from typing import Optional
 
 from pydantic import BaseModel
 
@@ -33,28 +32,28 @@ class Platform(BaseModel):
     All are optional, and any not defined will be determined by libEnsemble's auto-detection.
     """
 
-    mpi_runner: Optional[str] = None
+    mpi_runner: str | None = None
     """MPI runner: One of ``"mpich"``, ``"openmpi"``, ``"aprun"``,
     ``"srun"``, ``"jsrun"``, ``"msmpi"``, ``"custom"`` """
 
-    runner_name: Optional[str] = None
+    runner_name: str | None = None
     """Literal string of MPI runner command. Only needed if different to the default
 
     Note that ``"mpich"`` and ``"openmpi"`` runners have the default command ``"mpirun"``
     """
-    cores_per_node: Optional[int] = None
+    cores_per_node: int | None = None
     """Number of physical CPU cores on a compute node of the platform"""
 
-    logical_cores_per_node: Optional[int] = None
+    logical_cores_per_node: int | None = None
     """Number of logical CPU cores on a compute node of the platform"""
 
-    gpus_per_node: Optional[int] = None
+    gpus_per_node: int | None = None
     """Number of GPU devices on a compute node of the platform"""
 
-    tiles_per_gpu: Optional[int] = None
+    tiles_per_gpu: int | None = None
     """Number of tiles on a GPU"""
 
-    gpu_setting_type: Optional[str] = None
+    gpu_setting_type: str | None = None
 
     """ How GPUs will be assigned.
 
@@ -91,14 +90,14 @@ class Platform(BaseModel):
 
     """
 
-    gpu_setting_name: Optional[str] = None
+    gpu_setting_name: str | None = None
     """Name of GPU setting
 
     See :attr:`gpu_setting_type` for more details.
 
     """
 
-    gpu_env_fallback: Optional[str] = None
+    gpu_env_fallback: str | None = None
     """GPU fallback environment setting if not using an MPI runner.
 
     For example:
@@ -115,7 +114,7 @@ class Platform(BaseModel):
 
     """
 
-    scheduler_match_slots: Optional[bool] = True
+    scheduler_match_slots: bool | None = True
     """
     Whether the libEnsemble resource scheduler should only assign matching slots when
     there are multiple (partial) nodes assigned to a sim function.
@@ -144,16 +143,6 @@ class Aurora(Platform):
 
 
 # On SLURM systems, let srun assign free GPUs on the node
-class Crusher(Platform):
-    mpi_runner: str = "srun"
-    cores_per_node: int = 64
-    logical_cores_per_node: int = 128
-    gpus_per_node: int = 8
-    gpu_setting_type: str = "runner_default"
-    gpu_env_fallback: str = "ROCR_VISIBLE_DEVICES"
-    scheduler_match_slots: bool = False
-
-
 class Frontier(Platform):
     mpi_runner: str = "srun"
     cores_per_node: int = 64
@@ -167,6 +156,19 @@ class Frontier(Platform):
 # Example of a ROCM system
 class GenericROCm(Platform):
     mpi_runner: str = "mpich"
+    gpu_setting_type: str = "env"
+    gpu_setting_name: str = "ROCR_VISIBLE_DEVICES"
+    scheduler_match_slots: bool = True
+
+
+class Lumi(Platform):
+    mpi_runner: str = "srun"
+    cores_per_node: int = 64
+    logical_cores_per_node: int = 128
+
+
+class LumiGPU(Lumi):
+    gpus_per_node: int = 8
     gpu_setting_type: str = "env"
     gpu_setting_name: str = "ROCR_VISIBLE_DEVICES"
     scheduler_match_slots: bool = True
@@ -202,16 +204,6 @@ class Polaris(Platform):
     scheduler_match_slots: bool = True
 
 
-class Spock(Platform):
-    mpi_runner: str = "srun"
-    cores_per_node: int = 64
-    logical_cores_per_node: int = 128
-    gpus_per_node: int = 4
-    gpu_setting_type: str = "runner_default"
-    gpu_setting_name: str = "ROCR_VISIBLE_DEVICES"
-    scheduler_match_slots: bool = False
-
-
 class Summit(Platform):
     mpi_runner: str = "jsrun"
     cores_per_node: int = 42
@@ -220,18 +212,6 @@ class Summit(Platform):
     gpu_setting_type: str = "option_gpus_per_task"
     gpu_setting_name: str = "-g"
     scheduler_match_slots: bool = False
-
-
-class Sunspot(Platform):
-    mpi_runner: str = "mpich"
-    runner_name: str = "mpiexec"
-    cores_per_node: int = 104
-    logical_cores_per_node: int = 208
-    gpus_per_node: int = 6
-    tiles_per_gpu: int = 2
-    gpu_setting_type: str = "env"
-    gpu_setting_name: str = "ZE_AFFINITY_MASK"
-    scheduler_match_slots: bool = True
 
 
 class Known_platforms(BaseModel):
@@ -274,24 +254,21 @@ class Known_platforms(BaseModel):
 
     aurora: Aurora = Aurora()
     generic_rocm: GenericROCm = GenericROCm()
-    crusher: Crusher = Crusher()
     frontier: Frontier = Frontier()
+    lumi: Lumi = Lumi()
+    lumi_g: LumiGPU = LumiGPU()
     perlmutter: Perlmutter = Perlmutter()
     perlmutter_c: PerlmutterCPU = PerlmutterCPU()
     perlmutter_g: PerlmutterGPU = PerlmutterGPU()
     polaris: Polaris = Polaris()
-    spock: Spock = Spock()
     summit: Summit = Summit()
-    sunspot: Sunspot = Sunspot()
 
 
 # Dictionary of known systems (or system partitions) detectable by domain name
 detect_systems = {
-    "crusher.olcf.ornl.gov": "crusher",
     "frontier.olcf.ornl.gov": "frontier",
     "hostmgmt.cm.aurora.alcf.anl.gov": "aurora",
     "hsn.cm.polaris.alcf.anl.gov": "polaris",
-    "spock.olcf.ornl.gov": "spock",
     "summit.olcf.ornl.gov": "summit",  # Need to detect gpu count
 }
 
@@ -309,6 +286,14 @@ def known_envs():
         else:
             name = "perlmutter"
             logger.manager_warning("Perlmutter detected, but no compute partition detected. Are you on login nodes?")
+    if os.environ.get("SLURM_CLUSTER_NAME") == "lumi":
+        partition = os.environ.get("SLURM_JOB_PARTITION")
+        if not partition:
+            logger.manager_warning("LUMI detected, but no compute partition detected. Are you on login nodes?")
+        if partition and partition.endswith("-g"):
+            name = "lumi_g"
+        else:
+            name = "lumi"
     return name
 
 

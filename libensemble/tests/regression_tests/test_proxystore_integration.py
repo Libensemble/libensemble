@@ -4,7 +4,7 @@ evaluation of an existing set of points.
 
 Execute via one of the following commands (e.g. 3 workers):
    mpiexec -np 4 python test_evaluate_existing_sample.py
-   python test_evaluate_existing_sample.py --nworkers 3 --comms local
+   python test_evaluate_existing_sample.py --nworkers 3
    python test_evaluate_existing_sample.py --nworkers 3 --comms tcp
 
 The number of concurrent evaluations of the objective function will be 4-1=3.

@@ -3,7 +3,7 @@ Runs libEnsemble with APOSMM with the NLopt local optimizer.
 
 Execute via one of the following commands (e.g. 3 workers):
    mpiexec -np 4 python test_persistent_aposmm_nlopt.py
-   python test_persistent_aposmm_nlopt.py --nworkers 3 --comms local
+   python test_persistent_aposmm_nlopt.py --nworkers 3
    python test_persistent_aposmm_nlopt.py --nworkers 3 --comms tcp
 
 When running with the above commands, the number of concurrent evaluations of
@@ -14,6 +14,7 @@ persistent generator.
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: local mpi tcp
 # TESTSUITE_NPROCS: 3
+# TESTSUITE_EXTRA: true
 
 import sys
 from math import gamma, pi, sqrt

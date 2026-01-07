@@ -10,6 +10,7 @@ import sys
 import time
 
 import numpy as np
+import numpy.typing as npt
 
 # Create logger
 logger = logging.getLogger(__name__)
@@ -75,19 +76,30 @@ _PERSIS_RETURN_WARNING = (
 )
 
 
-def _get_shortname(calling_file):
-    script_name = os.path.splitext(os.path.basename(calling_file))[0]
+def _get_shortname(basename):
+    script_name = os.path.splitext(os.path.basename(basename))[0]
     short_name = script_name.split("test_", 1).pop()
     return short_name
 
 
 # =================== save libE output to pickle and np ========================
 
-def save_libE_output(H, persis_info, calling_file, nworkers, dest_path=None, mess="Run completed"):
+
+def save_libE_output(
+    H: npt.NDArray,
+    persis_info: dict,
+    basename: str,
+    nworkers: int,
+    dest_path: str = None,
+    mess: str = "Run completed",
+    append_attrs: bool = True,
+) -> str:
     """
     Writes out history array and persis_info to files.
 
-    Format: <calling_script>_results_History_length=<length>_evals=<Completed evals>_ranks=<nworkers>
+    Format: <basename>_results_History_length=<length>_evals=<Completed evals>_ranks=<nworkers>
+
+    To use just basename, set append_attrs=False
 
     .. code-block:: python
 
@@ -106,7 +118,7 @@ def save_libE_output(H, persis_info, calling_file, nworkers, dest_path=None, mes
         Persistent information dictionary.
         :doc:`(example)<data_structures/persis_info>`
 
-    calling_file  : :obj:`str`
+    basename  : :obj:`str`
 
         Name of user-calling script (or user chosen name) to prefix output files.
         The convention is to send __file__ from user calling script.
@@ -115,19 +127,32 @@ def save_libE_output(H, persis_info, calling_file, nworkers, dest_path=None, mes
 
         The number of workers in this ensemble. Added to output file names.
 
+    dest_path: :obj:`str`, optional
+
+        The path to save the file to.
+
     mess: :obj:`str`
 
         A message to print/log when saving the file.
+
+    append_attrs: `bool`
+
+        Append run attributes to the base filename.
 
     """
     if dest_path is None:
         dest_path = os.getcwd()
 
-    short_name = _get_shortname(calling_file)
-    prob_str = "length=" + str(len(H)) + "_evals=" + str(sum(H["sim_ended"])) + "_workers=" + str(nworkers)
+    short_name = _get_shortname(basename)
 
-    h_filename = os.path.join(dest_path, short_name + "_history_" + prob_str)
-    p_filename = os.path.join(dest_path, short_name + "_persis_info_" + prob_str)
+    prob_str = hist_name = persis_name = ""
+    if append_attrs:
+        prob_str = "length=" + str(len(H)) + "_evals=" + str(sum(H["sim_ended"])) + "_workers=" + str(nworkers)
+        hist_name = "_history_" + prob_str
+        persis_name = "_persis_info_" + prob_str
+
+    h_filename = os.path.join(dest_path, short_name + hist_name)
+    p_filename = os.path.join(dest_path, short_name + persis_name)
 
     status_mess = " ".join(["------------------", mess, "-------------------"])
     logger.info(f"{status_mess}\nSaving results to file: {h_filename}")
@@ -142,7 +167,7 @@ def save_libE_output(H, persis_info, calling_file, nworkers, dest_path=None, mes
 # ===================== per-process numpy random-streams =======================
 
 
-def add_unique_random_streams(persis_info, nstreams, seed=""):
+def add_unique_random_streams(persis_info: dict, nstreams: int, seed: str = "") -> dict:
     """
     Creates nstreams random number streams for the libE manager and workers
     when nstreams is num_workers + 1. Stream i is initialized with seed i by default.
@@ -195,7 +220,7 @@ def add_unique_random_streams(persis_info, nstreams, seed=""):
     return persis_info
 
 
-def check_npy_file_exists(filename: str, basename: bool = False, max_wait: int = 3):
+def check_npy_file_exists(filename: str, basename: bool = False, max_wait: int = 3) -> bool:
     """Checks a file is created in a parallel environment
 
     Parameters

@@ -1,7 +1,6 @@
 import importlib
 import json
 import logging
-from typing import Optional
 
 import numpy.typing as npt
 import tomli
@@ -270,15 +269,15 @@ class Ensemble:
 
     def __init__(
         self,
-        sim_specs: Optional[SimSpecs] = SimSpecs(),
-        gen_specs: Optional[GenSpecs] = GenSpecs(),
-        exit_criteria: Optional[ExitCriteria] = {},
-        libE_specs: Optional[LibeSpecs] = LibeSpecs(),
-        alloc_specs: Optional[AllocSpecs] = AllocSpecs(),
-        persis_info: Optional[dict] = {},
-        executor: Optional[Executor] = None,
-        H0: Optional[npt.NDArray] = None,
-        parse_args: Optional[bool] = False,
+        sim_specs: SimSpecs | None = SimSpecs(),
+        gen_specs: GenSpecs | None = GenSpecs(),
+        exit_criteria: ExitCriteria | None = {},
+        libE_specs: LibeSpecs | None = LibeSpecs(),
+        alloc_specs: AllocSpecs | None = AllocSpecs(),
+        persis_info: dict | None = {},
+        executor: Executor | None = None,
+        H0: npt.NDArray | None = None,
+        parse_args: bool | None = False,
     ):
         self.sim_specs = sim_specs
         self.gen_specs = gen_specs
@@ -563,17 +562,29 @@ class Ensemble:
         self.persis_info = add_unique_random_streams(self.persis_info, nstreams + 1, seed=seed)
         return self.persis_info
 
-    def save_output(self, file: str):
+    def save_output(self, basename: str, append_attrs: bool = True):
         """
         Writes out History array and persis_info to files.
         If using a workflow_dir, will place with specified filename in that directory.
 
-        Format: ``<calling_script>_results_History_length=<length>_evals=<Completed evals>_ranks=<nworkers>``
+        Parameters
+        ----------
+
+        Format: ``<basename>_results_History_length=<length>_evals=<Completed evals>_ranks=<nworkers>``
+
+        To have the filename be only the basename, set append_attrs=False
+
+        Format: ``<basename>_results_History_length=<length>_evals=<Completed evals>_ranks=<nworkers>``
         """
         if self.is_manager:
             if self._get_option("libE_specs", "workflow_dir_path"):
                 save_libE_output(
-                    self.H, self.persis_info, file, self.nworkers, dest_path=self.libE_specs.workflow_dir_path
+                    self.H,
+                    self.persis_info,
+                    basename,
+                    self.nworkers,
+                    dest_path=self.libE_specs.workflow_dir_path,
+                    append_attrs=append_attrs,
                 )
             else:
-                save_libE_output(self.H, self.persis_info, file, self.nworkers)
+                save_libE_output(self.H, self.persis_info, basename, self.nworkers, append_attrs=append_attrs)

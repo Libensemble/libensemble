@@ -1,1 +1,0 @@
-../../libensemble/tests/scaling_tests/warpx/run_libensemble_on_warpx.py

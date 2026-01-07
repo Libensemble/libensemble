@@ -3,37 +3,113 @@
 Running on HPC Systems
 ======================
 
-Central vs. Distributed
------------------------
-
-libEnsemble has been developed, supported, and tested on systems of highly varying
-scales, from laptops to thousands of compute nodes. On multi-node systems, there are
-two basic modes of configuring libEnsemble to run and launch tasks (user applications)
+libEnsemble has been tested on systems of highly varying scales, from laptops to
+thousands of compute nodes. On multi-node systems, there are a few alternative
+ways of configuring libEnsemble to run and launch tasks (i.e., user applications)
 on the available nodes.
 
-The first mode we refer to as **central** mode, where the libEnsemble manager and worker processes
-are grouped onto one or more dedicated nodes. Workers launch applications onto
-the remaining allocated nodes:
+The :doc:`Forces tutorial <../../tutorials/executor_forces_tutorial>` gives an
+example with a simple MPI application.
 
-    .. image:: ../images/centralized_new_detailed.png
-        :alt: centralized
-        :scale: 30
-        :align: center
+Note that while the diagrams below show one application being run per node,
+configurations with **multiple nodes per worker** or **multiple workers per node**
+are both common use cases.
 
-Alternatively, in **distributed** mode, the libEnsemble (manager/worker) processes
-will share nodes with submitted tasks. This enables libEnsemble, using the *mpi4py*
-communicator, to be run with the workers spread across nodes so as to be co-located
-with their tasks.
+Centralized Running
+-------------------
+
+The default communications scheme places the manager and workers on the first node.
+The :doc:`MPI Executor<../executor/mpi_executor>` can then be invoked by each
+simulation worker, and libEnsemble will distribute user applications across the
+node allocation. This is the **most common approach** where each simulation
+runs an MPI application.
+
+The generator will run on a worker by default, but if running a single generator,
+the :ref:`libE_specs<datastruct-libe-specs>` option **gen_on_manager** is recommended,
+which runs the generator on the manager (using a thread) as below.
+
+.. list-table::
+   :widths: 60 40
+
+   * - .. image:: ../images/centralized_gen_on_manager.png
+          :alt: centralized
+          :scale: 55
+
+     - In calling script:
+
+       .. code-block:: python
+          :linenos:
+
+          ensemble.libE_specs = LibeSpecs(
+              gen_on_manager=True,
+          )
+
+       A SLURM batch script may include:
+
+       .. code-block:: bash
+
+          #SBATCH --nodes 3
+
+          python run_libe_forces.py --nworkers 3
+
+When using **gen_on_manager**, set ``nworkers`` to the number of workers desired for running simulations.
+
+Dedicated Mode
+^^^^^^^^^^^^^^
+
+If the :ref:`libE_specs<datastruct-libe-specs>` option **dedicated_mode** is set to
+True, the MPI executor will not launch applications on nodes where libEnsemble Python
+processes (manager and workers) are running. Workers launch applications onto the
+remaining nodes in the allocation.
+
+.. list-table::
+   :widths: 60 40
+
+   * - .. image:: ../images/centralized_dedicated.png
+          :alt: centralized dedicated mode
+          :scale: 30
+
+     - In calling script:
+
+       .. code-block:: python
+          :linenos:
+
+          ensemble.libE_specs = LibeSpecs(
+              num_resource_sets=2,
+              dedicated_mode=True,
+          )
+
+       A SLURM batch script may include:
+
+       .. code-block:: bash
+
+          #SBATCH --nodes 3
+
+          python run_libe_forces.py --nworkers 3
+
+Note that **gen_on_manager** is not set in the above example.
+
+Distributed Running
+-------------------
+
+In the **distributed** approach, libEnsemble can be run using the **mpi4py**
+communicator, with workers distributed across nodes. This is most often used
+when workers run simulation code directly, via a Python interface. The user
+script is invoked with an MPI runner, for example (using an `mpich`-based MPI)::
+
+    mpirun -np 4 -ppn 1 python myscript.py
+
+The distributed approach, can also be used with the executor, to co-locate workers
+with the applications they submit. Ensuring that workers are placed as required in this
+case requires :ref:`a careful MPI rank placement <slurm_mpi_distributed>`.
 
     .. image:: ../images/distributed_new_detailed.png
         :alt: distributed
         :scale: 30
         :align: center
 
-Configurations with multiple nodes per worker or multiple workers per node are both
-common use cases. The distributed approach allows the libEnsemble worker to read files
-produced by the application on local node storage. HPC systems that allow only one
-application to be launched to a node at any one time prevent distributed configuration.
+This allows the libEnsemble worker to read files produced by the application on
+local node storage.
 
 Configuring the Run
 -------------------
@@ -44,41 +120,50 @@ the nodes within that allocation.
 
 *How does libEnsemble know where to run tasks (user applications)?*
 
-The libEnsemble :doc:`Executor<../executor/ex_index>` can be initialized from the user calling
+The libEnsemble :doc:`MPI Executor<../executor/mpi_executor>` can be initialized from the user calling
 script, and then used by workers to run tasks. The Executor will automatically detect the nodes
 available on most systems. Alternatively, the user can provide a file called **node_list** in
 the run directory. By default, the Executor will divide up the nodes evenly to each worker.
-If the argument ``libE_specs["dedicated_mode"]=True`` is used when initializing libEnsemble, then any node
-that is running a libEnsemble manager or worker will be removed from the node-list available
-to the workers, ensuring libEnsemble has dedicated nodes.
 
-To run in central mode using a 5-node allocation with 4 workers: From the head node
-of the allocation::
+Mapping Tasks to Resources
+--------------------------
 
-    mpirun -np 5 python myscript.py
+The :ref:`resource manager<resources_index>` detects node lists from
+:ref:`common batch schedulers<resource_detection>`,
+and partitions these to workers. The :doc:`MPI Executor<../executor/mpi_executor>`
+accesses the resources available to the current worker when launching tasks.
 
-or::
+Zero-resource workers
+---------------------
 
-    python myscript.py --comms local --nworkers 4
+Users with persistent ``gen_f`` functions may notice that the persistent workers
+are still automatically assigned system resources. This can be resolved by using
+the ``gen_on_manager`` option or by
+:ref:`fixing the number of resource sets<zero_resource_workers>`.
 
-Either of these will run libEnsemble (inc. manager and 4 workers) on the first node. The remaining
-4 nodes will be divided among the workers for submitted applications. If the same run was
-performed without ``libE_specs["dedicated_mode"]=True``, runs could be submitted to all 5 nodes. The number of workers
-can be modified to allow either multiple workers to map to each node or multiple nodes per worker.
+Assigning GPUs
+--------------
 
-To launch libEnsemble distributed requires a less trivial libEnsemble run script.
-For example::
+libEnsemble automatically detects and assigns Nvidia, AMD, and Intel GPUs without modifying the user scripts. This automatically works on many systems, but if the assignment is incorrect or needs to be modified the user can specify :ref:`platform information<datastruct-platform-specs>`.
+The :doc:`forces_gpu tutorial<../tutorials/forces_gpu_tutorial>` shows an example of this.
 
-    mpirun -np 5 -ppn 1 python myscript.py
+Varying resources
+-----------------
 
-would launch libEnsemble with 5 processes across 5 nodes. However, the manager would have its
-own node, which is likely wasteful. More often, a ``machinefile`` is used to add the manager to
-the first node. In the :doc:`examples<example_scripts>` directory, you can find an example submission
-script, configured to run libensemble distributed, with multiple workers per node or multiple nodes
-per worker, and adding the manager onto the first node.
+libEnsemble also features :ref:`dynamic resource assignment<var-resources-gpu>`, whereby the
+number of processes and/or the number of GPUs can be a set for each simulation by the generator.
 
-HPC systems that only allow one application to be launched to a node at any one time,
-will not allow a distributed configuration.
+Overriding Auto-Detection
+-------------------------
+
+libEnsemble can automatically detect system information. This includes resource information, such as
+available nodes and the number of cores on the node, and information about available MPI runners.
+
+System detection for resources can be overridden using the :ref:`resource_info<resource_info>`
+libE_specs option.
+
+When using the MPI Executor, it is possible to override the detected information using the
+`custom_info` argument. See the :doc:`MPI Executor<../executor/mpi_executor>` for more.
 
 Systems with Launch/MOM Nodes
 -----------------------------
@@ -97,59 +182,15 @@ tasks.
 
 However, running libEnsemble on the compute nodes is potentially more scalable and
 will better manage simulation and generation functions that contain considerable
-computational work or I/O. Therefore the second option is to use proxy task-execution
-services like Balsam_.
-
-Balsam - Externally Managed Applications
-----------------------------------------
-
-Running libEnsemble on the compute nodes while still submitting additional applications
-requires alternative Executors that connect to external services like Balsam_. Balsam
-can take tasks submitted by workers and execute them on the remaining compute nodes,
-or *to entirely different systems*.
-
-    .. figure:: ../images/balsam2.png
-        :alt: balsam2
-        :scale: 40
-        :align: center
-
-        (New) Multi-System: libEnsemble + BalsamExecutor
-
-Submission scripts for running on launch/MOM nodes and for using Balsam, can be found in
-the :doc:`examples<example_scripts>`.
-
-Mapping Tasks to Resources
---------------------------
-
-The :ref:`resource manager<resources_index>` can :ref:`detect system resources<resource_detection>`,
-and partition these to workers. The :doc:`MPI Executor<../executor/mpi_executor>`
-accesses the resources available to the current worker when launching tasks.
-
-Zero-resource workers
-~~~~~~~~~~~~~~~~~~~~~
-
-Users with persistent ``gen_f`` functions may notice that the persistent workers
-are still automatically assigned system resources. This can be resolved by
-:ref:`fixing the number of resource sets<zero_resource_workers>`.
-
-Overriding Auto-Detection
--------------------------
-
-libEnsemble can automatically detect system information. This includes resource information, such as
-available nodes and the number of cores on the node, and information about available MPI runners.
-
-System detection for resources can be overridden using the :ref:`resource_info<resource_info>`
-libE_specs option.
-
-When using the MPI Executor, it is possible to override the detected information using the
-`custom_info` argument. See the :doc:`MPI Executor<../executor/mpi_executor>` for more.
+computational work or I/O. Therefore the second option is to use Globus Compute
+to isolate this work from the workers.
 
 .. _globus_compute_ref:
 
 Globus Compute - Remote User Functions
 --------------------------------------
 
-*Alternatively to much of the above*, if libEnsemble is running on some resource with
+If libEnsemble is running on some resource with
 internet access (laptops, login nodes, other servers, etc.), workers can be instructed to
 launch generator or simulator user function instances to separate resources from
 themselves via `Globus Compute`_ (formerly funcX), a distributed, high-performance function-as-a-service platform:
@@ -215,12 +256,10 @@ libEnsemble on specific HPC systems.
     improv
     perlmutter
     polaris
-    spock_crusher
     summit
     srun
     example_scripts
 
-.. _Balsam: https://balsam.readthedocs.io/en/latest/
 .. _Globus Compute: https://www.globus.org/compute
 .. _Globus Compute endpoints: https://globus-compute.readthedocs.io/en/latest/endpoints.html
 .. _Globus: https://www.globus.org/

@@ -5,7 +5,14 @@ from libensemble.message_numbers import TASK_FAILED, WORKER_DONE
 
 
 def run_forces(H, persis_info, sim_specs, libE_info):
-    """Runs the forces MPI application"""
+    """Runs the forces MPI application.
+
+    By default assigns the number of MPI ranks to the number
+    of cores available to this worker.
+
+    To assign a different number give e.g., `num_procs=4` to
+    ``exctr.submit``.
+    """
 
     calc_status = 0
 

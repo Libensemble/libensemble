@@ -4,7 +4,7 @@ varying amount of resources, and then checks structure of the libE_stats.txt fil
 
 Execute via one of the following commands (e.g. 3 workers):
    mpiexec -np 4 python test_stats_output.py
-   python test_stats_output.py --nworkers 3 --comms local
+   python test_stats_output.py --nworkers 3
 
 The number of concurrent evaluations of the objective function will be 4-1=3.
 

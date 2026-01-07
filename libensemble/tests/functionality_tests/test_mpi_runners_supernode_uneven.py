@@ -5,7 +5,7 @@ This test must be run on a number of workers >= 2.
 
 Execute via one of the following commands (e.g. 5 workers):
    mpiexec -np 6 python test_mpi_runners_supernode_uneven.py
-   python test_mpi_runners_supernode_uneven.py --nworkers 5 --comms local
+   python test_mpi_runners_supernode_uneven.py --nworkers 5
 """
 
 import numpy as np

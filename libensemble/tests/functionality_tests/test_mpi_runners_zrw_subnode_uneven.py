@@ -5,7 +5,7 @@ This test must be run on an even number of workers >= 4 and <= 32 (e.g. odd no. 
 
 Execute via one of the following commands (e.g. 6 workers - one is zero resource):
    mpiexec -np 7 python test_mpi_runners_zrw_subnode_uneven.py
-   python test_mpi_runners_zrw_subnode_uneven.py --nworkers 6 --comms local
+   python test_mpi_runners_zrw_subnode_uneven.py --nworkers 6
    python test_mpi_runners_zrw_subnode_uneven.py --nworkers 6 --comms tcp
 
 The resource sets are split unevenly between the two nodes (e.g. 3 and 2).

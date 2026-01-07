@@ -8,9 +8,8 @@ from libensemble.tools.test_support import check_gpu_setting
 
 
 def run_forces(H, persis_info, sim_specs, libE_info):
-    """Launches the forces MPI app and auto-assigns ranks and GPU resources.
-
-    Assigns one MPI rank to each GPU assigned to the worker.
+    """Launches the either the CPU-only or GPU version of the forces MPI app
+    and auto-assigns ranks and GPU resources as requested by the generator.
     """
 
     calc_status = 0

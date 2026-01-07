@@ -1,5 +1,4 @@
 import time
-from typing import Tuple
 
 import numpy as np
 import numpy.typing as npt
@@ -15,7 +14,7 @@ def give_sim_work_first(
     alloc_specs: dict,
     persis_info: dict,
     libE_info: dict,
-) -> Tuple[dict]:
+) -> tuple[dict]:
     """
     Decide what should be given to workers. This allocation function gives any
     available simulation work first, and only when all simulations are
@@ -26,7 +25,7 @@ def give_sim_work_first(
     work is given out unless all entries in ``H`` are returned.
 
     Can give points in highest priority, if ``"priority"`` is a field in ``H``.
-    If alloc_specs["user"]["give_all_with_same_priority"] is set to True, then
+    If ``alloc_specs["user"]["give_all_with_same_priority"]`` is set to True, then
     all points with the same priority value are given as a batch to the sim.
 
     Workers performing sims will be assigned resources given in H["resource_sets"]

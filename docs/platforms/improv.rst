@@ -56,7 +56,7 @@ Once in the interactive session, you may need to reload the modules::
 
 Now run forces with five workers (one for generator and four for simulations)::
 
-    python run_libe_forces.py --comms local --nworkers 5
+    python run_libe_forces.py --nworkers 5
 
 mpi4py comms
 ============

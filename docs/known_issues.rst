@@ -15,7 +15,7 @@ may occur when using libEnsemble.
   we recommend using ``local`` comms in place of ``mpi4py``.
 * When using the Executor: Open-MPI does not work with direct MPI task
   submissions in mpi4py comms mode, since Open-MPI does not support nested MPI
-  executions. Use either ``local`` mode or the Balsam Executor instead.
+  executions. Use ``local`` mode instead.
 * Local comms mode (multiprocessing) may fail if MPI is initialized before
   forking processors. This is thought to be responsible for issues combining
   multiprocessing with PETSc on some platforms.

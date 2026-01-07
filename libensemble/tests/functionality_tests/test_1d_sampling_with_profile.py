@@ -3,7 +3,7 @@ Runs libEnsemble 1D sampling test with worker profiling.
 
 Execute via one of the following commands (e.g. 3 workers):
    mpiexec -np 4 python test_1d_sampling_with_profile.py
-   python test_1d_sampling_with_profile.py --nworkers 3 --comms local
+   python test_1d_sampling_with_profile.py --nworkers 3
    python test_1d_sampling_with_profile.py --nworkers 3 --comms tcp
 
 The number of concurrent evaluations of the objective function will be 4-1=3.
