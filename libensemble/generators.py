@@ -68,7 +68,8 @@ class LibensembleGenerator(Generator):
             ):  # e.g. {"f": ["f"]} doesn't need mapping
                 self.variables_mapping["f"] = self._get_unmapped_keys(self.VOCS.objectives, "f")
         # Map sim_id to _id
-        self.variables_mapping["sim_id"] = ["_id"]
+        if self.returns_id:
+            self.variables_mapping["sim_id"] = ["_id"]
 
         if len(kwargs) > 0:  # so user can specify gen-specific parameters as kwargs to constructor
             if not self.gen_specs.get("user"):
