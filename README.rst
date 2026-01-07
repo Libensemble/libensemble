@@ -44,8 +44,10 @@ and an exit condition. Run the following four-worker example via ``python this_f
 
     import numpy as np
 
+    from gest_api.vocs import VOCS
+
     from libensemble import Ensemble
-    from libensemble.gen_funcs.sampling import uniform_random_sample
+    from libensemble.gen_classes.sampling import UniformSample
     from libensemble.sim_funcs.six_hump_camel import six_hump_camel
     from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
 
@@ -53,37 +55,41 @@ and an exit condition. Run the following four-worker example via ``python this_f
 
         libE_specs = LibeSpecs(nworkers=4)
 
+        vocs = VOCS(
+            variables={
+                "x0": [-3, 3],
+                "x1": [-2, 2],
+            },
+            objectives={"f": "EXPLORE"},
+        )
+
+        generator = UniformSample(vocs)
+
         sim_specs = SimSpecs(
             sim_f=six_hump_camel,
-            inputs=["x"],
-            outputs=[("f", float)],
+            vocs=vocs,
         )
 
         gen_specs = GenSpecs(
-            gen_f=uniform_random_sample,
-            outputs=[("x", float, 2)],
-            user={
-                "gen_batch_size": 50,
-                "lb": np.array([-3, -2]),
-                "ub": np.array([3, 2]),
-            },
+            generator=generator,
+            vocs=vocs,
         )
 
         exit_criteria = ExitCriteria(sim_max=100)
 
-        sampling = Ensemble(
+        ensemble = Ensemble(
             libE_specs=libE_specs,
             sim_specs=sim_specs,
             gen_specs=gen_specs,
             exit_criteria=exit_criteria,
         )
 
-        sampling.add_random_streams()
-        sampling.run()
+        ensemble.add_random_streams()
+        ensemble.run()
 
-        if sampling.is_manager:
-            sampling.save_output(__file__)
-            print("Some output data:\n", sampling.H[["x", "f"]][:10])
+        if ensemble.is_manager:
+            ensemble.save_output(__file__)
+            print("Some output data:\n", ensemble.H[["x", "f"]][:10])
 
 |Inline Example|
 
