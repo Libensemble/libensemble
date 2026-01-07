@@ -6,8 +6,8 @@ Runs an initial ensemble, followed by another using the first as an H0.
 *****currently fixing nworkers to batch_size*****
 
 Execute via one of the following commands (e.g. 4 workers):
-   mpiexec -np 5 python test_optimas_ax.py
-   python test_optimas_ax.py -n 4
+   mpiexec -np 5 python test_optimas_ax_multitask.py
+   python test_optimas_ax_multitask.py -n 4
 
 When running with the above commands, the number of concurrent evaluations of
 the objective function will be 4 as the generator is on the manager.
