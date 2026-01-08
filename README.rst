@@ -55,7 +55,7 @@ and an exit condition. Run the following four-worker example via ``python this_f
 
         libE_specs = LibeSpecs(nworkers=4)
 
-        vocs = VOCS(
+        variables_objectives = VOCS(
             variables={
                 "x0": [-3, 3],
                 "x1": [-2, 2],
@@ -63,16 +63,16 @@ and an exit condition. Run the following four-worker example via ``python this_f
             objectives={"f": "EXPLORE"},
         )
 
-        generator = UniformSample(vocs)
+        generator = UniformSample(vocs=variables_objectives)
 
         sim_specs = SimSpecs(
             sim_f=six_hump_camel,
-            vocs=vocs,
+            vocs=variables_objectives,
         )
 
         gen_specs = GenSpecs(
             generator=generator,
-            vocs=vocs,
+            vocs=variables_objectives,
         )
 
         exit_criteria = ExitCriteria(sim_max=100)
