@@ -172,6 +172,8 @@ class APOSMM(PersistentGenInterfacer):
         Seed for the random number generator.
     """
 
+    returns_id = True
+
     def _validate_vocs(self, vocs: VOCS):
         if len(vocs.constraints):
             warnings.warn("APOSMM does not support constraints in VOCS. Ignoring.")
