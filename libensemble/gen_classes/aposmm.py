@@ -22,23 +22,23 @@ class APOSMM(PersistentGenInterfacer):
 
         `https://doi.org/10.1007/s12532-017-0131-4 <https://doi.org/10.1007/s12532-017-0131-4>`_
 
-    VOCS variables must include both regular and *_on_cube versions. E.g.,:
+    VOCS variables must include both regular and ``*_on_cube`` versions. E.g.,:
 
-    ```python
-    vars_std = {
-        "var1": [-10.0, 10.0],
-        "var2": [0.0, 100.0],
-        "var3": [1.0, 50.0],
-        "var1_on_cube": [0, 1.0],
-        "var2_on_cube": [0, 1.0],
-        "var3_on_cube": [0, 1.0],
-    }
-    variables_mapping = {
-        "x": ["var1", "var2", "var3"],
-        "x_on_cube": ["var1_on_cube", "var2_on_cube", "var3_on_cube"],
-    }
-    gen = APOSMM(vocs, 3, 3, variables_mapping=variables_mapping, ...)
-    ```
+    .. code-block:: python
+
+        vars_std = {
+            "var1": [-10.0, 10.0],
+            "var2": [0.0, 100.0],
+            "var3": [1.0, 50.0],
+            "var1_on_cube": [0, 1.0],
+            "var2_on_cube": [0, 1.0],
+            "var3_on_cube": [0, 1.0],
+        }
+        variables_mapping = {
+            "x": ["var1", "var2", "var3"],
+            "x_on_cube": ["var1_on_cube", "var2_on_cube", "var3_on_cube"],
+        }
+        gen = APOSMM(vocs, 3, 3, variables_mapping=variables_mapping, ...)
 
     Getting started
     ---------------
@@ -49,7 +49,8 @@ class APOSMM(PersistentGenInterfacer):
     parameter. This many evaluated sample points *must* be provided to APOSMM before it will provide any
     local optimization points.
 
-        ```python
+    .. code-block:: python
+
         # Approach 1: Retrieve sample points via suggest()
         gen = APOSMM(vocs, max_active_runs=2, initial_sample_size=10)
 
@@ -78,12 +79,14 @@ class APOSMM(PersistentGenInterfacer):
         points = gen.suggest(10)
 
         ...
-        ```
 
-    *Important Note*: After the initial sample phase, APOSMM cannot accept additional "arbitrary"
-    sample points that are not associated with local optimization runs.
 
-        ```python
+    .. important::
+        After the initial sample phase, APOSMM cannot accept additional "arbitrary"
+        sample points that are not associated with local optimization runs.
+
+
+    .. code-block:: python
         gen = APOSMM(vocs, max_active_runs=2, initial_sample_size=10)
 
         # ask APOSMM for some sample points
@@ -99,7 +102,6 @@ class APOSMM(PersistentGenInterfacer):
         gen.ingest(points_from_aposmm)
 
         gen.ingest(another_sample)  # THIS CRASHES
-        ```
 
     Parameters
     ----------
@@ -113,25 +115,11 @@ class APOSMM(PersistentGenInterfacer):
 
         Minimal sample points required before starting optimization.
 
-        If `suggest(N)` is called first, APOSMM produces this many random sample points across the domain,
+        If ``suggest(N)`` is called first, APOSMM produces this many random sample points across the domain,
         with N <= initial_sample_size.
 
-        If `ingest(sample)` is called first, multiple calls like `ingest(sample)` are required until
+        If ``ingest(sample)`` is called first, multiple calls like ``ingest(sample)`` are required until
         the total number of points ingested is >= initial_sample_size.
-
-        ```python
-        gen = APOSMM(vocs, max_active_runs=2, initial_sample_size=10)
-
-        # ask APOSMM for some sample points
-        initial_sample = gen.suggest(10)
-        for point in initial_sample:
-            point["f"] = func(point["x"])
-        gen.ingest(initial_sample)
-
-        # APOSMM will now provide local-optimization points.
-        points = gen.suggest(10)
-        ...
-        ```
 
     History: npt.NDArray = []
         An optional history of previously evaluated points.
