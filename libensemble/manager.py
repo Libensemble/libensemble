@@ -419,22 +419,22 @@ class Manager:
         if self.resources:
             self.resources.resource_manager.free_rsets(w)
 
-    def _refresh_from_cache(
-        self, cache: npt.NDArray, dtype_with_idx: np.dtype, cache_row: npt.NDArray, work_row: int, w: int
-    ) -> None:
-        """Add a cache entry, workerID, and H_row to the local record array.
+    def _check_cache_matches(self, cache_row: npt.NDArray, work_row: int, new_dtype: np.dtype) -> bool:
+        """Checks if a cache row matches the work row for all outbound fields"""
+        return all(np.allclose(cache_row[f], self.hist.H[f][work_row]) for f in np.dtype(new_dtype).names)
 
-        Later on when we iterate over the cache for entries that could've been sent to a worker (but weren't),
-        we'll process that entry as though it came from this worker, with these H_rows.
-        """
-        self.cache_hit = True
+    def _update_local_entry_from_cache(
+        self, cache_row: npt.NDArray, work_row: int, new_dtype: np.dtype, w: int, dtype_with_idx: np.dtype
+    ) -> None:
+        """Updates the local `from_cache` record with the cache row"""
         from_cache_entry = np.empty(1, dtype=dtype_with_idx)
         from_cache_entry["H_row"] = work_row
         from_cache_entry["worker_id"] = w
-        for remaining_field in cache.dtype.names:
-            from_cache_entry[remaining_field] = cache_row[remaining_field]
+        for field in np.dtype(new_dtype).names:
+            from_cache_entry[field] = cache_row[field]
         self.from_cache[self.cache_index] = from_cache_entry
         self.cache_index += 1
+        self.cache_hit = True
 
     def _cache_scan(
         self, cache: npt.NDArray, Work: dict, w: int, dtype_with_idx: np.dtype, new_dtype: np.dtype
@@ -446,15 +446,14 @@ class Manager:
 
         self.cache_timer = Timer()
         with self.cache_timer:
-            for field in np.dtype(new_dtype).names:
-                if field in cache.dtype.names:
-                    for work_row in Work["libE_info"]["H_rows"]:
-                        for cache_row in cache:
-                            if (
-                                np.allclose(cache_row[field], self.hist.H[field][work_row])
-                                and work_row not in self.from_cache["H_row"]
-                            ):  # we found outbound work in cache, that's not already in the local record
-                                self._refresh_from_cache(cache, dtype_with_idx, cache_row, work_row, w)
+            for work_row in Work["libE_info"]["H_rows"]:
+                for cache_row in cache:
+                    if (
+                        self._check_cache_matches(cache_row, work_row, new_dtype)
+                        and work_row not in self.from_cache["H_row"]
+                    ):  # we found outbound work in cache, that's not already in the local record
+                        self._update_local_entry_from_cache(cache_row, work_row, new_dtype, w, dtype_with_idx)
+                        break
 
     def _update_state_from_cache(self, Work: dict, work_rows: npt.NDArray, w: int, new_dtype: np.dtype) -> None:
         """Retrieve saved cache from history, create local record-array of matching cache entries.
