@@ -224,7 +224,6 @@ class Manager:
         if self.use_cache:
             self.hist.init_cache(self.libE_specs.get("cache_name"))
             self.from_cache = []
-            self.cache_index = 0
         self.cache_hit = False
 
         dyn_keys = ("resource_sets", "num_procs", "num_gpus")
@@ -420,7 +419,10 @@ class Manager:
             self.resources.resource_manager.free_rsets(w)
 
     def _check_cache_matches(self, cache_row: npt.NDArray, work_row: int, new_dtype: np.dtype) -> bool:
-        """Checks if a cache row matches the work row for all outbound fields"""
+        """Checks if a cache row matches the work row for all *outbound* *sim* fields
+
+        See _send_work_order for the source of new_dtype - this is the dtype of the outbound sim fields
+        """
         return all(np.allclose(cache_row[f], self.hist.H[f][work_row]) for f in np.dtype(new_dtype).names)
 
     def _update_local_entry_from_cache(
@@ -428,12 +430,11 @@ class Manager:
     ) -> None:
         """Updates the local `from_cache` record with the cache row"""
         from_cache_entry = np.empty(1, dtype=dtype_with_idx)
-        from_cache_entry["H_row"] = work_row
-        from_cache_entry["worker_id"] = w
-        for field in np.dtype(new_dtype).names:
+        from_cache_entry["H_row"] = work_row  # log this for later checking if outbound rows are already cached
+        from_cache_entry["worker_id"] = w  # used to simulate the worker sending back work that actually came from cache
+        for field in np.dtype(new_dtype).names:  # we now only do this since all outbound fields were close
             from_cache_entry[field] = cache_row[field]
-        self.from_cache[self.cache_index] = from_cache_entry
-        self.cache_index += 1
+        self.from_cache[-1] = from_cache_entry  # the local record was already appended
         self.cache_hit = True
 
     def _cache_scan(
@@ -442,21 +443,24 @@ class Manager:
         """
         Check if any work rows are in the cache, and if so, call the above, _refresh_from_cache
         to update the local `from_cache` record.
+
+        Each H_row in the work order is checked against the cache, field-wise for closeness.
+        If a match is found, the local `from_cache` record is updated with the cache row.
         """
 
         self.cache_timer = Timer()
         with self.cache_timer:
-            for work_row in Work["libE_info"]["H_rows"]:
+            for work_row in Work["libE_info"]["H_rows"]:  # used to compare H entries against the cache
                 for cache_row in cache:
                     if (
                         self._check_cache_matches(cache_row, work_row, new_dtype)
                         and work_row not in self.from_cache["H_row"]
                     ):  # we found outbound work in cache, that's not already in the local record
                         self._update_local_entry_from_cache(cache_row, work_row, new_dtype, w, dtype_with_idx)
-                        break
+                        break  # we only need to update the local record once
 
     def _update_state_from_cache(self, Work: dict, work_rows: npt.NDArray, w: int, new_dtype: np.dtype) -> None:
-        """Retrieve saved cache from history, create local record-array of matching cache entries.
+        """Retrieve saved cache from history, create local record-array qof matching cache entries.
 
         The `from_cache` local record contains cache entries and the workerID and H_rows they are associated with, had
         they been sent to a worker.
@@ -569,7 +573,6 @@ class Manager:
                 if w > 0:  # actual cache entry - not blank. assuming w0 gets no sim work
                     self._handle_msg_from_worker(persis_info, w, process_cache=True)
             self.from_cache = []
-            self.cache_index = 0
 
         # Process messages from workers
         new_stuff = True
