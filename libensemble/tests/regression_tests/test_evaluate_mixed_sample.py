@@ -17,7 +17,6 @@ The number of concurrent evaluations of the objective function will be 4-1=3.
 import warnings
 
 import numpy as np
-
 from libensemble import Ensemble
 from libensemble.alloc_funcs.give_pregenerated_work import give_pregenerated_sim_work as alloc_f
 
@@ -33,9 +32,7 @@ if __name__ == "__main__":
     samp = 1000
     n = 8
 
-    H0 = np.zeros(
-        samp, dtype=[("x", float, n), ("f", float), ("sim_id", int), ("sim_started", bool), ("sim_ended", bool)]
-    )
+    H0 = np.zeros(samp, dtype=[("x", float, n), ("f", float), ("sim_id", int), ("sim_started", bool), ("sim_ended", bool)])
     np.random.seed(0)
     H0["x"] = gen_borehole_input(samp)
     for i in range(500):

@@ -21,9 +21,8 @@ import multiprocessing
 import sys
 from math import gamma, pi, sqrt
 
-import numpy as np
-
 import libensemble.gen_funcs
+import numpy as np
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
@@ -122,9 +121,7 @@ if __name__ == "__main__":
 
     if is_manager:
         assert persis_info[1].get("run_order"), "Run_order should have been given back"
-        assert (
-            len(persis_info[1]["run_order"]) >= gen_specs["user"]["stop_after_k_minima"]
-        ), "This test should have many runs started."
+        assert len(persis_info[1]["run_order"]) >= gen_specs["user"]["stop_after_k_minima"], "This test should have many runs started."
         assert len(H) < exit_criteria["sim_max"], "Test should have stopped early due to 'stop_after_k_minima'"
 
         print("[Manager]:", H[np.where(H["local_min"])]["x"])

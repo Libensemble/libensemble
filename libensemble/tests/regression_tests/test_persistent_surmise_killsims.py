@@ -33,7 +33,6 @@ in the libEnsemble documentation.
 import os
 
 import numpy as np
-
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.executors.executor import Executor
 from libensemble.gen_funcs.persistent_surmise_calib import surmise_calib as gen_f
@@ -130,9 +129,7 @@ if __name__ == "__main__":
     exit_criteria = {"sim_max": max_evals}
 
     # Perform the run
-    H, persis_info, flag = libE(
-        sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs=alloc_specs, libE_specs=libE_specs
-    )
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs=alloc_specs, libE_specs=libE_specs)
 
     if is_manager:
         print("Cancelled sims", H["sim_id"][H["cancel_requested"]])
