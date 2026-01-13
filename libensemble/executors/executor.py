@@ -673,10 +673,16 @@ class Executor:
         self.workerID = workerid
         self.comm = comm
 
-    def _check_app_exists(self, full_path: str) -> None:
+    def _check_app_exists(self, app: Application) -> None:
         """Allows submit function to check if app exists and error if not"""
-        if not os.path.isfile(full_path):
-            raise ExecutorException(f"Application does not exist {full_path}")
+        if app.precedent is not None:
+            # Could be a container call in precedent. In that case,
+            # the executable is not available on the host system and
+            # we just forward what the user provided.
+            return
+
+        if not os.path.isfile(app.full_path):
+            raise ExecutorException(f"Application does not exist {app.full_path}")
 
     def submit(
         self,
@@ -745,7 +751,7 @@ class Executor:
         task = Task(app, app_args, default_workdir, stdout, stderr, self.workerID, dry_run)
 
         if not dry_run:
-            self._check_app_exists(task.app.full_path)
+            self._check_app_exists(task.app)
 
         runline = task.app.app_cmd.split()
         if task.app_args is not None:
