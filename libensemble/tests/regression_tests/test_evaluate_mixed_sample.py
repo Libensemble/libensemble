@@ -32,7 +32,9 @@ if __name__ == "__main__":
     samp = 1000
     n = 8
 
-    H0 = np.zeros(samp, dtype=[("x", float, n), ("f", float), ("sim_id", int), ("sim_started", bool), ("sim_ended", bool)])
+    H0 = np.zeros(
+        samp, dtype=[("x", float, n), ("f", float), ("sim_id", int), ("sim_started", bool), ("sim_ended", bool)]
+    )
     np.random.seed(0)
     H0["x"] = gen_borehole_input(samp)
     for i in range(500):

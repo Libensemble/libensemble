@@ -129,7 +129,9 @@ if __name__ == "__main__":
     exit_criteria = {"sim_max": max_evals}
 
     # Perform the run
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs=alloc_specs, libE_specs=libE_specs)
+    H, persis_info, flag = libE(
+        sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs=alloc_specs, libE_specs=libE_specs
+    )
 
     if is_manager:
         print("Cancelled sims", H["sim_id"][H["cancel_requested"]])
