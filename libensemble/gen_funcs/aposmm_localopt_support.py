@@ -44,7 +44,7 @@ if optimizers is not None:
     if "dfols" in optimizers:
         import dfols  # noqa: F401
     if "ibcdfo_pounders" in optimizers:
-        from ibcdfo.pounders import pounders  # noqa: F401
+        from ibcdfo import run_pounders
     if "ibcdfo_manifold_sampling" in optimizers:
         from ibcdfo.manifold_sampling import manifold_sampling_primal  # noqa: F401
     if "scipy" in optimizers:
@@ -507,7 +507,7 @@ def run_local_ibcdfo_pounders(user_specs, comm_queue, x0, f0, child_can_read, pa
     else:
         Options = None
 
-    [X, F, hF, flag, xkin] = pounders(
+    [X, F, hF, flag, xkin] = run_pounders(
         lambda x: scipy_dfols_callback_fun(x, comm_queue, child_can_read, parent_can_read, user_specs),
         x0,
         n,
