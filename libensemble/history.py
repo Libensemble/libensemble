@@ -1,5 +1,6 @@
 import logging
 import time
+from pathlib import Path
 
 import numpy as np
 import numpy.typing as npt
@@ -93,6 +94,7 @@ class History:
         self.index = len(H0)
         self.grow_count = 0
         self.safe_mode = False
+        self.use_cache = False
 
         self.sim_started_count = np.sum(H["sim_started"])
         self.sim_ended_count = np.sum(H["sim_ended"])
@@ -106,6 +108,15 @@ class History:
         self.last_started = -1
         self.last_ended = -1
 
+    def init_cache(self, cache_name: str) -> None:
+        self.cache_dir = Path.home() / ".libE"
+        self.cache_dir.mkdir(parents=True, exist_ok=True)
+        self.cache = self.cache_dir / Path(cache_name + ".npy")
+        if not self.cache.exists():
+            self.cache.touch()
+        self.use_cache = True
+        self.cache_set = False
+
     def _append_new_fields(self, H_f: npt.NDArray) -> None:
         dtype_new = np.dtype(list(set(self.H.dtype.descr + H_f.dtype.descr)))
         H_new = np.zeros(len(self.H), dtype=dtype_new)
@@ -113,6 +124,30 @@ class History:
         for field in old_fields:
             H_new[field][: len(self.H)] = self.H[field]
         self.H = H_new
+
+    def _shelf_longrunning_sims(self, index):
+        """Cache any f values that ran for more than a second."""
+        if self.H[index]["sim_ended_time"] - self.H[index]["sim_started_time"] > 1:
+            # ('f', 'x') and ('x', 'f') are not equivalent dtypes, unfortunately. So maybe sorted helps.
+            self.cache_keys = sorted(
+                [i for i in self.H.dtype.names if i not in [k[0] for k in libE_fields]]
+            )  # ('f', 'x') keys only
+            self.cache_dtype = sorted(
+                [(name, self.H.dtype.fields[name][0]) for name in self.cache_keys]
+            )  # only needed to init cache
+            try:
+                in_cache = np.load(self.cache, allow_pickle=True)
+            except EOFError:
+                in_cache = np.zeros(1, dtype=self.cache_dtype)
+            entry = self.H[index][self.cache_keys]
+            if entry not in in_cache:
+                in_cache = np.append(in_cache, entry)
+            in_cache = np.unique(in_cache, axis=0)  # attempt to remove duplicates
+            np.save(self.cache, in_cache, allow_pickle=True)
+            self.cache_set = True
+
+    def get_shelved_sims(self) -> npt.NDArray:
+        return np.load(self.cache, allow_pickle=True)
 
     def update_history_f(self, D: dict, kill_canceled_sims: bool = False) -> None:
         """
@@ -147,6 +182,8 @@ class History:
             self.H["sim_ended"][ind] = True
             self.H["sim_ended_time"][ind] = time.time()
             self.sim_ended_count += 1
+            if self.use_cache:
+                self._shelf_longrunning_sims(ind)
 
         if kill_canceled_sims:
             for j in range(self.last_ended + 1, np.max(new_inds) + 1):

@@ -225,7 +225,8 @@ class Worker:
             logger.debug(f"No resources set on worker {workerID}")
             return False
 
-    def _extract_debug_data(self, calc_type, Work):
+    @staticmethod
+    def _extract_debug_data(calc_type, Work):
         if calc_type == EVAL_SIM_TAG:
             enum_desc = "sim_id"
             calc_id = extract_H_ranges(Work)
@@ -256,7 +257,7 @@ class Worker:
         calc_type = Work["tag"]
         self.calc_iter[calc_type] += 1
 
-        enum_desc, calc_id = self._extract_debug_data(calc_type, Work)
+        enum_desc, calc_id = Worker._extract_debug_data(calc_type, Work)
 
         timer = Timer()
 
@@ -312,7 +313,7 @@ class Worker:
 
             logging.getLogger(LogConfig.config.stats_name).info(calc_msg)
 
-    def _get_calc_msg(self, enum_desc: str, calc_id: int, calc_type: int, timer: Timer, status: str) -> str:
+    def _get_calc_msg(self, enum_desc: str, calc_id: int, calc_type: str, timer: Timer, status: str) -> str:
         """Construct line for libE_stats.txt file"""
         calc_msg = f"{enum_desc} {calc_id}: {calc_type} {timer}"
 

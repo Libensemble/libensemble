@@ -55,6 +55,9 @@ if __name__ == "__main__":
     if is_manager:
         print(f"\nCores req: {cores_all_tasks} Cores avail: {logical_cores}\n  {mess_resources}\n")
 
+    libE_specs["cache_long_sims"] = True
+    libE_specs["cache_name"] = "executor_hworld_" + str(nworkers) + "_" + libE_specs.get("comms")
+
     sim_app = "./my_simtask.x"
     if not os.path.isfile(sim_app):
         build_simfunc()
@@ -101,7 +104,7 @@ if __name__ == "__main__":
 
         # For debug
         print(f"Expecting: {calc_status_list}")
-        print("Received:  {H['cstat']}\n")
+        print(f"Received:  {H['cstat']}\n")
 
         assert np.array_equal(H["cstat"], calc_status_list), "Error - unexpected calc status. Received: " + str(
             H["cstat"]
