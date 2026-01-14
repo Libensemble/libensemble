@@ -63,6 +63,12 @@ jobs:
             pip install -e .
             flake8 libensemble
 
+        - name: Install mypy
+          run: pip install mypy
+
+        - name: Run mypy (limited scope)
+          run: mypy
+
         - name: Remove various tests on newer pythons
           if: matrix.python-version == 'py311' || matrix.python-version == 'py312' || matrix.python-version == 'py313' || matrix.python-version == 'py314'
           run: |

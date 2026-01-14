@@ -110,6 +110,7 @@ class EnsembleDirectory:
 
         # If using input_dir, set of files to copy is contents of provided dir
         if input_dir:
+            assert isinstance(input_dir, Path)
             copy_files = set(copy_files + [i for i in input_dir.iterdir()])
 
         # If identical paths to copy and symlink, remove those paths from symlink_files
@@ -124,7 +125,7 @@ class EnsembleDirectory:
                 prefix = self.ensemble_dir
             else:  # Each worker does work in prefix (ensemble_dir)
                 key = self.ensemble_dir
-                dirname = self.ensemble_dir
+                dirname = str(self.ensemble_dir)
                 prefix = None
 
             locs.register_loc(

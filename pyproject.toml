@@ -244,4 +244,15 @@ inpt = "inpt"
 extend-exclude = ["*.bib", "*.xml", "docs/nitpicky"]
 
 [tool.mypy]
+# Initial, permissive mypy configuration for libensemble.
+# Allows incremental adoption. To be tightened in future releases.
+packages = ["libensemble.utils"]
+exclude = '''
+libensemble/utils/(launcher|loc_stack|runners|pydantic|output_directory)\.py
+'''
 disable_error_code = ["import-not-found", "import-untyped"]
+ignore_missing_imports = true
+follow_imports = "skip"
+check_untyped_defs = false
+disallow_untyped_defs = false
+warn_unused_ignores = false
