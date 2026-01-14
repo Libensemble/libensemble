@@ -143,6 +143,9 @@ packaging = "*"
 octave = ">=9.4.0,<11"
 pyzmq = ">=26.4.0,<28"
 
+[tool.pixi.feature.extra.target.linux-64.pypi-dependencies]
+tasmanian = ">=8.2, <9"
+
 # Python versions
 [tool.pixi.feature.py310.dependencies]
 python = "3.10.*"
@@ -205,7 +208,7 @@ extra = [
   "pyenchant==3.2.2",
   "enchant>=0.0.1,<0.0.2",
   "proxystore>=0.8.3,<0.9",
-  "redis>=7.1.0,<8",
+  "redis>=7.1.0,<8", "gpcam>=7.4.2,<9", "surmise>=0.3.0,<0.4",
 ]
 dev = ["wat>=0.7.0,<0.8"]
 
