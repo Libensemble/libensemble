@@ -15,11 +15,11 @@ jobs:
                 comms-type: [m, l]
                 include:
                     - os: macos-latest
-                      python-version: "py313e"
+                      python-version: "py312e"
                       mpi-version: mpich
                       comms-type: m
                     - os: macos-latest
-                      python-version: "py313e"
+                      python-version: "py312e"
                       mpi-version: mpich
                       comms-type: l
                     - os: ubuntu-latest
@@ -65,9 +65,10 @@ jobs:
             pip install -e .
             flake8 libensemble
 
-        - name: Remove test using octave, gpcam on Python 3.13
+        - name: Remove test using octave, gpcam, globus-compute on Python 3.13
           if: matrix.python-version == 'py313e' || matrix.python-version == 'py314e'
           run: |
+            rm ./libensemble/tests/unit_tests/test_ufunc_runners.py # needs globus-compute
             rm ./libensemble/tests/regression_tests/test_persistent_fd_param_finder.py # needs octave, which doesn't yet support 3.13
             rm ./libensemble/tests/regression_tests/test_persistent_aposmm_external_localopt.py # needs octave, which doesn't yet support 3.13
             rm ./libensemble/tests/regression_tests/test_gpCAM.py # needs gpcam, which doesn't build on 3.13
