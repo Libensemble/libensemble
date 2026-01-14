@@ -14,8 +14,8 @@ def extract_H_ranges(Work: dict) -> str:
     else:
         # From https://stackoverflow.com/a/30336492
         ranges = []
-        for diff, group in groupby(enumerate(work_H_rows.tolist()), lambda x: x[0] - x[1]):
-            group = list(map(itemgetter(1), group))
+        for diff, group_iter in groupby(enumerate(work_H_rows.tolist()), lambda x: x[0] - x[1]):
+            group = list(map(itemgetter(1), group_iter))
             if len(group) > 1:
                 ranges.append(str(group[0]) + "-" + str(group[-1]))
             else:
