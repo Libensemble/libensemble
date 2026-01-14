@@ -19,9 +19,8 @@ persistent generator.
 import multiprocessing
 import sys
 
-import numpy as np
-
 import libensemble.gen_funcs
+import numpy as np
 
 libensemble.gen_funcs.rc.aposmm_optimizers = ["nlopt", "scipy"]
 from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc as alloc_f
