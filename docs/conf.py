@@ -31,7 +31,7 @@ class Mock(MagicMock):
         return MagicMock()
 
 
-autodoc_mock_imports = ["ax", "balsam", "gpcam", "IPython", "matplotlib", "pandas", "scipy", "surmise"]
+autodoc_mock_imports = ["ax", "gpcam", "IPython", "matplotlib", "pandas", "scipy", "surmise"]
 
 MOCK_MODULES = [
     "argparse",
