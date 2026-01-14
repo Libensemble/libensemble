@@ -31,7 +31,6 @@ in the libEnsemble documentation.
 #   Install Surmise package
 
 import numpy as np
-
 from libensemble import Ensemble
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.gen_funcs.persistent_surmise_calib import surmise_calib as gen_f
