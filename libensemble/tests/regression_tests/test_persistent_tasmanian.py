@@ -21,7 +21,6 @@ import sys
 from time import time
 
 import numpy as np
-
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.gen_funcs.persistent_tasmanian import sparse_grid_batched as gen_f_batched
 

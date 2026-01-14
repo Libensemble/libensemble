@@ -22,7 +22,6 @@ import sys
 from time import time
 
 import numpy as np
-
 from libensemble.gen_funcs.persistent_tasmanian import get_sparse_grid_specs
 
 # Import libEnsemble items for this test
