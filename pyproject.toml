@@ -208,6 +208,7 @@ extra = [
   "redis>=7.1.0,<8",
 ]
 dev = ["wat>=0.7.0,<0.8"]
+docs = ["pyenchant==3.2.2", "enchant>=0.0.1,<0.0.2"]
 
 # Various config from here onward
 [tool.black]

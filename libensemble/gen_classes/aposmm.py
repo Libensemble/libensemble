@@ -87,6 +87,7 @@ class APOSMM(PersistentGenInterfacer):
 
 
     .. code-block:: python
+
         gen = APOSMM(vocs, max_active_runs=2, initial_sample_size=10)
 
         # ask APOSMM for some sample points
