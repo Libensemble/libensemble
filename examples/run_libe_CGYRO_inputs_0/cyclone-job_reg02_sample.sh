@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH -A m4865
 #SBATCH --qos=debug
-#SBATCH --time=0:15:00
+#SBATCH --time=0:30:00
 #SBATCH -N 1
 #SBATCH -J Lib_CGYRO
 #SBATCH -C gpu
@@ -29,4 +29,5 @@ ulimit -c unlimited
 # python uniform_sample_CGYRO.py -n 2 --nproc=$nmpi --nomp=$nomp --numa=$numa --mpinuma=$mpinuma
 # python LH_sample_CGYRO.py -n 2 --nproc=$nmpi --nomp=$nomp --numa=$numa --mpinuma=$mpinuma
 # python LH_sample_CGYRO_3d.py -n 2 --nproc=$nmpi --nomp=$nomp --numa=$numa --mpinuma=$mpinuma
+#
 python LH_sample_CGYRO_4d.py -n 1 --nproc=$nmpi --nomp=$nomp --numa=$numa --mpinuma=$mpinuma

@@ -118,6 +118,10 @@ def check_DB_and_do_run(x_to_check, sim_specs, libE_info, database_name):
     output["f"] = float(fout[1])
     output["convstatement"] = string_out 
 
+    # if "max" in db_entry['string_out']:
+    #     output["f"] = 0
+    #     print("zeroing",flush=True)
+
     return output, calc_status
 
 def run_CGYRO(H, persis_info, sim_specs, libE_info):
@@ -132,7 +136,8 @@ def run_CGYRO(H, persis_info, sim_specs, libE_info):
 
 
 def run_CGYRO_over_KY(H, persis_info, sim_specs, libE_info):
-    database_name = "/global/u2/j/jmlarson/kappa_correction_with_KY_Belli_three.npy"
+    # database_name = "/global/u2/j/jmlarson/kappa_correction_with_KY_Belli_three.npy"
+    database_name = "/global/u2/j/jmlarson/kappa_correction_with_KY_Belli_two_no_zeta.npy"
     output = np.zeros(1, dtype=sim_specs["out"])
 
 

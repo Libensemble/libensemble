@@ -28,4 +28,5 @@ export SLURM_CPU_BIND="cores"
 ulimit -c unlimited
 # python opt_CGYRO_3d.py -n 1 --nproc=$nmpi --nomp=$nomp --numa=$numa --mpinuma=$mpinuma
 # python opt_CGYRO_4d.py -n 1 --nproc=$nmpi --nomp=$nomp --numa=$numa --mpinuma=$mpinuma
-python test_persistent_aposmm_ibcdfo_manifold_sampling.py -n 1 --nproc=$nmpi --nomp=$nomp --numa=$numa --mpinuma=$mpinuma
+# python test_persistent_aposmm_ibcdfo_manifold_sampling.py -n 1 --nproc=$nmpi --nomp=$nomp --numa=$numa --mpinuma=$mpinuma
+python test_persistent_aposmm_ibcdfo_manifold_sampling_no_zeta.py -n 1 --nproc=$nmpi --nomp=$nomp --numa=$numa --mpinuma=$mpinuma
