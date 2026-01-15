@@ -59,12 +59,16 @@ jobs:
         - name: Install other testing dependencies
           run: |
             pixi run -e ${{ matrix.python-version }} install/install_ibcdfo.sh
-            pixi run -e ${{ matrix.python-version }} pip install gpcam==8.1.13
 
         - name: Install libEnsemble, flake8, lock environment
           run: |
             pip install -e .
             flake8 libensemble
+
+        - name: Install gpcam
+          if: matrix.python-version != 'py313e' && matrix.python-version != 'py314e'
+          run: |
+            pixi run -e ${{ matrix.python-version }} pip install gpcam==8.1.13
 
         - name: Remove test using octave, gpcam, globus-compute on Python 3.13
           if: matrix.python-version == 'py313e' || matrix.python-version == 'py314e'
