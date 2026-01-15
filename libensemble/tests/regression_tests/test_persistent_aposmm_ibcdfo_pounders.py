@@ -27,9 +27,8 @@ doing the simulation evaluations.
 import multiprocessing
 import sys
 
-import numpy as np
-
 import libensemble.gen_funcs
+import numpy as np
 from libensemble.libE import libE
 from libensemble.sim_funcs.chwirut1 import chwirut_eval
 
@@ -40,8 +39,7 @@ from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
 from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
 
 try:
-    from ibcdfo.pounders import pounders  # noqa: F401
-    from ibcdfo.pounders.general_h_funs import emittance_combine, emittance_h
+    import ibcdfo  # noqa: F401
 except ModuleNotFoundError:
     sys.exit("Please 'pip install ibcdfo'")
 
@@ -122,8 +120,8 @@ if __name__ == "__main__":
         }
 
         if inst == 1:
-            gen_specs["user"]["hfun"] = emittance_h
-            gen_specs["user"]["combinemodels"] = emittance_combine
+            gen_specs["user"]["hfun"] = ibcdfo.pounders.h_emittance
+            gen_specs["user"]["combinemodels"] = ibcdfo.pounders.combine_emittance
 
         alloc_specs = {"alloc_f": alloc_f}
 
