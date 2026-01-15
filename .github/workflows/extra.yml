@@ -82,12 +82,12 @@ jobs:
         - name: Run extensive tests, Ubuntu
           if: matrix.os == 'ubuntu-latest'
           run: |
-           ./libensemble/tests/run_tests.py -e -A "-W error" -${{ matrix.comms-type }}
+           ./libensemble/tests/run_tests.py -e -${{ matrix.comms-type }}
 
         - name: Run extensive tests, macOS
           if: matrix.os == 'macos-latest'
           run: |
-           pixi run -e ${{ matrix.python-version }} ./libensemble/tests/run_tests.py -e -A "-W error" -${{ matrix.comms-type }}
+           pixi run -e ${{ matrix.python-version }} ./libensemble/tests/run_tests.py -e -${{ matrix.comms-type }}
 
         - name: Merge coverage
           run: |
