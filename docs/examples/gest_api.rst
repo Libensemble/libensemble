@@ -4,6 +4,8 @@
 libEnsemble now also supports all generators that implement the gest_api_ interface.
 
 .. code-block:: python
+  :linenos:
+  :emphasize-lines: 17
 
   from gest_api.vocs import VOCS
   from optimas.generators import GridSamplingGenerator
