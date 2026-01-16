@@ -13,6 +13,8 @@ __all__ = [
 class UniformSample(LibensembleGenerator):
     """
     Samples over the domain specified in the VOCS.
+
+    Implements ``suggest()`` and ``ingest()`` identically to the other generators.
     """
 
     def __init__(self, VOCS: VOCS, random_seed: int = 1, *args, **kwargs):

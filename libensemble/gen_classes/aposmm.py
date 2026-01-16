@@ -44,8 +44,8 @@ class APOSMM(PersistentGenInterfacer):
     ---------------
 
     APOSMM requires a minimal sample before starting optimization. A random sample across the domain
-    can either be retrieved via a `suggest()` call right after initialization, or the user can ingest
-    a set of sample points via `ingest()`. The minimal sample size is specified via the `initial_sample_size`
+    can either be retrieved via a ``suggest()`` call right after initialization, or the user can ingest
+    a set of sample points via ``ingest()``. The minimal sample size is specified via the ``initial_sample_size``
     parameter. This many evaluated sample points *must* be provided to APOSMM before it will provide any
     local optimization points.
 
@@ -106,58 +106,58 @@ class APOSMM(PersistentGenInterfacer):
 
     Parameters
     ----------
-    vocs: VOCS
+    vocs: ``VOCS``
         The VOCS object, adhering to the VOCS interface from the Generator Standard.
 
-    max_active_runs: int
+    max_active_runs: ``int``
         Bound on number of runs APOSMM is *concurrently* advancing.
 
-    initial_sample_size: int
+    initial_sample_size: ``int``
 
         Minimal sample points required before starting optimization.
 
         If ``suggest(N)`` is called first, APOSMM produces this many random sample points across the domain,
-        with N <= initial_sample_size.
+        with ``N <= initial_sample_size``.
 
         If ``ingest(sample)`` is called first, multiple calls like ``ingest(sample)`` are required until
-        the total number of points ingested is >= initial_sample_size.
+        the total number of points ingested is ``>= initial_sample_size``.
 
-    History: npt.NDArray = []
+    History: ``npt.NDArray`` = ``[]``
         An optional history of previously evaluated points.
 
-    sample_points: npt.NDArray = None
+    sample_points: ``npt.NDArray`` = ``None``
         Included for compatibility with the underlying algorithm.
         Points to be sampled (original domain).
         If more sample points are needed by APOSMM during the course of the
         optimization, points will be drawn uniformly over the domain.
 
-    localopt_method: str = "scipy_Nelder-Mead" (scipy) or "LN_BOBYQA" (nlopt)
+    localopt_method: ``str`` = "scipy_Nelder-Mead" (scipy) or "LN_BOBYQA" (nlopt)
         The local optimization method to use. Others being added over time.
 
-    mu: float = 1e-8
+    mu: ``float`` = ``1e-8``
         Distance from the boundary that all localopt starting points must satisfy
 
-    nu: float = 1e-8
+    nu: ``float`` = ``1e-8``
         Distance from identified minima that all starting points must satisfy
 
-    rk_const: float = None
+    rk_const: ``float`` = ``None``
         Multiplier in front of the ``r_k`` value.
         If not provided, it will be set to ``0.5 * ((gamma(1 + (n / 2)) * 5) ** (1 / n)) / sqrt(pi)``
 
-    xtol_abs: float = 1e-6
+    xtol_abs: ``float`` = ``1e-6``
         Localopt method's convergence tolerance.
 
-    ftol_abs: float = 1e-6
+    ftol_abs: ``float`` = ``1e-6``
         Localopt method's convergence tolerance.
 
-    opt_return_codes: list[int] = [0]
+    opt_return_codes: ``list[int]`` = ``[0]``
         scipy only: List of return codes that determine if a point should be ruled a local minimum.
 
-    dist_to_bound_multiple: float = 0.5
+    dist_to_bound_multiple: ``float`` = ``0.5``
         What fraction of the distance to the nearest boundary should the initial
         step size be in localopt runs.
 
-    random_seed: int = 1
+    random_seed: ``int`` = ``1``
         Seed for the random number generator.
     """
 
