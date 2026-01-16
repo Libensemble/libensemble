@@ -61,9 +61,8 @@ need to write a new allocation function.
         the generator's ``self.variables``, it creates a random number uniformly distributed
         between the corresponding ``lower`` and ``upper`` bounds of its domain.
 
-        Our generator must implement a ``_validate_vocs()`` method to check the validity of the
-        ``VOCS`` object. Here, we implement a simple check that ensures the
-        ``VOCS`` object has at least one variable.
+        Our generator must implement a ``_validate_vocs()`` method. Here, we implement a simple
+        check that ensures the ``VOCS`` object has at least one variable.
 
     .. tab-item:: 3. Simulator
 
