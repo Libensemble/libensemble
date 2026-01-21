@@ -1,10 +1,10 @@
 sampling
 --------
 
-.. automodule:: gen_classes.sampling
-  :members:
+.. autoclass:: gen_classes.sampling.UniformSample
+  :members: suggest, ingest
   :undoc-members:
 
-.. automodule:: gen_classes.external.sampling
-  :members:
+.. autoclass:: gen_classes.external.sampling.UniformSample
+  :members: suggest, ingest
   :undoc-members:

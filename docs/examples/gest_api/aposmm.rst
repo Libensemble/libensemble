@@ -1,8 +1,8 @@
 APOSMM
 ------
 
-.. automodule:: gen_classes.aposmm
-  :members:
+.. autoclass:: gen_classes.aposmm.APOSMM
+  :members: suggest, ingest, export, suggest_updates, finalize
   :undoc-members:
   :show-inheritance:
 

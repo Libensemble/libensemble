@@ -1,8 +1,14 @@
 gpCAM
 ------
 
-.. automodule:: gen_classes.gpCAM
-  :members:
+.. autoclass:: gen_classes.gpCAM.GP_CAM
+  :members: suggest, ingest
+  :undoc-members:
+  :show-inheritance:
+
+
+.. autoclass:: gen_classes.gpCAM.GP_CAM_Covar
+  :members: suggest, ingest
   :undoc-members:
   :show-inheritance:
 
