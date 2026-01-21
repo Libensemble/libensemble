@@ -49,7 +49,6 @@ jobs:
         - uses: prefix-dev/setup-pixi@v0.9.3
           with:
             pixi-version: v0.55.0
-            cache: true
             frozen: true
             environments: ${{ matrix.python-version }}
             activate-environment: ${{ matrix.python-version }}
