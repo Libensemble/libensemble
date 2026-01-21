@@ -205,7 +205,7 @@ gxx_linux-64 = ">=15.2.0,<16"
 # Extra dependencies, from pypi
 [dependency-groups]
 extra = [
-  "pyenchant==3.2.2",
+  "pyenchant>=3.2.2",
   "enchant>=0.0.1,<0.0.2",
   "proxystore>=0.8.3,<0.9",
   "redis>=7.1.0,<8",
