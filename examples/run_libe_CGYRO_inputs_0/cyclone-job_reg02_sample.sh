@@ -29,5 +29,5 @@ ulimit -c unlimited
 # python uniform_sample_CGYRO.py -n 2 --nproc=$nmpi --nomp=$nomp --numa=$numa --mpinuma=$mpinuma
 # python LH_sample_CGYRO.py -n 2 --nproc=$nmpi --nomp=$nomp --numa=$numa --mpinuma=$mpinuma
 # python LH_sample_CGYRO_3d.py -n 2 --nproc=$nmpi --nomp=$nomp --numa=$numa --mpinuma=$mpinuma
-#
-python LH_sample_CGYRO_4d.py -n 1 --nproc=$nmpi --nomp=$nomp --numa=$numa --mpinuma=$mpinuma
+# python LH_sample_CGYRO_4d.py -n 1 --nproc=$nmpi --nomp=$nomp --numa=$numa --mpinuma=$mpinuma
+python LH_sample_CGYRO_2d_no_zeta.py -n 1 --nproc=$nmpi --nomp=$nomp --numa=$numa --mpinuma=$mpinuma
