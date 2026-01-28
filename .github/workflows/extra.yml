@@ -100,7 +100,7 @@ jobs:
             pip install -r install/testing_requirements.txt
             pip install -r install/misc_feature_requirements.txt
             source install/install_ibcdfo.sh
-            conda install numpy scipy==1.16.3
+            conda install numpy scipy==1.13.1
             conda install -c conda-forge pytorch-cpu
             pip install --upgrade-strategy=only-if-needed git+https://github.com/xopt-org/xopt.git@generator_standard
             pip install --no-deps git+https://github.com/optimas-org/optimas.git@main
