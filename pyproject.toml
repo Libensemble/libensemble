@@ -8,7 +8,7 @@ authors = [
   { name = "John-Luke Navarro" },
 ]
 
-dependencies = ["numpy", "psutil", "pyyaml", "tomli", "gest-api @ git+https://github.com/campa-consortium/gest-api@main", "pydantic"]
+dependencies = ["numpy", "psutil", "pyyaml", "tomli", "pydantic", "gest-api>=0.1,<0.2"]
 
 description = "A Python toolkit for coordinating asynchronous and dynamic ensembles of calculations."
 name = "libensemble"

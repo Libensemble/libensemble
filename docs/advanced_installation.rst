@@ -12,6 +12,7 @@ automatically installed alongside libEnsemble:
 * `pydantic`_   ``>= 1.10.12``
 * pyyaml_       ``>= v6.0``
 * tomli_        ``>= 1.2.1``
+* gest-api_     ``>= 0.1,<0.2``
 
 Given libEnsemble's compiled dependencies, the following installation
 methods each offer a trade-off between convenience and the ability
@@ -178,6 +179,7 @@ The following packages may be installed separately to enable additional features
 
 .. _conda-forge: https://conda-forge.org/
 .. _Conda: https://docs.conda.io/en/latest/
+.. _gest-api: https://github.com/campa-consortium/gest-api
 .. _GitHub: https://github.com/Libensemble/libensemble
 .. _Globus Compute: https://www.globus.org/compute
 .. _MPICH: https://www.mpich.org/
