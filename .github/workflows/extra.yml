@@ -77,6 +77,7 @@ jobs:
             rm ./libensemble/tests/regression_tests/test_persistent_fd_param_finder.py # needs octave, which doesn't yet support 3.13
             rm ./libensemble/tests/regression_tests/test_persistent_aposmm_external_localopt.py # needs octave, which doesn't yet support 3.13
             rm ./libensemble/tests/regression_tests/test_gpCAM.py # needs gpcam, which doesn't build on 3.13
+            rm ./libensemble/tests/regression_tests/test_persistent_gp_multitask_ax.py # needs ax-platform, which doesn't yet support 3.14
 
         - name: Start Redis
           if: matrix.os == 'ubuntu-latest'
