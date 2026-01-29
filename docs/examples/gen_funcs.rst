@@ -84,7 +84,6 @@ Modeling and Approximation
   :hidden:
 
   gpcam
-  tasmanian
   fd_param_finder
   surmise
 
@@ -100,7 +99,7 @@ Modeling and Approximation
 
   Modular Bayesian calibration/inference framework using Surmise_ (demonstration of cancelling previous issued simulations).
 
-- :doc:`Tasmanian<tasmanian>`
+- :ref:`Tasmanian<community:tasmanian-link>`
 
   Evaluates points generators by the Tasmanian_ sparse grid library
 
