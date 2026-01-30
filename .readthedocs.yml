@@ -26,8 +26,9 @@ build:
     - pixi run -e docs build-docs
     - pixi run -e docs build-pdf
     - mkdir -p $READTHEDOCS_OUTPUT/html/
+    - mkdir -p $READTHEDOCS_OUTPUT/pdf/
     - cp -r docs/_build/html/** $READTHEDOCS_OUTPUT/html/
-    - cp -r docs/_build/latex/** $READTHEDOCS_OUTPUT/latex/
+    - cp -r docs/_build/latex/** $READTHEDOCS_OUTPUT/pdf/
 
 sphinx:
     configuration: docs/conf.py
