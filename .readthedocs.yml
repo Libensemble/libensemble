@@ -24,7 +24,6 @@ build:
     - asdf install pixi latest
     - asdf global pixi latest
     - pixi run -e docs build-docs
-    - pixi run -e docs build-pdf
     - mkdir -p $READTHEDOCS_OUTPUT/html/
     - cp -r docs/_build/html/** $READTHEDOCS_OUTPUT/html/
 
