@@ -214,12 +214,12 @@ extra = [
   "redis>=7.1.0,<8",
 ]
 dev = ["wat>=0.7.0,<0.8"]
-docs = ["pyenchant", "enchant>=0.0.1,<0.0.2"]
+docs = ["pyenchant", "enchant>=0.0.1,<0.0.2", "sphinx-lfs-content>=1.1.10,<2"]
 
 # Various config from here onward
 [tool.black]
 line-length = 120
-target-version = ['py310', 'py311', 'py312', 'py313', 'py314']
+target-version = ['py310', 'py311', 'py312', 'py313']
 force-exclude = '''
 (
   /(
