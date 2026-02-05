@@ -77,7 +77,7 @@ def main(argv):
     ensemble.sim_specs = SimSpecs(
         sim_f=run_CGYRO_over_KY,
         inputs=["x"],
-        outputs=[("f", float), ("fvec", float, 11), ("convstatement", "U100")],
+        outputs=[("f", float), ("fvec", float, 14), ("convstatement", "U100")],
         user={
             "input_filename": cgyro_input_file,
             "input_names": ["KAPPA","DELTA","ZETA","KY"],
