@@ -140,7 +140,7 @@ def run_CGYRO_over_KY(H, persis_info, sim_specs, libE_info):
     # database_name = "/global/u2/j/jmlarson/kappa_correction_with_KY_Belli_two_no_zeta.npy"
     # database_name = "/global/u2/j/jmlarson/kappa_correction_with_KY_jan_26_pt.npy"
     # database_name = "/global/u2/j/jmlarson/kappa_correction_with_KY_jan_26_nt.npy"
-    database_name = "/global/u2/j/jmlarson/gamma_over_KY_feb_5.npy "
+    database_name = "/global/u2/j/jmlarson/gamma_over_KY_feb_5.npy"
 
     output = np.zeros(1, dtype=sim_specs["out"])
 
