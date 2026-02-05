@@ -139,9 +139,10 @@ def run_CGYRO_over_KY(H, persis_info, sim_specs, libE_info):
     # database_name = "/global/u2/j/jmlarson/kappa_correction_with_KY_Belli_three.npy"
     # database_name = "/global/u2/j/jmlarson/kappa_correction_with_KY_Belli_two_no_zeta.npy"
     # database_name = "/global/u2/j/jmlarson/kappa_correction_with_KY_jan_26_pt.npy"
-    database_name = "/global/u2/j/jmlarson/kappa_correction_with_KY_jan_26_nt.npy"
-    output = np.zeros(1, dtype=sim_specs["out"])
+    # database_name = "/global/u2/j/jmlarson/kappa_correction_with_KY_jan_26_nt.npy"
+    database_name = "/global/u2/j/jmlarson/gamma_over_KY_feb_5.npy "
 
+    output = np.zeros(1, dtype=sim_specs["out"])
 
     input_file = Path(sim_specs["user"]["input_filename"])
     backup_file = input_file.with_suffix(input_file.suffix + ".safe") if input_file.suffix else Path(str(input_file) + ".safe")
@@ -152,7 +153,7 @@ def run_CGYRO_over_KY(H, persis_info, sim_specs, libE_info):
 
     workdir = Path.cwd()
 
-    for i, KY in enumerate(np.arange(0.1,0.65,0.05)):
+    for i, KY in enumerate(np.arange(0.1,0.80,0.05)):
         x_to_check = np.hstack([np.squeeze(H["x"]), KY])
 
         # pristine template before running for this KY 
