@@ -71,8 +71,6 @@ class MPIExecutor(Executor):
 
         from libensemble.executors.mpi_executor import MPIExecutor
         exctr = MPIExecutor(custom_info=customizer)
-
-
     """
 
     def __init__(self, custom_info: dict = {}) -> None:
@@ -363,7 +361,8 @@ class MPIExecutor(Executor):
         if task.app_args is not None:
             runline.extend(task.app_args.split())
 
-        task.runline = " ".join(runline)  # Allow to be queried
+        runline = self._set_sim_dir_env(task, runline)
+        task.runline = " ".join(runline)
 
         if env_script is not None:
             run_cmd = Executor._process_env_script(task, runline, env_script)
