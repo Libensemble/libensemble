@@ -675,7 +675,7 @@ class Executor:
 
     def _check_app_exists(self, app: Application) -> None:
         """Allows submit function to check if app exists and error if not"""
-        if app.precedent is not None:
+        if app.precedent is not None and app.precedent != "":
             # Could be a container call in precedent. In that case,
             # the executable is not available on the host system and
             # we just forward what the user provided.
