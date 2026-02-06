@@ -14,13 +14,13 @@ persistent generator.
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: local mpi tcp
 # TESTSUITE_NPROCS: 3
+# TESTSUITE_EXTRA: true
 
 import sys
 from math import gamma, pi, sqrt
 
-import numpy as np
-
 import libensemble.gen_funcs
+import numpy as np
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE

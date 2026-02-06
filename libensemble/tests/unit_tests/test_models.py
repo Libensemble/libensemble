@@ -1,13 +1,9 @@
 import numpy as np
+from pydantic import ValidationError
 
 import libensemble.tests.unit_tests.setup as setup
 from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs, _EnsembleSpecs
-from libensemble.utils.misc import pydanticV1, specs_dump
-
-if pydanticV1:
-    from pydantic.error_wrappers import ValidationError
-else:
-    from pydantic import ValidationError
+from libensemble.utils.misc import specs_dump
 
 
 class Fake_MPI:
@@ -51,10 +47,7 @@ def test_sim_gen_alloc_exit_specs_invalid():
     }
 
     try:
-        if pydanticV1:
-            SimSpecs.parse_obj(bad_specs)
-        else:
-            SimSpecs.model_validate(bad_specs)
+        SimSpecs.model_validate(bad_specs)
         flag = 0
     except ValidationError as e:
         assert len(e.errors()) > 1, "SimSpecs model should have detected multiple errors in specs"
@@ -62,10 +55,7 @@ def test_sim_gen_alloc_exit_specs_invalid():
     assert flag, "SimSpecs didn't raise ValidationError on invalid specs"
 
     try:
-        if pydanticV1:
-            GenSpecs.parse_obj(bad_specs)
-        else:
-            GenSpecs.model_validate(bad_specs)
+        GenSpecs.model_validate(bad_specs)
         flag = 0
     except ValidationError as e:
         assert len(e.errors()) > 1, "Should've detected multiple errors in specs"
@@ -75,10 +65,7 @@ def test_sim_gen_alloc_exit_specs_invalid():
     bad_ec = {"stop_vals": 0.5}
 
     try:
-        if pydanticV1:
-            ExitCriteria.parse_obj(bad_ec)
-        else:
-            ExitCriteria.model_validate(bad_ec)
+        ExitCriteria.model_validate(bad_ec)
         flag = 0
     except ValidationError:
         flag = 1
@@ -88,41 +75,26 @@ def test_sim_gen_alloc_exit_specs_invalid():
 def test_libe_specs():
     sim_specs, gen_specs, exit_criteria = setup.make_criteria_and_specs_0()
     libE_specs = {"mpi_comm": Fake_MPI(), "comms": "mpi"}
-    if pydanticV1:
-        ls = LibeSpecs.parse_obj(libE_specs)
-    else:
-        ls = LibeSpecs.model_validate(libE_specs)
+    ls = LibeSpecs.model_validate(libE_specs)
 
     libE_specs["sim_input_dir"] = "./simdir"
     libE_specs["sim_dir_copy_files"] = ["./simdir"]
-    if pydanticV1:
-        ls = LibeSpecs.parse_obj(libE_specs)
-    else:
-        ls = LibeSpecs.model_validate(libE_specs)
+    ls = LibeSpecs.model_validate(libE_specs)
 
     libE_specs = {"comms": "tcp", "nworkers": 4}
 
-    if pydanticV1:
-        ls = LibeSpecs.parse_obj(libE_specs)
-    else:
-        ls = LibeSpecs.model_validate(libE_specs)
+    ls = LibeSpecs.model_validate(libE_specs)
     assert ls.disable_resource_manager, "resource manager should be disabled when using tcp comms"
 
     libE_specs = {"comms": "tcp", "workers": ["hello.host"]}
-    if pydanticV1:
-        ls = LibeSpecs.parse_obj(libE_specs)
-    else:
-        ls = LibeSpecs.model_validate(libE_specs)
+    ls = LibeSpecs.model_validate(libE_specs)
 
 
 def test_libe_specs_invalid():
     bad_specs = {"comms": "local", "zero_resource_workers": 2, "sim_input_dirs": ["obj"]}
 
     try:
-        if pydanticV1:
-            LibeSpecs.parse_obj(bad_specs)
-        else:
-            LibeSpecs.model_validate(bad_specs)
+        LibeSpecs.model_validate(bad_specs)
         flag = 0
     except ValidationError:
         flag = 1

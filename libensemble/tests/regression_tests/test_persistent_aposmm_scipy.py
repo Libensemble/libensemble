@@ -14,14 +14,12 @@ persistent generator.
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local
 # TESTSUITE_NPROCS: 4
-# TESTSUITE_EXTRA: true
 
 import multiprocessing
 import sys
 
-import numpy as np
-
 import libensemble.gen_funcs
+import numpy as np
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE

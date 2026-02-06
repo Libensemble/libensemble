@@ -182,33 +182,15 @@ tasks.
 
 However, running libEnsemble on the compute nodes is potentially more scalable and
 will better manage simulation and generation functions that contain considerable
-computational work or I/O. Therefore the second option is to use proxy task-execution
-services like Balsam_.
-
-Balsam - Externally Managed Applications
-----------------------------------------
-
-Running libEnsemble on the compute nodes while still submitting additional applications
-requires alternative Executors that connect to external services like Balsam_. Balsam
-can take tasks submitted by workers and execute them on the remaining compute nodes,
-or *to entirely different systems*.
-
-    .. figure:: ../images/balsam2.png
-        :alt: balsam2
-        :scale: 40
-        :align: center
-
-        (New) Multi-System: libEnsemble + BalsamExecutor
-
-Submission scripts for running on launch/MOM nodes and for using Balsam can be found in
-the :doc:`examples<example_scripts>`.
+computational work or I/O. Therefore the second option is to use Globus Compute
+to isolate this work from the workers.
 
 .. _globus_compute_ref:
 
 Globus Compute - Remote User Functions
 --------------------------------------
 
-*Alternatively to much of the above*, if libEnsemble is running on some resource with
+If libEnsemble is running on some resource with
 internet access (laptops, login nodes, other servers, etc.), workers can be instructed to
 launch generator or simulator user function instances to separate resources from
 themselves via `Globus Compute`_ (formerly funcX), a distributed, high-performance function-as-a-service platform:
@@ -278,7 +260,6 @@ libEnsemble on specific HPC systems.
     srun
     example_scripts
 
-.. _Balsam: https://balsam.readthedocs.io/en/latest/
 .. _Globus Compute: https://www.globus.org/compute
 .. _Globus Compute endpoints: https://globus-compute.readthedocs.io/en/latest/endpoints.html
 .. _Globus: https://www.globus.org/

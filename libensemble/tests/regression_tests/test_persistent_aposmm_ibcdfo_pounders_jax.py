@@ -30,7 +30,6 @@ import sys
 import libensemble.gen_funcs
 import numpy as np
 from libensemble.libE import libE
-from libensemble.sim_funcs.chwirut1 import chwirut_eval
 
 libensemble.gen_funcs.rc.aposmm_optimizers = "ibcdfo_pounders"
 
@@ -40,6 +39,9 @@ from libensemble.tools import add_unique_random_streams, parse_args, save_libE_o
 
 try:
     import ibcdfo  # noqa: F401
+
+    from declare_hfun_and_combine_model_with_jax import combinemodels_jax, hfun
+
 except ModuleNotFoundError:
     sys.exit("Please 'pip install ibcdfo'")
 
@@ -76,64 +78,57 @@ if __name__ == "__main__":
 
     assert nworkers == 2, "This test is just for two workers"
 
-    for inst in range(2):
-        if inst == 0:
-            # Declare the run parameters/functions
-            m = 214
-            n = 3
-            sim_f = chwirut_eval
-        elif inst == 1:
-            m = 3
-            n = 4
-            sim_f = synthetic_beamline_mapping
+    m = 3
+    n = 4
+    sim_f = synthetic_beamline_mapping
 
-        sim_specs = {
-            "sim_f": sim_f,
-            "in": ["x"],
-            "out": [("f", float), ("fvec", float, m)],
-        }
+    sim_specs = {
+        "sim_f": sim_f,
+        "in": ["x"],
+        "out": [("f", float), ("fvec", float, m)],
+    }
 
-        gen_out = [
-            ("x", float, n),
-            ("x_on_cube", float, n),
-            ("sim_id", int),
-            ("local_min", bool),
-            ("local_pt", bool),
-            ("started_run", bool),
-        ]
+    gen_out = [
+        ("x", float, n),
+        ("x_on_cube", float, n),
+        ("sim_id", int),
+        ("local_min", bool),
+        ("local_pt", bool),
+        ("started_run", bool),
+    ]
 
-        gen_specs = {
-            "gen_f": gen_f,
-            "persis_in": ["f", "fvec"] + [n[0] for n in gen_out],
-            "out": gen_out,
-            "user": {
-                "initial_sample_size": 1,
-                "stop_after_k_runs": 1,
-                "max_active_runs": 1,
-                "sample_points": np.atleast_2d(0.1 * (np.arange(n) + 1)),
-                "localopt_method": "ibcdfo_pounders",
-                "run_max_eval": 100 * (n + 1),
-                "components": m,
-                "lb": -1 * np.ones(n),
-                "ub": np.ones(n),
-            },
-        }
+    gen_specs = {
+        "gen_f": gen_f,
+        "persis_in": ["f", "fvec"] + [n[0] for n in gen_out],
+        "out": gen_out,
+        "user": {
+            "initial_sample_size": 1,
+            "stop_after_k_runs": 1,
+            "max_active_runs": 1,
+            "sample_points": np.atleast_2d(0.1 * (np.arange(n) + 1)),
+            "localopt_method": "ibcdfo_pounders",
+            "run_max_eval": 100 * (n + 1),
+            "components": m,
+            "lb": -1 * np.ones(n),
+            "ub": np.ones(n),
+        },
+    }
 
-        if inst == 1:
-            gen_specs["user"]["hfun"] = ibcdfo.pounders.h_emittance
-            gen_specs["user"]["combinemodels"] = ibcdfo.pounders.combine_emittance
+    gen_specs["user"]["hfun"] = hfun
+    gen_specs["user"]["combinemodels"] = combinemodels_jax
 
-        alloc_specs = {"alloc_f": alloc_f}
+    alloc_specs = {"alloc_f": alloc_f}
 
-        persis_info = add_unique_random_streams({}, nworkers + 1)
+    persis_info = add_unique_random_streams({}, nworkers + 1)
 
-        exit_criteria = {"sim_max": 500}
+    exit_criteria = {"sim_max": 500}
 
-        # Perform the run
-        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+    # Perform the run
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 
-        if is_manager:
-            assert persis_info[1].get("run_order"), "Run_order should have been given back"
-            assert flag == 0
+    if is_manager:
+        print(H[["x", "f", "local_min"]])
+        assert persis_info[1].get("run_order"), "Run_order should have been given back"
+        assert flag == 0
 
-            save_libE_output(H, persis_info, __file__, nworkers)
+        save_libE_output(H, persis_info, __file__, nworkers)
