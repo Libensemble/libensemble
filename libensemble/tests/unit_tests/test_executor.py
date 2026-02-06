@@ -909,8 +909,8 @@ def test_non_existent_app():
 
     try:
         w_exctr.submit(app_name="nonexist")
-    except FileNotFoundError as e:
-        assert e.filename == "simdir/non_exist.x"
+    except ExecutorException as e:
+        assert e.args[0] == "Application does not exist simdir/non_exist.x"
     else:
         assert 0
 
@@ -930,8 +930,8 @@ def test_non_existent_app_mpi():
 
     try:
         w_exctr.submit(app_name="nonexist")
-    except MPIResourcesException:
-        pass
+    except ExecutorException as e:
+        assert e.args[0] == "Application does not exist simdir/non_exist.x"
     else:
         assert 0
 
