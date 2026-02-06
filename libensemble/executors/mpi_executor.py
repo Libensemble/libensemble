@@ -317,7 +317,7 @@ class MPIExecutor(Executor):
         task = Task(app, app_args, default_workdir, stdout, stderr, self.workerID, dry_run)
 
         if not dry_run:
-            self._check_app_exists(task.app.full_path)
+            self._check_app_exists(task.app)
 
         if stage_inout is not None:
             logger.warning("stage_inout option ignored in this " "executor - runs in-place")
