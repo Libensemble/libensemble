@@ -262,6 +262,13 @@ class GenSpecs(BaseModel):
                         out_fields.append(_convert_dtype_to_output_tuple(name, dtype))
             self.outputs = out_fields
 
+        # Add _id field if generator returns_id is True
+        if self.generator is not None and getattr(self.generator, "returns_id", False):
+            if self.outputs is None:
+                self.outputs = []
+            if "_id" not in [f[0] for f in self.outputs]:
+                self.outputs.append(("_id", int))
+
         return self
 
 
