@@ -15,7 +15,7 @@ the objective function will be 4 as the generator is on the manager.
 """
 
 # Do not change these lines - they are parsed by run-tests.sh
-# TESTSUITE_COMMS: mpi local
+# TESTSUITE_COMMS: local
 # TESTSUITE_NPROCS: 4
 # TESTSUITE_EXTRA: true
 
