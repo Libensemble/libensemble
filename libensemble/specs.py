@@ -250,7 +250,6 @@ class GenSpecs(BaseModel):
         # Set inputs: same as persis_in for gest-api generators (needed for H0 ingestion)
         if not self.inputs and self.generator is not None:
             self.inputs = self.persis_in
-            print(f"inputs: {self.inputs}")
 
         # Set outputs: variables + constants (what the generator produces)
         if not self.outputs:
@@ -268,6 +267,10 @@ class GenSpecs(BaseModel):
                 self.outputs = []
             if "_id" not in [f[0] for f in self.outputs]:
                 self.outputs.append(("_id", int))
+            if self.persis_in is None:
+                self.persis_in = []
+            if "_id" not in self.persis_in:
+                self.persis_in.append("_id")
 
         return self
 

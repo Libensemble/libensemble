@@ -77,12 +77,6 @@ def _get_new_dtype_fields(first: dict, mapping: dict = {}) -> list:
     new_dtype_names = [i for i in new_dtype_names if i not in fields_to_convert] + list(
         mapping.keys()
     )  # array dtype needs "x". avoid fields from mapping values since we're converting those to "x"
-
-    # We need to accomodate "_id" getting mapped to "sim_id", but if it's not present
-    # in the input dictionary, then perhaps we're doing an initial sample.
-    # I wonder if this loop is generalizable to other fields.
-    if "_id" not in first and "sim_id" in mapping:
-        new_dtype_names.remove("sim_id")
     return new_dtype_names
 
 
@@ -136,9 +130,6 @@ def list_dicts_to_np(list_dicts: list, dtype: list = None, mapping: dict = {}) -
 
     # first entry is used to determine dtype
     first = list_dicts[0]
-
-    if "_id" in first and "sim_id" not in mapping:
-        mapping["sim_id"] = ["_id"]
 
     # build a presumptive dtype
     new_dtype_names = _get_new_dtype_fields(first, mapping)
@@ -251,9 +242,9 @@ def np_to_list_dicts(array: npt.NDArray, mapping: dict = {}) -> List[dict]:
 
         out.append(new_dict)
 
-    # exiting gen: convert sim_id to _id
+    # Remove _id from entries where it's -1 (unset)
     for entry in out:
-        if "sim_id" in entry:
-            entry["_id"] = entry.pop("sim_id")
-
+        if entry.get("_id") == -1:
+            entry.pop("_id")
+    
     return out
