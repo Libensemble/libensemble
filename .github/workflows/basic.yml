@@ -46,7 +46,7 @@ jobs:
         - name: Checkout lockfile
           run: git lfs checkout
 
-        - uses: prefix-dev/setup-pixi@v0.9.3
+        - uses: prefix-dev/setup-pixi@v0.9.4
           with:
             pixi-version: v0.55.0
             frozen: true
@@ -92,4 +92,4 @@ jobs:
         runs-on: ubuntu-latest
         steps:
         - uses: actions/checkout@v6
-        - uses: crate-ci/typos@v1.42.2
+        - uses: crate-ci/typos@v1.43.0

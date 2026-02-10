@@ -242,6 +242,16 @@ def check_gpu_setting(task, assert_setting=True, print_setting=False, resources=
         print(f"Worker {task.workerID}: {desc}GPU setting ({stype}): {gpu_setting} {addon}", flush=True)
 
     if assert_setting:
-        assert (
-            gpu_setting == expected
-        ), f"Worker {task.workerID}: Found GPU setting: {gpu_setting}, Expected: {expected}"
+        if isinstance(expected, dict):
+            for key, value in expected.items():
+                assert key in gpu_setting, (
+                    f"Worker {task.workerID}: Expected env key '{key}' not found in GPU setting: {gpu_setting}"
+                )
+                assert gpu_setting[key] == value, (
+                    f"Worker {task.workerID}: GPU setting key '{key}' has value '{gpu_setting[key]}', "
+                    f"expected '{value}'"
+                )
+        else:
+            assert (
+                gpu_setting == expected
+            ), f"Worker {task.workerID}: Found GPU setting: {gpu_setting}, Expected: {expected}"
