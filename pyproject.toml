@@ -136,6 +136,9 @@ mypy = ">=1.19.1,<2"
 types-psutil = ">=6.1.0.20241221,<7"
 types-pyyaml = ">=6.0.12.20250915,<7"
 
+[tool.pixi.tasks.build-docs]
+cmd = "cd docs && make html"
+
 # Linux dependencies, only for extra tests
 [tool.pixi.feature.extra.target.linux-64.dependencies]
 scikit-build = "*"
@@ -208,11 +211,12 @@ extra = [
   "redis>=7.1.0,<8",
 ]
 dev = ["wat>=0.7.0,<0.8"]
+docs = ["pyenchant", "enchant>=0.0.1,<0.0.2", "sphinx-lfs-content>=1.1.10,<2"]
 
 # Various config from here onward
 [tool.black]
 line-length = 120
-target-version = ['py310', 'py311', 'py312', 'py313', 'py314']
+target-version = ['py310', 'py311', 'py312', 'py313']
 force-exclude = '''
 (
   /(
