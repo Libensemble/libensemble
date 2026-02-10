@@ -98,7 +98,7 @@ if __name__ == "__main__":
         if run_num == 0:
             H0 = H
             workflow.save_output("multitask_first_pass", append_attrs=False)  # Allows restart only run
-               
+
         if workflow.is_manager:
             if run_num == 1:
                 workflow.save_output("multitask_with_H0")
