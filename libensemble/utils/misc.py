@@ -246,5 +246,5 @@ def np_to_list_dicts(array: npt.NDArray, mapping: dict = {}) -> List[dict]:
     for entry in out:
         if entry.get("_id") == -1:
             entry.pop("_id")
-    
+
     return out
