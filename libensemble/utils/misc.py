@@ -77,6 +77,10 @@ def _get_new_dtype_fields(first: dict, mapping: dict = {}) -> list:
     new_dtype_names = [i for i in new_dtype_names if i not in fields_to_convert] + list(
         mapping.keys()
     )  # array dtype needs "x". avoid fields from mapping values since we're converting those to "x"
+    # We need to accommodate "_id" getting mapped to "sim_id", but if it's not present
+    # in the input dictionary, then perhaps we're doing an initial sample.
+    if "_id" not in first and "sim_id" in mapping:
+        new_dtype_names.remove("sim_id")
     return new_dtype_names
 
 
@@ -91,7 +95,7 @@ def _decide_dtype(name: str, entry, size: int) -> tuple:
         output_type = "U" + str(len(entry) + 1)
     else:
         output_type = type(entry)  # use default "python" type
-    if name == "sim_id":  # mapping seems to assume that sim_ids are interpretable as floats unless this...?
+    if name == "sim_id":
         output_type = int
     if size == 1 or not size:
         return (name, output_type)
