@@ -142,8 +142,14 @@ class APOSMM(PersistentGenInterfacer):
         If more sample points are needed by APOSMM during the course of the
         optimization, points will be drawn uniformly over the domain.
 
-    localopt_method: str = "LN_BOBYQA"
-        The local optimization method to use.
+    localopt_method: str = "scipy_Nelder-Mead" (scipy) or "LN_BOBYQA" (nlopt)
+        The local optimization method to use. Others being added over time.
+
+    mu: float = 1e-8
+        Distance from the boundary that all localopt starting points must satisfy
+
+    nu: float = 1e-8
+        Distance from identified minima that all starting points must satisfy
 
     rk_const: float = None
         Multiplier in front of the ``r_k`` value.
@@ -155,6 +161,9 @@ class APOSMM(PersistentGenInterfacer):
     ftol_abs: float = 1e-6
         Localopt method's convergence tolerance.
 
+    opt_return_codes: list[int] = [0]
+        scipy only: List of return codes that determine if a point should be ruled a local minimum.
+
     dist_to_bound_multiple: float = 0.5
         What fraction of the distance to the nearest boundary should the initial
         step size be in localopt runs.
@@ -162,6 +171,8 @@ class APOSMM(PersistentGenInterfacer):
     random_seed: int = 1
         Seed for the random number generator.
     """
+
+    returns_id = True
 
     def _validate_vocs(self, vocs: VOCS):
         if len(vocs.constraints):
@@ -176,10 +187,13 @@ class APOSMM(PersistentGenInterfacer):
         initial_sample_size: int,
         History: npt.NDArray = [],
         sample_points: npt.NDArray = None,
-        localopt_method: str = "LN_BOBYQA",
+        localopt_method: str = "scipy_Nelder-Mead",
         rk_const: float = None,
         xtol_abs: float = 1e-6,
         ftol_abs: float = 1e-6,
+        opt_return_codes: list[int] = [0],
+        mu: float = 1e-8,
+        nu: float = 1e-8,
         dist_to_bound_multiple: float = 0.5,
         random_seed: int = 1,
         **kwargs,
@@ -206,6 +220,9 @@ class APOSMM(PersistentGenInterfacer):
             "rk_const",
             "xtol_abs",
             "ftol_abs",
+            "mu",
+            "nu",
+            "opt_return_codes",
             "dist_to_bound_multiple",
             "max_active_runs",
             "random_seed",

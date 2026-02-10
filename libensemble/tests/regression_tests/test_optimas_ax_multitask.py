@@ -71,8 +71,9 @@ if __name__ == "__main__":
     alloc_specs = AllocSpecs(alloc_f=alloc_f)
     exit_criteria = ExitCriteria(sim_max=15)
 
-    H0 = None
+    H0 = None  # or np.load("multitask_first_pass.npy")
     for run_num in range(2):
+        print(f"\nRun number: {run_num}")
         task1 = Task("task_1", n_init=2, n_opt=1)
         task2 = Task("task_2", n_init=5, n_opt=3)
         gen = AxMultitaskGenerator(vocs=vocs, hifi_task=task1, lofi_task=task2)
@@ -96,7 +97,8 @@ if __name__ == "__main__":
 
         if run_num == 0:
             H0 = H
-
+            workflow.save_output("multitask_first_pass", append_attrs=False)  # Allows restart only run
+               
         if workflow.is_manager:
             if run_num == 1:
                 workflow.save_output("multitask_with_H0")

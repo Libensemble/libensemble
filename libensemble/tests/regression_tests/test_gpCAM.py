@@ -27,7 +27,6 @@ import sys
 import warnings
 
 import numpy as np
-
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.gen_funcs.persistent_gpCAM import persistent_gpCAM, persistent_gpCAM_covar
 

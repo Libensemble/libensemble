@@ -84,11 +84,10 @@ jobs:
             pip install gpcam==8.1.13
             conda install octave
 
-        - name: Install surmise and Tasmanian
+        - name: Install surmise
           if: matrix.os == 'ubuntu-latest'
           run: |
             pip install --upgrade git+https://github.com/bandframework/surmise.git
-            pip install Tasmanian --user
 
         - name: Install generator dependencies for Ubuntu tests
           if: matrix.os == 'ubuntu-latest' && matrix.python-version <= '3.12'
@@ -126,7 +125,7 @@ jobs:
 
         - name: Start Redis
           if: matrix.os == 'ubuntu-latest'
-          uses: supercharge/redis-github-action@1.8.1
+          uses: supercharge/redis-github-action@v2
           with:
             redis-version: 7
 
@@ -149,4 +148,4 @@ jobs:
         runs-on: ubuntu-latest
         steps:
         - uses: actions/checkout@v6
-        - uses: crate-ci/typos@v1.40.0
+        - uses: crate-ci/typos@v1.43.0

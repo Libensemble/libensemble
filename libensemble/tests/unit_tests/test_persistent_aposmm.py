@@ -5,7 +5,7 @@ import pytest
 
 import libensemble.gen_funcs
 
-libensemble.gen_funcs.rc.aposmm_optimizers = "nlopt"
+libensemble.gen_funcs.rc.aposmm_optimizers = "scipy"
 
 if platform.system() in ["Linux", "Darwin"]:
     multiprocessing.set_start_method("fork", force=True)
@@ -66,14 +66,13 @@ def combined_func(x):
 
 @pytest.mark.extra
 def test_standalone_persistent_aposmm():
-    from math import gamma, pi, sqrt
 
     import libensemble.gen_funcs
     from libensemble.message_numbers import FINISHED_PERSISTENT_GEN_TAG
     from libensemble.sim_funcs.six_hump_camel import six_hump_camel_func, six_hump_camel_grad
     from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
 
-    libensemble.gen_funcs.rc.aposmm_optimizers = "nlopt"
+    libensemble.gen_funcs.rc.aposmm_optimizers = "scipy"
     from libensemble.gen_funcs.persistent_aposmm import aposmm
 
     persis_info = {"rand_stream": np.random.default_rng(1), "nworkers": 4}
@@ -90,16 +89,16 @@ def test_standalone_persistent_aposmm():
             "initial_sample_size": 100,
             # 'localopt_method': 'LD_MMA', # Needs gradients
             "sample_points": np.round(minima, 1),
-            "localopt_method": "LN_BOBYQA",
+            "localopt_method": "scipy_Nelder-Mead",
             "standalone": {
                 "eval_max": eval_max,
                 "obj_func": six_hump_camel_func,
                 "grad_func": six_hump_camel_grad,
             },
-            "rk_const": 0.5 * ((gamma(1 + (n / 2)) * 5) ** (1 / n)) / sqrt(pi),
-            "xtol_abs": 1e-6,
-            "ftol_abs": 1e-6,
-            "dist_to_bound_multiple": 0.5,
+            "opt_return_codes": [0],
+            "nu": 1e-8,
+            "mu": 1e-8,
+            "dist_to_bound_multiple": 0.01,
             "max_active_runs": 6,
             "lb": np.array([-3, -2]),
             "ub": np.array([3, 2]),
@@ -171,13 +170,12 @@ def _evaluate_aposmm_instance(my_APOSMM, minimum_minima=6):
 
 @pytest.mark.extra
 def test_standalone_persistent_aposmm_combined_func():
-    from math import gamma, pi, sqrt
 
     import libensemble.gen_funcs
     from libensemble.message_numbers import FINISHED_PERSISTENT_GEN_TAG
     from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
 
-    libensemble.gen_funcs.rc.aposmm_optimizers = "nlopt"
+    libensemble.gen_funcs.rc.aposmm_optimizers = "scipy"
     from libensemble.gen_funcs.persistent_aposmm import aposmm
 
     persis_info = {"rand_stream": np.random.default_rng(1), "nworkers": 4}
@@ -194,12 +192,12 @@ def test_standalone_persistent_aposmm_combined_func():
             "initial_sample_size": 100,
             # 'localopt_method': 'LD_MMA', # Needs gradients
             "sample_points": np.round(minima, 1),
-            "localopt_method": "LN_BOBYQA",
+            "localopt_method": "scipy_Nelder-Mead",
             "standalone": {"eval_max": eval_max, "obj_and_grad_func": combined_func},
-            "rk_const": 0.5 * ((gamma(1 + (n / 2)) * 5) ** (1 / n)) / sqrt(pi),
-            "xtol_abs": 1e-6,
-            "ftol_abs": 1e-6,
-            "dist_to_bound_multiple": 0.5,
+            "opt_return_codes": [0],
+            "nu": 1e-8,
+            "mu": 1e-8,
+            "dist_to_bound_multiple": 0.01,
             "max_active_runs": 6,
             "lb": np.array([-3, -2]),
             "ub": np.array([3, 2]),
@@ -217,7 +215,6 @@ def test_standalone_persistent_aposmm_combined_func():
 
 @pytest.mark.extra
 def test_asktell_with_persistent_aposmm():
-    from math import gamma, pi, sqrt
 
     from gest_api.vocs import VOCS
 
@@ -225,9 +222,7 @@ def test_asktell_with_persistent_aposmm():
     from libensemble.gen_classes import APOSMM
     from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
 
-    libensemble.gen_funcs.rc.aposmm_optimizers = "nlopt"
-
-    n = 2
+    libensemble.gen_funcs.rc.aposmm_optimizers = "scipy"
 
     variables = {"core": [-3, 3], "edge": [-2, 2], "core_on_cube": [0, 1], "edge_on_cube": [0, 1]}
     objectives = {"energy": "MINIMIZE"}
@@ -246,11 +241,11 @@ def test_asktell_with_persistent_aposmm():
         initial_sample_size=100,
         variables_mapping=variables_mapping,
         sample_points=np.round(minima, 1),
-        localopt_method="LN_BOBYQA",
-        rk_const=0.5 * ((gamma(1 + (n / 2)) * 5) ** (1 / n)) / sqrt(pi),
-        xtol_abs=1e-6,
-        ftol_abs=1e-6,
-        dist_to_bound_multiple=0.5,
+        localopt_method="scipy_Nelder-Mead",
+        opt_return_codes=[0],
+        nu=1e-8,
+        mu=1e-8,
+        dist_to_bound_multiple=0.01,
     )
 
     _evaluate_aposmm_instance(my_APOSMM)
@@ -258,7 +253,6 @@ def test_asktell_with_persistent_aposmm():
 
 @pytest.mark.extra
 def test_asktell_errors():
-    from math import gamma, pi, sqrt
 
     from gest_api.vocs import VOCS
 
@@ -266,9 +260,7 @@ def test_asktell_errors():
     from libensemble.gen_classes import APOSMM
     from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
 
-    libensemble.gen_funcs.rc.aposmm_optimizers = "nlopt"
-
-    n = 2
+    libensemble.gen_funcs.rc.aposmm_optimizers = "scipy"
 
     variables = {"core": [-3, 3], "edge": [-2, 2], "core_on_cube": [0, 1], "edge_on_cube": [0, 1]}
     objectives = {"energy": "MINIMIZE"}
@@ -293,11 +285,11 @@ def test_asktell_errors():
             variables_mapping=bad_mapping,
             initial_sample_size=100,
             sample_points=np.round(minima, 1),
-            localopt_method="LN_BOBYQA",
-            rk_const=0.5 * ((gamma(1 + (n / 2)) * 5) ** (1 / n)) / sqrt(pi),
-            xtol_abs=1e-6,
-            ftol_abs=1e-6,
-            dist_to_bound_multiple=0.5,
+            localopt_method="scipy_Nelder-Mead",
+            opt_return_codes=[0],
+            nu=1e-8,
+            mu=1e-8,
+            dist_to_bound_multiple=0.01,
         )
         pytest.fail("Should have raised error for bad mapping")
 
@@ -314,11 +306,11 @@ def test_asktell_errors():
             variables_mapping=bad_mapping,
             initial_sample_size=100,
             sample_points=np.round(minima, 1),
-            localopt_method="LN_BOBYQA",
-            rk_const=0.5 * ((gamma(1 + (n / 2)) * 5) ** (1 / n)) / sqrt(pi),
-            xtol_abs=1e-6,
-            ftol_abs=1e-6,
-            dist_to_bound_multiple=0.5,
+            localopt_method="scipy_Nelder-Mead",
+            opt_return_codes=[0],
+            nu=1e-8,
+            mu=1e-8,
+            dist_to_bound_multiple=0.01,
         )
         pytest.fail("Should have raised error for bad mapping")
 
@@ -335,11 +327,11 @@ def test_asktell_errors():
         max_active_runs=6,
         initial_sample_size=6,
         variables_mapping=variables_mapping,
-        localopt_method="LN_BOBYQA",
-        rk_const=0.5 * ((gamma(1 + (n / 2)) * 5) ** (1 / n)) / sqrt(pi),
-        xtol_abs=1e-6,
-        ftol_abs=1e-6,
-        dist_to_bound_multiple=0.5,
+        localopt_method="scipy_Nelder-Mead",
+        opt_return_codes=[0],
+        nu=1e-8,
+        mu=1e-8,
+        dist_to_bound_multiple=0.01,
     )
 
     my_APOSMM.suggest()
@@ -352,10 +344,10 @@ def test_asktell_errors():
         max_active_runs=6,
         initial_sample_size=6,
         variables_mapping=variables_mapping,
-        localopt_method="LN_BOBYQA",
-        rk_const=0.5 * ((gamma(1 + (n / 2)) * 5) ** (1 / n)) / sqrt(pi),
-        xtol_abs=1e-6,
-        ftol_abs=1e-6,
+        localopt_method="scipy_Nelder-Mead",
+        opt_return_codes=[0],
+        nu=1e-8,
+        mu=1e-8,
         dist_to_bound_multiple=0.5,
     )
 
@@ -368,11 +360,11 @@ def test_asktell_errors():
         max_active_runs=6,
         initial_sample_size=6,
         variables_mapping=variables_mapping,
-        localopt_method="LN_BOBYQA",
-        rk_const=0.5 * ((gamma(1 + (n / 2)) * 5) ** (1 / n)) / sqrt(pi),
-        xtol_abs=1e-6,
-        ftol_abs=1e-6,
-        dist_to_bound_multiple=0.5,
+        localopt_method="scipy_Nelder-Mead",
+        opt_return_codes=[0],
+        nu=1e-8,
+        mu=1e-8,
+        dist_to_bound_multiple=0.01,
     )
 
     my_APOSMM.suggest()
@@ -414,10 +406,11 @@ def test_asktell_ingest_first():
         initial_sample_size=6,
         variables_mapping=variables_mapping,
         localopt_method="LN_BOBYQA",
+        opt_return_codes=[0],
         rk_const=0.5 * ((gamma(1 + (n / 2)) * 5) ** (1 / n)) / sqrt(pi),
         xtol_abs=1e-6,
         ftol_abs=1e-6,
-        dist_to_bound_multiple=0.5,
+        dist_to_bound_multiple=0.01,
     )
 
     # local_H["x_on_cube"][-num_pts:] = (pts - lb) / (ub - lb)
@@ -455,7 +448,7 @@ def test_asktell_ingest_first():
 
     assert len(potential_minima) >= 6, f"Found {len(potential_minima)} minima"
 
-    tol = 1e-3
+    tol = 1e-4
     min_found = 0
     for m in minima:
         # The minima are known on this test problem.
@@ -469,7 +462,6 @@ def test_asktell_ingest_first():
 @pytest.mark.extra
 def test_asktell_consecutive_during_sample():
     """Test consecutive suggest and ingest during sample"""
-    from math import gamma, pi, sqrt
 
     from gest_api.vocs import VOCS
 
@@ -477,9 +469,7 @@ def test_asktell_consecutive_during_sample():
     from libensemble.gen_classes import APOSMM
     from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
 
-    libensemble.gen_funcs.rc.aposmm_optimizers = "nlopt"
-
-    n = 2
+    libensemble.gen_funcs.rc.aposmm_optimizers = "scipy"
 
     variables = {"core": [-3, 3], "edge": [-2, 2], "core_on_cube": [0, 1], "edge_on_cube": [0, 1]}
     objectives = {"energy": "MINIMIZE"}
@@ -497,11 +487,11 @@ def test_asktell_consecutive_during_sample():
         max_active_runs=6,
         initial_sample_size=6,
         variables_mapping=variables_mapping,
-        localopt_method="LN_BOBYQA",
-        rk_const=0.5 * ((gamma(1 + (n / 2)) * 5) ** (1 / n)) / sqrt(pi),
-        xtol_abs=1e-6,
-        ftol_abs=1e-6,
-        dist_to_bound_multiple=0.5,
+        localopt_method="scipy_Nelder-Mead",
+        opt_return_codes=[0],
+        nu=1e-8,
+        mu=1e-8,
+        dist_to_bound_multiple=0.01,
     )
 
     # Test consecutive suggest
@@ -571,10 +561,11 @@ def _run_aposmm_export_test(variables_mapping):
         max_active_runs=6,
         initial_sample_size=10,
         variables_mapping=variables_mapping,
-        localopt_method="LN_BOBYQA",
-        xtol_abs=1e-6,
-        ftol_abs=1e-6,
-        dist_to_bound_multiple=0.5,
+        localopt_method="scipy_Nelder-Mead",
+        opt_return_codes=[0],
+        nu=1e-8,
+        mu=1e-8,
+        dist_to_bound_multiple=0.01,
     )
     # Test basic export before finalize
     H, _, _ = aposmm.export()
