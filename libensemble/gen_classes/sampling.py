@@ -15,11 +15,11 @@ class UniformSample(LibensembleGenerator):
     Samples over the domain specified in the VOCS.
     """
 
-    def __init__(self, VOCS: VOCS, random_seed: int = 1, *args, **kwargs):
+    def __init__(self, vocs: VOCS, random_seed: int = 1, *args, **kwargs):
         super().__init__(VOCS, *args, **kwargs)
         self.rng = np.random.default_rng(random_seed)
 
-        self.n = len(list(self.VOCS.variables.keys()))
+        self.n = len(list(self.vocs.variables.keys()))
         self.np_dtype = [("x", float, (self.n))]
         self.lb = np.array([VOCS.variables[i].domain[0] for i in VOCS.variables])
         self.ub = np.array([VOCS.variables[i].domain[1] for i in VOCS.variables])
