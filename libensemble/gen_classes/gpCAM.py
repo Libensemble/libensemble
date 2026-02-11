@@ -35,7 +35,7 @@ class GP_CAM(LibensembleGenerator):
     (relative to the simulation evaluation time) for some use cases.
     """
 
-    def __init__(self, VOCS: VOCS, ask_max_iter: int = 10, random_seed: int = 1, *args, **kwargs):
+    def __init__(self, vocs: VOCS, ask_max_iter: int = 10, random_seed: int = 1, *args, **kwargs):
 
         super().__init__(VOCS, *args, **kwargs)
         self.rng = np.random.default_rng(random_seed)
@@ -56,8 +56,8 @@ class GP_CAM(LibensembleGenerator):
         self.ask_max_iter = ask_max_iter
 
     def _validate_vocs(self, vocs):
-        assert len(vocs.variables), "VOCS must contain variables."
-        assert len(vocs.objectives), "VOCS must contain at least one objective."
+        assert len(vocs.variable_names), "VOCS must contain variables."
+        assert len(vocs.objective_names), "VOCS must contain at least one objective."
 
     def suggest_numpy(self, n_trials: int) -> npt.NDArray:
         if self.all_x.shape[0] == 0:
