@@ -64,14 +64,18 @@ jobs:
           run: |
             pip install -e .
             flake8 libensemble
-            pip install --upgrade-strategy=only-if-needed git+https://github.com/xopt-org/xopt.git@generator_standard
-            pip install --no-deps git+https://github.com/optimas-org/optimas.git@main
-
 
         - name: Install gpcam
           if: matrix.python-version != 'py313e' && matrix.python-version != 'py314e'
           run: |
             pixi run -e ${{ matrix.python-version }} pip install gpcam==8.1.13
+
+        - name: Remove xopt tests on old python
+          if: matrix.python-version == 'py310'
+          run: |
+            rm ./libensemble/tests/regression_tests/test_xopt_EI_xopt_sim.py
+            rm ./libensemble/tests/regression_tests/test_xopt_EI.py
+            rm ./libensemble/tests/regression_tests/test_xopt_nelder_mead.py
 
         - name: Remove test using octave, gpcam, globus-compute on Python 3.13
           if: matrix.python-version == 'py313e' || matrix.python-version == 'py314e'
