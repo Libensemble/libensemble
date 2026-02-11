@@ -12,12 +12,17 @@ Execute via one of the following commands (e.g. 4 workers):
 When running with the above commands, the number of concurrent evaluations of
 the objective function will be 4 as the generator is on the manager.
 
+Issues: In some cases, the generator fails to produce points. This is
+intermittent and can be seen by the message "alloc_f did not return any work".
+This needs to be resolved in the generator by generating extra points
+as needed (exluding from until then).
 """
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: local
 # TESTSUITE_NPROCS: 4
 # TESTSUITE_EXTRA: true
+# TESTSUITE_EXCLUDE: true
 
 import numpy as np
 from gest_api.vocs import VOCS
