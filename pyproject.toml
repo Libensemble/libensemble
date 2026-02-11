@@ -215,8 +215,7 @@ extra = [
   "enchant>=0.0.1,<0.0.2",
   "proxystore>=0.8.3,<0.9",
   "redis>=7.1.0,<8",
-  "surmise>=0.3.0,<0.4",
-  "optimas>=0.8.1,<0.9",
+  "surmise>=0.3.0,<0.4", "optimas @ git+https://github.com/optimas-org/optimas",
 ]
 dev = ["wat>=0.7.0,<0.8"]
 docs = ["pyenchant", "enchant>=0.0.1,<0.0.2", "sphinx-lfs-content>=1.1.10,<2"]
