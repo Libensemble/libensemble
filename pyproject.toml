@@ -8,7 +8,14 @@ authors = [
   { name = "John-Luke Navarro" },
 ]
 
-dependencies = ["numpy", "psutil", "pyyaml", "tomli", "pydantic", "gest-api>=0.1,<0.2"]
+dependencies = [
+  "numpy",
+  "psutil",
+  "pyyaml",
+  "tomli",
+  "pydantic",
+  "gest-api>=0.1,<0.2",
+]
 
 description = "A Python toolkit for coordinating asynchronous and dynamic ensembles of calculations."
 name = "libensemble"
@@ -209,9 +216,14 @@ extra = [
   "proxystore>=0.8.3,<0.9",
   "redis>=7.1.0,<8",
   "surmise>=0.3.0,<0.4",
+  "optimas>=0.8.1,<0.9",
 ]
 dev = ["wat>=0.7.0,<0.8"]
 docs = ["pyenchant", "enchant>=0.0.1,<0.0.2", "sphinx-lfs-content>=1.1.10,<2"]
+py311e = ["xopt @ git+https://github.com/xopt-org/xopt.git@v3.0"]
+py312e = ["xopt @ git+https://github.com/xopt-org/xopt.git@v3.0"]
+py313e = ["xopt @ git+https://github.com/xopt-org/xopt.git@v3.0"]
+py314e = ["xopt @ git+https://github.com/xopt-org/xopt.git@v3.0"]
 
 # Various config from here onward
 [tool.black]
