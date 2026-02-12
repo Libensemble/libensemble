@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import logging
 import logging.handlers
+import os
 import socket
 from itertools import count
 from pathlib import Path
@@ -115,6 +116,8 @@ def worker_main(
     # Set up and run worker
     worker = Worker(comm, dtypes, workerID, sim_specs, gen_specs, libE_specs)
     with LS.loc("workflow"):
+        if Executor.executor is not None:
+            Executor.executor.base_dir = os.getcwd()
         worker.run()
 
     if libE_specs.get("profile"):
