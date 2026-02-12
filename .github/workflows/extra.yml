@@ -64,22 +64,25 @@ jobs:
           run: |
             pip install -e .
             flake8 libensemble
-            pip install --upgrade-strategy=only-if-needed git+https://github.com/xopt-org/xopt.git@v3.0
-            pip install --no-deps git+https://github.com/optimas-org/optimas.git@multitask_uses_id
-
 
         - name: Install gpcam
           if: matrix.python-version != 'py313e' && matrix.python-version != 'py314e'
           run: |
             pixi run -e ${{ matrix.python-version }} pip install gpcam==8.1.13
 
+        - name: Remove xopt tests on old python
+          if: matrix.python-version == 'py310e'
+          run: |
+            rm ./libensemble/tests/regression_tests/test_xopt_EI_xopt_sim.py
+            rm ./libensemble/tests/regression_tests/test_xopt_EI.py
+            rm ./libensemble/tests/regression_tests/test_xopt_nelder_mead.py
+
         - name: Remove test using octave, gpcam, globus-compute on Python 3.13
           if: matrix.python-version == 'py313e' || matrix.python-version == 'py314e'
           run: |
             rm ./libensemble/tests/unit_tests/test_ufunc_runners.py # needs globus-compute
-            rm ./libensemble/tests/regression_tests/test_persistent_fd_param_finder.py # needs octave, which doesn't yet support 3.13
-            rm ./libensemble/tests/regression_tests/test_persistent_aposmm_external_localopt.py # needs octave, which doesn't yet support 3.13
             rm ./libensemble/tests/regression_tests/test_gpCAM.py # needs gpcam, which doesn't build on 3.13
+            rm ./libensemble/tests/regression_tests/test_asktell_gpCAM.py # needs gpcam, which doesn't build on 3.13
             rm ./libensemble/tests/regression_tests/test_persistent_gp_multitask_ax.py # needs ax-platform, which doesn't yet support 3.14
 
         - name: Start Redis
