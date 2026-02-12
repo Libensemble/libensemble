@@ -81,9 +81,8 @@ jobs:
           if: matrix.python-version == 'py313e' || matrix.python-version == 'py314e'
           run: |
             rm ./libensemble/tests/unit_tests/test_ufunc_runners.py # needs globus-compute
-            rm ./libensemble/tests/regression_tests/test_persistent_fd_param_finder.py # needs octave, which doesn't yet support 3.13
-            rm ./libensemble/tests/regression_tests/test_persistent_aposmm_external_localopt.py # needs octave, which doesn't yet support 3.13
             rm ./libensemble/tests/regression_tests/test_gpCAM.py # needs gpcam, which doesn't build on 3.13
+            rm ./libensemble/tests/regression_tests/test_asktell_gpCAM.py # needs gpcam, which doesn't build on 3.13
             rm ./libensemble/tests/regression_tests/test_persistent_gp_multitask_ax.py # needs ax-platform, which doesn't yet support 3.14
 
         - name: Start Redis
