@@ -27,9 +27,8 @@ doing the simulation evaluations.
 import multiprocessing
 import sys
 
-import numpy as np
-
 import libensemble.gen_funcs
+import numpy as np
 from libensemble.libE import libE
 
 libensemble.gen_funcs.rc.aposmm_optimizers = "ibcdfo_manifold_sampling"
@@ -39,8 +38,7 @@ from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
 from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
 
 try:
-    from ibcdfo.manifold_sampling import manifold_sampling_primal  # noqa: F401
-    from ibcdfo.manifold_sampling.h_examples import pw_maximum as hfun
+    import ibcdfo  # noqa: F401
 
 except ModuleNotFoundError:
     sys.exit("Please 'pip install ibcdfo'")
@@ -110,7 +108,7 @@ if __name__ == "__main__":
         },
     }
 
-    gen_specs["user"]["hfun"] = hfun
+    gen_specs["user"]["hfun"] = ibcdfo.manifold_sampling.h_pw_maximum
 
     alloc_specs = {"alloc_f": alloc_f}
 
