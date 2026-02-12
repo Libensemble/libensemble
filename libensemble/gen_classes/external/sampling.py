@@ -1,6 +1,6 @@
-from gest_api.vocs import VOCS
-from gest_api import Generator
 import numpy as np
+from gest_api import Generator
+from gest_api.vocs import VOCS
 
 __all__ = [
     "UniformSample",
@@ -15,20 +15,20 @@ class UniformSample(Generator):
     Each variable is a scalar.
     """
 
-    def __init__(self, VOCS: VOCS):
-        self.VOCS = VOCS
+    def __init__(self, vocs: VOCS):
+        self.vocs = vocs
         self.rng = np.random.default_rng(1)
-        super().__init__(VOCS)
+        super().__init__(vocs)
 
-    def _validate_vocs(self, VOCS):
-        assert len(self.VOCS.variables), "VOCS must contain variables."
+    def _validate_vocs(self, vocs):
+        assert len(self.vocs.variable_names), "VOCS must contain variables."
 
     def suggest(self, n_trials):
         output = []
         for _ in range(n_trials):
             trial = {}
-            for key in self.VOCS.variables.keys():
-                trial[key] = self.rng.uniform(self.VOCS.variables[key].domain[0], self.VOCS.variables[key].domain[1])
+            for key in self.vocs.variables:
+                trial[key] = self.rng.uniform(self.vocs.variables[key].domain[0], self.vocs.variables[key].domain[1])
             output.append(trial)
         return output
 
@@ -43,18 +43,18 @@ class UniformSampleArray(Generator):
     Uses one array variable of any dimension. Array is a numpy array.
     """
 
-    def __init__(self, VOCS: VOCS):
-        self.VOCS = VOCS
+    def __init__(self, vocs: VOCS):
+        self.vocs = vocs
         self.rng = np.random.default_rng(1)
-        super().__init__(VOCS)
+        super().__init__(vocs)
 
-    def _validate_vocs(self, VOCS):
-        assert len(self.VOCS.variables) == 1, "VOCS must contain exactly one variable."
+    def _validate_vocs(self, vocs):
+        assert len(self.vocs.variables) == 1, "VOCS must contain exactly one variable."
 
     def suggest(self, n_trials):
         output = []
-        key = list(self.VOCS.variables.keys())[0]
-        var = self.VOCS.variables[key]
+        key = list(self.vocs.variables.keys())[0]
+        var = self.vocs.variables[key]
         for _ in range(n_trials):
             trial = {key: np.array([self.rng.uniform(bounds[0], bounds[1]) for bounds in var.domain])}
             output.append(trial)

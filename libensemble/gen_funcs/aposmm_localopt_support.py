@@ -14,11 +14,11 @@ __all__ = [
     "run_external_localopt",
 ]
 
+import traceback
 from multiprocessing import Event, Process, Queue
 
 import numpy as np
 import psutil
-import traceback
 
 import libensemble.gen_funcs
 from libensemble.message_numbers import EVAL_GEN_TAG, STOP_TAG  # Only used to simulate receiving from manager
@@ -45,9 +45,9 @@ if optimizers is not None:
     if "dfols" in optimizers:
         import dfols  # noqa: F401
     if "ibcdfo_pounders" in optimizers:
-        from ibcdfo.pounders import pounders  # noqa: F401
+        from ibcdfo import run_pounders
     if "ibcdfo_manifold_sampling" in optimizers:
-        from ibcdfo.manifold_sampling import manifold_sampling_primal  # noqa: F401
+        from ibcdfo import run_MSP  # noqa: F401
     if "scipy" in optimizers:
         from scipy import optimize as sp_opt  # noqa: F401
     if "external_localopt" in optimizers:
@@ -450,7 +450,7 @@ def run_local_ibcdfo_manifold_sampling(user_specs, comm_queue, x0, f0, child_can
     # m = len(f0)
     subprob_switch = "linprog"
 
-    [X, F, hF, xkin, flag] = manifold_sampling_primal(
+    [X, F, hF, xkin, flag] = run_MSP(
         user_specs["hfun"],
         lambda x: scipy_dfols_callback_fun(x, comm_queue, child_can_read, parent_can_read, user_specs),
         x0,
@@ -508,7 +508,7 @@ def run_local_ibcdfo_pounders(user_specs, comm_queue, x0, f0, child_can_read, pa
     else:
         Options = None
 
-    [X, F, hF, flag, xkin] = pounders(
+    [X, F, hF, flag, xkin] = run_pounders(
         lambda x: scipy_dfols_callback_fun(x, comm_queue, child_can_read, parent_can_read, user_specs),
         x0,
         n,

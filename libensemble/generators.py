@@ -39,7 +39,7 @@ class LibensembleGenerator(Generator):
 
     def __init__(
         self,
-        VOCS: VOCS,
+        vocs: VOCS,
         History: npt.NDArray = [],
         persis_info: dict = {},
         gen_specs: dict = {},
@@ -47,8 +47,8 @@ class LibensembleGenerator(Generator):
         variables_mapping: dict = {},
         **kwargs,
     ):
-        self._validate_vocs(VOCS)
-        self.VOCS = VOCS
+        self._validate_vocs(vocs)
+        self.vocs = vocs
         self.History = History
         self.gen_specs = gen_specs
         self.libE_info = libE_info
@@ -59,16 +59,17 @@ class LibensembleGenerator(Generator):
         # Map variables to x if not already mapped
         if "x" not in self.variables_mapping:
             # SH TODO - is this check needed?
-            if len(list(self.VOCS.variables.keys())) > 1 or list(self.VOCS.variables.keys())[0] != "x":
-                self.variables_mapping["x"] = self._get_unmapped_keys(self.VOCS.variables, "x")
+            if len(list(self.vocs.variables.keys())) > 1 or list(self.vocs.variables.keys())[0] != "x":
+                self.variables_mapping["x"] = self._get_unmapped_keys(self.vocs.variables, "x")
         # Map objectives to f if not already mapped
         if "f" not in self.variables_mapping:
             if (
-                len(list(self.VOCS.objectives.keys())) > 1 or list(self.VOCS.objectives.keys())[0] != "f"
+                len(list(self.vocs.objectives.keys())) > 1 or list(self.vocs.objectives.keys())[0] != "f"
             ):  # e.g. {"f": ["f"]} doesn't need mapping
-                self.variables_mapping["f"] = self._get_unmapped_keys(self.VOCS.objectives, "f")
+                self.variables_mapping["f"] = self._get_unmapped_keys(self.vocs.objectives, "f")
         # Map sim_id to _id
-        self.variables_mapping["sim_id"] = ["_id"]
+        if self.returns_id:
+            self.variables_mapping["sim_id"] = ["_id"]
 
         if len(kwargs) > 0:  # so user can specify gen-specific parameters as kwargs to constructor
             if not self.gen_specs.get("user"):
@@ -124,14 +125,14 @@ class PersistentGenInterfacer(LibensembleGenerator):
 
     def __init__(
         self,
-        VOCS: VOCS,
+        vocs: VOCS,
         History: npt.NDArray = [],
         persis_info: dict = {},
         gen_specs: dict = {},
         libE_info: dict = {},
         **kwargs,
     ) -> None:
-        super().__init__(VOCS, History, persis_info, gen_specs, libE_info, **kwargs)
+        super().__init__(vocs, History, persis_info, gen_specs, libE_info, **kwargs)
         self.gen_f = gen_specs["gen_f"]
         self.History = History
         self.libE_info = libE_info

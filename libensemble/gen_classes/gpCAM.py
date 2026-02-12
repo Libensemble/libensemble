@@ -35,13 +35,13 @@ class GP_CAM(LibensembleGenerator):
     (relative to the simulation evaluation time) for some use cases.
     """
 
-    def __init__(self, VOCS: VOCS, ask_max_iter: int = 10, random_seed: int = 1, *args, **kwargs):
+    def __init__(self, vocs: VOCS, ask_max_iter: int = 10, random_seed: int = 1, *args, **kwargs):
 
-        super().__init__(VOCS, *args, **kwargs)
+        super().__init__(vocs, *args, **kwargs)
         self.rng = np.random.default_rng(random_seed)
 
-        self.lb = np.array([VOCS.variables[i].domain[0] for i in VOCS.variables])
-        self.ub = np.array([VOCS.variables[i].domain[1] for i in VOCS.variables])
+        self.lb = np.array([vocs.variables[i].domain[0] for i in vocs.variables])
+        self.ub = np.array([vocs.variables[i].domain[1] for i in vocs.variables])
         self.n = len(self.lb)  # dimension
         self.all_x = np.empty((0, self.n))
         self.all_y = np.empty((0, 1))
@@ -56,8 +56,8 @@ class GP_CAM(LibensembleGenerator):
         self.ask_max_iter = ask_max_iter
 
     def _validate_vocs(self, vocs):
-        assert len(vocs.variables), "VOCS must contain variables."
-        assert len(vocs.objectives), "VOCS must contain at least one objective."
+        assert len(vocs.variable_names), "VOCS must contain variables."
+        assert len(vocs.objective_names), "VOCS must contain at least one objective."
 
     def suggest_numpy(self, n_trials: int) -> npt.NDArray:
         if self.all_x.shape[0] == 0:
@@ -105,8 +105,8 @@ class GP_CAM_Covar(GP_CAM):
     function to find sample points.
     """
 
-    def __init__(self, VOCS, test_points_file: str = None, use_grid: bool = False, *args, **kwargs):
-        super().__init__(VOCS, *args, **kwargs)
+    def __init__(self, vocs: VOCS, test_points_file: str = None, use_grid: bool = False, *args, **kwargs):
+        super().__init__(vocs, *args, **kwargs)
         self.test_points = _read_testpoints({"test_points_file": test_points_file})
         self.x_for_var = None
         self.var_vals = None

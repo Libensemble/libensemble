@@ -31,7 +31,7 @@ class Mock(MagicMock):
         return MagicMock()
 
 
-autodoc_mock_imports = ["ax", "balsam", "gpcam", "IPython", "matplotlib", "pandas", "scipy", "surmise"]
+autodoc_mock_imports = ["ax", "gpcam", "IPython", "matplotlib", "pandas", "scipy", "surmise"]
 
 MOCK_MODULES = [
     "argparse",
@@ -101,6 +101,7 @@ extensions = [
     "sphinxcontrib.autodoc_pydantic",
     "sphinx_design",
     "sphinx_copybutton",
+    "sphinx_lfs_content",
 ]
 
 spelling_word_list_filename = "spelling_wordlist.txt"

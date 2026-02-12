@@ -37,6 +37,7 @@ if __name__ == "__main__":
     batch_size = 1
 
     libE_specs = LibeSpecs(gen_on_manager=True, nworkers=batch_size)
+    libE_specs.reuse_output_dir = True
 
     vocs = VOCS(
         variables={"x1": [-2.0, 2.0], "x2": [-2.0, 2.0]},
