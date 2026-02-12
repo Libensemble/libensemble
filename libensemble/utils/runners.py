@@ -191,12 +191,12 @@ class LibensembleGenRunner(StandardGenRunner):
 class LibensembleGenThreadRunner(StandardGenRunner):
     def _get_initial_suggest(self, libE_info) -> npt.NDArray:
         """Get initial batch from generator based on generator type"""
-        return self.gen.suggest_numpy()  # libE really needs to receive the *entire* initial batch from a threaded gen
+        return self.gen.suggest()  # libE really needs to receive the *entire* initial batch from a threaded gen
 
     def _suggest_and_send(self):
         """Loop over generator's outbox contents, send to manager"""
         while not self.gen._running_gen_f.outbox.empty():  # recv/send any outstanding messages
-            points = self.gen.suggest_numpy()
+            points = self.gen.suggest()
             if callable(getattr(self.gen, "suggest_updates", None)):
                 updates = self.gen.suggest_updates()
             else:

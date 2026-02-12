@@ -107,7 +107,7 @@ class History:
         self.last_ended = -1
 
     def _append_new_fields(self, H_f: npt.NDArray) -> None:
-        dtype_new = np.dtype(list(set(self.H.dtype.descr + H_f.dtype.descr)))
+        dtype_new = np.dtype(list(set(self.H.dtype.descr + np.lib.recfunctions.repack_fields(H_f).dtype.descr)))
         H_new = np.zeros(len(self.H), dtype=dtype_new)
         old_fields = self.H.dtype.names
         for field in old_fields:

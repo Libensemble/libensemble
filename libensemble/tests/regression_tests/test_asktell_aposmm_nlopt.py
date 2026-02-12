@@ -15,7 +15,6 @@ persistent generator.
 # TESTSUITE_COMMS: local mpi tcp
 # TESTSUITE_NPROCS: 3
 
-import sys
 from math import gamma, pi, sqrt
 
 import numpy as np
@@ -26,7 +25,6 @@ from libensemble.sim_funcs import six_hump_camel
 from libensemble.sim_funcs.executor_hworld import executor_hworld as sim_f_exec
 
 # Import libEnsemble items for this test
-from libensemble.sim_funcs.six_hump_camel import six_hump_camel as sim_f
 
 libensemble.gen_funcs.rc.aposmm_optimizers = "nlopt"
 from time import time
@@ -34,10 +32,24 @@ from time import time
 from gest_api.vocs import VOCS
 
 from libensemble import Ensemble
-from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc as alloc_f
+from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.gen_classes import APOSMM
 from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, SimSpecs
 from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
+
+
+def six_hump_camel_func(x):
+    """
+    Definition of the six-hump camel
+    """
+    x1 = x["core"]
+    x2 = x["edge"]
+    term1 = (4 - 2.1 * x1**2 + (x1**4) / 3) * x1**2
+    term2 = x1 * x2
+    term3 = (-4 + 4 * x2**2) * x2**2
+
+    return {"energy": term1 + term2 + term3}
+
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
@@ -49,18 +61,15 @@ if __name__ == "__main__":
         if workflow.is_manager:
             start_time = time()
 
-        if workflow.nworkers < 2:
-            sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
-
         n = 2
         workflow.alloc_specs = AllocSpecs(alloc_f=alloc_f)
+
+        workflow.libE_specs.gen_on_manager = True
 
         vocs = VOCS(
             variables={"core": [-3, 3], "edge": [-2, 2], "core_on_cube": [-3, 3], "edge_on_cube": [-2, 2]},
             objectives={"energy": "MINIMIZE"},
         )
-
-        workflow.libE_specs.gen_on_manager = True
 
         aposmm = APOSMM(
             vocs,
@@ -74,17 +83,15 @@ if __name__ == "__main__":
             ftol_abs=1e-6,
         )
 
-        # SH TODO - dont want this stuff duplicated - pass with vocs instead
         workflow.gen_specs = GenSpecs(
-            persis_in=["x", "x_on_cube", "sim_id", "local_min", "local_pt", "f"],
             generator=aposmm,
+            vocs=vocs,
             batch_size=5,
             initial_batch_size=10,
-            user={"initial_sample_size": 100},
         )
 
         if run == 0:
-            workflow.sim_specs = SimSpecs(sim_f=sim_f, inputs=["x"], outputs=[("f", float)])
+            workflow.sim_specs = SimSpecs(simulator=six_hump_camel_func, vocs=vocs)
             workflow.exit_criteria = ExitCriteria(sim_max=2000)
         elif run == 1:
             workflow.persis_info["num_gens_started"] = 0
