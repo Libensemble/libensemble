@@ -9,7 +9,7 @@ from libensemble.comms.comms import QCommThread
 from libensemble.generators import LibensembleGenerator, PersistentGenInterfacer
 from libensemble.message_numbers import EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG, PERSIS_STOP, STOP_TAG
 from libensemble.tools.persistent_support import PersistentSupport
-from libensemble.utils.misc import list_dicts_to_np, np_to_list_dicts
+from libensemble.utils.misc import list_dicts_to_np, map_numpy_array, np_to_list_dicts, unmap_numpy_array
 
 logger = logging.getLogger(__name__)
 
@@ -197,12 +197,17 @@ class LibensembleGenRunner(StandardGenRunner):
 class LibensembleGenThreadRunner(StandardGenRunner):
     def _get_initial_suggest(self, libE_info) -> npt.NDArray:
         """Get initial batch from generator based on generator type"""
-        return self.gen.suggest()  # libE really needs to receive the *entire* initial batch from a threaded gen
+        return unmap_numpy_array(
+            self.gen.suggest_numpy(), mapping=getattr(self.gen, "variables_mapping", {})
+        )  # libE really needs to receive the *entire* initial batch from a threaded gen
+
+    def _convert_initial_ingest(self, x: npt.NDArray) -> list:
+        self.gen.ingest_numpy(map_numpy_array(x, mapping=getattr(self.gen, "variables_mapping", {})))
 
     def _suggest_and_send(self):
         """Loop over generator's outbox contents, send to manager"""
         while not self.gen._running_gen_f.outbox.empty():  # recv/send any outstanding messages
-            points = self.gen.suggest()
+            points = unmap_numpy_array(self.gen.suggest_numpy(), mapping=getattr(self.gen, "variables_mapping", {}))
             if callable(getattr(self.gen, "suggest_updates", None)):
                 updates = self.gen.suggest_updates()
             else:
@@ -222,6 +227,8 @@ class LibensembleGenThreadRunner(StandardGenRunner):
             while self.ps.comm.mail_flag():  # receive any new messages from Manager, give all to gen
                 tag, _, H_in = self.ps.recv()
                 if tag in [STOP_TAG, PERSIS_STOP]:
-                    self.gen.ingest_numpy(H_in, PERSIS_STOP)
+                    self.gen.ingest_numpy(
+                        map_numpy_array(H_in, mapping=getattr(self.gen, "variables_mapping", {})), PERSIS_STOP
+                    )
                     return self.gen._running_gen_f.result()
-                self.gen.ingest_numpy(H_in)
+                self.gen.ingest_numpy(map_numpy_array(H_in, mapping=getattr(self.gen, "variables_mapping", {})))

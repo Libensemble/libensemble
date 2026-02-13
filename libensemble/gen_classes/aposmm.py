@@ -293,7 +293,13 @@ class APOSMM(PersistentGenInterfacer):
 
     def _slot_in_data(self, results):
         """Slot in libE_calc_in and trial data into corresponding array fields. *Initial sample only!!*"""
-        self._ingest_buf[self._n_buffd_results : self._n_buffd_results + len(results)] = results
+        for name in results.dtype.names:
+            if name == "_id":
+                self._ingest_buf["sim_id"][self._n_buffd_results : self._n_buffd_results + len(results)] = results[
+                    "_id"
+                ]
+            else:
+                self._ingest_buf[name][self._n_buffd_results : self._n_buffd_results + len(results)] = results[name]
 
     def _enough_initial_sample(self):
         return (
@@ -361,7 +367,11 @@ class APOSMM(PersistentGenInterfacer):
         # Initial sample buffering here:
 
         if self._n_buffd_results == 0:
-            self._ingest_buf = np.zeros(self.gen_specs["user"]["initial_sample_size"], dtype=results.dtype)
+            # Create a dtype that includes sim_id but excludes _id
+            descr = [d for d in results.dtype.descr if d[0] != "_id"]
+            if "sim_id" not in [d[0] for d in descr]:
+                descr.append(("sim_id", int))
+            self._ingest_buf = np.zeros(self.gen_specs["user"]["initial_sample_size"], dtype=descr)
 
         if not self._enough_initial_sample():
             self._slot_in_data(np.copy(results))

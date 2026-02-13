@@ -74,9 +74,8 @@ def _get_new_dtype_fields(first: dict, mapping: dict = {}) -> list:
     fields_to_convert = list(  # combining all mapping lists
         chain.from_iterable(list(mapping.values()))
     )  # fields like ["beam_length", "beam_width"] that will become "x"
-    new_dtype_names = [i for i in new_dtype_names if i not in fields_to_convert] + list(
-        mapping.keys()
-    )  # array dtype needs "x". avoid fields from mapping values since we're converting those to "x"
+    new_dtype_names = [i for i in new_dtype_names if i not in fields_to_convert]
+    # array dtype needs "x". avoid fields from mapping values since we're converting those to "x"
     # We need to accommodate "_id" getting mapped to "sim_id", but if it's not present
     # in the input dictionary, then perhaps we're doing an initial sample.
     if "_id" not in first and "sim_id" in mapping:
@@ -139,9 +138,7 @@ def list_dicts_to_np(list_dicts: list, dtype: list = None, mapping: dict = {}) -
     new_dtype_names = _get_new_dtype_fields(first, mapping)
     combinable_names = _get_combinable_multidim_names(first, new_dtype_names)  # [['x0', 'x1'], ['z']]
 
-    if (
-        dtype is None
-    ):  # Default value gets set upon function instantiation (default is mutable).
+    if dtype is None:  # Default value gets set upon function instantiation (default is mutable).
         dtype = []
 
     # build dtype of non-mapped fields. appending onto empty dtype
@@ -217,6 +214,74 @@ def unmap_numpy_array(array: npt.NDArray, mapping: dict = {}) -> npt.NDArray:
             # Copy non-mapped fields
             unmapped_array[field] = array[field]
     return unmapped_array
+
+
+def map_numpy_array(array: npt.NDArray, mapping: dict = {}) -> npt.NDArray:
+    """Convert numpy array with individual scalar fields to mapped fields.
+    Parameters
+    ----------
+    array : npt.NDArray
+        Input array with unmapped fields like x0, x1, x2
+    mapping : dict
+        Mapping from field names to variable names
+    Returns
+    -------
+    npt.NDArray
+        Array with mapped fields like x = [x0, x1, x2]
+    """
+    if not mapping or array is None:
+        return array
+
+    # Create new dtype with mapped fields
+    new_fields = []
+
+    # Track fields processed by mapping to avoid duplication
+    mapped_source_fields = set()
+    for key, val_list in mapping.items():
+        mapped_source_fields.update(val_list)
+
+    # First add mapped fields from the mapping definition
+    for mapped_name, val_list in mapping.items():
+        if not val_list:
+            continue
+        first_var = val_list[0]
+        # We assume all components have the same type, take from first
+        if first_var in array.dtype.names:
+            base_type = array.dtype[first_var]
+            size = len(val_list)
+            if size > 1:
+                new_fields.append((mapped_name, base_type, (size,)))
+            else:
+                new_fields.append((mapped_name, base_type))
+
+    # Then add any fields from the source array that were NOT part of a mapping
+    for field in array.dtype.names:
+        if field not in mapped_source_fields:
+            new_fields.append((field, array.dtype[field]))
+
+    # remove duplicates from new_fields
+    new_fields = list(dict.fromkeys(new_fields))
+
+    # Create the new array
+    mapped_array = np.zeros(len(array), dtype=new_fields)
+
+    # Fill the new array
+    for field in mapped_array.dtype.names:
+        if field in mapping:
+            # Mapped field: stack the source columns
+            val_list = mapping[field]
+            if len(val_list) == 1:
+                mapped_array[field] = array[val_list[0]]
+            else:
+                # Stack columns horizontally for each row
+                # We need to extract each column, then stack them along axis 1
+                cols = [array[val] for val in val_list]
+                mapped_array[field] = np.stack(cols, axis=1)
+        else:
+            # Direct copy
+            mapped_array[field] = array[field]
+
+    return mapped_array
 
 
 def np_to_list_dicts(array: npt.NDArray, mapping: dict = {}) -> List[dict]:
