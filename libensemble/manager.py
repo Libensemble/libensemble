@@ -410,6 +410,14 @@ class Manager:
         if self.resources:
             self.resources.resource_manager.free_rsets(w)
 
+    def _ensure_sim_id_in_persis_in(self, D: npt.NDArray) -> None:
+        """Add sim_id to gen_specs persis_in if generator output contains sim_id (gest-api style generators only)"""
+        if self.gen_specs.get("generator") and len(D) > 0 and "sim_id" in D.dtype.names:
+            if "persis_in" not in self.gen_specs:
+                self.gen_specs["persis_in"] = []
+            if "sim_id" not in self.gen_specs["persis_in"]:
+                self.gen_specs["persis_in"].append("sim_id")
+
     def _send_work_order(self, Work: dict, w: int) -> None:
         """Sends an allocation function order to a worker"""
         logger.debug(f"Manager sending work unit to worker {w}")
@@ -483,6 +491,7 @@ class Manager:
             final_data = D_recv.get("calc_out", None)
             if isinstance(final_data, np.ndarray):
                 if calc_status is FINISHED_PERSISTENT_GEN_TAG and self.libE_specs.get("use_persis_return_gen", False):
+                    self._ensure_sim_id_in_persis_in(final_data)
                     self.hist.update_history_x_in(w, final_data, self.W[w]["gen_started_time"])
                 elif calc_status is FINISHED_PERSISTENT_SIM_TAG and self.libE_specs.get("use_persis_return_sim", False):
                     self.hist.update_history_f(D_recv, self.kill_canceled_sims)
@@ -500,7 +509,9 @@ class Manager:
             if calc_type == EVAL_SIM_TAG:
                 self.hist.update_history_f(D_recv, self.kill_canceled_sims)
             if calc_type == EVAL_GEN_TAG:
-                self.hist.update_history_x_in(w, D_recv["calc_out"], self.W[w]["gen_started_time"])
+                D = D_recv["calc_out"]
+                self._ensure_sim_id_in_persis_in(D)
+                self.hist.update_history_x_in(w, D, self.W[w]["gen_started_time"])
                 assert (
                     len(D_recv["calc_out"]) or np.any(self.W["active"]) or self.W[w]["persis_state"]
                 ), "Gen must return work when is is the only thing active and not persistent."

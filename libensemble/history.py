@@ -82,6 +82,8 @@ class History:
             H = np.zeros(L + len(H0), dtype=specs_dtype_list)
 
         H["sim_id"][-L:] = -1
+        if "_id" in H.dtype.names:
+            H["_id"][-L:] = -1
         H["sim_started_time"][-L:] = np.inf
         H["gen_informed_time"][-L:] = np.inf
 
@@ -270,6 +272,8 @@ class History:
         """
         H_1 = np.zeros(k, dtype=self.H.dtype)
         H_1["sim_id"] = -1
+        if "_id" in H_1.dtype.names:
+            H_1["_id"] = -1
         H_1["sim_started_time"] = np.inf
         H_1["gen_informed_time"] = np.inf
         if "resource_sets" in H_1.dtype.names:
