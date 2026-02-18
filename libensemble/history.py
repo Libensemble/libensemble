@@ -123,7 +123,13 @@ class History:
 
         new_inds = D["libE_info"]["H_rows"]  # The list of rows (as a numpy array)
         returned_H = D["calc_out"]
-        fields = returned_H.dtype.names if returned_H is not None else []
+        try:
+            fields = returned_H.dtype.names if returned_H is not None else []
+        except AttributeError:
+            raise AttributeError(
+                "Manager received an unexpected datatype from a simulation."
+                + "Perhaps you meant to set `SimSpecs.simulator` instead of `SimSpecs.sim_f`?"
+            )
 
         if returned_H is not None and any([field not in self.H.dtype.names for field in returned_H.dtype.names]):
             self._append_new_fields(returned_H)

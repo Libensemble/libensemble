@@ -22,7 +22,6 @@ import numpy as np
 import libensemble.gen_funcs
 from libensemble.executors.mpi_executor import MPIExecutor
 from libensemble.sim_funcs import six_hump_camel
-from libensemble.sim_funcs.executor_hworld import executor_hworld as sim_f_exec
 
 # Import libEnsemble items for this test
 
@@ -98,9 +97,7 @@ if __name__ == "__main__":
             sim_app2 = six_hump_camel.__file__
             exctr = MPIExecutor()
             exctr.register_app(full_path=sim_app2, app_name="six_hump_camel", calc_type="sim")  # Named app
-            workflow.sim_specs = SimSpecs(
-                sim_f=sim_f_exec, inputs=["x"], outputs=[("f", float), ("cstat", int)], user={"cores": 1}
-            )
+            workflow.sim_specs = SimSpecs(simulator=six_hump_camel_func, vocs=vocs)
             workflow.exit_criteria = ExitCriteria(sim_max=200)
 
         workflow.add_random_streams()

@@ -75,11 +75,6 @@ def _get_new_dtype_fields(first: dict, mapping: dict = {}) -> list:
         chain.from_iterable(list(mapping.values()))
     )  # fields like ["beam_length", "beam_width"] that will become "x"
     new_dtype_names = [i for i in new_dtype_names if i not in fields_to_convert]
-    # array dtype needs "x". avoid fields from mapping values since we're converting those to "x"
-    # We need to accommodate "_id" getting mapped to "sim_id", but if it's not present
-    # in the input dictionary, then perhaps we're doing an initial sample.
-    if "_id" not in first and "sim_id" in mapping:
-        new_dtype_names.remove("sim_id")
     return new_dtype_names
 
 
@@ -149,9 +144,12 @@ def list_dicts_to_np(list_dicts: list, dtype: list = None, mapping: dict = {}) -
     if len(mapping):
         existing_names = [f[0] for f in dtype]
         for name in mapping:
-            if name not in existing_names:
+            # If the field is already in the dtype, skip it. *And* the field is present in the input data
+            if name not in existing_names and all(src in first for src in mapping[name]):
                 size = len(mapping[name])
                 dtype.append(_decide_dtype(name, 0.0, size))  # default to float
+                new_dtype_names.append(name)
+                combinable_names.append(mapping[name])
 
     out = np.zeros(len(list_dicts), dtype=dtype)
 

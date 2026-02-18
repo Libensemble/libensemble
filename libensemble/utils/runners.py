@@ -195,11 +195,9 @@ class LibensembleGenRunner(StandardGenRunner):
 
 
 class LibensembleGenThreadRunner(StandardGenRunner):
-    def _get_initial_suggest(self, libE_info) -> npt.NDArray:
+    def _get_initial_suggest(self, _) -> npt.NDArray:
         """Get initial batch from generator based on generator type"""
-        return unmap_numpy_array(
-            self.gen.suggest_numpy(), mapping=getattr(self.gen, "variables_mapping", {})
-        )  # libE really needs to receive the *entire* initial batch from a threaded gen
+        return unmap_numpy_array(self.gen.suggest_numpy(), mapping=getattr(self.gen, "variables_mapping", {}))
 
     def _convert_initial_ingest(self, x: npt.NDArray) -> list:
         self.gen.ingest_numpy(map_numpy_array(x, mapping=getattr(self.gen, "variables_mapping", {})))
