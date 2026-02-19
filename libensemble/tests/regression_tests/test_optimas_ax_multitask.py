@@ -23,10 +23,10 @@ as needed (exluding from until then).
 # TESTSUITE_NPROCS: 4
 # TESTSUITE_EXTRA: true
 # TESTSUITE_EXCLUDE: true
+# TESTSUITE_OS_SKIP: OSX
 
 import numpy as np
 from gest_api.vocs import VOCS
-
 from optimas.core import Task
 from optimas.generators import AxMultitaskGenerator
 
@@ -37,7 +37,7 @@ from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, Sim
 
 def eval_func_multitask(input_params):
     """Evaluation function for task1 or task2 in multitask test"""
-    print(f'input_params: {input_params}')
+    print(f"input_params: {input_params}")
     x0 = input_params["x0"]
     x1 = input_params["x1"]
     trial_type = input_params["trial_type"]
