@@ -84,6 +84,8 @@ jobs:
             rm ./libensemble/tests/regression_tests/test_gpCAM.py # needs gpcam, which doesn't build on 3.13
             rm ./libensemble/tests/regression_tests/test_asktell_gpCAM.py # needs gpcam, which doesn't build on 3.13
             rm ./libensemble/tests/regression_tests/test_persistent_gp_multitask_ax.py # needs ax-platform, which doesn't yet support 3.14
+            rm ./libensemble/tests/regression_tests/test_optimas_ax_mf.py # needs ax-platform, which doesn't yet support 3.14
+            rm ./libensemble/tests/regression_tests/test_optimas_ax_sf.py # needs ax-platform, which doesn't yet support 3.14
 
         - name: Start Redis
           if: matrix.os == 'ubuntu-latest'
