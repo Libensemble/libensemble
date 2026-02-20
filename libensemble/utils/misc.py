@@ -240,17 +240,14 @@ def map_numpy_array(array: npt.NDArray, mapping: dict = {}) -> npt.NDArray:
 
     # First add mapped fields from the mapping definition
     for mapped_name, val_list in mapping.items():
-        if not val_list:
-            continue
         first_var = val_list[0]
         # We assume all components have the same type, take from first
-        if first_var in array.dtype.names:
-            base_type = array.dtype[first_var]
-            size = len(val_list)
-            if size > 1:
-                new_fields.append((mapped_name, base_type, (size,)))
-            else:
-                new_fields.append((mapped_name, base_type))
+        base_type = array.dtype[first_var]
+        size = len(val_list)
+        if size > 1:
+            new_fields.append((mapped_name, base_type, (size,)))
+        else:
+            new_fields.append((mapped_name, base_type))
 
     # Then add any fields from the source array that were NOT part of a mapping
     for field in array.dtype.names:
@@ -265,27 +262,21 @@ def map_numpy_array(array: npt.NDArray, mapping: dict = {}) -> npt.NDArray:
 
     # Fill the new array
     for field in mapped_array.dtype.names:
-        if field in mapping:
-            # Mapped field: stack the source columns
-            val_list = mapping[field]
-            if len(val_list) == 1:
-                mapped_array[field] = array[val_list[0]]
-            else:
-                # Stack columns horizontally for each row
-                # We need to extract each column, then stack them along axis 1
-                cols = [array[val] for val in val_list]
-                mapped_array[field] = np.stack(cols, axis=1)
+        # Mapped field: stack the source columns
+        val_list = mapping[field]
+        if len(val_list) == 1:
+            mapped_array[field] = array[val_list[0]]
         else:
-            # Direct copy
-            mapped_array[field] = array[field]
+            # Stack columns horizontally for each row
+            # We need to extract each column, then stack them along axis 1
+            cols = [array[val] for val in val_list]
+            mapped_array[field] = np.stack(cols, axis=1)
 
     return mapped_array
 
 
 def np_to_list_dicts(array: npt.NDArray, mapping: dict = {}) -> List[dict]:
     """Convert numpy structured array to list of dicts"""
-    if array is None:
-        return None
     out = []
 
     for row in array:

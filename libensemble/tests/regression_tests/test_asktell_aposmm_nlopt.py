@@ -33,6 +33,7 @@ from gest_api.vocs import VOCS
 from libensemble import Ensemble
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.gen_classes import APOSMM
+from libensemble.manager import LoggedException
 from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, SimSpecs
 from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
 
@@ -53,7 +54,7 @@ def six_hump_camel_func(x):
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
 
-    for run in range(2):
+    for run in range(3):
 
         workflow = Ensemble(parse_args=True)
 
@@ -99,13 +100,23 @@ if __name__ == "__main__":
             exctr.register_app(full_path=sim_app2, app_name="six_hump_camel", calc_type="sim")  # Named app
             workflow.sim_specs = SimSpecs(simulator=six_hump_camel_func, vocs=vocs)
             workflow.exit_criteria = ExitCriteria(sim_max=200)
+        elif run == 2:
+            workflow.persis_info["num_gens_started"] = 0
+            workflow.sim_specs = SimSpecs(
+                sim_f=six_hump_camel_func, vocs=vocs
+            )  # wrong parameter, but check we get error message
+            workflow.exit_criteria = ExitCriteria(sim_max=200)
 
         workflow.add_random_streams()
 
-        H, _, _ = workflow.run()
+        try:
+            H, _, _ = workflow.run()
+        except Exception as e:
+            assert isinstance(e, LoggedException)
+            aposmm.finalize()
+            continue
 
         # Perform the run
-
         if workflow.is_manager and run == 0:
             print("[Manager]:", H[np.where(H["local_min"])]["x"])
             print("[Manager]: Time taken =", time() - start_time, flush=True)

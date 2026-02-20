@@ -484,7 +484,7 @@ class Manager:
         calc_status = D_recv["calc_status"]
 
         keep_state = D_recv["libE_info"].get("keep_state", False)
-        if w not in self.persis_pending and not self.W[w]["active_recv"] and not keep_state:
+        if (w not in self.persis_pending and not self.W[w]["active_recv"] and not keep_state) or self.WorkerExc:
             self.W[w]["active"] = 0
 
         if calc_status in [FINISHED_PERSISTENT_SIM_TAG, FINISHED_PERSISTENT_GEN_TAG]:
@@ -507,7 +507,17 @@ class Manager:
             self._freeup_resources(w)
         else:
             if calc_type == EVAL_SIM_TAG:
-                self.hist.update_history_f(D_recv, self.kill_canceled_sims)
+                try:
+                    self.hist.update_history_f(D_recv, self.kill_canceled_sims)
+                except AttributeError as e:
+                    if self.WorkerExc:
+                        logger.debug(f"Manager ignoring secondary data error from worker {w} during shutdown: {e}")
+                    else:
+                        self.WorkerExc = True
+                        self._kill_workers()
+                        raise WorkerException(
+                            f"Error in data from worker {w}", str(e), traceback.format_exc()
+                        ) from None
             if calc_type == EVAL_GEN_TAG:
                 D = D_recv["calc_out"]
                 self._ensure_sim_id_in_persis_in(D)
