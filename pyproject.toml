@@ -123,8 +123,8 @@ superlu_dist = ">=9.1.0,<10"
 hypre = ">=2.32.0,<3"
 mumps-mpi = ">=5.8.1,<6"
 dfo-ls = ">=1.3.0,<2"
-petsc = ">=3.24.2,<4"
-petsc4py = ">=3.24.2,<4"
+petsc = "==3.24.2"
+petsc4py = "==3.24.2"
 
 [tool.pixi.feature.docs.dependencies]
 sphinx = ">=8.2.3,<9"
