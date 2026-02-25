@@ -106,7 +106,6 @@ if __name__ == "__main__":
                 sim_f=six_hump_camel_func, vocs=vocs
             )  # wrong parameter, but check we get error message
             workflow.exit_criteria = ExitCriteria(sim_max=200)
-            return_flag = False
             workflow.libE_specs.abort_on_exception = False
 
         workflow.add_random_streams()
@@ -114,13 +113,12 @@ if __name__ == "__main__":
         try:
             H, _, _ = workflow.run()
         except Exception as e:
-            assert isinstance(e, LoggedException)
-            aposmm.finalize()
-            return_flag = False
-            continue
-
-        if run == 2 and workflow.is_manager:
-            assert return_flag
+            if run == 2:
+                assert isinstance(e, LoggedException)
+                aposmm.finalize()
+                print("Passed", flush=True)
+            else:
+                raise e
 
         # Perform the run
         if workflow.is_manager and run == 0:
