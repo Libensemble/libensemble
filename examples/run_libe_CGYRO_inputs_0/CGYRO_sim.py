@@ -13,6 +13,12 @@ from netCDF4 import Dataset
 from libensemble.message_numbers import TASK_FAILED, WORKER_DONE
 
 
+# Small helper for the "max time" test
+def _is_max_time(s: str) -> bool:
+    s = (s or "").strip().lower()
+    return s.endswith("max_time") or s.endswith("max time")
+
+
 def check_DB_and_do_run(x_to_check, sim_specs, libE_info, database_name):
     """Launches the gx MPI app and auto-assigns ranks and GPU resources.
 
@@ -63,46 +69,68 @@ def check_DB_and_do_run(x_to_check, sim_specs, libE_info, database_name):
 
         subprocess.run(["python", "/global/cfs/cdirs/m4493/ebelli/gacode/cgyro/bin/cgyro_parse.py"])
 
-        task = exctr.submit(
-            app_name="cgyro",
-            app_args="0",
-            #procs_per_node=16,  # nl01
-            #num_nodes=2, # nl01
-            procs_per_node=4,  # reg02
-            num_nodes=1, # reg02
-            num_gpus=4,
-            # auto_assign_gpus=True,
-            # match_procs_to_gpus=True,
-            # env_script= env_script_path,
-            extra_args="--cpu_bind=cores,verbose -n {} -c {}".format(nproc, nomp),
-        )
-
-        # Block until the task finishes
-        task.wait()
-
-        # Try loading final energy reading, set the sim's status
-
-
-        string_out = ""
-        try:
-            # Q=subprocess.run('python heat_flux_cgyro_libE.py', capture_output=True, text=True, shell=True)
-            Q = subprocess.run(
-                "python /global/u2/j/jmlarson/research/libensemble/examples/run_libe_CGYRO_inputs_0/heat_flux_cgyro_libE.py",
-                capture_output=True,
-                text=True,
-                shell=True,
+        # --- Resubmit loop controls ---
+        max_attempts = 4  # total attempts INCLUDING the first one
+        attempt = 0
+        while attempt < max_attempts:
+            attempt += 1
+            task = exctr.submit(
+                app_name="cgyro",
+                app_args="0",
+                #procs_per_node=16,  # nl01
+                #num_nodes=2, # nl01
+                procs_per_node=4,  # reg02
+                num_nodes=1, # reg02
+                num_gpus=4,
+                # auto_assign_gpus=True,
+                # match_procs_to_gpus=True,
+                # env_script= env_script_path,
+                extra_args="--cpu_bind=cores,verbose -n {} -c {}".format(nproc, nomp),
             )
-            freqs = np.loadtxt("out.cgyro.freq")
-            fout = freqs[-1]
-            with open("out.cgyro.info", 'r') as f:
-                lines = f.readlines()
-                if lines:
-                    string_out = lines[-1].strip()
-            calc_status = WORKER_DONE
-        except:
-            print(f"Failed to open")
-            fout = np.nan*np.ones(2)
-            calc_status = TASK_FAILED
+
+            # Block until the task finishes
+            task.wait()
+
+            # Try loading final energy reading, set the sim's status
+
+
+            string_out = ""
+            try:
+                Q = subprocess.run(
+                    "python /global/u2/j/jmlarson/research/libensemble/examples/run_libe_CGYRO_inputs_0/heat_flux_cgyro_libE.py",
+                    capture_output=True,
+                    text=True,
+                    shell=True,
+                )
+                freqs = np.loadtxt("out.cgyro.freq")
+                fout = freqs[-1]
+
+                string_out = ""
+                with open("out.cgyro.info", "r") as f:
+                    lines = f.readlines()
+                    if lines:
+                        string_out = lines[-1].strip()
+
+                # If we hit max_time, resubmit (unless we used up attempts)
+                if _is_max_time(string_out):
+                    if attempt < max_attempts:
+                        print(f"CGYRO ended with max_time; resubmitting (attempt {attempt+1}/{max_attempts})")
+                        continue
+                    else:
+                        print(f"CGYRO ended with max_time; max attempts reached ({max_attempts}).")
+                        calc_status = TASK_FAILED
+                        break
+
+                # Otherwise treat as done (e.g., "converged")
+                calc_status = WORKER_DONE
+                break
+
+            except Exception as e:
+                print(f"Failed to open/parse outputs on attempt {attempt}/{max_attempts}: {e}")
+                fout = np.nan * np.ones(2)
+                string_out = ""
+                calc_status = TASK_FAILED
+                break
 
         to_save = {'obj_vals': fout, 'var_vals': x_to_check, 'string_out': string_out}
         DB = np.append(DB, to_save)
