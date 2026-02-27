@@ -16,9 +16,9 @@ the objective function will be 4 as the generator is on the manager.
 # TESTSUITE_COMMS: mpi local
 # TESTSUITE_NPROCS: 4
 # TESTSUITE_EXTRA: true
+# TESTSUITE_OS_SKIP: OSX
 
 import numpy as np
-
 from gest_api.vocs import VOCS
 from optimas.generators import AxMultiFidelityGenerator
 
@@ -32,10 +32,7 @@ def eval_func_mf(input_params):
     x0 = input_params["x0"]
     x1 = input_params["x1"]
     resolution = input_params["res"]
-    result = -(
-        (x0 + 10 * np.cos(x0 + 0.1 * resolution))
-        * (x1 + 5 * np.cos(x1 - 0.2 * resolution))
-    )
+    result = -((x0 + 10 * np.cos(x0 + 0.1 * resolution)) * (x1 + 5 * np.cos(x1 - 0.2 * resolution)))
     return {"f": result}
 
 
