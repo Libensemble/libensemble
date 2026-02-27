@@ -73,8 +73,9 @@ def main(argv):
         # sim_input_dir="/global/homes/j/jmlarson/research/libensemble/examples/run_libe_CGYRO_inputs_0/kappa_correction_with_KY",
         # sim_input_dir="/global/homes/j/jmlarson/research/libensemble/examples/run_libe_CGYRO_inputs_0/kappa_correction_with_KY_Belli",
         # sim_input_dir="/global/homes/j/jmlarson/research/libensemble/examples/run_libe_CGYRO_inputs_0/kappa_correction_with_KY_Belli_three",
-        sim_input_dir="/global/homes/j/jmlarson/research/libensemble/examples/run_libe_CGYRO_inputs_0/kappa_correction_with_KY_jan_26_nt",
         # sim_input_dir="/global/homes/j/jmlarson/research/libensemble/examples/run_libe_CGYRO_inputs_0/kappa_correction_with_KY_jan_26_pt",
+        # sim_input_dir="/global/homes/j/jmlarson/research/libensemble/examples/run_libe_CGYRO_inputs_0/kappa_correction_with_KY_jan_26_nt",
+        sim_input_dir="/global/homes/j/jmlarson/research/libensemble/examples/run_libe_CGYRO_inputs_0/gamma_over_KY_feb_5",
         platform_specs=platform_specs,
         # reuse_output_dir=True,
         save_every_k_sims=1,
@@ -84,7 +85,7 @@ def main(argv):
     ensemble.sim_specs = SimSpecs(
         sim_f=run_CGYRO_over_KY,
         inputs=["x"],
-        outputs=[("f", float), ("fvec", float, 11), ("convstatement", "U100")],
+        outputs=[("f", float), ("fvec", float, 14), ("convstatement", "U100")],
         user={
             "input_filename": cgyro_input_file,
             "input_names": ["KAPPA","DELTA","ZETA","KY"],
@@ -117,12 +118,15 @@ def main(argv):
             #"sample_points": np.atleast_2d([1.30860E+00,-2.67461E-01,-8.75397E-02]),
             # "sample_points": np.atleast_2d([2.9869233478495802, -0.0784057129731948,  0.0999019301047065]),
             # "sample_points": np.atleast_2d([3.0157659318480223,  0.4600035013150654, -0.09702471975535]), # nt starting point
-            "sample_points": np.atleast_2d([2.8598546331904644,  0.6930320178023068, -0.0181849390876176]), # pt starting point
+            # "sample_points": np.atleast_2d([2.8598546331904644,  0.6930320178023068, -0.0181849390876176]), # pt starting point
+            "sample_points": np.atleast_2d([2.2660565732073676, 0.3154929781847652, 0.0585430910613574]),
             "localopt_method": "ibcdfo_manifold_sampling",
             "run_max_eval": 100 * (n + 1),
-            "components": 11,
-            "lb": np.array([1.0, -0.75, -0.1]),  # lower bound for input
-            "ub": np.array([4.0, 0.75, 0.1]),  # upper bound for input
+            "components": 14,
+            "lb": np.array([1.0, -0.60, -0.1]),  # lower bound for input
+            "ub": np.array([2.5, 0.60, 0.1]),  # upper bound for input
+            # "lb": np.array([1.0, -0.75, -0.1]),  # lower bound for input
+            # "ub": np.array([4.0, 0.75, 0.1]),  # upper bound for input
             "hfun": hfun,
         },
     )
