@@ -40,45 +40,36 @@ need to write a new allocation function.
 
     .. tab-item:: 2. Generator
 
-        Let's begin the coding portion of this tutorial by writing our generator function,
-        or :ref:`gen_f<api_gen_f>`.
+        Let's begin the coding portion of this tutorial by writing our generator.
 
-        An available libEnsemble worker will call this generator function with the
-        following parameters:
-
-            * :ref:`InputArray<funcguides-history>`: A selection of the :ref:`History array<funcguides-history>` (*H*),
-              passed to the generator function in case the user wants to generate
-              new values based on simulation outputs. Since our generator produces random
-              numbers, it'll be ignored this time.
-
-            * :ref:`persis_info<datastruct-persis-info>`: Dictionary with worker-specific
-              information. In our case, this dictionary contains NumPy Random Stream objects
-              for generating random numbers.
-
-            * :ref:`gen_specs<datastruct-gen-specs>`: Dictionary with user-defined static fields and
-              parameters. Customizable parameters such as lower and upper bounds and batch
-              sizes are placed within the ``gen_specs["user"]`` dictionary.
-
-        Later on, we'll populate :class:`gen_specs<libensemble.specs.GenSpecs>` and ``persis_info`` when we initialize libEnsemble.
+        An available libEnsemble worker will call this generator's ``.suggest()`` method to obtain
+        new values to evaluate.
 
         For now, create a new Python file named ``sine_gen.py``. Write the following:
 
-        .. literalinclude:: ../../libensemble/tests/functionality_tests/sine_gen.py
+        .. literalinclude:: ../../libensemble/tests/functionality_tests/sine_gen_std.py
             :language: python
             :linenos:
-            :caption: examples/tutorials/simple_sine/sine_gen.py
+            :caption: examples/tutorials/simple_sine/sine_gen_std.py
 
-        Our function creates ``batch_size`` random numbers uniformly distributed
-        between the ``lower`` and ``upper`` bounds. A random stream
-        from ``persis_info`` is used to generate these values, which are then placed
-        into an output NumPy array that matches the dtype from ``gen_specs["out"]``.
+        libEnsemble accepts generators that implement the gest-api_ interface. These generators
+        accept a ``gest_api.VOCS`` object for configuration, and contain a ``.suggest(num_points)``
+        method that returns ``num_points`` points. Points consist of a list of dictionaries
+        with keys that match the variable names from the ``gest_api.VOCS`` object.
+
+        Our generator's ``suggest()`` method creates ``num_points`` dictionaries. For each key in
+        the generator's ``self.variables``, it creates a random number uniformly distributed
+        between the corresponding ``lower`` and ``upper`` bounds of its domain.
+
+        Our generator must implement a ``_validate_vocs()`` method. Here, we implement a simple
+        check that ensures the ``VOCS`` object has at least one variable.
 
     .. tab-item:: 3. Simulator
 
         Next, we'll write our simulator function or :ref:`sim_f<api_sim_f>`. Simulator
-        functions perform calculations based on values from the generator function.
-        The only new parameter here is :ref:`sim_specs<datastruct-sim-specs>`, which
-        serves a purpose similar to the :class:`gen_specs<libensemble.specs.GenSpecs>` dictionary.
+        functions perform calculations based on values from the generator.
+        :ref:`sim_specs<datastruct-sim-specs>` is a dictionary containing user-defined fields
+        and parameters.
 
         Create a new Python file named ``sine_sim.py``. Write the following:
 
@@ -88,7 +79,7 @@ need to write a new allocation function.
             :caption: examples/tutorials/simple_sine/sine_sim.py
 
         Our simulator function is called by a worker for every work item produced by
-        the generator function. This function calculates the sine of the passed value,
+        the generator. This function calculates the sine of the passed value,
         and then returns it so the worker can store the result.
 
     .. tab-item:: 4. Script
@@ -97,8 +88,8 @@ need to write a new allocation function.
         functions and starts libEnsemble.
 
         Create an empty Python file named ``calling.py``.
-        In this file, we'll start by importing NumPy, libEnsemble's setup classes,
-        and the generator and simulator functions we just created.
+        In this file, we'll start by importing NumPy, libEnsemble's setup classes, the generator,
+        and simulator function.
 
         In a class called :ref:`LibeSpecs<datastruct-libe-specs>` we'll
         specify the number of workers and the manager/worker intercommunication method.
@@ -272,6 +263,7 @@ need to write a new allocation function.
         libEnsemble use-case within our
         :doc:`Electrostatic Forces tutorial <./executor_forces_tutorial>`.
 
+.. _gest-api: https://github.com/campa-consortium/gest-api
 .. _Matplotlib: https://matplotlib.org/
 .. _MPI: https://en.wikipedia.org/wiki/Message_Passing_Interface
 .. _MPICH: https://www.mpich.org/

@@ -1,7 +1,7 @@
 Advanced Installation
 =====================
 
-libEnsemble can be installed from ``pip``, ``Conda``, or ``Spack``.
+libEnsemble can be installed from ``pip``, ``uv``, ``Conda``, or ``Spack``.
 
 libEnsemble requires the following dependencies, which are typically
 automatically installed alongside libEnsemble:
@@ -9,16 +9,12 @@ automatically installed alongside libEnsemble:
 * Python_       ``>= 3.10``
 * NumPy_        ``>= 1.21``
 * psutil_       ``>= 5.9.4``
-* `pydantic`_   ``>= 1.10.12``
+* `pydantic`_   ``>= 2``
 * pyyaml_       ``>= v6.0``
 * tomli_        ``>= 1.2.1``
 * gest-api_     ``>= 0.1,<0.2``
 
-Given libEnsemble's compiled dependencies, the following installation
-methods each offer a trade-off between convenience and the ability
-to customize builds, including platform-specific optimizations.
-
-We always recommend installing in a virtual environment from Conda or another source.
+We recommend installing in a virtual environment from ``uv``, ``conda`` or another source.
 
 Further recommendations for selected HPC systems are given in the
 :ref:`HPC platform guides<platform-index>`.
@@ -53,6 +49,12 @@ Further recommendations for selected HPC systems are given in the
         On Summit, the following line is recommended (with gcc compilers)::
 
             CC=mpicc MPICC=mpicc pip install mpi4py --no-binary mpi4py
+
+    .. tab-item:: uv
+
+        To install the latest PyPI_ release via uv_::
+
+            uv pip install libensemble
 
     .. tab-item:: conda
 
@@ -194,3 +196,4 @@ The following packages may be installed separately to enable additional features
 .. _spack_libe: https://github.com/Libensemble/spack_libe
 .. _tomli: https://pypi.org/project/tomli/
 .. _tqdm: https://tqdm.github.io/
+.. _uv: https://docs.astral.sh/uv/

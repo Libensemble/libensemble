@@ -220,10 +220,10 @@ extra = [
 ]
 dev = ["wat>=0.7.0,<0.8"]
 docs = ["pyenchant", "enchant>=0.0.1,<0.0.2", "sphinx-lfs-content>=1.1.10,<2"]
-py311e = ["xopt @ git+https://github.com/xopt-org/xopt.git@v3.0"]
-py312e = ["xopt @ git+https://github.com/xopt-org/xopt.git@v3.0"]
-py313e = ["xopt @ git+https://github.com/xopt-org/xopt.git@v3.0"]
-py314e = ["xopt @ git+https://github.com/xopt-org/xopt.git@v3.0"]
+py311e = ["xopt @ git+https://github.com/xopt-org/xopt.git@main"]
+py312e = ["xopt @ git+https://github.com/xopt-org/xopt.git@main"]
+py313e = ["xopt @ git+https://github.com/xopt-org/xopt.git@main"]
+py314e = ["xopt @ git+https://github.com/xopt-org/xopt.git@main"]
 
 # Various config from here onward
 [tool.black]
