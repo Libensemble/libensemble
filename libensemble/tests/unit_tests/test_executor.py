@@ -936,6 +936,25 @@ def test_non_existent_app_mpi():
         assert 0
 
 
+def test_non_existent_app_precedent():
+    """Tests exception on non-existent app is not thrown if precedent is set.
+    This is common when running apps in containers, where the executable is not
+    check-able from the host system."""
+    from libensemble.executors.executor import Executor
+
+    print(f"\nTest: {sys._getframe().f_code.co_name}\n")
+
+    exctr = Executor()
+
+    # Can register a non-existent app in case created as part of workflow.
+    exctr.register_app(full_path=non_existent_app, app_name="nonexist")
+
+    w_exctr = Executor.executor  # simulate on worker
+
+    # all should be ok
+    w_exctr.submit(app_name="nonexist", dry_run=True)
+
+
 def test_man_signal_unrec_tag():
     print(f"\nTest: {sys._getframe().f_code.co_name}\n")
 
@@ -990,5 +1009,6 @@ if __name__ == "__main__":
     test_dry_run()
     test_non_existent_app()
     test_non_existent_app_mpi()
+    test_non_existent_app_precedent()
     test_man_signal_unrec_tag()
     teardown_module(__file__)

@@ -190,7 +190,7 @@ class APOSMM(PersistentGenInterfacer):
 
         from libensemble.gen_funcs.persistent_aposmm import aposmm
 
-        self.VOCS = vocs
+        self.vocs = vocs
 
         gen_specs = {}
         gen_specs["user"] = {}

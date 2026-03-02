@@ -121,6 +121,9 @@ class StandardGenRunner(Runner):
     def _convert_ingest(self, x: npt.NDArray) -> list:
         self.gen.ingest(np_to_list_dicts(x))
 
+    def _convert_initial_ingest(self, x: npt.NDArray) -> list:
+        self.gen.ingest(np_to_list_dicts(x, mapping=getattr(self.gen, "variables_mapping", {})))
+
     def _loop_over_gen(self, tag, Work, H_in):
         """Interact with suggest/ingest generator that *does not* contain a background thread"""
         while tag not in [PERSIS_STOP, STOP_TAG]:
@@ -139,12 +142,17 @@ class StandardGenRunner(Runner):
 
     def _start_generator_loop(self, tag, Work, H_in):
         """Start the generator loop after choosing best way of giving initial results to gen"""
-        self.gen.ingest(np_to_list_dicts(H_in, mapping=getattr(self.gen, "variables_mapping", {})))
+        self._convert_initial_ingest(H_in)
         return self._loop_over_gen(tag, Work, H_in)
 
     def _persistent_result(self, calc_in, persis_info, libE_info):
         """Setup comms with manager, setup gen, loop gen to completion, return gen's results"""
         self.ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
+
+        # If H0 exists, ingest it into the generator before initial suggest
+        if calc_in is not None and len(calc_in) > 0:
+            self._convert_initial_ingest(calc_in)
+
         # libE gens will hit the following line, but list_dicts_to_np will passthrough if the output is a numpy array
         H_out = list_dicts_to_np(
             self._get_initial_suggest(libE_info),
@@ -182,10 +190,8 @@ class LibensembleGenRunner(StandardGenRunner):
     def _convert_ingest(self, x: npt.NDArray) -> list:
         self.gen.ingest_numpy(x)
 
-    def _start_generator_loop(self, tag, Work, H_in) -> npt.NDArray:
-        """Start the generator loop after choosing best way of giving initial results to gen"""
-        self.gen.ingest_numpy(H_in)
-        return self._loop_over_gen(tag, Work, H_in)  # see parent class
+    def _convert_initial_ingest(self, x: npt.NDArray) -> list:
+        self.gen.ingest_numpy(x)
 
 
 class LibensembleGenThreadRunner(StandardGenRunner):
