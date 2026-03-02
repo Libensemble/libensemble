@@ -22,34 +22,35 @@ class APOSMM(PersistentGenInterfacer):
 
         `https://doi.org/10.1007/s12532-017-0131-4 <https://doi.org/10.1007/s12532-017-0131-4>`_
 
-    VOCS variables must include both regular and *_on_cube versions. E.g.,:
+    VOCS variables must include both regular and ``*_on_cube`` versions. E.g.,:
 
-    ```python
-    vars_std = {
-        "var1": [-10.0, 10.0],
-        "var2": [0.0, 100.0],
-        "var3": [1.0, 50.0],
-        "var1_on_cube": [0, 1.0],
-        "var2_on_cube": [0, 1.0],
-        "var3_on_cube": [0, 1.0],
-    }
-    variables_mapping = {
-        "x": ["var1", "var2", "var3"],
-        "x_on_cube": ["var1_on_cube", "var2_on_cube", "var3_on_cube"],
-    }
-    gen = APOSMM(vocs, 3, 3, variables_mapping=variables_mapping, ...)
-    ```
+    .. code-block:: python
+
+        vars_std = {
+            "var1": [-10.0, 10.0],
+            "var2": [0.0, 100.0],
+            "var3": [1.0, 50.0],
+            "var1_on_cube": [0, 1.0],
+            "var2_on_cube": [0, 1.0],
+            "var3_on_cube": [0, 1.0],
+        }
+        variables_mapping = {
+            "x": ["var1", "var2", "var3"],
+            "x_on_cube": ["var1_on_cube", "var2_on_cube", "var3_on_cube"],
+        }
+        gen = APOSMM(vocs, 3, 3, variables_mapping=variables_mapping, ...)
 
     Getting started
     ---------------
 
     APOSMM requires a minimal sample before starting optimization. A random sample across the domain
-    can either be retrieved via a `suggest()` call right after initialization, or the user can ingest
-    a set of sample points via `ingest()`. The minimal sample size is specified via the `initial_sample_size`
+    can either be retrieved via a ``suggest()`` call right after initialization, or the user can ingest
+    a set of sample points via ``ingest()``. The minimal sample size is specified via the ``initial_sample_size``
     parameter. This many evaluated sample points *must* be provided to APOSMM before it will provide any
     local optimization points.
 
-        ```python
+    .. code-block:: python
+
         # Approach 1: Retrieve sample points via suggest()
         gen = APOSMM(vocs, max_active_runs=2, initial_sample_size=10)
 
@@ -78,12 +79,15 @@ class APOSMM(PersistentGenInterfacer):
         points = gen.suggest(10)
 
         ...
-        ```
 
-    *Important Note*: After the initial sample phase, APOSMM cannot accept additional "arbitrary"
-    sample points that are not associated with local optimization runs.
 
-        ```python
+    .. important::
+        After the initial sample phase, APOSMM cannot accept additional "arbitrary"
+        sample points that are not associated with local optimization runs.
+
+
+    .. code-block:: python
+
         gen = APOSMM(vocs, max_active_runs=2, initial_sample_size=10)
 
         # ask APOSMM for some sample points
@@ -99,76 +103,61 @@ class APOSMM(PersistentGenInterfacer):
         gen.ingest(points_from_aposmm)
 
         gen.ingest(another_sample)  # THIS CRASHES
-        ```
 
     Parameters
     ----------
-    vocs: VOCS
+    vocs: ``VOCS``
         The VOCS object, adhering to the VOCS interface from the Generator Standard.
 
-    max_active_runs: int
+    max_active_runs: ``int``
         Bound on number of runs APOSMM is *concurrently* advancing.
 
-    initial_sample_size: int
+    initial_sample_size: ``int``
 
         Minimal sample points required before starting optimization.
 
-        If `suggest(N)` is called first, APOSMM produces this many random sample points across the domain,
-        with N <= initial_sample_size.
+        If ``suggest(N)`` is called first, APOSMM produces this many random sample points across the domain,
+        with ``N <= initial_sample_size``.
 
-        If `ingest(sample)` is called first, multiple calls like `ingest(sample)` are required until
-        the total number of points ingested is >= initial_sample_size.
+        If ``ingest(sample)`` is called first, multiple calls like ``ingest(sample)`` are required until
+        the total number of points ingested is ``>= initial_sample_size``.
 
-        ```python
-        gen = APOSMM(vocs, max_active_runs=2, initial_sample_size=10)
-
-        # ask APOSMM for some sample points
-        initial_sample = gen.suggest(10)
-        for point in initial_sample:
-            point["f"] = func(point["x"])
-        gen.ingest(initial_sample)
-
-        # APOSMM will now provide local-optimization points.
-        points = gen.suggest(10)
-        ...
-        ```
-
-    History: npt.NDArray = []
+    History: ``npt.NDArray`` = ``[]``
         An optional history of previously evaluated points.
 
-    sample_points: npt.NDArray = None
+    sample_points: ``npt.NDArray`` = ``None``
         Included for compatibility with the underlying algorithm.
         Points to be sampled (original domain).
         If more sample points are needed by APOSMM during the course of the
         optimization, points will be drawn uniformly over the domain.
 
-    localopt_method: str = "scipy_Nelder-Mead" (scipy) or "LN_BOBYQA" (nlopt)
+    localopt_method: ``str`` = "scipy_Nelder-Mead" (scipy) or "LN_BOBYQA" (nlopt)
         The local optimization method to use. Others being added over time.
 
-    mu: float = 1e-8
+    mu: ``float`` = ``1e-8``
         Distance from the boundary that all localopt starting points must satisfy
 
-    nu: float = 1e-8
+    nu: ``float`` = ``1e-8``
         Distance from identified minima that all starting points must satisfy
 
-    rk_const: float = None
+    rk_const: ``float`` = ``None``
         Multiplier in front of the ``r_k`` value.
         If not provided, it will be set to ``0.5 * ((gamma(1 + (n / 2)) * 5) ** (1 / n)) / sqrt(pi)``
 
-    xtol_abs: float = 1e-6
+    xtol_abs: ``float`` = ``1e-6``
         Localopt method's convergence tolerance.
 
-    ftol_abs: float = 1e-6
+    ftol_abs: ``float`` = ``1e-6``
         Localopt method's convergence tolerance.
 
-    opt_return_codes: list[int] = [0]
+    opt_return_codes: ``list[int]`` = ``[0]``
         scipy only: List of return codes that determine if a point should be ruled a local minimum.
 
-    dist_to_bound_multiple: float = 0.5
+    dist_to_bound_multiple: ``float`` = ``0.5``
         What fraction of the distance to the nearest boundary should the initial
         step size be in localopt runs.
 
-    random_seed: int = 1
+    random_seed: ``int`` = ``1``
         Seed for the random number generator.
     """
 
@@ -293,7 +282,13 @@ class APOSMM(PersistentGenInterfacer):
 
     def _slot_in_data(self, results):
         """Slot in libE_calc_in and trial data into corresponding array fields. *Initial sample only!!*"""
-        self._ingest_buf[self._n_buffd_results : self._n_buffd_results + len(results)] = results
+        for name in results.dtype.names:
+            if name == "_id":
+                self._ingest_buf["sim_id"][self._n_buffd_results : self._n_buffd_results + len(results)] = results[
+                    "_id"
+                ]
+            else:
+                self._ingest_buf[name][self._n_buffd_results : self._n_buffd_results + len(results)] = results[name]
 
     def _enough_initial_sample(self):
         return (
@@ -361,7 +356,11 @@ class APOSMM(PersistentGenInterfacer):
         # Initial sample buffering here:
 
         if self._n_buffd_results == 0:
-            self._ingest_buf = np.zeros(self.gen_specs["user"]["initial_sample_size"], dtype=results.dtype)
+            # Create a dtype that includes sim_id but excludes _id
+            descr = [d for d in results.dtype.descr if d[0] != "_id"]
+            if "sim_id" not in [d[0] for d in descr]:
+                descr.append(("sim_id", int))
+            self._ingest_buf = np.zeros(self.gen_specs["user"]["initial_sample_size"], dtype=descr)
 
         if not self._enough_initial_sample():
             self._slot_in_data(np.copy(results))

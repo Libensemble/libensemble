@@ -3,18 +3,13 @@
 LibE Specs
 ==========
 
-libEnsemble is primarily customized by setting options within a ``LibeSpecs`` class or dictionary.
+libEnsemble is primarily customized by setting options within a ``LibeSpecs`` instance.
 
 .. code-block:: python
 
     from libensemble.specs import LibeSpecs
 
-    specs = LibeSpecs(
-        gen_on_manager=True,
-        save_every_k_gens=100,
-        sim_dirs_make=True,
-        nworkers=4
-    )
+    specs = LibeSpecs(gen_on_manager=True, save_every_k_gens=100, sim_dirs_make=True, nworkers=4)
 
 .. dropdown:: Settings by Category
     :open:

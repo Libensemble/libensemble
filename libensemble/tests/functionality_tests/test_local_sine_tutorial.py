@@ -1,5 +1,6 @@
 import numpy as np
-from sine_gen import gen_random_sample
+from gest_api.vocs import VOCS
+from sine_gen_std import RandomSample
 from sine_sim import sim_find_sine
 
 from libensemble import Ensemble
@@ -9,14 +10,14 @@ from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, Sim
 if __name__ == "__main__":  # Python-quirk required on macOS and windows
     libE_specs = LibeSpecs(nworkers=4, comms="local")
 
+    vocs = VOCS(variables={"x": [-3, 3]}, objectives={"y": "EXPLORE"})  # Configure our generator with this object
+
+    generator = RandomSample(vocs)  # Instantiate our generator
+
     gen_specs = GenSpecs(
-        gen_f=gen_random_sample,  # Our generator function
-        out=[("x", float, (1,))],  # gen_f output (name, type, size)
-        user={
-            "lower": np.array([-3]),  # lower boundary for random sampling
-            "upper": np.array([3]),  # upper boundary for random sampling
-            "gen_batch_size": 5,  # number of x's gen_f generates per call
-        },
+        generator=generator,  # Pass our generator and config to libEnsemble
+        vocs=vocs,
+        batch_size=4,
     )
 
     sim_specs = SimSpecs(

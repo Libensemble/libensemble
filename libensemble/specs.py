@@ -247,6 +247,10 @@ class GenSpecs(BaseModel):
                     persis_in_fields.extend(list(obj.keys()))
             self.persis_in = persis_in_fields
 
+        # Set inputs: same as persis_in for gest-api generators (needed for H0 ingestion)
+        if not self.inputs and self.generator is not None:
+            self.inputs = self.persis_in
+
         # Set outputs: variables + constants (what the generator produces)
         if not self.outputs:
             out_fields = []
@@ -256,6 +260,17 @@ class GenSpecs(BaseModel):
                         dtype = _get_dtype(field, name)
                         out_fields.append(_convert_dtype_to_output_tuple(name, dtype))
             self.outputs = out_fields
+
+        # Add _id field if generator returns_id is True
+        if self.generator is not None and getattr(self.generator, "returns_id", False):
+            if self.outputs is None:
+                self.outputs = []
+            if "_id" not in [f[0] for f in self.outputs]:
+                self.outputs.append(("_id", int))
+            if self.persis_in is None:
+                self.persis_in = []
+            if "_id" not in self.persis_in:
+                self.persis_in.append("_id")
 
         return self
 
