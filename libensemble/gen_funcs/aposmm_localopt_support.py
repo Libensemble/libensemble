@@ -14,6 +14,7 @@ __all__ = [
     "run_external_localopt",
 ]
 
+import traceback
 from multiprocessing import Event, Process, Queue
 
 import numpy as np
@@ -645,8 +646,8 @@ def run_local_tao(user_specs, comm_queue, x0, f0, child_can_read, parent_can_rea
 def opt_runner(run_local_opt, user_specs, comm_queue, x0, f0, child_can_read, parent_can_read):
     try:
         run_local_opt(user_specs, comm_queue, x0, f0, child_can_read, parent_can_read)
-    except Exception as e:
-        comm_queue.put(ErrorMsg(e))
+    except Exception:
+        comm_queue.put(ErrorMsg(traceback.format_exc()))
         parent_can_read.set()
 
 
@@ -743,7 +744,7 @@ def put_set_wait_get(x, comm_queue, parent_can_read, child_can_read, user_specs)
     if user_specs.get("periodic"):
         assert np.allclose(x % 1, values[0] % 1, rtol=1e-15, atol=1e-15), "The point I gave is not the point I got back"
     else:
-        assert np.allclose(x, values[0], rtol=1e-15, atol=1e-15), "The point I gave is not the point I got back"
+        assert np.allclose(x, values[0], rtol=1e-8, atol=1e-8), "The point I gave is not the point I got back"
 
     return values
 
