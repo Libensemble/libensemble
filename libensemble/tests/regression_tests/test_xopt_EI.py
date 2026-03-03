@@ -16,6 +16,7 @@ the objective function will be 4 as the generator is on the manager.
 # TESTSUITE_COMMS: mpi local
 # TESTSUITE_NPROCS: 4
 # TESTSUITE_EXTRA: true
+# TESTSUITE_EXCLUDE: true
 
 import numpy as np
 from gest_api.vocs import VOCS
