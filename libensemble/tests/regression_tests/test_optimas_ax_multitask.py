@@ -15,7 +15,7 @@ the objective function will be 4 as the generator is on the manager.
 Issues: In some cases, the generator fails to produce points. This is
 intermittent and can be seen by the message "alloc_f did not return any work".
 This needs to be resolved in the generator by generating extra points
-as needed (exluding from until then).
+as needed (excluding from until then).
 """
 
 # Do not change these lines - they are parsed by run-tests.sh
