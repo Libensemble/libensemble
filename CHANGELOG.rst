@@ -15,19 +15,19 @@ Release 1.6.0
 
 General Updates:
 
-* Support for ``gest-api`` generators (https://gest-api.readthedocs.io).
+* Support for ``gest-api`` generators (https://gest-api.readthedocs.io). #1307
 
-  * Support for any Xopt (v3.0+) and Optimas generators. #1307
+  * Support for any Xopt (v3.0+) and Optimas generators.
   * libEnsemble's APOSMM, gpCAM, and random sampling generators are supplied in ``gest-api`` format.
   * Support dictionary (Xopt-style) simulator functions.
 
-* Simulation container support - Executor precedent accepts ``%LIBENSEMBLE_SIM_DIR%`` placeholder #1672
+* Simulation container support - Executor precedent accepts ``%LIBENSEMBLE_SIM_DIR%`` placeholder. #1672
 
 Examples:
 
 * Adding test for ibcdfo with jax. #1591
-* Optimas/Xopt examples #1620 / #1635 
-* Bayesian Optimization with Xopt tutorial / notebook
+* Optimas/Xopt examples. #1620 / #1635 
+* Bayesian Optimization with Xopt tutorial / notebook.
 * Tasmanian generators moved to community examples.
 
 Dependencies:
