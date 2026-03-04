@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-""" User tasks utilization plot
+"""User tasks utilization plot
 
 Script to produce utilisation plot based on how many workers are running user
 tasks (submitted via a libEnsemble executor) at any given time. This does not

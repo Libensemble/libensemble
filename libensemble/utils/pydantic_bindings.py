@@ -1,13 +1,12 @@
 import sys
 
-from pydantic import Field, create_model
+from pydantic import ConfigDict, Field, create_model
+from pydantic import validate_call as libE_wrapper  # noqa: F401
+from pydantic.fields import FieldInfo
 
 from libensemble import specs
 from libensemble.resources import platforms
-from libensemble.utils.misc import pydanticV1
 from libensemble.utils.validators import (
-    _UFUNC_INVALID_ERR,
-    _UNRECOGNIZED_ERR,
     check_any_workers_and_disable_rm_if_tcp,
     check_exit_criteria,
     check_gpu_setting_type,
@@ -16,8 +15,8 @@ from libensemble.utils.validators import (
     check_inputs_exist,
     check_logical_cores,
     check_mpi_runner_type,
-    check_output_fields,
     check_provided_ufuncs,
+    check_set_gen_specs_from_variables,
     check_valid_comms_type,
     check_valid_in,
     check_valid_out,
@@ -30,60 +29,34 @@ from libensemble.utils.validators import (
     simf_set_in_out_from_attrs,
 )
 
-if pydanticV1:
-    from pydantic import BaseConfig
-    from pydantic import validate_arguments as libE_wrapper  # noqa: F401
+model_config = ConfigDict(arbitrary_types_allowed=True, populate_by_name=True, extra="forbid", validate_assignment=True)
 
-    BaseConfig.arbitrary_types_allowed = True
-    BaseConfig.allow_population_by_field_name = True
-    BaseConfig.extra = "allow"
-    BaseConfig.error_msg_templates = {
-        "value_error.extra": _UNRECOGNIZED_ERR,
-        "type_error.callable": _UFUNC_INVALID_ERR,
-    }
-    BaseConfig.validate_assignment = True
+specs.SimSpecs.model_config = model_config
+specs.GenSpecs.model_config = model_config
+specs.AllocSpecs.model_config = model_config
+specs.LibeSpecs.model_config = model_config
+specs.ExitCriteria.model_config = model_config
+specs._EnsembleSpecs.model_config = model_config
+platforms.Platform.model_config = model_config
 
-    class Config:
-        arbitrary_types_allowed = True
+model = specs.SimSpecs.model_fields
+model["inputs"] = FieldInfo.merge_field_infos(model["inputs"], Field(alias="in"))
+model["outputs"] = FieldInfo.merge_field_infos(model["outputs"], Field(alias="out"))
 
-    specs.LibeSpecs.Config = Config
-    specs._EnsembleSpecs.Config = Config
+model = specs.GenSpecs.model_fields
+model["inputs"] = FieldInfo.merge_field_infos(model["inputs"], Field(alias="in"))
+model["outputs"] = FieldInfo.merge_field_infos(model["outputs"], Field(alias="out"))
 
-else:
-    from pydantic import ConfigDict
-    from pydantic import validate_call as libE_wrapper  # noqa: F401
-    from pydantic.fields import FieldInfo
+model = specs.AllocSpecs.model_fields
+model["outputs"] = FieldInfo.merge_field_infos(model["outputs"], Field(alias="out"))
 
-    model_config = ConfigDict(
-        arbitrary_types_allowed=True, populate_by_name=True, extra="forbid", validate_assignment=True
-    )
-
-    specs.SimSpecs.model_config = model_config
-    specs.GenSpecs.model_config = model_config
-    specs.AllocSpecs.model_config = model_config
-    specs.LibeSpecs.model_config = model_config
-    specs.ExitCriteria.model_config = model_config
-    specs._EnsembleSpecs.model_config = model_config
-    platforms.Platform.model_config = model_config
-
-    model = specs.SimSpecs.model_fields
-    model["inputs"] = FieldInfo.merge_field_infos(model["inputs"], Field(alias="in"))
-    model["outputs"] = FieldInfo.merge_field_infos(model["outputs"], Field(alias="out"))
-
-    model = specs.GenSpecs.model_fields
-    model["inputs"] = FieldInfo.merge_field_infos(model["inputs"], Field(alias="in"))
-    model["outputs"] = FieldInfo.merge_field_infos(model["outputs"], Field(alias="out"))
-
-    model = specs.AllocSpecs.model_fields
-    model["outputs"] = FieldInfo.merge_field_infos(model["outputs"], Field(alias="out"))
-
-    specs.SimSpecs.model_rebuild(force=True)
-    specs.GenSpecs.model_rebuild(force=True)
-    specs.AllocSpecs.model_rebuild(force=True)
-    specs.LibeSpecs.model_rebuild(force=True)
-    specs.ExitCriteria.model_rebuild(force=True)
-    specs._EnsembleSpecs.model_rebuild(force=True)
-    platforms.Platform.model_rebuild(force=True)
+specs.SimSpecs.model_rebuild(force=True)
+specs.GenSpecs.model_rebuild(force=True)
+specs.AllocSpecs.model_rebuild(force=True)
+specs.LibeSpecs.model_rebuild(force=True)
+specs.ExitCriteria.model_rebuild(force=True)
+specs._EnsembleSpecs.model_rebuild(force=True)
+platforms.Platform.model_rebuild(force=True)
 
 # the create_model function removes fields for rendering in docs
 if "sphinx" not in sys.modules:
@@ -104,6 +77,7 @@ if "sphinx" not in sys.modules:
         __validators__={
             "check_valid_out": check_valid_out,
             "check_valid_in": check_valid_in,
+            "check_set_gen_specs_from_variables": check_set_gen_specs_from_variables,
             "genf_set_in_out_from_attrs": genf_set_in_out_from_attrs,
         },
     )
@@ -129,7 +103,6 @@ if "sphinx" not in sys.modules:
         __base__=specs._EnsembleSpecs,
         __validators__={
             "check_exit_criteria": check_exit_criteria,
-            "check_output_fields": check_output_fields,
             "check_H0": check_H0,
             "check_provided_ufuncs": check_provided_ufuncs,
         },

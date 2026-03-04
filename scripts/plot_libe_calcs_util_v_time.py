@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-""" User function utilization plot
+"""User function utilization plot
 
 Script to produce utilization plot based on how many workers are running user
 functions (sim or gens) at any given time. The plot is written to a file.

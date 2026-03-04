@@ -1,17 +1,15 @@
 Understanding libEnsemble
 =========================
 
-Manager, Workers, and User Functions
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Manager, Workers, Generators, and Simulators
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. begin_overview_rst_tag
 
 libEnsemble's **manager** allocates work to **workers**,
-which perform computations via **user functions**:
+which perform computations via **generators** and **simulators**:
 
-* :ref:`generator<api_gen_f>`: Generates inputs to the *simulator* (``sim_f``)
-* :ref:`simulator<api_sim_f>`: Performs an evaluation based on parameters from the *generator* (``gen_f``)
-* :ref:`allocator<api_alloc_f>`: Decides whether a simulator or generator should be
-  called (and with what inputs/resources) as workers become available
+* :ref:`generator<api_gen_f>`: Generates inputs to the *simulator*
+* :ref:`simulator<api_sim_f>`: Performs an evaluation based on parameters from the *generator*
 
 .. figure:: images/adaptiveloop.png
   :alt: Adaptive loops
@@ -20,10 +18,6 @@ which perform computations via **user functions**:
 
 |
 
-The default allocator (``alloc_f``) instructs workers to run the simulator on the
-highest priority work from the generator. If a worker is idle and there is
-no work, that worker is instructed to call the generator.
-
 .. figure:: images/diagram_with_persis.png
  :alt: libE component diagram
  :align: center
@@ -31,12 +25,23 @@ no work, that worker is instructed to call the generator.
 
 |
 
-An :doc:`executor<executor/overview>` interface is available so user functions
-can execute and monitor external applications.
+An :doc:`executor<executor/overview>` interface is available so generators and simulators
+can launch and monitor external applications.
 
 libEnsemble uses a NumPy structured array known as the :ref:`history array<funcguides-history>`
-to keep a record of all simulations. The global history array is stored on the
-manager, while selected rows and fields of this array are passed to and from user functions.
+to keep a record of all simulations and generated values.
+
+Allocator Function
+~~~~~~~~~~~~~~~~~~
+
+* :ref:`allocator<api_alloc_f>`: Decides whether a simulator or generator should be
+  prompted (and with what inputs/resources) as workers become available
+
+The default allocator (``alloc_f``) prompts workers to run the highest priority simulator work.
+If a worker is idle and there is no simulator work, that worker is prompted to query the generator.
+
+The default allocator is appropriate for the vast majority of use-cases, but is customizable
+for users interested in more advanced allocation strategies.
 
 Example Use Cases
 ~~~~~~~~~~~~~~~~~
@@ -118,8 +123,7 @@ its capabilities.
 
   * **Executor**: The executor can be used within user functions to provide a
     simple, portable interface for running and managing user tasks (applications).
-    There are multiple executors including the ``MPIExecutor`` and ``BalsamExecutor``.
-    The base ``Executor`` class allows local sub-processing of serial tasks.
+    There are multiple executors including the base ``Executor`` and ``MPIExecutor``.
 
   * **Submit**: Enqueue or indicate that one or more jobs or tasks need to be
     launched. When using the libEnsemble Executor, a *submitted* task is executed

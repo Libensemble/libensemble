@@ -22,8 +22,11 @@ and inference problems on the world's leading supercomputers such as Frontier, A
 
 `Quickstart`_
 
-**New:** Try out the |ScriptCreator| to generate customized scripts for running
-ensembles with your MPI applications.
+**New:** libEnsemble nows supports the `gest-api`_ generator standard, and can run with 
+Optimas and Xopt generators.
+
+The |ScriptCreator| to generate customized scripts for running ensembles with your
+MPI applications.
 
 Installation
 ============
@@ -100,6 +103,8 @@ Try some other examples live in Colab.
 +---------------------------------------------------------------+-------------------------------------+
 | Surrogate model generation with gpCAM.                        | |Surrogate Modeling|                |
 +---------------------------------------------------------------+-------------------------------------+
+| Bayesian Optimization with Xopt.                              | |Bayesian Optimization with Xopt|   |
++---------------------------------------------------------------+-------------------------------------+
 
 There are many more examples in the `regression tests`_ and `Community Examples repository`_.
 
@@ -161,6 +166,7 @@ Resources
 .. _conda-forge: https://conda-forge.org/
 .. _Contributions: https://github.com/Libensemble/libensemble/blob/main/CONTRIBUTING.rst
 .. _docs: https://libensemble.readthedocs.io/en/main/advanced_installation.html
+.. _gest-api: https://gest-api.readthedocs.io
 .. _GitHub: https://github.com/Libensemble/libensemble
 .. _libEnsemble mailing list: https://lists.mcs.anl.gov/mailman/listinfo/libensemble
 .. _libEnsemble Slack page: https://libensemble.slack.com
@@ -185,6 +191,9 @@ Resources
 
 .. |Surrogate Modeling| image:: https://colab.research.google.com/assets/colab-badge.svg
   :target:  https://colab.research.google.com/github/Libensemble/libensemble/blob/develop/examples/tutorials/gpcam_surrogate_model/gpcam.ipynb
+
+.. |Bayesian Optimization with Xopt| image:: https://colab.research.google.com/assets/colab-badge.svg
+  :target:  https://colab.research.google.com/github/Libensemble/libensemble/blob/develop/examples/tutorials/xopt_bayesian_gen/xopt_EI_example.ipynb
 
 .. |ScriptCreator| image:: https://img.shields.io/badge/Script_Creator-purple?logo=magic
    :target: https://libensemble.github.io/script-creator/

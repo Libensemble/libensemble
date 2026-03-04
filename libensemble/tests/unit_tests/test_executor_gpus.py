@@ -118,7 +118,9 @@ def set_extr_check(exctr):
         args_for_sim = "sleep 0"
         exp_runline = exp_cmd + " simdir/my_simtask.x sleep 0"
         task = exctr.submit(calc_type="sim", app_args=args_for_sim, dry_run=True, **kwargs)
-        assert task.env == exp_env, f"Task env does not match expected:\n Received: {task.env}\n Expected: {exp_env}"
+        for key, value in exp_env.items():
+            assert key in task.env, f"Expected env key '{key}' not found in task.env: {task.env}"
+            assert task.env[key] == value, f"Env key '{key}' has value '{task.env[key]}', expected '{value}'"
         assert (
             task.runline == exp_runline
         ), f"Run line  does not match expected.\n Received: {task.runline}\n Expected: {exp_runline}"

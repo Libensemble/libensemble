@@ -30,6 +30,9 @@ logger = logging.getLogger(__name__)
 # To change logging level for just this module
 # logger.setLevel(logging.DEBUG)
 
+# Placeholder for container support - replaced with simulation directory at runtime
+LIBE_SIM_DIR_PLACEHOLDER = "%LIBENSEMBLE_SIM_DIR%"
+
 STATES = """
 UNKNOWN
 CREATED
@@ -80,7 +83,7 @@ class Application:
         name: str | None = None,
         calc_type: str | None = "sim",
         desc: str | None = None,
-        pyobj: Any | None = None,  # used by balsam_executor to store ApplicationDefinition
+        pyobj: Any | None = None,
         precedent: str = "",
     ) -> None:
         """Instantiates a new Application instance."""
@@ -431,6 +434,7 @@ class Executor:
         self.workerID = None
         self.comm = None
         self.last_task = 0
+        self.base_dir = os.getcwd()
         Executor.executor = self
 
     def __enter__(self):
@@ -522,6 +526,10 @@ class Executor:
 
         precedent: str, Optional
             Any str that should directly precede the application full path.
+            Supports the placeholder ``%LIBENSEMBLE_SIM_DIR%`` which is replaced
+            at runtime with the simulation directory as a relative path from
+            where the executor was created. This is useful for container exec
+            commands.
         """
 
         if not app_name:
@@ -673,10 +681,26 @@ class Executor:
         self.workerID = workerid
         self.comm = comm
 
-    def _check_app_exists(self, full_path: str) -> None:
+    def _check_app_exists(self, app: Application) -> None:
         """Allows submit function to check if app exists and error if not"""
-        if not os.path.isfile(full_path):
-            raise ExecutorException(f"Application does not exist {full_path}")
+        if app.precedent:
+            # Could be a container call in precedent. In that case,
+            # the executable is not available on the host system and
+            # we just forward what the user provided.
+            return
+
+        if not os.path.isfile(app.full_path):
+            raise ExecutorException(f"Application does not exist {app.full_path}")
+
+    def _set_sim_dir_env(self, task: Task, run_cmd: list[str]) -> list[str]:
+        """Replace simulation directory placeholder in run command if present.
+
+        Supports container-based execution where the simulation directory needs to be
+        passed to container exec commands (e.g., podman-hpc exec --workdir).
+        """
+        sim_dir = os.path.relpath(task.workdir, self.base_dir)
+        task._add_to_env("LIBENSEMBLE_SIM_DIR", sim_dir)
+        return [arg.replace(LIBE_SIM_DIR_PLACEHOLDER, sim_dir) for arg in run_cmd]
 
     def submit(
         self,
@@ -745,11 +769,14 @@ class Executor:
         task = Task(app, app_args, default_workdir, stdout, stderr, self.workerID, dry_run)
 
         if not dry_run:
-            self._check_app_exists(task.app.full_path)
+            self._check_app_exists(task.app)
 
         runline = task.app.app_cmd.split()
         if task.app_args is not None:
             runline.extend(task.app_args.split())
+
+        runline = self._set_sim_dir_env(task, runline)
+        task.runline = " ".join(runline)
 
         if dry_run:
             logger.info(f"Test (No submit) Runline: {' '.join(runline)}")
