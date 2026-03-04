@@ -16,6 +16,7 @@ Release 1.6.0
 General Updates:
 
 * Support for ``gest-api`` generators (https://gest-api.readthedocs.io).
+
   * Support for any Xopt (v3.0+) and Optimas generators. #1307
   * libEnsemble's APOSMM, gpCAM, and random sampling generators are supplied in ``gest-api`` format.
   * Support dictionary (Xopt-style) simulator functions.
