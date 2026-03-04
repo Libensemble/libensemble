@@ -106,6 +106,8 @@ Try some other examples live in Colab.
 +---------------------------------------------------------------+-------------------------------------+
 | Surrogate model generation with gpCAM.                        | |Surrogate Modeling|                |
 +---------------------------------------------------------------+-------------------------------------+
+| Bayesian Optimization with Xopt.                              | |Bayesian Optimization with Xopt|   |
++---------------------------------------------------------------+-------------------------------------+
 
 There are many more examples in the `regression tests`_ and `Community Examples repository`_.
 
@@ -191,6 +193,9 @@ Resources
 
 .. |Surrogate Modeling| image:: https://colab.research.google.com/assets/colab-badge.svg
   :target:  https://colab.research.google.com/github/Libensemble/libensemble/blob/develop/examples/tutorials/gpcam_surrogate_model/gpcam.ipynb
+
+.. |Bayesian Optimization with Xopt| image:: https://colab.research.google.com/assets/colab-badge.svg
+  :target:  https://colab.research.google.com/github/Libensemble/libensemble/blob/examples/xopt_generators/examples/tutorials/xopt_bayesian_gen/xopt_EI_example.ipynb
 
 .. |ScriptCreator| image:: https://img.shields.io/badge/Script_Creator-purple?logo=magic
    :target: https://libensemble.github.io/script-creator/

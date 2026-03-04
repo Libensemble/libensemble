@@ -11,7 +11,7 @@ GitHub issues are referenced, and can be viewed with hyperlinks on the `github r
 Release 1.6.0
 --------------
 
-:Date: TBD
+:Date: March 04, 2026
 
 General Updates:
 
