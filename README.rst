@@ -22,7 +22,7 @@ and inference problems on the world's leading supercomputers such as Frontier, A
 
 `Quickstart`_
 
-**New:** libEnsemble nows supports the ``gest-api`` generator standard, and can run with 
+**New:** libEnsemble nows supports the `gest-api`_ generator standard, and can run with 
 Optimas and Xopt generators.
 
 The |ScriptCreator| to generate customized scripts for running ensembles with your
@@ -166,6 +166,7 @@ Resources
 .. _conda-forge: https://conda-forge.org/
 .. _Contributions: https://github.com/Libensemble/libensemble/blob/main/CONTRIBUTING.rst
 .. _docs: https://libensemble.readthedocs.io/en/main/advanced_installation.html
+.. _gest-api: https://gest-api.readthedocs.io
 .. _GitHub: https://github.com/Libensemble/libensemble
 .. _libEnsemble mailing list: https://lists.mcs.anl.gov/mailman/listinfo/libensemble
 .. _libEnsemble Slack page: https://libensemble.slack.com
