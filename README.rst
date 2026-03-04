@@ -44,10 +44,8 @@ and an exit condition. Run the following four-worker example via ``python this_f
 
     import numpy as np
 
-    from gest_api.vocs import VOCS
-
     from libensemble import Ensemble
-    from libensemble.gen_classes.sampling import UniformSample
+    from libensemble.gen_funcs.sampling import uniform_random_sample
     from libensemble.sim_funcs.six_hump_camel import six_hump_camel
     from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
 
@@ -55,41 +53,37 @@ and an exit condition. Run the following four-worker example via ``python this_f
 
         libE_specs = LibeSpecs(nworkers=4)
 
-        variables_objectives = VOCS(
-            variables={
-                "x0": [-3, 3],
-                "x1": [-2, 2],
-            },
-            objectives={"f": "EXPLORE"},
-        )
-
-        generator = UniformSample(vocs=variables_objectives)
-
         sim_specs = SimSpecs(
             sim_f=six_hump_camel,
-            vocs=variables_objectives,
+            inputs=["x"],
+            outputs=[("f", float)],
         )
 
         gen_specs = GenSpecs(
-            generator=generator,
-            vocs=variables_objectives,
+            gen_f=uniform_random_sample,
+            outputs=[("x", float, 2)],
+            user={
+                "gen_batch_size": 50,
+                "lb": np.array([-3, -2]),
+                "ub": np.array([3, 2]),
+            },
         )
 
         exit_criteria = ExitCriteria(sim_max=100)
 
-        ensemble = Ensemble(
+        sampling = Ensemble(
             libE_specs=libE_specs,
             sim_specs=sim_specs,
             gen_specs=gen_specs,
             exit_criteria=exit_criteria,
         )
 
-        ensemble.add_random_streams()
-        ensemble.run()
+        sampling.add_random_streams()
+        sampling.run()
 
-        if ensemble.is_manager:
-            ensemble.save_output(__file__)
-            print("Some output data:\n", ensemble.H[["x", "f"]][:10])
+        if sampling.is_manager:
+            sampling.save_output(__file__)
+            print("Some output data:\n", sampling.H[["x", "f"]][:10])
 
 |Inline Example|
 
