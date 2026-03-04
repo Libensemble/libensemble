@@ -433,6 +433,8 @@ def run_local_ibcdfo_manifold_sampling(user_specs, comm_queue, x0, f0, child_can
     support that, so APOSMM assumes the first point will be re-evaluated (but
     not be sent back to the manager).
     """
+    from ibcdfo import run_MSP  # noqa: F811
+    
     n = len(x0)
     # Define bound constraints (lower <= x <= upper)
     lb = np.zeros(n)
@@ -487,6 +489,8 @@ def run_local_ibcdfo_pounders(user_specs, comm_queue, x0, f0, child_can_read, pa
     support that, so APOSMM assumes the first point will be re-evaluated (but
     not be sent back to the manager).
     """
+    from ibcdfo import run_pounders  # noqa: F811
+    
     n = len(x0)
     # Define bound constraints (lower <= x <= upper)
     lb = np.zeros(n)
