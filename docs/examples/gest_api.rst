@@ -2,7 +2,7 @@
 (New) Standardized Generators
 =============================
 
-libEnsemble now also supports all generators that implement the gest_api_ interface.
+libEnsemble also supports all generators that use the gest_api_ interface.
 
 .. code-block:: python
   :linenos:
@@ -78,7 +78,7 @@ Modeling and Approximation
 Verified Third Party Examples
 =============================
 
-Generators that implement the gest_api_ interface and are verified to work with libEnsemble.
+Generators that use the gest_api_ interface and are verified to work with libEnsemble.
 
 The standardized interface was developed in partnership with their authors.
 
