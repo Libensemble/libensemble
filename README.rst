@@ -22,8 +22,11 @@ and inference problems on the world's leading supercomputers such as Frontier, A
 
 `Quickstart`_
 
-**New:** Try out the |ScriptCreator| to generate customized scripts for running
-ensembles with your MPI applications.
+**New:** libEnsemble nows supports the ``gest-api`` generator standard, and can run with 
+Optimas and Xopt generators.
+
+The |ScriptCreator| to generate customized scripts for running ensembles with your
+MPI applications.
 
 Installation
 ============
