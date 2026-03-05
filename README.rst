@@ -22,8 +22,11 @@ and inference problems on the world's leading supercomputers such as Frontier, A
 
 `Quickstart`_
 
-**New:** Try out the |ScriptCreator| to generate customized scripts for running
-ensembles with your MPI applications.
+**New:** libEnsemble nows supports the `gest-api`_ generator standard, and can run with 
+Optimas and Xopt generators.
+
+The |ScriptCreator| to generate customized scripts for running ensembles with your
+MPI applications.
 
 Installation
 ============
@@ -44,10 +47,8 @@ and an exit condition. Run the following four-worker example via ``python this_f
 
     import numpy as np
 
-    from gest_api.vocs import VOCS
-
     from libensemble import Ensemble
-    from libensemble.gen_classes.sampling import UniformSample
+    from libensemble.gen_funcs.sampling import uniform_random_sample
     from libensemble.sim_funcs.six_hump_camel import six_hump_camel
     from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
 
@@ -55,41 +56,37 @@ and an exit condition. Run the following four-worker example via ``python this_f
 
         libE_specs = LibeSpecs(nworkers=4)
 
-        variables_objectives = VOCS(
-            variables={
-                "x0": [-3, 3],
-                "x1": [-2, 2],
-            },
-            objectives={"f": "EXPLORE"},
-        )
-
-        generator = UniformSample(vocs=variables_objectives)
-
         sim_specs = SimSpecs(
             sim_f=six_hump_camel,
-            vocs=variables_objectives,
+            inputs=["x"],
+            outputs=[("f", float)],
         )
 
         gen_specs = GenSpecs(
-            generator=generator,
-            vocs=variables_objectives,
+            gen_f=uniform_random_sample,
+            outputs=[("x", float, 2)],
+            user={
+                "gen_batch_size": 50,
+                "lb": np.array([-3, -2]),
+                "ub": np.array([3, 2]),
+            },
         )
 
         exit_criteria = ExitCriteria(sim_max=100)
 
-        ensemble = Ensemble(
+        sampling = Ensemble(
             libE_specs=libE_specs,
             sim_specs=sim_specs,
             gen_specs=gen_specs,
             exit_criteria=exit_criteria,
         )
 
-        ensemble.add_random_streams()
-        ensemble.run()
+        sampling.add_random_streams()
+        sampling.run()
 
-        if ensemble.is_manager:
-            ensemble.save_output(__file__)
-            print("Some output data:\n", ensemble.H[["x", "f"]][:10])
+        if sampling.is_manager:
+            sampling.save_output(__file__)
+            print("Some output data:\n", sampling.H[["x", "f"]][:10])
 
 |Inline Example|
 
@@ -105,6 +102,8 @@ Try some other examples live in Colab.
 | Optimization example that finds multiple minima.              | |Optimization example|              |
 +---------------------------------------------------------------+-------------------------------------+
 | Surrogate model generation with gpCAM.                        | |Surrogate Modeling|                |
++---------------------------------------------------------------+-------------------------------------+
+| Bayesian Optimization with Xopt.                              | |Bayesian Optimization with Xopt|   |
 +---------------------------------------------------------------+-------------------------------------+
 
 There are many more examples in the `regression tests`_ and `Community Examples repository`_.
@@ -167,6 +166,7 @@ Resources
 .. _conda-forge: https://conda-forge.org/
 .. _Contributions: https://github.com/Libensemble/libensemble/blob/main/CONTRIBUTING.rst
 .. _docs: https://libensemble.readthedocs.io/en/main/advanced_installation.html
+.. _gest-api: https://gest-api.readthedocs.io
 .. _GitHub: https://github.com/Libensemble/libensemble
 .. _libEnsemble mailing list: https://lists.mcs.anl.gov/mailman/listinfo/libensemble
 .. _libEnsemble Slack page: https://libensemble.slack.com
@@ -191,6 +191,9 @@ Resources
 
 .. |Surrogate Modeling| image:: https://colab.research.google.com/assets/colab-badge.svg
   :target:  https://colab.research.google.com/github/Libensemble/libensemble/blob/develop/examples/tutorials/gpcam_surrogate_model/gpcam.ipynb
+
+.. |Bayesian Optimization with Xopt| image:: https://colab.research.google.com/assets/colab-badge.svg
+  :target:  https://colab.research.google.com/github/Libensemble/libensemble/blob/develop/examples/tutorials/xopt_bayesian_gen/xopt_EI_example.ipynb
 
 .. |ScriptCreator| image:: https://img.shields.io/badge/Script_Creator-purple?logo=magic
    :target: https://libensemble.github.io/script-creator/

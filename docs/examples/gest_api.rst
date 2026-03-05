@@ -2,7 +2,7 @@
 (New) Standardized Generators
 =============================
 
-libEnsemble now also supports all generators that implement the gest_api_ interface.
+libEnsemble also supports all generators that use the gest_api_ interface.
 
 .. code-block:: python
   :linenos:
@@ -78,12 +78,14 @@ Modeling and Approximation
 Verified Third Party Examples
 =============================
 
-Generators that implement the gest_api_ interface and are verified to work with libEnsemble.
+Generators that use the gest_api_ interface and are verified to work with libEnsemble.
 
 The standardized interface was developed in partnership with their authors.
 
 Xopt - https://github.com/xopt-org/Xopt
 ---------------------------------------
+
+Examples:
 
 `Expected Improvement`_
 
@@ -92,12 +94,20 @@ Xopt - https://github.com/xopt-org/Xopt
 Optimas - https://github.com/optimas-org/optimas
 ------------------------------------------------
 
+Examples:
+
 `Grid Sampling`_
+
+`Ax Multi-fideltiy`_
 
 .. _gest_api: https://github.com/campa-consortium/gest-api
 .. _gpcam: https://gpcam.lbl.gov/
 .. _paper: https://link.springer.com/article/10.1007/s12532-017-0131-4
 
-.. _Expected Improvement: https://github.com/xopt-org/Xopt/blob/main/xopt/generators/bayesian/expected_improvement.py
-.. _Nelder Mead: https://github.com/xopt-org/Xopt/blob/main/xopt/generators/sequential/neldermead.py
-.. _Grid Sampling: https://github.com/optimas-org/optimas/blob/main/optimas/generators/grid_sampling.py
+.. _Expected Improvement: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_xopt_EI.py
+
+.. _Nelder Mead: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_xopt_nelder_mead.py
+
+.. _Grid Sampling: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_optimas_grid_sample.py
+
+.. _Ax Multi-fideltiy: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_optimas_ax_mf.py
