@@ -1,6 +1,7 @@
 """Persistent generator exposing gpCAM functionality"""
 
 import time
+import warnings
 
 import numpy as np
 from gpcam import GPOptimizer as GP
@@ -17,6 +18,12 @@ __all__ = [
 
 def _initialize_gpcAM(user_specs, libE_info, persis_info):
     """Extract user params"""
+    warnings.warn(
+        "Use of persistent_gpCAM as a persistent generator function is deprecated. "
+        + "From libEnsemble v2.0 onward, Use the libensemble.gen_classes.gpcam ask/tell generator. "
+        + "See the docs for more information.",
+        FutureWarning,
+    )
     rng_seed = user_specs.get("rng_seed")  # Will default to None
     rng = persis_info.get("rand_stream") or np.random.default_rng(rng_seed)
     b = user_specs["batch_size"]
