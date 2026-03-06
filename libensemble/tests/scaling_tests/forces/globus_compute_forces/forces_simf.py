@@ -2,6 +2,7 @@ def run_forces_globus_compute(H, persis_info, sim_specs, libE_info):
     import os
     import secrets
     import time
+    from pathlib import Path
 
     import numpy as np
 
@@ -44,7 +45,7 @@ def run_forces_globus_compute(H, persis_info, sim_specs, libE_info):
     exctr = MPIExecutor()
     exctr.register_app(full_path=sim_app, app_name="forces")
 
-    calc_dir = os.path.join(sim_specs["user"]["remote_ensemble_dir"], secrets.token_hex(nbytes=4))
+    calc_dir = Path(sim_specs["user"]["remote_ensemble_dir"]) / Path(secrets.token_hex(nbytes=4))
     os.makedirs(calc_dir, exist_ok=True)
     os.chdir(calc_dir)
 
@@ -90,7 +91,7 @@ def run_forces_globus_compute(H, persis_info, sim_specs, libE_info):
 
     # Stat file to check for bad runs
     statfile = "forces.stat"
-    filepath = os.path.join(task.workdir, statfile)
+    filepath = Path(task.workdir) / statfile
     line = None
 
     poll_interval = 1  # secs

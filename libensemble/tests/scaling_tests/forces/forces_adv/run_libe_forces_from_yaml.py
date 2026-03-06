@@ -4,13 +4,14 @@ import sys
 
 import numpy as np
 
+from pathlib import Path
 from libensemble.ensemble import Ensemble
 from libensemble.executors.mpi_executor import MPIExecutor
 from libensemble.tools import add_unique_random_streams
 
 ####################
 
-sim_app = os.path.join(os.getcwd(), "../forces_app/forces.x")
+sim_app = Path.cwd() / "../forces_app/forces.x"
 
 if not os.path.isfile(sim_app):
     sys.exit("forces.x not found - please build first in ../forces_app dir")
