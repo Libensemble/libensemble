@@ -20,7 +20,6 @@ persistent generator.
 import shutil  # For ECnoise.m
 
 import numpy as np
-
 from libensemble import Ensemble
 from libensemble.alloc_funcs.start_fd_persistent import finite_diff_alloc as alloc_f
 from libensemble.gen_funcs.persistent_fd_param_finder import fd_param_finder as gen_f

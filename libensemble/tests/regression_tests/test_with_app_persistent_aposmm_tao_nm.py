@@ -24,7 +24,6 @@ import multiprocessing
 import sys
 
 import numpy as np
-
 from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc as alloc_f
 from libensemble.executors import MPIExecutor
 from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f

@@ -24,7 +24,6 @@ the objective function will be 3.
 import warnings
 
 import numpy as np
-
 from libensemble import logger
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens
 from libensemble.libE import libE

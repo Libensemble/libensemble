@@ -26,9 +26,8 @@ import multiprocessing
 import shutil  # For copying the external_localopt script
 import sys
 
-import numpy as np
-
 import libensemble.gen_funcs
+import numpy as np
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE

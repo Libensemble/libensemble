@@ -418,6 +418,14 @@ class Manager:
         if self.resources:
             self.resources.resource_manager.free_rsets(w)
 
+    def _ensure_sim_id_in_persis_in(self, D: npt.NDArray) -> None:
+        """Add sim_id to gen_specs persis_in if generator output contains sim_id (gest-api style generators only)"""
+        if self.gen_specs.get("generator") and len(D) > 0 and "sim_id" in D.dtype.names:
+            if "persis_in" not in self.gen_specs:
+                self.gen_specs["persis_in"] = []
+            if "sim_id" not in self.gen_specs["persis_in"]:
+                self.gen_specs["persis_in"].append("sim_id")
+
     def _send_work_order(self, Work: dict, w: int) -> None:
         """Sends an allocation function order to a worker"""
         logger.debug(f"Manager sending work unit to worker {w}")
@@ -484,18 +492,14 @@ class Manager:
         calc_status = D_recv["calc_status"]
 
         keep_state = D_recv["libE_info"].get("keep_state", False)
-        if w not in self.persis_pending and not self.W[w]["active_recv"] and not keep_state:
+        if (w not in self.persis_pending and not self.W[w]["active_recv"] and not keep_state) or self.WorkerExc:
             self.W[w]["active"] = 0
 
         if calc_status in [FINISHED_PERSISTENT_SIM_TAG, FINISHED_PERSISTENT_GEN_TAG]:
             final_data = D_recv.get("calc_out", None)
             if isinstance(final_data, np.ndarray):
                 if calc_status is FINISHED_PERSISTENT_GEN_TAG and self.libE_specs.get("use_persis_return_gen", False):
-                    warnings.warn(
-                        "LibeSpecs.use_persis_return_gen is deprecated, to be removed in v2.0. From v2.0 onward, "
-                        + "libEnsemble will honor all data returned on completion of a persistent generator.",
-                        DeprecationWarning,
-                    )
+                    self._ensure_sim_id_in_persis_in(final_data)
                     self.hist.update_history_x_in(w, final_data, self.W[w]["gen_started_time"])
                 elif calc_status is FINISHED_PERSISTENT_SIM_TAG and self.libE_specs.get("use_persis_return_sim", False):
                     warnings.warn(
@@ -516,9 +520,21 @@ class Manager:
             self._freeup_resources(w)
         else:
             if calc_type == EVAL_SIM_TAG:
-                self.hist.update_history_f(D_recv, self.kill_canceled_sims)
+                try:
+                    self.hist.update_history_f(D_recv, self.kill_canceled_sims)
+                except AttributeError as e:
+                    if self.WorkerExc:
+                        logger.debug(f"Manager ignoring secondary data error from worker {w} during shutdown: {e}")
+                    else:
+                        self.WorkerExc = True
+                        self._kill_workers()
+                        raise WorkerException(
+                            f"Error in data from worker {w}", str(e), traceback.format_exc()
+                        ) from None
             if calc_type == EVAL_GEN_TAG:
-                self.hist.update_history_x_in(w, D_recv["calc_out"], self.W[w]["gen_started_time"])
+                D = D_recv["calc_out"]
+                self._ensure_sim_id_in_persis_in(D)
+                self.hist.update_history_x_in(w, D, self.W[w]["gen_started_time"])
                 assert (
                     len(D_recv["calc_out"]) or np.any(self.W["active"]) or self.W[w]["persis_state"]
                 ), "Gen must return work when is is the only thing active and not persistent."
@@ -639,6 +655,7 @@ class Manager:
         if self.live_data is not None:
             self.live_data.finalize(self.hist)
 
+        persis_info["num_gens_started"] = 0
         return persis_info, exit_flag, self.elapsed()
 
     def _sim_max_given(self) -> bool:

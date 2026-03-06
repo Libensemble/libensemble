@@ -183,12 +183,24 @@ def aposmm(H, persis_info, gen_specs, libE_info):
         if user_specs["initial_sample_size"] != 0:
             # Send our initial sample. We don't need to check that n_s is large enough:
             # the alloc_func only returns when the initial sample has function values.
-            persis_info = add_k_sample_points_to_local_H(
-                user_specs["initial_sample_size"], user_specs, persis_info, n, comm, local_H, sim_id_to_child_inds
-            )
-            if not user_specs.get("standalone"):
+
+            if not user_specs.get("generate_sample_points", True):  # add an extra receive for the sample points
+                # gonna loop here while the user suggests/ingests sample points until we reach the desired sample size
+                while n_s < user_specs["initial_sample_size"]:
+                    tag, Work, presumptive_user_sample = ps.recv()
+                    if presumptive_user_sample is not None:
+                        n_s, n_r = update_local_H_after_receiving(
+                            local_H, n, n_s, user_specs, Work, presumptive_user_sample, fields_to_pass, init=True
+                        )
+                something_sent = False
+            else:
+                persis_info = add_k_sample_points_to_local_H(
+                    user_specs["initial_sample_size"], user_specs, persis_info, n, comm, local_H, sim_id_to_child_inds
+                )
+                something_sent = True
+            if not user_specs.get("standalone") and user_specs.get("generate_sample_points", True):
                 ps.send(local_H[-user_specs["initial_sample_size"] :][[i[0] for i in gen_specs["out"]]])
-            something_sent = True
+                something_sent = True
         else:
             something_sent = False
 
@@ -297,12 +309,16 @@ def aposmm(H, persis_info, gen_specs, libE_info):
             pass
 
 
-def update_local_H_after_receiving(local_H, n, n_s, user_specs, Work, calc_in, fields_to_pass):
+def update_local_H_after_receiving(local_H, n, n_s, user_specs, Work, calc_in, fields_to_pass, init=False):
     for name in ["f", "x_on_cube", "grad", "fvec"]:
         if name in fields_to_pass:
             assert name in calc_in.dtype.names, (
                 name + " must be returned to persistent_aposmm for localopt_method: " + user_specs["localopt_method"]
             )
+
+    if init:
+        local_H.resize(len(calc_in), refcheck=False)
+        initialize_dists_and_inds(local_H, len(calc_in))
 
     for name in calc_in.dtype.names:
         local_H[name][Work["libE_info"]["H_rows"]] = calc_in[name]
