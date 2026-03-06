@@ -125,6 +125,8 @@ mumps-mpi = ">=5.8.1,<6"
 dfo-ls = ">=1.3.0,<2"
 petsc = "==3.24.2"
 petsc4py = "==3.24.2"
+pandas = "<3"
+numpy = "<2.4"
 
 [tool.pixi.feature.docs.dependencies]
 sphinx = ">=8.2.3,<9"
@@ -166,25 +168,25 @@ python = "3.14.*"
 
 # ax-platform only works up to 3.13 on Linux
 [tool.pixi.feature.py310e.target.linux-64.dependencies]
-ax-platform = ">=0.5.0"
+ax-platform = "==0.5.0"
 
 [tool.pixi.feature.py310e.dependencies]
 globus-compute-sdk = ">=4.3.0,<5"
 
 [tool.pixi.feature.py311e.target.linux-64.dependencies]
-ax-platform = ">=0.5.0"
+ax-platform = "==0.5.0"
 
 [tool.pixi.feature.py311e.dependencies]
 globus-compute-sdk = ">=4.3.0,<5"
 
 [tool.pixi.feature.py312e.target.linux-64.dependencies]
-ax-platform = ">=0.5.0"
+ax-platform = "==0.5.0"
 
 [tool.pixi.feature.py312e.dependencies]
 globus-compute-sdk = ">=4.3.0,<5"
 
 [tool.pixi.feature.py313e.target.linux-64.dependencies]
-ax-platform = ">=0.5.0"
+ax-platform = "==0.5.0"
 
 [tool.pixi.feature.py314e]
 
@@ -216,14 +218,10 @@ extra = [
   "proxystore>=0.8.3,<0.9",
   "redis>=7.1.0,<8",
   "surmise>=0.3.0,<0.5",
-  "optimas @ git+https://github.com/optimas-org/optimas",
+  "optimas @ git+https://github.com/optimas-org/optimas@multitask_uses_id",
 ]
 dev = ["wat>=0.7.0,<0.8"]
 docs = ["pyenchant", "enchant>=0.0.1,<0.0.2", "sphinx-lfs-content>=1.1.10,<2"]
-py311e = ["xopt @ git+https://github.com/xopt-org/xopt.git@main"]
-py312e = ["xopt @ git+https://github.com/xopt-org/xopt.git@main"]
-py313e = ["xopt @ git+https://github.com/xopt-org/xopt.git@main"]
-py314e = ["xopt @ git+https://github.com/xopt-org/xopt.git@main"]
 
 # Various config from here onward
 [tool.black]

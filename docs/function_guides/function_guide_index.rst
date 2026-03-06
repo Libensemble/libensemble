@@ -13,7 +13,6 @@ These guides describe common development patterns and optional components:
    :caption: Writing User Functions
 
    generator
-   ask_tell_generator
    simulator
    allocator
    sim_gen_alloc_api

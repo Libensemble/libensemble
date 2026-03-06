@@ -213,12 +213,12 @@ class PersistentGenInterfacer(LibensembleGenerator):
         self.gen_result = self._running_gen_f.result()
 
     def export(
-        self, user_fields: bool = False, as_dicts: bool = False
+        self, vocs_field_names: bool = False, as_dicts: bool = False
     ) -> tuple[npt.NDArray | list | None, dict | None, int | None]:
         """Return the generator's results
         Parameters
         ----------
-        user_fields : bool, optional
+        vocs_field_names : bool, optional
             If True, return local_H with variables unmapped from arrays back to individual fields.
             Default is False.
         as_dicts : bool, optional
@@ -227,7 +227,7 @@ class PersistentGenInterfacer(LibensembleGenerator):
         Returns
         -------
         local_H : npt.NDArray | list
-            Generator history array (unmapped if user_fields=True, as dicts if as_dicts=True).
+            Generator history array (unmapped if vocs_field_names=True, as dicts if as_dicts=True).
         persis_info : dict
             Persistent information.
         tag : int
@@ -236,10 +236,10 @@ class PersistentGenInterfacer(LibensembleGenerator):
         if not self.gen_result:
             return (None, None, None)
         local_H, persis_info, tag = self.gen_result
-        if user_fields and local_H is not None and self.variables_mapping:
+        if vocs_field_names and local_H is not None and self.variables_mapping:
             local_H = unmap_numpy_array(local_H, self.variables_mapping)
         if as_dicts and local_H is not None:
-            if user_fields and self.variables_mapping:
+            if vocs_field_names and self.variables_mapping:
                 local_H = np_to_list_dicts(local_H, self.variables_mapping)
             else:
                 local_H = np_to_list_dicts(local_H)

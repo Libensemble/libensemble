@@ -584,8 +584,8 @@ def _run_aposmm_export_test(variables_mapping):
         assert "x" in H.dtype.names and H["x"].ndim == 2
         assert "f" in H.dtype.names and H["f"].ndim == 1
 
-    # Test export with user_fields
-    H_unmapped, _, _ = aposmm.export(user_fields=True)
+    # Test export with vocs_field_names
+    H_unmapped, _, _ = aposmm.export(vocs_field_names=True)
     print(f"H_unmapped: {H_unmapped}")  # Debug
     if H_unmapped is not None:
         assert "core" in H_unmapped.dtype.names
@@ -598,7 +598,7 @@ def _run_aposmm_export_test(variables_mapping):
     assert "x" in H_dicts[0]  # x remains as array
     assert "f" in H_dicts[0]
     # Test export with both options
-    H_both, _, _ = aposmm.export(user_fields=True, as_dicts=True)
+    H_both, _, _ = aposmm.export(vocs_field_names=True, as_dicts=True)
     assert isinstance(H_both, list)
     assert "core" in H_both[0]
     assert "edge" in H_both[0]

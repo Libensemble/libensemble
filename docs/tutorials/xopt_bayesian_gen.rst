@@ -168,4 +168,4 @@ Reset generator and change to libEnsemble-style simulator:
         assert np.array_equal(H["c1"], H["x1"])
 
 .. |Open in Colab| image:: https://colab.research.google.com/assets/colab-badge.svg
-  :target:  http://colab.research.google.com/github/Libensemble/libensemble/blob/examples/xopt_generators/examples/tutorials/xopt_bayesian_gen/xopt_EI_example.ipynb
+  :target:  https://colab.research.google.com/github/Libensemble/libensemble/blob/develop/examples/tutorials/xopt_bayesian_gen/xopt_EI_example.ipynb
