@@ -12,6 +12,7 @@ The number of concurrent evaluations of the objective function will be 4-1=3.
 import numpy as np
 
 from libensemble import logger
+from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 from libensemble.executors.mpi_executor import MPIExecutor
 from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
 from libensemble.libE import libE
@@ -233,8 +234,10 @@ if __name__ == "__main__":
             "tests": test_list,
         }
 
+        alloc_specs = {"alloc_f": give_sim_work_first}
+
         # Perform the run
-        H, pinfo, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
+        H, pinfo, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs=libE_specs)
 
     # for run_set in ['mpich', 'openmpi', 'aprun', 'srun', 'jsrun', 'rename_mpich', 'custom']:
     for run_set in ["mpich", "aprun", "srun", "jsrun", "rename_mpich", "custom"]:

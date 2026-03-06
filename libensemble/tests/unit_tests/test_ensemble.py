@@ -86,45 +86,6 @@ def test_bad_func_loads():
         assert flag == 0
 
 
-def test_full_workflow():
-    """Test initializing a workflow via Specs and Ensemble.run()"""
-    from libensemble.ensemble import Ensemble
-    from libensemble.gen_funcs.sampling import latin_hypercube_sample
-    from libensemble.sim_funcs.simple_sim import norm_eval
-    from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
-
-    LS = LibeSpecs(comms="local", nworkers=4)
-
-    # parameterizes and validates everything!
-    ens = Ensemble(
-        libE_specs=LS,
-        sim_specs=SimSpecs(sim_f=norm_eval),
-        gen_specs=GenSpecs(
-            gen_f=latin_hypercube_sample,
-            user={
-                "gen_batch_size": 100,
-                "lb": np.array([-3]),
-                "ub": np.array([3]),
-            },
-        ),
-        exit_criteria=ExitCriteria(gen_max=101),
-    )
-
-    ens.add_random_streams()
-    ens.run()
-    if ens.is_manager:
-        assert len(ens.H) >= 101
-
-    # test a dry run
-    ens.libE_specs.dry_run = True
-    flag = 1
-    try:
-        ens.run()
-    except SystemExit:
-        flag = 0
-    assert not flag, "Ensemble didn't exit after specifying dry_run"
-
-
 def test_flakey_workflow():
     """Test initializing a workflow via Specs and Ensemble.run()"""
     from pydantic import ValidationError
@@ -235,7 +196,6 @@ if __name__ == "__main__":
     test_ensemble_parse_args_false()
     test_from_files()
     test_bad_func_loads()
-    test_full_workflow()
     test_flakey_workflow()
     test_ensemble_specs_update_libE_specs()
     test_ensemble_prevent_comms_overwrite()

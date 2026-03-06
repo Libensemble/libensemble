@@ -18,6 +18,7 @@ import os
 
 import numpy as np
 
+from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
 from libensemble.libE import libE
 from libensemble.tests.regression_tests.support import write_sim_func as sim_f
@@ -60,11 +61,17 @@ if __name__ == "__main__":
         },
     }
 
+    alloc_specs = {
+        "alloc_f": give_sim_work_first,
+    }
+
     persis_info = add_unique_random_streams({}, nworkers + 1)
 
     exit_criteria = {"sim_max": 21}
 
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
+    H, persis_info, flag = libE(
+        sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs=alloc_specs, libE_specs=libE_specs
+    )
 
     if is_manager:
         assert os.path.isdir(w_ensemble), f"Ensemble directory {w_ensemble} not created."

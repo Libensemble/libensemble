@@ -10,13 +10,30 @@ Many users use these unmodified.
 .. IMPORTANT::
   See the API for allocation functions :ref:`here<api_alloc_f>`.
 
-.. note::
-   The default allocation function (for non-persistent generators) is :ref:`give_sim_work_first<gswf_label>`.
+  **The default allocation function changed in libEnsemble v2.0 from `give_sim_work_first` to `start_only_persistent `.**
 
-   The most commonly used (for persistent generators) is :ref:`start_only_persistent<start_only_persistent_label>`.
+.. note::
+
+   The default allocation function for persistent generators is :ref:`start_only_persistent<start_only_persistent_label>`.
+
+   The most commonly used allocation function for non-persistent generators is :ref:`give_sim_work_first<gswf_label>`.
 
 .. role:: underline
     :class: underline
+
+.. _start_only_persistent_label:
+
+start_only_persistent
+---------------------
+.. automodule:: start_only_persistent
+  :members:
+  :undoc-members:
+
+.. dropdown:: :underline:`start_only_persistent.py`
+
+   .. literalinclude:: ../../libensemble/alloc_funcs/start_only_persistent.py
+      :language: python
+      :linenos:
 
 .. _gswf_label:
 
@@ -41,20 +58,6 @@ fast_alloc
 .. dropdown:: :underline:`fast_alloc.py`
 
    .. literalinclude:: ../../libensemble/alloc_funcs/fast_alloc.py
-      :language: python
-      :linenos:
-
-.. _start_only_persistent_label:
-
-start_only_persistent
----------------------
-.. automodule:: start_only_persistent
-  :members:
-  :undoc-members:
-
-.. dropdown:: :underline:`start_only_persistent.py`
-
-   .. literalinclude:: ../../libensemble/alloc_funcs/start_only_persistent.py
       :language: python
       :linenos:
 

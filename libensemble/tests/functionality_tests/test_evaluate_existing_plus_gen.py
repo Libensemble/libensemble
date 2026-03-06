@@ -18,9 +18,10 @@ import numpy as np
 
 # Import libEnsemble items for this test
 from libensemble import Ensemble
+from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 from libensemble.gen_funcs.sampling import latin_hypercube_sample as gen_f
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel as sim_f
-from libensemble.specs import ExitCriteria, GenSpecs, SimSpecs
+from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, SimSpecs
 from libensemble.tools import add_unique_random_streams
 
 
@@ -59,6 +60,7 @@ if __name__ == "__main__":
     sampling.exit_criteria = ExitCriteria(sim_max=100)
     sampling.persis_info = add_unique_random_streams({}, sampling.nworkers + 1)
     sampling.H0 = create_H0(sampling.persis_info, gen_specs, 50)
+    sampling.alloc_specs = AllocSpecs(alloc_f=give_sim_work_first)
     sampling.run()
 
     if sampling.is_manager:

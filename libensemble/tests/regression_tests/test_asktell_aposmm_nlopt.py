@@ -31,10 +31,9 @@ from time import time
 from gest_api.vocs import VOCS
 
 from libensemble import Ensemble
-from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.gen_classes import APOSMM
 from libensemble.manager import LoggedException
-from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, SimSpecs
+from libensemble.specs import ExitCriteria, GenSpecs, SimSpecs
 from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
 
 
@@ -62,7 +61,6 @@ if __name__ == "__main__":
             start_time = time()
 
         n = 2
-        workflow.alloc_specs = AllocSpecs(alloc_f=alloc_f)
 
         workflow.libE_specs.gen_on_manager = True
 

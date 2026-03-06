@@ -27,7 +27,7 @@ import sys
 import warnings
 
 import numpy as np
-from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
+
 from libensemble.gen_funcs.persistent_gpCAM import persistent_gpCAM, persistent_gpCAM_covar
 
 # Import libEnsemble items for this test
@@ -66,8 +66,6 @@ if __name__ == "__main__":
         },
     }
 
-    alloc_specs = {"alloc_f": alloc_f}
-
     for inst in range(3):
         if inst == 0:
             gen_specs["gen_f"] = persistent_gpCAM_covar
@@ -90,7 +88,7 @@ if __name__ == "__main__":
         persis_info = add_unique_random_streams({}, nworkers + 1)
 
         # Perform the run
-        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
 
         if is_manager:
             assert len(np.unique(H["gen_ended_time"])) == num_batches
