@@ -8,6 +8,45 @@ GitHub issues are referenced, and can be viewed with hyperlinks on the `github r
 
 .. _`github releases page`: https://github.com/Libensemble/libensemble/releases
 
+Release 1.6.0
+--------------
+
+:Date: March 04, 2026
+
+General Updates:
+
+* Support for ``gest-api`` generators (https://gest-api.readthedocs.io). #1307
+
+  * Support for any Xopt (v3.0+) and Optimas generators.
+  * libEnsemble's APOSMM, gpCAM, and random sampling generators are supplied in ``gest-api`` format.
+  * Support dictionary (Xopt-style) simulator functions.
+
+* Simulation container support - Executor precedent accepts ``%LIBENSEMBLE_SIM_DIR%`` placeholder. #1672
+
+Examples:
+
+* Adding test for ibcdfo with jax. #1591
+* Optimas/Xopt examples. #1620 / #1635 
+* Bayesian Optimization with Xopt tutorial / notebook.
+* Tasmanian generators moved to community examples.
+
+Dependencies:
+
+* ``gest-api`` is now a required dependency. #1666 
+* Remove Pydantic v1 support and Balsam. #1573
+* Python 3.14 supported. #1609 
+
+
+:Note:
+
+* Tests were run on Linux and MacOS with Python versions 3.10, 3.11, 3.12, 3.13, 3.14
+* Heterogeneous workflows tested on Aurora (ALCF) and Perlmutter (NERSC).
+
+:Known Issues:
+
+* See known issues section in the documentation.
+
+
 Release 1.5.0
 --------------
 
