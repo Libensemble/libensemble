@@ -98,7 +98,7 @@ Examples:
 
 `Grid Sampling`_
 
-`Ax Multi-fideltiy`_
+`Ax Multi-fidelity`_
 
 .. _gest_api: https://github.com/campa-consortium/gest-api
 .. _gpcam: https://gpcam.lbl.gov/
@@ -110,4 +110,4 @@ Examples:
 
 .. _Grid Sampling: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_optimas_grid_sample.py
 
-.. _Ax Multi-fideltiy: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_optimas_ax_mf.py
+.. _Ax Multi-fidelity: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_optimas_ax_mf.py
