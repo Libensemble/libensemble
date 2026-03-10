@@ -4,8 +4,6 @@ import sys
 
 import numpy as np
 from forces_simf import run_forces  # Classic libEnsemble sim_f.
-# from forces_simf import run_forces_dict  # gest-api/xopt style simulator.
-
 from gest_api.vocs import VOCS
 from xopt.generators.random import RandomGenerator
 
@@ -13,6 +11,10 @@ from libensemble import Ensemble
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.executors import MPIExecutor
 from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
+
+# from forces_simf import run_forces_dict  # gest-api/xopt style simulator.
+
+
 
 if __name__ == "__main__":
     # Initialize MPI Executor
