@@ -20,8 +20,9 @@ persistent generator.
 import multiprocessing
 import sys
 
-import libensemble.gen_funcs
 import numpy as np
+
+import libensemble.gen_funcs
 
 libensemble.gen_funcs.rc.aposmm_optimizers = "nlopt"
 

@@ -35,6 +35,7 @@ to resource all works units. More generally:
 # TESTSUITE_NPROCS: 10
 
 import numpy as np
+
 from libensemble import Ensemble
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.executors.mpi_executor import MPIExecutor
