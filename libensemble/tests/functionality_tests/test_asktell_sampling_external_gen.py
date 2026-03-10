@@ -30,8 +30,6 @@ from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, Sim
 # from gest_api.vocs import ContinuousVariable
 
 
-
-
 def sim_f_array(In):
     Out = np.zeros(1, dtype=[("f", float)])
     Out["f"] = np.linalg.norm(In)

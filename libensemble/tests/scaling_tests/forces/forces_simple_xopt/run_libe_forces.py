@@ -15,7 +15,6 @@ from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, Sim
 # from forces_simf import run_forces_dict  # gest-api/xopt style simulator.
 
 
-
 if __name__ == "__main__":
     # Initialize MPI Executor
     exctr = MPIExecutor()
