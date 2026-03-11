@@ -6,7 +6,7 @@ libEnsemble can be installed from ``pip``, ``uv``, ``Conda``, or ``Spack``.
 libEnsemble requires the following dependencies, which are typically
 automatically installed alongside libEnsemble:
 
-* Python_       ``>= 3.10``
+* Python_       ``>= 3.11``
 * NumPy_        ``>= 1.21``
 * psutil_       ``>= 5.9.4``
 * `pydantic`_   ``>= 2``
@@ -142,7 +142,7 @@ Further recommendations for selected HPC systems are given in the
 
         **Hint**: When combining Spack and Conda, you can access your Conda Python and packages in your
         ``~/.spack/packages.yaml`` while your Conda environment is activated, using ``CONDA_PREFIX``
-        For example, if you have an activated Conda environment with Python 3.10 and SciPy installed:
+        For example, if you have an activated Conda environment with Python 3.11 and SciPy installed:
 
         .. code-block:: yaml
 
@@ -155,12 +155,12 @@ Further recommendations for selected HPC systems are given in the
             py-numpy:
                 externals:
                 - spec: "py-numpy"
-                prefix: $CONDA_PREFIX/lib/python3.10/site-packages/numpy
+                prefix: $CONDA_PREFIX/lib/python3.11/site-packages/numpy
                 buildable: False
             py-scipy:
                 externals:
                 - spec: "py-scipy"
-                prefix: $CONDA_PREFIX/lib/python3.10/site-packages/scipy
+                prefix: $CONDA_PREFIX/lib/python3.11/site-packages/scipy
                 buildable: True
 
         For more information on Spack builds and any particular considerations
