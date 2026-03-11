@@ -17,6 +17,7 @@ The number of concurrent evaluations of the objective function will be 4-1=3.
 import warnings
 
 import numpy as np
+
 from libensemble import Ensemble
 from libensemble.alloc_funcs.give_pregenerated_work import give_pregenerated_sim_work as alloc_f
 

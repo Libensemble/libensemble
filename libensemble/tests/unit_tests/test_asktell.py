@@ -1,4 +1,5 @@
 import numpy as np
+
 from libensemble.utils.misc import unmap_numpy_array
 
 

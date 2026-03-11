@@ -27,8 +27,9 @@ doing the simulation evaluations.
 import multiprocessing
 import sys
 
-import libensemble.gen_funcs
 import numpy as np
+
+import libensemble.gen_funcs
 from libensemble.libE import libE
 
 libensemble.gen_funcs.rc.aposmm_optimizers = "ibcdfo_pounders"
@@ -39,7 +40,6 @@ from libensemble.tools import add_unique_random_streams, parse_args, save_libE_o
 
 try:
     import ibcdfo  # noqa: F401
-
     from declare_hfun_and_combine_model_with_jax import combinemodels_jax, hfun
 
 except ModuleNotFoundError:

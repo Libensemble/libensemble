@@ -1,6 +1,7 @@
 import copy
 
 import numpy as np
+
 from libensemble.specs import input_fields, output_data
 
 branin_vals_and_minima = np.array(

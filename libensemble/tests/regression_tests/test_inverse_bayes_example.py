@@ -19,6 +19,7 @@ persistent generator.
 # TESTSUITE_NPROCS: 3 4
 
 import numpy as np
+
 from libensemble import Ensemble
 from libensemble.alloc_funcs.inverse_bayes_allocf import only_persistent_gens_for_inverse_bayes as alloc_f
 from libensemble.gen_funcs.persistent_inverse_bayes import persistent_updater_after_likelihood as gen_f

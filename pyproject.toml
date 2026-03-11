@@ -19,7 +19,7 @@ dependencies = [
 
 description = "A Python toolkit for coordinating asynchronous and dynamic ensembles of calculations."
 name = "libensemble"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 license = { file = "LICENSE" }
 readme = "README.rst"
 
@@ -33,7 +33,6 @@ classifiers = [
   "Operating System :: Unix",
   "Operating System :: MacOS",
   "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
@@ -76,13 +75,11 @@ docs = ["docs", "basic"]
 dev = ["dev", "basic", "extra", "docs"]
 
 # CI environments
-py310 = ["py310", "basic"]
 py311 = ["py311", "basic"]
 py312 = ["py312", "basic"]
 py313 = ["py313", "basic"]
 py314 = ["py314", "basic"]
 
-py310e = ["py310", "py310e", "basic", "extra"]
 py311e = ["py311", "py311e", "basic", "extra"]
 py312e = ["py312", "py312e", "basic", "extra"]
 py313e = ["py313", "py313e", "basic", "extra"]
@@ -155,8 +152,6 @@ octave = ">=9.4.0,<11"
 pyzmq = ">=26.4.0,<28"
 
 # Python versions
-[tool.pixi.feature.py310.dependencies]
-python = "3.10.*"
 [tool.pixi.feature.py311.dependencies]
 python = "3.11.*"
 [tool.pixi.feature.py312.dependencies]
@@ -167,11 +162,6 @@ python = "3.13.*"
 python = "3.14.*"
 
 # ax-platform only works up to 3.13 on Linux
-[tool.pixi.feature.py310e.target.linux-64.dependencies]
-ax-platform = "==0.5.0"
-
-[tool.pixi.feature.py310e.dependencies]
-globus-compute-sdk = ">=4.3.0,<5"
 
 [tool.pixi.feature.py311e.target.linux-64.dependencies]
 ax-platform = "==0.5.0"
@@ -193,7 +183,7 @@ ax-platform = "==0.5.0"
 
 # Dependencies for libEnsemble
 [tool.pixi.dependencies]
-python = ">=3.10,<3.15"
+python = ">=3.11,<3.15"
 pip = ">=25.2,<26"
 setuptools = ">=80.8.0,<81"
 numpy = ">=2.2.6,<3"
@@ -258,4 +248,15 @@ inpt = "inpt"
 extend-exclude = ["*.bib", "*.xml", "docs/nitpicky"]
 
 [tool.mypy]
+# Initial, permissive mypy configuration for libensemble.
+# Allows incremental adoption. To be tightened in future releases.
+packages = ["libensemble.utils"]
+exclude = '''
+libensemble/utils/(launcher|loc_stack|runners|pydantic|output_directory)\.py
+'''
 disable_error_code = ["import-not-found", "import-untyped"]
+ignore_missing_imports = true
+follow_imports = "skip"
+check_untyped_defs = false
+disallow_untyped_defs = false
+warn_unused_ignores = false
