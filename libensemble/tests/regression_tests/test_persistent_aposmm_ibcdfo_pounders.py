@@ -27,8 +27,9 @@ doing the simulation evaluations.
 import multiprocessing
 import sys
 
-import libensemble.gen_funcs
 import numpy as np
+
+import libensemble.gen_funcs
 from libensemble.libE import libE
 from libensemble.sim_funcs.chwirut1 import chwirut_eval
 

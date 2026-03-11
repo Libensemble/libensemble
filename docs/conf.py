@@ -67,9 +67,9 @@ sys.modules["ax.exceptions.core"].AxParameterWarning = AxParameterWarning
 
 # sys.path.insert(0, os.path.abspath('.'))
 sys.path.append(os.path.abspath("../libensemble"))
-##sys.path.append(os.path.abspath('../libensemble'))
 sys.path.append(os.path.abspath("../libensemble/alloc_funcs"))
 sys.path.append(os.path.abspath("../libensemble/gen_funcs"))
+sys.path.append(os.path.abspath("../libensemble/gen_classes"))
 sys.path.append(os.path.abspath("../libensemble/sim_funcs"))
 sys.path.append(os.path.abspath("../libensemble/comms"))
 sys.path.append(os.path.abspath("../libensemble/utils"))
