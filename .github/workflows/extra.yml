@@ -11,7 +11,7 @@ jobs:
             matrix:
                 os: [ubuntu-latest]
                 mpi-version: [mpich]
-                python-version: ["py310e", "py311e", "py312e", "py313e", "py314e"]
+                python-version: ["py311e", "py312e", "py313e", "py314e"]
                 comms-type: [m, l]
                 include:
                     - os: macos-latest
@@ -69,13 +69,6 @@ jobs:
           if: matrix.python-version != 'py313e' && matrix.python-version != 'py314e'
           run: |
             pixi run -e ${{ matrix.python-version }} pip install gpcam==8.1.13
-
-        - name: Remove xopt tests on old python
-          if: matrix.python-version == 'py310e'
-          run: |
-            rm ./libensemble/tests/regression_tests/test_xopt_EI_xopt_sim.py
-            rm ./libensemble/tests/regression_tests/test_xopt_EI.py
-            rm ./libensemble/tests/regression_tests/test_xopt_nelder_mead.py
 
         - name: Remove test using octave, gpcam, globus-compute on Python 3.13
           if: matrix.python-version == 'py313e' || matrix.python-version == 'py314e'
