@@ -14,6 +14,7 @@ The number of concurrent evaluations of the objective function will be 4-1=3.
 # TESTSUITE_NPROCS: 2 4
 
 import numpy as np
+
 from libensemble import Ensemble
 from libensemble.gen_funcs.sampling import latin_hypercube_sample as gen_f
 

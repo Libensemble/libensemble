@@ -1,8 +1,8 @@
 import numpy as np
+from gest_api.vocs import VOCS
 from pydantic import ValidationError
 
 import libensemble.tests.unit_tests.setup as setup
-from gest_api.vocs import VOCS
 from libensemble.gen_funcs.sampling import latin_hypercube_sample
 from libensemble.sim_funcs.simple_sim import norm_eval
 from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs, _EnsembleSpecs

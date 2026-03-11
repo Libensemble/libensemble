@@ -21,8 +21,9 @@ import multiprocessing
 import sys
 from math import gamma, pi, sqrt
 
-import libensemble.gen_funcs
 import numpy as np
+
+import libensemble.gen_funcs
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
