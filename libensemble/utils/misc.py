@@ -4,7 +4,6 @@ Misc internal functions
 
 from itertools import chain, groupby
 from operator import itemgetter
-from typing import List
 
 import numpy as np
 import numpy.typing as npt
@@ -85,6 +84,7 @@ def _get_combinable_multidim_names(first: dict, new_dtype_names: list) -> list:
 
 def _decide_dtype(name: str, entry, size: int) -> tuple:
     """decide dtype of field, and size if needed"""
+    output_type: str | type  # str for numpy string type, type for python type
     if isinstance(entry, str):  # use numpy style for string type
         output_type = "U" + str(len(entry) + 1)
     else:
@@ -115,7 +115,7 @@ def _pack_field(input_dict: dict, field_names: list) -> tuple:
     return tuple(input_dict[name] for name in field_names) if len(field_names) > 1 else input_dict[field_names[0]]
 
 
-def list_dicts_to_np(list_dicts: list, dtype: list = None, mapping: dict = {}) -> npt.NDArray:
+def list_dicts_to_np(list_dicts: list, dtype: list | None = None, mapping: dict = {}) -> npt.NDArray:
     """Convert list of dicts to numpy structured array"""
     if list_dicts is None:
         return None
@@ -231,7 +231,7 @@ def map_numpy_array(array: npt.NDArray, mapping: dict = {}) -> npt.NDArray:
         return array
 
     # Create new dtype with mapped fields
-    new_fields = []
+    new_fields: list[tuple] = []
 
     # Track fields processed by mapping to avoid duplication
     mapped_source_fields = set()
@@ -275,7 +275,7 @@ def map_numpy_array(array: npt.NDArray, mapping: dict = {}) -> npt.NDArray:
     return mapped_array
 
 
-def np_to_list_dicts(array: npt.NDArray, mapping: dict = {}) -> List[dict]:
+def np_to_list_dicts(array: npt.NDArray, mapping: dict = {}) -> list[dict]:
     """Convert numpy structured array to list of dicts"""
     out = []
 
