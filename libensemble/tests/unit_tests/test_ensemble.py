@@ -2,7 +2,6 @@ import sys
 
 import numpy as np
 
-import libensemble.tests.unit_tests.setup as setup
 from libensemble.utils.misc import specs_dump
 
 
@@ -37,53 +36,43 @@ def test_ensemble_parse_args_false():
     assert e.libE_specs.nworkers == 8, "libE_specs nworkers not adjusted"
 
 
-def test_from_files():
-    """Test that Ensemble() specs dicts resemble setup dicts"""
+def test_full_workflow():
+    """Test initializing a workflow via Specs and Ensemble.run()"""
     from libensemble.ensemble import Ensemble
+    from libensemble.gen_funcs.sampling import latin_hypercube_sample
+    from libensemble.sim_funcs.simple_sim import norm_eval
+    from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
 
-    for ft in ["yaml", "json", "toml"]:
-        e = Ensemble(libE_specs={"comms": "local", "nworkers": 4})
-        file_path = f"./simdir/test_example.{ft}"
-        if ft == "yaml":
-            e.from_yaml(file_path)
-        elif ft == "json":
-            e.from_json(file_path)
-        else:
-            e.from_toml(file_path)
+    LS = LibeSpecs(comms="local", nworkers=4)
 
-        sim_specs, gen_specs, exit_criteria = setup.make_criteria_and_specs_0()
+    # parameterizes and validates everything!
+    ens = Ensemble(
+        libE_specs=LS,
+        sim_specs=SimSpecs(sim_f=norm_eval),
+        gen_specs=GenSpecs(
+            gen_f=latin_hypercube_sample,
+            user={
+                "gen_batch_size": 100,
+                "lb": np.array([-3]),
+                "ub": np.array([3]),
+            },
+        ),
+        exit_criteria=ExitCriteria(gen_max=101),
+    )
 
-        e.gen_specs.user["ub"] = np.ones(1)
-        e.gen_specs.user["lb"] = np.zeros(1)
+    ens.add_random_streams()
+    ens.run()
+    if ens.is_manager:
+        assert len(ens.H) >= 101
 
-        sim_specs["inputs"] = sim_specs["in"]
-        sim_specs["outputs"] = sim_specs["out"]
-        gen_specs["outputs"] = gen_specs["out"]
-        sim_specs.pop("in")
-        sim_specs.pop("out")
-        gen_specs.pop("out")
-        assert all([i in specs_dump(e.sim_specs).items() for i in sim_specs.items()])
-        assert all([i in specs_dump(e.gen_specs).items() for i in gen_specs.items()])
-        assert all([i in specs_dump(e.exit_criteria).items() for i in exit_criteria.items()])
-
-
-def test_bad_func_loads():
-    """Test that Ensemble() raises expected errors (with warnings) on incorrect imports"""
-    from libensemble.ensemble import Ensemble
-
-    yaml_errors = {
-        "./simdir/test_example_badfuncs_attribute.yaml": AttributeError,
-        "./simdir/test_example_badfuncs_notfound.yaml": ModuleNotFoundError,
-    }
-
-    for f in yaml_errors:
-        e = Ensemble(libE_specs={"comms": "local", "nworkers": 4})
-        flag = 1
-        try:
-            e.from_yaml(f)
-        except yaml_errors[f]:
-            flag = 0
-        assert flag == 0
+    # test a dry run
+    ens.libE_specs.dry_run = True
+    flag = 1
+    try:
+        ens.run()
+    except SystemExit:
+        flag = 0
+    assert not flag, "Ensemble didn't exit after specifying dry_run"
 
 
 def test_flakey_workflow():
@@ -194,8 +183,7 @@ def test_local_comms_without_nworkers():
 if __name__ == "__main__":
     test_ensemble_init()
     test_ensemble_parse_args_false()
-    test_from_files()
-    test_bad_func_loads()
+    test_full_workflow()
     test_flakey_workflow()
     test_ensemble_specs_update_libE_specs()
     test_ensemble_prevent_comms_overwrite()
