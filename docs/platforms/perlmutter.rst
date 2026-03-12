@@ -120,6 +120,7 @@ Change the ``libE_specs`` in **run_libe_forces.py** as follows.
     # Persistent gen does not need resources
     ensemble.libE_specs = LibeSpecs(
         gen_on_manager=True,
+    )
 
 and run with::
 
