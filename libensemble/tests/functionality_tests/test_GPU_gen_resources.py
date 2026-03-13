@@ -102,21 +102,23 @@ if __name__ == "__main__":
             # reset
             libE_specs = base_libE_specs.copy()
             libE_specs["gen_on_worker"] = gen_on_worker
-            libE_specs["zero_resource_workers"] = []
+            libE_specs["zero_resource_workers"] = []  # perhaps the generator needs GPUs
 
-            active_workers = nworkers if gen_on_worker else nworkers + 1
+            resourced_workers = (
+                nworkers if gen_on_worker else nworkers + 1.0
+            )  # note this "nworkers" decided before the extra worker starts
             sim_workers = nworkers - 1 if gen_on_worker else nworkers
 
             gen_specs["user"]["initial_batch_size"] = sim_workers
             gen_specs["user"]["max_procs"] = sim_workers
 
-            libE_specs["num_resource_sets"] = active_workers
+            libE_specs["num_resource_sets"] = resourced_workers
             libE_specs["resource_info"] = {
-                "cores_on_node": (active_workers * 2, active_workers * 4),
-                "gpus_on_node": active_workers,
+                "cores_on_node": (resourced_workers * 2, resourced_workers * 4),
+                "gpus_on_node": resourced_workers,
             }
 
-            persis_info = add_unique_random_streams({}, active_workers)
+            persis_info = add_unique_random_streams({}, resourced_workers)
 
             if run == 0:
                 libE_specs["gen_num_procs"] = 2
@@ -128,7 +130,7 @@ if __name__ == "__main__":
                 persis_info["gen_num_gpus"] = 1
             elif run == 3:
                 # Two GPUs per resource set
-                libE_specs["resource_info"]["gpus_on_node"] = active_workers * 2
+                libE_specs["resource_info"]["gpus_on_node"] = resourced_workers * 2
                 persis_info["gen_num_gpus"] = 1
             elif run == 4:
                 # Two GPUs requested for gen
