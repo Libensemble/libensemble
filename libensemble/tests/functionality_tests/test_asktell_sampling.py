@@ -19,7 +19,6 @@ from gest_api.vocs import VOCS
 import libensemble.sim_funcs.six_hump_camel as six_hump_camel
 
 # Import libEnsemble items for this test
-from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.gen_classes.sampling import UniformSample
 from libensemble.libE import libE
 from libensemble.sim_funcs.executor_hworld import executor_hworld as sim_f_exec
@@ -59,7 +58,6 @@ if __name__ == "__main__":
 
     vocs = VOCS(variables=variables, objectives=objectives)
 
-    alloc_specs = {"alloc_f": alloc_f}
     exit_criteria = {"gen_max": 201}
     persis_info = add_unique_random_streams({}, nworkers + 1, seed=1234)
 
@@ -89,9 +87,7 @@ if __name__ == "__main__":
             }
 
         gen_specs["generator"] = generator
-        H, persis_info, flag = libE(
-            sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs=libE_specs
-        )
+        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
 
         if is_manager:
             print(H[["sim_id", "x", "f"]][:10])

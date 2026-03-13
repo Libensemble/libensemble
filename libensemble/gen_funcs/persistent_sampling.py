@@ -16,9 +16,9 @@ __all__ = [
 ]
 
 
-def _get_user_params(user_specs):
+def _get_user_params(user_specs, gen_specs):
     """Extract user params"""
-    b = user_specs["initial_batch_size"]
+    b = gen_specs.get("initial_batch_size") or user_specs.get("initial_batch_size") or gen_specs.get("init_sample_size")
     ub = user_specs["ub"]
     lb = user_specs["lb"]
     n = len(lb)  # dimension
@@ -44,7 +44,7 @@ def persistent_uniform(_, persis_info, gen_specs, libE_info):
         `test_persistent_uniform_sampling_async.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_persistent_uniform_sampling_async.py>`_
     """  # noqa
 
-    b, n, lb, ub = _get_user_params(gen_specs["user"])
+    b, n, lb, ub = _get_user_params(gen_specs.get("user", {}), gen_specs)
     ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
 
     # Send batches until manager sends stop tag
@@ -73,7 +73,7 @@ def persistent_uniform_final_update(_, persis_info, gen_specs, libE_info):
         `test_persistent_uniform_sampling_running_mean.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_persistent_uniform_sampling_running_mean.py>`_
     """  # noqa
 
-    b, n, lb, ub = _get_user_params(gen_specs["user"])
+    b, n, lb, ub = _get_user_params(gen_specs.get("user", {}), gen_specs)
     ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
 
     def generate_corners(x, y):
@@ -145,7 +145,7 @@ def persistent_request_shutdown(_, persis_info, gen_specs, libE_info):
     .. seealso::
         `test_persistent_uniform_gen_decides_stop.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_persistent_uniform_gen_decides_stop.py>`_
     """  # noqa
-    b, n, lb, ub = _get_user_params(gen_specs["user"])
+    b, n, lb, ub = _get_user_params(gen_specs.get("user", {}), gen_specs)
     shutdown_limit = gen_specs["user"]["shutdown_limit"]
     f_count = 0
     ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
@@ -173,7 +173,7 @@ def uniform_nonblocking(_, persis_info, gen_specs, libE_info):
     .. seealso::
         `test_persistent_uniform_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_persistent_uniform_sampling.py>`_
     """  # noqa
-    b, n, lb, ub = _get_user_params(gen_specs["user"])
+    b, n, lb, ub = _get_user_params(gen_specs.get("user", {}), gen_specs)
     ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
 
     # Send batches until manager sends stop tag
@@ -223,7 +223,11 @@ def batched_history_matching(_, persis_info, gen_specs, libE_info):
     lb = gen_specs["user"]["lb"]
 
     n = len(lb)
-    b = gen_specs["user"]["initial_batch_size"]
+    b = (
+        gen_specs.get("initial_batch_size")
+        or gen_specs["user"].get("initial_batch_size")
+        or gen_specs.get("init_sample_size")
+    )
     q = gen_specs["user"]["num_best_vals"]
     ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
 
@@ -250,7 +254,11 @@ def persistent_uniform_with_cancellations(_, persis_info, gen_specs, libE_info):
     ub = gen_specs["user"]["ub"]
     lb = gen_specs["user"]["lb"]
     n = len(lb)
-    b = gen_specs["user"]["initial_batch_size"]
+    b = (
+        gen_specs.get("initial_batch_size")
+        or gen_specs["user"].get("initial_batch_size")
+        or gen_specs.get("init_sample_size")
+    )
 
     # Start cancelling points from half initial batch onward
     cancel_from = b // 2  # Should get at least this many points back

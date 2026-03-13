@@ -21,7 +21,6 @@ import sys
 
 import numpy as np
 
-from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.gen_funcs.persistent_sampling import persistent_uniform as gen_f
 
 # Import libEnsemble items for this test
@@ -57,21 +56,20 @@ if __name__ == "__main__":
         "in": [],
         "persis_in": ["sim_id", "f", "grad"],
         "out": [("x", float, (n,))],
+        "initial_batch_size": 5,
+        "alt_type": True,
         "user": {
-            "initial_batch_size": 5,
             "lb": np.array([-3, -2]),
             "ub": np.array([3, 2]),
         },
     }
-
-    alloc_specs = {"alloc_f": alloc_f, "user": {"alt_type": True}}
 
     persis_info = add_unique_random_streams({}, nworkers + 1)
 
     exit_criteria = {"sim_max": 40, "wallclock_max": 300}
 
     # Perform the run
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
 
     if is_manager:
         assert len(np.unique(H["gen_ended_time"])) == 8

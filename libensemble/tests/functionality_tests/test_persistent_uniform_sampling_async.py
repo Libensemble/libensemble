@@ -20,7 +20,6 @@ import sys
 
 import numpy as np
 
-from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.gen_funcs.persistent_sampling import persistent_uniform as gen_f
 
 # Import libEnsemble items for this test
@@ -47,16 +46,12 @@ if __name__ == "__main__":
         "gen_f": gen_f,
         "persis_in": ["f", "x", "sim_id"],
         "out": [("x", float, (n,))],
+        "initial_batch_size": nworkers,
+        "async_return": True,
         "user": {
-            "initial_batch_size": nworkers,  # Ensure > 1 alloc to send all sims
             "lb": np.array([-3, -2]),
             "ub": np.array([3, 2]),
         },
-    }
-
-    alloc_specs = {
-        "alloc_f": alloc_f,
-        "user": {"async_return": True},
     }
 
     persis_info = add_unique_random_streams({}, nworkers + 1)
@@ -64,7 +59,7 @@ if __name__ == "__main__":
     exit_criteria = {"gen_max": 100, "wallclock_max": 300}
 
     # Perform the run
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs)
 
     if is_manager:
         [_, counts] = np.unique(H["gen_ended_time"], return_counts=True)

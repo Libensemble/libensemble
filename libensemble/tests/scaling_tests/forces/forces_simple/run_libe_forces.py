@@ -6,10 +6,9 @@ import numpy as np
 from forces_simf import run_forces  # Sim func from current dir
 
 from libensemble import Ensemble
-from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.executors import MPIExecutor
 from libensemble.gen_funcs.persistent_sampling import persistent_uniform as gen_f
-from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
+from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
 
 if __name__ == "__main__":
     # Initialize MPI Executor
@@ -44,20 +43,15 @@ if __name__ == "__main__":
         inputs=[],  # No input when start persistent generator
         persis_in=["sim_id"],  # Return sim_ids of evaluated points to generator
         outputs=[("x", float, (1,))],
+        initial_batch_size=nsim_workers,
+        async_return=False,
         user={
-            "initial_batch_size": nsim_workers,
             "lb": np.array([1000]),  # min particles
             "ub": np.array([3000]),  # max particles
         },
     )
 
     # Starts one persistent generator. Simulated values are returned in batch.
-    ensemble.alloc_specs = AllocSpecs(
-        alloc_f=alloc_f,
-        user={
-            "async_return": False,  # False causes batch returns
-        },
-    )
 
     # Instruct libEnsemble to exit after this many simulations
     ensemble.exit_criteria = ExitCriteria(sim_max=8)

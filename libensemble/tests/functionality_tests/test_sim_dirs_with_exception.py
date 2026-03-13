@@ -18,6 +18,7 @@ import os
 
 import numpy as np
 
+from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
 from libensemble.libE import libE
 from libensemble.manager import LoggedException
@@ -53,13 +54,19 @@ if __name__ == "__main__":
         },
     }
 
+    alloc_specs = {
+        "alloc_f": give_sim_work_first,
+    }
+
     persis_info = add_unique_random_streams({}, nworkers + 1)
 
     exit_criteria = {"sim_max": 21}
 
     return_flag = 1
     try:
-        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
+        H, persis_info, flag = libE(
+            sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs=libE_specs
+        )
     except LoggedException as e:
         print(f"Caught deliberate exception: {e}")
         return_flag = 0

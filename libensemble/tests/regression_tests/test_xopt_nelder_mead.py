@@ -21,8 +21,7 @@ from gest_api.vocs import VOCS
 from xopt.generators.sequential.neldermead import NelderMeadGenerator
 
 from libensemble import Ensemble
-from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
-from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
+from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
 
 
 def rosenbrock_callable(input_dict: dict) -> dict:
@@ -67,13 +66,11 @@ if __name__ == "__main__":
         vocs=vocs,
     )
 
-    alloc_specs = AllocSpecs(alloc_f=alloc_f)
     exit_criteria = ExitCriteria(sim_max=30)
 
     workflow = Ensemble(
         libE_specs=libE_specs,
         sim_specs=sim_specs,
-        alloc_specs=alloc_specs,
         gen_specs=gen_specs,
         exit_criteria=exit_criteria,
     )

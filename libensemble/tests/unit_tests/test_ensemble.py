@@ -38,10 +38,11 @@ def test_ensemble_parse_args_false():
 
 def test_full_workflow():
     """Test initializing a workflow via Specs and Ensemble.run()"""
+    from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
     from libensemble.ensemble import Ensemble
     from libensemble.gen_funcs.sampling import latin_hypercube_sample
     from libensemble.sim_funcs.simple_sim import norm_eval
-    from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
+    from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
 
     LS = LibeSpecs(comms="local", nworkers=4)
 
@@ -58,6 +59,7 @@ def test_full_workflow():
             },
         ),
         exit_criteria=ExitCriteria(gen_max=101),
+        alloc_specs=AllocSpecs(alloc_f=give_sim_work_first),
     )
 
     ens.add_random_streams()

@@ -14,7 +14,7 @@ def give_sim_work_first(
     alloc_specs: dict,
     persis_info: dict,
     libE_info: dict,
-) -> tuple[dict]:
+) -> tuple[dict, dict]:
     """
     Decide what should be given to workers. This allocation function gives any
     available simulation work first, and only when all simulations are
@@ -41,7 +41,6 @@ def give_sim_work_first(
     """
 
     user = alloc_specs.get("user", {})
-
     if "cancel_sims_time" in user:
         # Cancel simulations that are taking too long
         rows = np.where(np.logical_and.reduce((H["sim_started"], ~H["sim_ended"], ~H["cancel_requested"])))[0]
@@ -53,8 +52,11 @@ def give_sim_work_first(
     if libE_info["sim_max_given"] or not libE_info["any_idle_workers"]:
         return {}, persis_info
 
-    # Initialize alloc_specs["user"] as user.
-    batch_give = user.get("give_all_with_same_priority", False)
+    # Initialize options - check gen_specs first
+    batch_give = gen_specs.get("give_all_with_same_priority", user.get("give_all_with_same_priority", False))
+    num_active_gens = gen_specs.get("num_active_gens", user.get("num_active_gens", 1))
+    batch_mode = gen_specs.get("batch_mode", user.get("batch_mode", False))
+
     gen_in = gen_specs.get("in", [])
 
     manage_resources = libE_info["use_resource_sets"]
@@ -77,11 +79,11 @@ def give_sim_work_first(
     else:
         for wid in support.avail_worker_ids(gen_workers=True):
             # Allow at most num_active_gens active generator instances
-            if gen_count >= user.get("num_active_gens", gen_count + 1):
+            if gen_count >= num_active_gens:
                 break
 
             # Do not start gen instances in batch mode if workers still working
-            if user.get("batch_mode") and not support.all_sim_ended(H):
+            if batch_mode and not support.all_sim_ended(H):
                 break
 
             # Give gen work

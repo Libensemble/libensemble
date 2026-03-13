@@ -17,7 +17,6 @@ requires running a fixed, rather than random number of resource sets for a given
 
 import numpy as np
 
-from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.executors.mpi_executor import MPIExecutor
 from libensemble.gen_funcs.persistent_sampling_var_resources import uniform_sample_with_var_priorities as gen_f
 
@@ -63,17 +62,13 @@ if __name__ == "__main__":
         "gen_f": gen_f,
         "persis_in": ["f", "x", "sim_id"],
         "out": [("priority", float), ("resource_sets", int), ("x", float, n), ("x_on_cube", float, n)],
+        "initial_batch_size": nworkers - 1,
+        "give_all_with_same_priority": False,
         "user": {
-            "initial_batch_size": nworkers - 1,
             "max_resource_sets": max_rsets,
             "lb": np.array([-3, -2]),
             "ub": np.array([3, 2]),
         },
-    }
-
-    alloc_specs = {
-        "alloc_f": alloc_f,
-        "user": {"give_all_with_same_priority": False},
     }
 
     # comms = libE_specs["disable_resource_manager"] = True # SH TCP testing
@@ -95,9 +90,7 @@ if __name__ == "__main__":
     exit_criteria = {"sim_max": 40, "wallclock_max": 300}
 
     # Perform the run
-    H, persis_info, flag = libE(
-        sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs, alloc_specs=alloc_specs
-    )
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
 
     if is_manager:
         assert flag == 0

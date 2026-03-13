@@ -19,6 +19,7 @@ import os
 
 import numpy as np
 
+from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 from libensemble.gen_funcs.sampling import uniform_random_sample
 
 # Import libEnsemble items for this test
@@ -59,6 +60,10 @@ if __name__ == "__main__":
 
     exit_criteria = {"gen_max": 501, "wallclock_max": 300}
 
+    alloc_specs = {
+        "alloc_f": give_sim_work_first,
+    }
+
     for run in range(2):
         if run == 1:
             # Test running a mock sim using previous history file
@@ -67,7 +72,9 @@ if __name__ == "__main__":
             sim_specs["user"] = {"history_file": hfile}
 
         # Perform the run
-        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
+        H, persis_info, flag = libE(
+            sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs=libE_specs
+        )
 
         if is_manager:
             assert flag == 0
