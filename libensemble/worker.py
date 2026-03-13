@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import logging
 import logging.handlers
+import os
 import socket
 from itertools import count
 from pathlib import Path
@@ -52,7 +53,7 @@ def worker_main(
     sim_specs: dict,
     gen_specs: dict,
     libE_specs: dict,
-    workerID: int = None,
+    workerID: int | None = None,
     log_comm: bool = True,
     resources: Resources = None,
     executor: Executor = None,
@@ -113,13 +114,16 @@ def worker_main(
     LS.register_loc("workflow", Path(libE_specs.get("workflow_dir_path", ".")))
 
     # Set up and run worker
+    assert workerID is not None
     worker = Worker(comm, dtypes, workerID, sim_specs, gen_specs, libE_specs)
     with LS.loc("workflow"):
+        if Executor.executor is not None:
+            Executor.executor.base_dir = os.getcwd()
         worker.run()
 
     if libE_specs.get("profile"):
         pr.disable()
-        profile_state_fname = "worker_%d.prof" % (workerID)
+        profile_state_fname = "worker_%d.prof" % workerID
         pr.dump_stats(profile_state_fname)
 
 
@@ -129,7 +133,7 @@ def worker_main(
 
 
 class WorkerErrMsg:
-    def __init__(self, msg, exc):
+    def __init__(self, msg: str, exc: str) -> None:
         self.msg = msg
         self.exc = exc
 
@@ -172,8 +176,8 @@ class Worker:
         self.workerID = workerID
         self.libE_specs = libE_specs
         self.stats_fmt = libE_specs.get("stats_fmt", {})
-        self.sim_runner = Runner(sim_specs)
-        self.gen_runner = Runner(gen_specs)
+        self.sim_runner = Runner.from_specs(sim_specs)
+        self.gen_runner = Runner.from_specs(gen_specs)
         self.runners = {EVAL_SIM_TAG: self.sim_runner.run, EVAL_GEN_TAG: self.gen_runner.run}
         self.calc_iter = {EVAL_SIM_TAG: 0, EVAL_GEN_TAG: 0}
         Worker._set_executor(self.workerID, self.comm)
@@ -237,7 +241,7 @@ class Worker:
         calc_id = calc_id.rjust(5, " ")
         return enum_desc, calc_id
 
-    def _handle_calc(self, Work: dict, calc_in: npt.NDArray) -> (npt.NDArray, dict, int):
+    def _handle_calc(self, Work: dict, calc_in: npt.NDArray) -> tuple[npt.NDArray | None, dict, int | str]:
         """Runs a calculation on this worker object.
 
         This routine calls the user calculations. Exceptions are caught,
@@ -262,6 +266,7 @@ class Worker:
 
         try:
             logger.debug(f"Starting {enum_desc}: {calc_id}")
+            out = None
             calc = self.runners[calc_type]
             with timer:
                 if self.EnsembleDirectory.use_calc_dirs(calc_type):
@@ -278,15 +283,15 @@ class Worker:
 
                 logger.debug(f"Returned from user function for {enum_desc} {calc_id}")
 
-            calc_status = UNSET_TAG
+            calc_status: int | str = UNSET_TAG
             # Check for buffered receive
             if self.comm.recv_buffer:
                 tag, message = self.comm.recv()
                 if tag in [STOP_TAG, PERSIS_STOP] and message is MAN_SIGNAL_FINISH:
                     calc_status = MAN_SIGNAL_FINISH
 
-            if out:
-                if len(out) >= 3:  # Out, persis_info, calc_status
+            if out is not None:
+                if not isinstance(out, np.ndarray) and len(out) >= 3:  # Out, persis_info, calc_status
                     calc_status = out[2]
                     return out
                 elif len(out) == 2:  # Out, persis_info OR Out, calc_status
@@ -312,7 +317,7 @@ class Worker:
 
             logging.getLogger(LogConfig.config.stats_name).info(calc_msg)
 
-    def _get_calc_msg(self, enum_desc: str, calc_id: int, calc_type: int, timer: Timer, status: str) -> str:
+    def _get_calc_msg(self, enum_desc: str, calc_id: str, calc_type: str, timer: Timer, status: int | str) -> str:
         """Construct line for libE_stats.txt file"""
         calc_msg = f"{enum_desc} {calc_id}: {calc_type} {timer}"
 
@@ -328,7 +333,7 @@ class Worker:
 
         return calc_msg
 
-    def _recv_H_rows(self, Work: dict) -> (dict, int, npt.NDArray):
+    def _recv_H_rows(self, Work: dict) -> tuple[dict, int, npt.NDArray]:
         """Unpacks Work request and receives any history rows"""
         libE_info = Work["libE_info"]
         calc_type = Work["tag"]
@@ -342,7 +347,7 @@ class Worker:
 
         return libE_info, calc_type, calc_in
 
-    def _handle(self, Work: dict) -> dict:
+    def _handle(self, Work: dict) -> dict | None:
         """Handles a work request from the manager"""
         # Check work request and receive second message (if needed)
         libE_info, calc_type, calc_in = self._recv_H_rows(Work)

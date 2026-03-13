@@ -1,6 +1,15 @@
 Output Management
 =================
 
+Simulation Directories
+~~~~~~~~~~~~~~~~~~~~~~
+
+By default, libEnsemble places output files in the current working directory.
+
+See the ``Directories`` section of :ref:`libE_specs<datastruct-libe-specs>` for instructions
+on how to separate simulation runs into separate directories and copy/symlink input files into these
+locations.
+
 Default Log Files
 ~~~~~~~~~~~~~~~~~
 The history array :ref:`H<funcguides-history>` and

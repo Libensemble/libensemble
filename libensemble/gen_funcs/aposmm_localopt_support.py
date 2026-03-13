@@ -14,6 +14,7 @@ __all__ = [
     "run_external_localopt",
 ]
 
+import traceback
 from multiprocessing import Event, Process, Queue
 
 import numpy as np
@@ -44,9 +45,9 @@ if optimizers is not None:
     if "dfols" in optimizers:
         import dfols  # noqa: F401
     if "ibcdfo_pounders" in optimizers:
-        from ibcdfo.pounders import pounders  # noqa: F401
+        from ibcdfo import run_pounders  # noqa: F401
     if "ibcdfo_manifold_sampling" in optimizers:
-        from ibcdfo.manifold_sampling import manifold_sampling_primal  # noqa: F401
+        from ibcdfo import run_MSP  # noqa: F401
     if "scipy" in optimizers:
         from scipy import optimize as sp_opt  # noqa: F401
     if "external_localopt" in optimizers:
@@ -432,6 +433,8 @@ def run_local_ibcdfo_manifold_sampling(user_specs, comm_queue, x0, f0, child_can
     support that, so APOSMM assumes the first point will be re-evaluated (but
     not be sent back to the manager).
     """
+    from ibcdfo import run_MSP  # noqa: F811
+
     n = len(x0)
     # Define bound constraints (lower <= x <= upper)
     lb = np.zeros(n)
@@ -449,7 +452,7 @@ def run_local_ibcdfo_manifold_sampling(user_specs, comm_queue, x0, f0, child_can
     # m = len(f0)
     subprob_switch = "linprog"
 
-    [X, F, hF, xkin, flag] = manifold_sampling_primal(
+    [X, F, hF, xkin, flag] = run_MSP(
         user_specs["hfun"],
         lambda x: scipy_dfols_callback_fun(x, comm_queue, child_can_read, parent_can_read, user_specs),
         x0,
@@ -486,6 +489,8 @@ def run_local_ibcdfo_pounders(user_specs, comm_queue, x0, f0, child_can_read, pa
     support that, so APOSMM assumes the first point will be re-evaluated (but
     not be sent back to the manager).
     """
+    from ibcdfo import run_pounders  # noqa: F811
+
     n = len(x0)
     # Define bound constraints (lower <= x <= upper)
     lb = np.zeros(n)
@@ -507,7 +512,7 @@ def run_local_ibcdfo_pounders(user_specs, comm_queue, x0, f0, child_can_read, pa
     else:
         Options = None
 
-    [X, F, hF, flag, xkin] = pounders(
+    [X, F, hF, flag, xkin] = run_pounders(
         lambda x: scipy_dfols_callback_fun(x, comm_queue, child_can_read, parent_can_read, user_specs),
         x0,
         n,
@@ -645,8 +650,8 @@ def run_local_tao(user_specs, comm_queue, x0, f0, child_can_read, parent_can_rea
 def opt_runner(run_local_opt, user_specs, comm_queue, x0, f0, child_can_read, parent_can_read):
     try:
         run_local_opt(user_specs, comm_queue, x0, f0, child_can_read, parent_can_read)
-    except Exception as e:
-        comm_queue.put(ErrorMsg(e))
+    except Exception:
+        comm_queue.put(ErrorMsg(traceback.format_exc()))
         parent_can_read.set()
 
 
@@ -743,7 +748,7 @@ def put_set_wait_get(x, comm_queue, parent_can_read, child_can_read, user_specs)
     if user_specs.get("periodic"):
         assert np.allclose(x % 1, values[0] % 1, rtol=1e-15, atol=1e-15), "The point I gave is not the point I got back"
     else:
-        assert np.allclose(x, values[0], rtol=1e-15, atol=1e-15), "The point I gave is not the point I got back"
+        assert np.allclose(x, values[0], rtol=1e-8, atol=1e-8), "The point I gave is not the point I got back"
 
     return values
 

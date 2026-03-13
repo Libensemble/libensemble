@@ -3,7 +3,7 @@
 LibE Specs
 ==========
 
-libEnsemble is primarily customized by setting options within a ``LibeSpecs`` class or dictionary.
+libEnsemble is primarily customized by setting options within a ``LibeSpecs`` instance.
 
 .. code-block:: python
 

@@ -155,9 +155,9 @@ def libE(
     exit_criteria: ExitCriteria,
     persis_info: dict = {},
     alloc_specs: AllocSpecs = AllocSpecs(),
-    libE_specs: LibeSpecs = {},
+    libE_specs: LibeSpecs | dict = {},
     H0=None,
-) -> (np.ndarray, dict, int):
+) -> tuple[np.ndarray, dict, int]:
     """
     Parameters
     ----------
@@ -242,11 +242,15 @@ def libE(
     ]
     exit_criteria = specs_dump(ensemble.exit_criteria, by_alias=True, exclude_none=True)
 
+    # Restore the generator object (don't use serialized version)
+    if ensemble.gen_specs and hasattr(ensemble.gen_specs, "generator") and ensemble.gen_specs.generator is not None:
+        gen_specs["generator"] = ensemble.gen_specs.generator
+
     # Extract platform info from settings or environment
     platform_info = get_platform(libE_specs)
 
     if libE_specs["dry_run"]:
-        logger.manager_warning("Dry run. All libE() inputs validated. Exiting.")
+        logger.manager_warning("Dry run. All libE() inputs validated. Exiting.")  # type: ignore[attr-defined]
         sys.exit()
 
     libE_funcs = {"mpi": libE_mpi, "tcp": libE_tcp, "local": libE_local, "threads": libE_local}
@@ -280,8 +284,8 @@ def manager(
     logger.info(f"libE version v{__version__}")
 
     if "out" in gen_specs and ("sim_id", int) in gen_specs["out"]:
-        if "libensemble.gen_funcs" not in gen_specs["gen_f"].__module__:
-            logger.manager_warning(_USER_SIM_ID_WARNING)
+        if hasattr(gen_specs["gen_f"], "__module__") and "libensemble.gen_funcs" not in gen_specs["gen_f"].__module__:
+            logger.manager_warning(_USER_SIM_ID_WARNING)  # type: ignore[attr-defined]
 
     try:
         try:
@@ -458,6 +462,7 @@ def start_proc_team(nworkers, sim_specs, gen_specs, libE_specs, log_comm=True):
 
     for wcomm in wcomms:
         wcomm.run()
+
     return wcomms
 
 

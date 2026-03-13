@@ -1,10 +1,6 @@
-import importlib
-import json
 import logging
 
 import numpy.typing as npt
-import tomli
-import yaml
 
 from libensemble.executors import Executor
 from libensemble.libE import libE
@@ -117,110 +113,6 @@ class Ensemble:
             experiment = Ensemble()
             experiment.sim_specs = sim_specs
 
-    .. dropdown:: Option 3: Loading parameters from files
-
-        .. code-block:: python
-            :linenos:
-
-            from libensemble import Ensemble
-
-            experiment = Ensemble()
-
-            my_experiment.from_yaml("my_parameters.yaml")
-            # or...
-            my_experiment.from_toml("my_parameters.toml")
-            # or...
-            my_experiment.from_json("my_parameters.json")
-
-        .. tab-set::
-
-            .. tab-item:: my_parameters.yaml
-
-                .. code-block:: yaml
-                    :linenos:
-
-                    libE_specs:
-                        save_every_k_gens: 20
-
-                    exit_criteria:
-                        sim_max: 80
-
-                    gen_specs:
-                        gen_f: generator.gen_random_sample
-                        outputs:
-                            x:
-                                type: float
-                                size: 1
-                        user:
-                            gen_batch_size: 5
-
-                    sim_specs:
-                        sim_f: simulator.sim_find_sine
-                        inputs:
-                            - x
-                        outputs:
-                            y:
-                                type: float
-
-            .. tab-item:: my_parameters.toml
-
-                .. code-block:: toml
-                    :linenos:
-
-                    [libE_specs]
-                        save_every_k_gens = 300
-
-                    [exit_criteria]
-                        sim_max = 80
-
-                    [gen_specs]
-                        gen_f = "generator.gen_random_sample"
-                        [gen_specs.outputs]
-                            [gen_specs.outputs.x]
-                                type = "float"
-                                size = 1
-                        [gen_specs.user]
-                            gen_batch_size = 5
-
-                    [sim_specs]
-                        sim_f = "simulator.sim_find_sine"
-                        inputs = ["x"]
-                        [sim_specs.outputs]
-                            [sim_specs.outputs.y]
-                                type = "float"
-
-            .. tab-item:: my_parameters.json
-
-                .. code-block:: json
-                    :linenos:
-
-                    {
-                        "libE_specs": {
-                            "save_every_k_gens": 300,
-                        },
-                        "exit_criteria": {
-                            "sim_max": 80
-                        },
-                        "gen_specs": {
-                            "gen_f": "generator.gen_random_sample",
-                            "outputs": {
-                                "x": {
-                                    "type": "float",
-                                    "size": 1
-                                }
-                            },
-                            "user": {
-                                "gen_batch_size": 5
-                            }
-                        },
-                        "sim_specs": {
-                            "sim_f": "simulator.sim_find_sine",
-                            "inputs": ["x"],
-                            "outputs": {
-                                "f": {"type": "float"}
-                            }
-                        }
-                    }
 
     Parameters
     ----------
@@ -269,11 +161,11 @@ class Ensemble:
 
     def __init__(
         self,
-        sim_specs: SimSpecs | None = SimSpecs(),
-        gen_specs: GenSpecs | None = GenSpecs(),
-        exit_criteria: ExitCriteria | None = {},
-        libE_specs: LibeSpecs | None = LibeSpecs(),
-        alloc_specs: AllocSpecs | None = AllocSpecs(),
+        sim_specs: SimSpecs | dict | None = SimSpecs(),
+        gen_specs: GenSpecs | dict | None = GenSpecs(),
+        exit_criteria: ExitCriteria | dict | None = {},
+        libE_specs: LibeSpecs | dict | None = LibeSpecs(),
+        alloc_specs: AllocSpecs | dict | None = AllocSpecs(),
         persis_info: dict | None = {},
         executor: Executor | None = None,
         H0: npt.NDArray | None = None,
@@ -282,7 +174,11 @@ class Ensemble:
         self.sim_specs = sim_specs
         self.gen_specs = gen_specs
         self.exit_criteria = exit_criteria
-        self._libE_specs = libE_specs
+        self._libE_specs: LibeSpecs | None = None
+        if isinstance(libE_specs, dict):
+            self._libE_specs = LibeSpecs(**libE_specs)
+        else:
+            self._libE_specs = libE_specs
         self.alloc_specs = alloc_specs
         self.persis_info = persis_info
         self.executor = executor
@@ -296,11 +192,10 @@ class Ensemble:
         if parse_args:
             self._parse_args()
             self.parsed = True
-            self._known_comms = self._libE_specs.comms
+            if self._libE_specs:
+                self._known_comms = self._libE_specs.comms
 
         if not self._known_comms and self._libE_specs is not None:
-            if isinstance(self._libE_specs, dict):
-                self._libE_specs = LibeSpecs(**self._libE_specs)
             self._known_comms = self._libE_specs.comms
 
         if self._known_comms == "local":
@@ -310,9 +205,10 @@ class Ensemble:
 
         elif self._known_comms == "mpi" and not parse_args:
             # Set internal _nworkers - not libE_specs (avoid "nworkers will be ignored" warning)
-            self._nworkers, self.is_manager = mpi_init(self._libE_specs.mpi_comm)
+            if self._libE_specs:
+                self._nworkers, self.is_manager = mpi_init(self._libE_specs.mpi_comm)
 
-    def _parse_args(self) -> (int, bool, LibeSpecs):
+    def _parse_args(self) -> tuple[int, bool, LibeSpecs]:
         # Set internal _nworkers - not libE_specs (avoid "nworkers will be ignored" warning)
         self._nworkers, self.is_manager, libE_specs_parsed, self.extra_args = parse_args_f()
 
@@ -328,7 +224,7 @@ class Ensemble:
         return all([i for i in [self.exit_criteria, self._libE_specs, self.sim_specs]])
 
     @property
-    def libE_specs(self) -> LibeSpecs:
+    def libE_specs(self) -> LibeSpecs | None:
         return self._libE_specs
 
     @libE_specs.setter
@@ -365,7 +261,7 @@ class Ensemble:
     def _refresh_executor(self):
         Executor.executor = self.executor or Executor.executor
 
-    def run(self) -> (npt.NDArray, dict, int):
+    def run(self) -> tuple[npt.NDArray, dict, int]:
         """
         Initializes libEnsemble.
 
@@ -405,10 +301,10 @@ class Ensemble:
         """
 
         self._refresh_executor()
-
-        if self._libE_specs.comms != self._known_comms:
+        if self._libE_specs and self._libE_specs.comms != self._known_comms:
             raise ValueError(CHANGED_COMMS_WARN)
 
+        assert self._libE_specs is not None
         self.H, self.persis_info, self.flag = libE(
             self.sim_specs,
             self.gen_specs,
@@ -430,111 +326,6 @@ class Ensemble:
         self._nworkers = value
         if self._libE_specs:
             self._libE_specs.nworkers = value
-
-    def _get_func(self, loaded):
-        """Extracts user function specified in loaded dict"""
-        func_path_split = loaded.rsplit(".", 1)
-        func_name = func_path_split[-1]
-        try:
-            return getattr(importlib.import_module(func_path_split[0]), func_name)
-        except AttributeError:
-            self._util_logger.manager_warning(ATTR_ERR_MSG.format(func_name))
-            raise
-        except ModuleNotFoundError:
-            self._util_logger.manager_warning(NOTFOUND_ERR_MSG.format(func_name))
-            raise
-
-    @staticmethod
-    def _get_outputs(loaded):
-        """Extracts output parameters from loaded dict"""
-        if not loaded:
-            return []
-        fields = [i for i in loaded]
-        field_params = [i for i in loaded.values()]
-        results = []
-        for i in range(len(fields)):
-            field_type = field_params[i]["type"]
-            built_in_type = __builtins__.get(field_type, field_type)
-            try:
-                if field_params[i]["size"] == 1:
-                    size = (1,)  # formatting how size=1 is typically preferred
-                else:
-                    size = field_params[i]["size"]
-                results.append((fields[i], built_in_type, size))
-            except KeyError:
-                results.append((fields[i], built_in_type))
-        return results
-
-    @staticmethod
-    def _get_normal(loaded):
-        return loaded
-
-    def _get_option(self, specs, name):
-        """Gets a specs value, underlying spec is either a dict or a class"""
-        attr = getattr(self, specs)
-        if isinstance(attr, dict):
-            return attr.get(name)
-        else:
-            return getattr(attr, name)
-
-    def _parse_spec(self, loaded_spec):
-        """Parses and creates traditional libEnsemble dictionary from loaded dict info"""
-
-        field_f = {
-            "sim_f": self._get_func,
-            "gen_f": self._get_func,
-            "alloc_f": self._get_func,
-            "inputs": self._get_normal,
-            "persis_in": self._get_normal,
-            "outputs": self._get_outputs,
-            "globus_compute_endpoint": self._get_normal,
-            "user": self._get_normal,
-        }
-
-        userf_fields = [f for f in loaded_spec if f in field_f.keys()]
-
-        if len(userf_fields):
-            for f in userf_fields:
-                loaded_spec[f] = field_f[f](loaded_spec[f])
-
-        return loaded_spec
-
-    def _parameterize(self, loaded):
-        """Updates and sets attributes from specs loaded from file"""
-        for f in loaded:
-            loaded_spec = self._parse_spec(loaded[f])
-            old_spec = getattr(self, f)
-            ClassType = CORRESPONDING_CLASSES[f]
-            if isinstance(old_spec, dict):
-                old_spec.update(loaded_spec)
-                if old_spec.get("in") and old_spec.get("inputs"):
-                    old_spec.pop("inputs")  # avoid clashes
-                elif old_spec.get("out") and old_spec.get("outputs"):
-                    old_spec.pop("outputs")  # avoid clashes
-                setattr(self, f, ClassType(**old_spec))
-            else:  # None. attribute not set yet
-                setattr(self, f, ClassType(**loaded_spec))
-
-    def from_yaml(self, file_path: str):
-        """Parameterizes libEnsemble from ``yaml`` file"""
-        with open(file_path, "r") as f:
-            loaded = yaml.full_load(f)
-
-        self._parameterize(loaded)
-
-    def from_toml(self, file_path: str):
-        """Parameterizes libEnsemble from ``toml`` file"""
-        with open(file_path, "rb") as f:
-            loaded = tomli.load(f)
-
-        self._parameterize(loaded)
-
-    def from_json(self, file_path: str):
-        """Parameterizes libEnsemble from ``json`` file"""
-        with open(file_path, "rb") as f:
-            loaded = json.load(f)
-
-        self._parameterize(loaded)
 
     def add_random_streams(self, num_streams: int = 0, seed: str = ""):
         """
@@ -578,6 +369,7 @@ class Ensemble:
         """
         if self.is_manager:
             if self._get_option("libE_specs", "workflow_dir_path"):
+                assert self.libE_specs is not None
                 save_libE_output(
                     self.H,
                     self.persis_info,
@@ -588,3 +380,11 @@ class Ensemble:
                 )
             else:
                 save_libE_output(self.H, self.persis_info, basename, self.nworkers, append_attrs=append_attrs)
+
+    def _get_option(self, specs, name):
+        """Gets a specs value, underlying spec is either a dict or a class"""
+        attr = getattr(self, specs)
+        if isinstance(attr, dict):
+            return attr.get(name)
+        else:
+            return getattr(attr, name)
