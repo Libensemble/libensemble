@@ -20,12 +20,12 @@ from gest_api.vocs import VOCS
 
 from libensemble import Ensemble
 
-# Import libEnsemble items for this test
-from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
-
 # from libensemble.gen_classes.external.sampling import UniformSampleArray
 from libensemble.gen_classes.external.sampling import UniformSample
-from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
+from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
+
+# Import libEnsemble items for this test
+
 
 # from gest_api.vocs import ContinuousVariable
 
@@ -75,7 +75,6 @@ if __name__ == "__main__":
             vocs=vocs,
         )
 
-        alloc_specs = AllocSpecs(alloc_f=alloc_f)
         exit_criteria = ExitCriteria(gen_max=201)
 
         ensemble = Ensemble(
@@ -83,7 +82,6 @@ if __name__ == "__main__":
             sim_specs=sim_specs,
             gen_specs=gen_specs,
             exit_criteria=exit_criteria,
-            alloc_specs=alloc_specs,
             libE_specs=libE_specs,
         )
 

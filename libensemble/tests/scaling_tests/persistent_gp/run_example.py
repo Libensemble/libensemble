@@ -9,7 +9,6 @@ python run_example.py --nworkers 4
 import numpy as np
 
 from libensemble import logger
-from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens
 from libensemble.gen_funcs.persistent_ax_multitask import persistent_gp_mt_ax_gen_f
 from libensemble.libE import libE
 from libensemble.message_numbers import WORKER_DONE
@@ -63,9 +62,10 @@ gen_specs = {
     "out": [
         # parameters to input into the simulation.
         ("x", float, (2,)),
-        ("task", str, max([len(mt_params["name_hifi"]), len(mt_params["name_lofi"])])),
+        ("task", str, max(len(str(mt_params["name_hifi"])), len(str(mt_params["name_lofi"])))),
         ("resource_sets", int),
     ],
+    "async_return": False,
     "user": {
         "range": [1, 8],
         # Total max number of sims running concurrently.
@@ -78,11 +78,6 @@ gen_specs = {
 }
 gen_specs["user"] = {**gen_specs["user"], **mt_params}
 
-alloc_specs = {
-    "alloc_f": only_persistent_gens,
-    "out": [("gen_informed", bool)],
-    "user": {"async_return": False},
-}
 
 # libE logger
 logger.set_level("INFO")
@@ -94,7 +89,7 @@ exit_criteria = {"sim_max": 20}  # Exit after running sim_max simulations
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
 # Run LibEnsemble, and store results in history array H
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
 
 # Save results to numpy file
 if is_manager:

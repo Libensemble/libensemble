@@ -16,7 +16,6 @@ import sys
 import numpy as np
 
 from libensemble import logger
-from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.executors.mpi_executor import MPIExecutor
 from libensemble.gen_funcs.persistent_sampling import persistent_uniform as gen_f
 from libensemble.libE import libE
@@ -92,14 +91,13 @@ if __name__ == "__main__":
         "gen_f": gen_f,
         "in": [],
         "out": [("x", float, (n,))],
+        "initial_batch_size": 20,
         "user": {
-            "initial_batch_size": 20,
             "lb": np.array([-3, -2]),
             "ub": np.array([3, 2]),
         },
     }
 
-    alloc_specs = {"alloc_f": alloc_f}
     persis_info = add_unique_random_streams({}, nworkers + 1)
     exit_criteria = {"sim_max": (nsim_workers) * rounds}
 
@@ -128,6 +126,6 @@ if __name__ == "__main__":
     }
 
     # Perform the run
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
 
     # All asserts are in sim func

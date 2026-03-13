@@ -20,8 +20,8 @@ if PERSIS_GEN:
     from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
     from libensemble.gen_funcs.persistent_sampling import persistent_uniform as gen_f
 else:
-    from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first as alloc_f
-    from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
+    from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first as alloc_f  # type: ignore[no-redef]
+    from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f  # type: ignore[no-redef]
 
 
 logger.set_level("INFO")  # INFO is now default
@@ -73,15 +73,12 @@ gen_specs = {
 }
 
 if PERSIS_GEN:
-    alloc_specs = {"alloc_f": alloc_f}
+    alloc_specs = {}
+    gen_specs["async_return"] = False
 else:
-    alloc_specs = {
-        "alloc_f": alloc_f,
-        "user": {
-            "batch_mode": True,  # If true wait for all sims to process before generate more
-            "num_active_gens": 1,  # Only one active generator at a time
-        },
-    }
+    alloc_specs = {"alloc_f": alloc_f}
+    gen_specs["batch_mode"] = True
+    gen_specs["num_active_gens"] = 1
 
 libE_specs["save_every_k_gens"] = 1000  # Save every K steps
 libE_specs["sim_dirs_make"] = True  # Separate each sim into a separate directory
@@ -92,8 +89,7 @@ sim_max = 8
 exit_criteria = {"sim_max": sim_max}
 
 # Create a different random number stream for each worker and the manager
-persis_info = {}
-persis_info = add_unique_random_streams(persis_info, nworkers + 1)
+persis_info = add_unique_random_streams({}, nworkers + 1)
 
 try:
     H, persis_info, flag = libE(

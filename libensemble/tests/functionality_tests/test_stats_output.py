@@ -70,6 +70,10 @@ if __name__ == "__main__":
             ("x", float, n),
             ("x_on_cube", float, n),
         ],
+        "batch_mode": False,
+        "give_all_with_same_priority": True,
+        "num_active_gens": 1,
+        "async_return": True,
         "user": {
             "gen_batch_size": 5,
             "max_resource_sets": nworkers,
@@ -78,15 +82,7 @@ if __name__ == "__main__":
         },
     }
 
-    alloc_specs = {
-        "alloc_f": give_sim_work_first,
-        "user": {
-            "batch_mode": False,
-            "give_all_with_same_priority": True,
-            "num_active_gens": 1,
-            "async_return": True,
-        },
-    }
+    alloc_specs = {"alloc_f": give_sim_work_first}
 
     # This can improve scheduling when tasks may run across multiple nodes
     libE_specs["scheduler_opts"] = {"match_slots": False}

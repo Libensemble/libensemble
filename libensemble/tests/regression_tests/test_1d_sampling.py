@@ -31,8 +31,8 @@ if __name__ == "__main__":
     sampling.gen_specs = GenSpecs(
         gen_f=persistent_uniform,
         outputs=[("x", float, (1,))],
+        initial_batch_size=100,
         user={
-            "initial_batch_size": 100,
             "lb": np.array([-3]),
             "ub": np.array([3]),
         },

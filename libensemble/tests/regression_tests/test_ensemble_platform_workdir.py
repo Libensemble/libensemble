@@ -6,7 +6,6 @@ import numpy as np
 
 # Import libEnsemble items for this test
 from libensemble import Ensemble
-from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.executors.mpi_executor import MPIExecutor
 from libensemble.gen_funcs.persistent_sampling_var_resources import uniform_sample as gen_f
 from libensemble.resources.platforms import PerlmutterGPU
@@ -23,14 +22,6 @@ if __name__ == "__main__":
     six_hump_camel_app = six_hump_camel.__file__
     n = 2
 
-    alloc_specs = {
-        "alloc_f": alloc_f,
-        "user": {
-            "give_all_with_same_priority": False,
-            "async_return": False,  # False batch returns
-        },
-    }
-
     exit_criteria = {"sim_max": 20}
 
     # Ensure LIBE_PLATFORM environment variable is not set.
@@ -43,9 +34,7 @@ if __name__ == "__main__":
     ensemble = Ensemble(
         parse_args=True,
         executor=exctr,
-        alloc_specs=alloc_specs,
         exit_criteria=exit_criteria,
-        # libE_specs = LibeSpecs(use_workflow_dir=True, platform_specs=platform_specs),  # works
     )
 
     platform_specs = PerlmutterGPU()
@@ -60,8 +49,10 @@ if __name__ == "__main__":
         "gen_f": gen_f,
         "persis_in": ["f", "x", "sim_id"],
         "out": [("priority", float), ("resource_sets", int), ("x", float, n)],
+        "initial_batch_size": ensemble.nworkers - 1,
+        "give_all_with_same_priority": False,
+        "async_return": False,
         "user": {
-            "initial_batch_size": ensemble.nworkers - 1,
             "max_resource_sets": ensemble.nworkers - 1,  # Any sim created can req. 1 worker up to all.
             "lb": np.array([-3, -2]),
             "ub": np.array([3, 2]),
