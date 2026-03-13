@@ -64,7 +64,7 @@ if __name__ == "__main__":
         n = 2
         workflow.alloc_specs = AllocSpecs(alloc_f=alloc_f)
 
-        workflow.libE_specs.gen_on_manager = True
+        workflow.libE_specs.gen_on_worker = False
 
         vocs = VOCS(
             variables={"core": [-3, 3], "edge": [-2, 2], "core_on_cube": [-3, 3], "edge_on_cube": [-2, 2]},

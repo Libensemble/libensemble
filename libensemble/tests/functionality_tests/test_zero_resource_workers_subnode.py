@@ -2,13 +2,13 @@
 Runs libEnsemble testing the zero_resource_workers argument with 2 workers per
 node.
 
-This test must be run on an odd number of workers >= 3 (e.g. even number of
+This test must be run on an even number of workers >= 2 (e.g. odd number of
 procs when using mpi4py).
 
 Execute via one of the following commands (e.g. 3 workers):
-   mpiexec -np 4 python test_zero_resource_workers_subnode.py
-   python test_zero_resource_workers_subnode.py --nworkers 3
-   python test_zero_resource_workers_subnode.py --nworkers 3 --comms tcp
+   mpiexec -np 5 python test_zero_resource_workers_subnode.py
+   python test_zero_resource_workers_subnode.py --nworkers 4
+   python test_zero_resource_workers_subnode.py --nworkers 4 --comms tcp
 """
 
 import sys
@@ -29,7 +29,7 @@ logger.set_level("INFO")
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local
-# TESTSUITE_NPROCS: 4
+# TESTSUITE_NPROCS: 5
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
@@ -50,9 +50,10 @@ if __name__ == "__main__":
     nodes_per_worker = 0.5
 
     # For varying size test - relate node count to nworkers
-    in_place = libE_specs["zero_resource_workers"]
-    n_gens = len(in_place)
-    nsim_workers = nworkers - n_gens
+    # With gen-on-manager (default), all user workers are sim workers.
+    # Worker 0 (gen) is hidden and in zero_resource_workers.
+    n_gens = 0
+    nsim_workers = nworkers
 
     if not (nsim_workers * nodes_per_worker).is_integer():
         sys.exit(f"Sim workers ({nsim_workers}) must divide evenly into nodes")
@@ -100,7 +101,7 @@ if __name__ == "__main__":
     }
 
     alloc_specs = {"alloc_f": alloc_f}
-    persis_info = add_unique_random_streams({}, nworkers)
+    persis_info = add_unique_random_streams({}, nworkers + 1)
     exit_criteria = {"sim_max": (nsim_workers) * rounds}
 
     # Each worker has 2 nodes. Basic test list for portable options

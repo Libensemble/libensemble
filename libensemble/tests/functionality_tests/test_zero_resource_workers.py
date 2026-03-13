@@ -1,12 +1,12 @@
 """
 Runs libEnsemble testing the zero_resource_workers argument.
 
-Execute via one of the following commands (e.g. 3 workers):
-   mpiexec -np 4 python test_zero_resource_workers.py
-   python test_zero_resource_workers.py --nworkers 3
-   python test_zero_resource_workers.py --nworkers 3 --comms tcp
+Execute via one of the following commands (e.g. 4 workers):
+   mpiexec -np 5 python test_zero_resource_workers.py
+   python test_zero_resource_workers.py --nworkers 4
+   python test_zero_resource_workers.py --nworkers 4 --comms tcp
 
-The number of concurrent evaluations of the objective function will be 4-1=3.
+The number of concurrent evaluations of the objective function will be 4.
 """
 
 import numpy as np
@@ -25,7 +25,7 @@ logger.set_level("DEBUG")
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local
-# TESTSUITE_NPROCS: 3 4
+# TESTSUITE_NPROCS: 3 5
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
@@ -45,9 +45,10 @@ if __name__ == "__main__":
     nodes_per_worker = 2
 
     # For varying size test - relate node count to nworkers
-    in_place = libE_specs["zero_resource_workers"]
-    n_gens = len(in_place)
-    nsim_workers = nworkers  # - n_gens
+    # With gen-on-manager (default), all user workers are sim workers.
+    # Worker 0 (gen) is hidden and in zero_resource_workers.
+    n_gens = 0
+    nsim_workers = nworkers
 
     comms = libE_specs["comms"]
     nodes_per_worker = 2
@@ -99,7 +100,7 @@ if __name__ == "__main__":
     }
 
     alloc_specs = {"alloc_f": alloc_f}
-    persis_info = add_unique_random_streams({}, nworkers)
+    persis_info = add_unique_random_streams({}, nworkers + 1)
     exit_criteria = {"sim_max": (nsim_workers) * rounds}
 
     # Each worker has 2 nodes. Basic test list for portable options

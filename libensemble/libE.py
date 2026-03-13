@@ -495,9 +495,8 @@ def libE_local(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, li
 
     # Set manager resources after the forkpoint.
     # if libE_specs["gen_on_worker"] == True, -n reflects the exact number of workers
-    # if libE_specs["gen_on_worker"] == False: nworkers internally is the number of workers + 1
     if resources is not None:
-        resources.set_resource_manager(libE_specs["nworkers"] + (1 - libE_specs["gen_on_worker"]))
+        resources.set_resource_manager(libE_specs["nworkers"] + 1)
 
     if not libE_specs["disable_log_files"]:
         exit_logger = manager_logging_config(specs=libE_specs)
