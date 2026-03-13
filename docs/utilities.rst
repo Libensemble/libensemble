@@ -45,3 +45,7 @@ Convenience Tools and Functions
       .. automodule:: plot2n
          :members: Plot2N
          :show-inheritance:
+
+      .. automodule:: libensemble.tools.live_data.rich_progress
+         :members: RichProgress
+         :show-inheritance:
