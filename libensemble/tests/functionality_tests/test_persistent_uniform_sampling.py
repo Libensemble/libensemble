@@ -87,9 +87,9 @@ if __name__ == "__main__":
             sim_specs["in"] = ["x", "obj_component"]
             # sim_specs["out"] = [("f", float), ("grad", float, n)]
         elif run == 3:
-            libE_specs["gen_on_manager"] = True
+            libE_specs["gen_on_worker"] = True
         elif run == 4:
-            libE_specs["gen_on_manager"] = False
+            libE_specs["gen_on_worker"] = False
             libE_specs["gen_workers"] = [2]
 
         # Perform the run

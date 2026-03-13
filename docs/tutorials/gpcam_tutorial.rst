@@ -30,6 +30,7 @@ This version (and others) of the gpCAM generator can be found at `libensemble/ge
     from libensemble.message_numbers import EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG, PERSIS_STOP, STOP_TAG
     from libensemble.tools.persistent_support import PersistentSupport
 
+
     def persistent_gpCAM(H_in, persis_info, gen_specs, libE_info):
         """Run a batched gpCAM model to create a surrogate"""
 
@@ -156,6 +157,7 @@ For running applications using parallel resources in the simulator see the `forc
     # Define our simulation function
     import numpy as np
 
+
     def six_hump_camel(H, persis_info, sim_specs, _):
         """Six-Hump Camel sim_f."""
 
@@ -189,6 +191,8 @@ First we will create a cleanup script so we can easily re-run.
 
     # To rerun this notebook, we need to delete the ensemble directory.
     import shutil
+
+
     def cleanup():
         try:
             shutil.rmtree("ensemble")
@@ -218,31 +222,30 @@ If you wish to make your own functions based on the above, those can be imported
 
     nworkers = 4
 
-    # When using gen_on_manager, nworkers is number of concurrent sims.
     # final_gen_send means the last evaluated points are returned to the generator to update the model.
-    libE_specs = LibeSpecs(nworkers=nworkers, gen_on_manager=True, final_gen_send=True)
+    libE_specs = LibeSpecs(nworkers=nworkers, final_gen_send=True)
 
     n = 2  # Input dimensions
     batch_size = 4
     num_batches = 6
 
     gen_specs = GenSpecs(
-        gen_f=persistent_gpCAM,        # Generator function
-        persis_in=["f"],               # Objective, defined in sim, is returned to gen
+        gen_f=persistent_gpCAM,  # Generator function
+        persis_in=["f"],  # Objective, defined in sim, is returned to gen
         outputs=[("x", float, (n,))],  # Parameters (name, type, size)
         user={
             "batch_size": batch_size,
             "lb": np.array([-2, -1]),  # lower boundaries for n dimensions
-            "ub": np.array([2, 1]),    # upper boundaries for n dimensions
-            "ask_max_iter": 5,         # Number of iterations for ask (default 20)
+            "ub": np.array([2, 1]),  # upper boundaries for n dimensions
+            "ask_max_iter": 5,  # Number of iterations for ask (default 20)
             "rng_seed": 0,
         },
     )
 
     sim_specs = SimSpecs(
-        sim_f=six_hump_camel,      # Simulator function
-        inputs=["x"],              # Input field names. "x" defined in gen
-        outputs=[("f", float)],    # Objective
+        sim_f=six_hump_camel,  # Simulator function
+        inputs=["x"],  # Input field names. "x" defined in gen
+        outputs=[("f", float)],  # Objective
     )
 
     # Starts one persistent generator. Simulated values are returned in batch.
@@ -251,7 +254,7 @@ If you wish to make your own functions based on the above, those can be imported
         user={"async_return": False},  # False = batch returns
     )
 
-    exit_criteria = ExitCriteria(sim_max=num_batches*batch_size)
+    exit_criteria = ExitCriteria(sim_max=num_batches * batch_size)
 
     # Initialize and run the ensemble.
     ensemble = Ensemble(
@@ -272,7 +275,7 @@ At the end of our calling script we run the ensemble.
 
     H, persis_info, flag = ensemble.run()  # Start the ensemble. Blocks until completion.
     ensemble.save_output("H_array", append_attrs=False)  # Save H (history of all evaluated points) to file
-    pprint(H[["sim_id", "x", "f"]][:16]) # See first 16 results
+    pprint(H[["sim_id", "x", "f"]][:16])  # See first 16 results
 
 Rerun and test model at known points
 ------------------------------------
@@ -312,15 +315,21 @@ values at the test points.
     markersize = 10
     plt.figure(figsize=(10, 5))
     plt.plot(
-        num_sims, mse, marker="^", markeredgecolor="black", markeredgewidth=2,
-        markersize=markersize, linewidth=2, label="Mean squared error"
+        num_sims,
+        mse,
+        marker="^",
+        markeredgecolor="black",
+        markeredgewidth=2,
+        markersize=markersize,
+        linewidth=2,
+        label="Mean squared error",
     )
     plt.xticks(num_sims)
 
     # Labeling the axes and the legend
-    plt.title('Mean Squared Error at test points')
+    plt.title("Mean Squared Error at test points")
     plt.xlabel("Number of simulations")
-    plt.ylabel('Mean squared error (rad$^2$)')
+    plt.ylabel("Mean squared error (rad$^2$)")
     legend = plt.legend(framealpha=1, edgecolor="black")  # Increase edge width here
     plt.grid(True)
     plt.show()

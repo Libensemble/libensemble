@@ -70,6 +70,6 @@ if __name__ == "__main__":
 
     if fd_test.is_manager:
         assert len(H) < fd_test.exit_criteria.gen_max, "Problem didn't stop early, which should have been the case."
-        assert np.all(persis_info[1]["Fnoise"] > 0), "gen_f didn't find noise for all F_i components."
+        assert np.all(persis_info[0]["Fnoise"] > 0), "gen_f didn't find noise for all F_i components."
 
         fd_test.save_output(__file__)

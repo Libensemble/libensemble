@@ -22,7 +22,7 @@ def exp_nodelist_for_worker(exp_list, workerID, nodes_per_worker, persis_gens):
             node_list = comp.split(",")
             for node in node_list:
                 node_name, node_num = node.split("-")
-                offset = workerID - (1 + persis_gens)
+                offset = workerID - 1
                 new_num = int(node_num) + int(nodes_per_worker * offset)
                 new_node = "-".join([node_name, str(new_num)])
                 new_node_list.append(new_node)
@@ -80,7 +80,7 @@ def runline_check_by_worker(H, persis_info, sim_specs, libE_info):
     exctr = Executor.executor
     test = sim_specs["user"]["tests"][0]
     exp_list = sim_specs["user"]["expect"]
-    p_gens = sim_specs["user"].get("persis_gens", 0)
+    # p_gens = sim_specs["user"].get("persis_gens", 0)
 
     task = exctr.submit(
         calc_type="sim",
@@ -107,7 +107,7 @@ def runline_check_by_worker(H, persis_info, sim_specs, libE_info):
     else:
         wid_mod = wid
 
-    new_exp_list = exp_list[wid_mod - 1 - p_gens]
+    new_exp_list = exp_list[wid_mod - 1]  # - p_gens]
 
     if outline != new_exp_list:
         print(f"Worker {wid}:\n outline is: {outline}\n exp     is: {new_exp_list}", flush=True)

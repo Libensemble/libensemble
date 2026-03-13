@@ -155,9 +155,9 @@ def libE(
     exit_criteria: ExitCriteria,
     persis_info: dict = {},
     alloc_specs: AllocSpecs = AllocSpecs(),
-    libE_specs: LibeSpecs = {},
+    libE_specs: LibeSpecs | dict = {},
     H0=None,
-) -> (np.ndarray, dict, int):
+) -> tuple[np.ndarray, dict, int]:
     """
     Parameters
     ----------
@@ -243,14 +243,14 @@ def libE(
     exit_criteria = specs_dump(ensemble.exit_criteria, by_alias=True, exclude_none=True)
 
     # Restore the generator object (don't use serialized version)
-    if hasattr(ensemble.gen_specs, "generator") and ensemble.gen_specs.generator is not None:
+    if ensemble.gen_specs and hasattr(ensemble.gen_specs, "generator") and ensemble.gen_specs.generator is not None:
         gen_specs["generator"] = ensemble.gen_specs.generator
 
     # Extract platform info from settings or environment
     platform_info = get_platform(libE_specs)
 
     if libE_specs["dry_run"]:
-        logger.manager_warning("Dry run. All libE() inputs validated. Exiting.")
+        logger.manager_warning("Dry run. All libE() inputs validated. Exiting.")  # type: ignore[attr-defined]
         sys.exit()
 
     libE_funcs = {"mpi": libE_mpi, "tcp": libE_tcp, "local": libE_local, "threads": libE_local}
@@ -285,7 +285,7 @@ def manager(
 
     if "out" in gen_specs and ("sim_id", int) in gen_specs["out"]:
         if hasattr(gen_specs["gen_f"], "__module__") and "libensemble.gen_funcs" not in gen_specs["gen_f"].__module__:
-            logger.manager_warning(_USER_SIM_ID_WARNING)
+            logger.manager_warning(_USER_SIM_ID_WARNING)  # type: ignore[attr-defined]
 
     try:
         try:
@@ -494,8 +494,9 @@ def libE_local(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, li
     wcomms = start_proc_team(libE_specs["nworkers"], sim_specs, gen_specs, libE_specs)
 
     # Set manager resources after the forkpoint.
+    # if libE_specs["gen_on_worker"] == True, -n reflects the exact number of workers
     if resources is not None:
-        resources.set_resource_manager(libE_specs["nworkers"])
+        resources.set_resource_manager(libE_specs["nworkers"] + 1)
 
     if not libE_specs["disable_log_files"]:
         exit_logger = manager_logging_config(specs=libE_specs)

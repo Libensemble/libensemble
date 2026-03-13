@@ -161,11 +161,11 @@ class Ensemble:
 
     def __init__(
         self,
-        sim_specs: SimSpecs | None = SimSpecs(),
-        gen_specs: GenSpecs | None = GenSpecs(),
-        exit_criteria: ExitCriteria | None = {},
-        libE_specs: LibeSpecs | None = LibeSpecs(),
-        alloc_specs: AllocSpecs | None = AllocSpecs(),
+        sim_specs: SimSpecs | dict | None = SimSpecs(),
+        gen_specs: GenSpecs | dict | None = GenSpecs(),
+        exit_criteria: ExitCriteria | dict | None = {},
+        libE_specs: LibeSpecs | dict | None = LibeSpecs(),
+        alloc_specs: AllocSpecs | dict | None = AllocSpecs(),
         persis_info: dict | None = {},
         executor: Executor | None = None,
         H0: npt.NDArray | None = None,
@@ -174,7 +174,11 @@ class Ensemble:
         self.sim_specs = sim_specs
         self.gen_specs = gen_specs
         self.exit_criteria = exit_criteria
-        self._libE_specs = libE_specs
+        self._libE_specs: LibeSpecs | None = None
+        if isinstance(libE_specs, dict):
+            self._libE_specs = LibeSpecs(**libE_specs)
+        else:
+            self._libE_specs = libE_specs
         self.alloc_specs = alloc_specs
         self.persis_info = persis_info
         self.executor = executor
@@ -188,11 +192,10 @@ class Ensemble:
         if parse_args:
             self._parse_args()
             self.parsed = True
-            self._known_comms = self._libE_specs.comms
+            if self._libE_specs:
+                self._known_comms = self._libE_specs.comms
 
         if not self._known_comms and self._libE_specs is not None:
-            if isinstance(self._libE_specs, dict):
-                self._libE_specs = LibeSpecs(**self._libE_specs)
             self._known_comms = self._libE_specs.comms
 
         if self._known_comms == "local":
@@ -202,9 +205,10 @@ class Ensemble:
 
         elif self._known_comms == "mpi" and not parse_args:
             # Set internal _nworkers - not libE_specs (avoid "nworkers will be ignored" warning)
-            self._nworkers, self.is_manager = mpi_init(self._libE_specs.mpi_comm)
+            if self._libE_specs:
+                self._nworkers, self.is_manager = mpi_init(self._libE_specs.mpi_comm)
 
-    def _parse_args(self) -> (int, bool, LibeSpecs):
+    def _parse_args(self) -> tuple[int, bool, LibeSpecs]:
         # Set internal _nworkers - not libE_specs (avoid "nworkers will be ignored" warning)
         self._nworkers, self.is_manager, libE_specs_parsed, self.extra_args = parse_args_f()
 
@@ -220,7 +224,7 @@ class Ensemble:
         return all([i for i in [self.exit_criteria, self._libE_specs, self.sim_specs]])
 
     @property
-    def libE_specs(self) -> LibeSpecs:
+    def libE_specs(self) -> LibeSpecs | None:
         return self._libE_specs
 
     @libE_specs.setter
@@ -257,7 +261,7 @@ class Ensemble:
     def _refresh_executor(self):
         Executor.executor = self.executor or Executor.executor
 
-    def run(self) -> (npt.NDArray, dict, int):
+    def run(self) -> tuple[npt.NDArray, dict, int]:
         """
         Initializes libEnsemble.
 
@@ -297,10 +301,10 @@ class Ensemble:
         """
 
         self._refresh_executor()
-
-        if self._libE_specs.comms != self._known_comms:
+        if self._libE_specs and self._libE_specs.comms != self._known_comms:
             raise ValueError(CHANGED_COMMS_WARN)
 
+        assert self._libE_specs is not None
         self.H, self.persis_info, self.flag = libE(
             self.sim_specs,
             self.gen_specs,
@@ -365,6 +369,7 @@ class Ensemble:
         """
         if self.is_manager:
             if self._get_option("libE_specs", "workflow_dir_path"):
+                assert self.libE_specs is not None
                 save_libE_output(
                     self.H,
                     self.persis_info,

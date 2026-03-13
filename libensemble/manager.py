@@ -56,7 +56,7 @@ class LoggedException(Exception):
     """Raise exception for handling without re-logging"""
 
 
-def report_worker_exc(wrk_exc: Exception = None) -> None:
+def report_worker_exc(wrk_exc: Exception | None = None) -> None:
     """Write worker exception to log"""
     if wrk_exc is not None:
         from_line, msg, exc = wrk_exc.args
@@ -74,7 +74,7 @@ def manager_main(
     exit_criteria: dict,
     persis_info: dict,
     wcomms: list = [],
-) -> (dict, int, int):
+) -> tuple[dict, int, int]:
     """Manager routine to coordinate the generation and simulation evaluations
 
     Parameters
@@ -213,9 +213,9 @@ class Manager:
         self.gen_specs = gen_specs
         self.exit_criteria = exit_criteria
         self.elapsed = lambda: timer.elapsed
-        self.wcomms = wcomms
+        self.wcomms: Any = wcomms
         self.WorkerExc = False
-        self.persis_pending = []
+        self.persis_pending: list[int] = []
         self.live_data = libE_specs.get("live_data")
 
         dyn_keys = ("resource_sets", "num_procs", "num_gpus")
@@ -231,19 +231,20 @@ class Manager:
             (1, "stop_val", self.term_test_stop_val),
         ]
 
-        gen_on_manager = self.libE_specs.get("gen_on_manager", False)
+        gen_on_worker = self.libE_specs.get("gen_on_worker", False)
+        len_W = len(self.wcomms) + 1 - gen_on_worker  # if gen_on_worker, len_W = len(self.wcomms)
 
-        self.W = np.zeros(len(self.wcomms) + gen_on_manager, dtype=Manager.worker_dtype)
-        if gen_on_manager:
+        self.W = np.zeros(len_W, dtype=Manager.worker_dtype)
+        if gen_on_worker:
+            self.W["worker_id"] = np.arange(len(self.wcomms)) + 1  # [1, 2, 3, ...]
+        else:
             self.W["worker_id"] = np.arange(len(self.wcomms) + 1)  # [0, 1, 2, ...]
             self.W[0]["gen_worker"] = True
             local_worker_comm = self._run_additional_worker(hist, sim_specs, gen_specs, libE_specs)
             self.wcomms = [local_worker_comm] + self.wcomms
-        else:
-            self.W["worker_id"] = np.arange(len(self.wcomms)) + 1  # [1, 2, 3, ...]
 
-        self.W = _WorkerIndexer(self.W, gen_on_manager)
-        self.wcomms = _WorkerIndexer(self.wcomms, gen_on_manager)
+        self.W = _WorkerIndexer(self.W, 1 - gen_on_worker)  # if gen on worker, then no additional worker
+        self.wcomms = _WorkerIndexer(self.wcomms, 1 - gen_on_worker)
 
         temp_EnsembleDirectory = EnsembleDirectory(libE_specs=libE_specs)
         self.resources = Resources.resources
@@ -262,7 +263,9 @@ class Manager:
         try:
             temp_EnsembleDirectory.make_copyback()
         except AssertionError as e:  # Ensemble dir exists and isn't empty.
-            logger.manager_warning(_USER_CALC_DIR_WARNING.format(temp_EnsembleDirectory.ensemble_dir))
+            logger.manager_warning(  # type: ignore[attr-defined]
+                _USER_CALC_DIR_WARNING.format(temp_EnsembleDirectory.ensemble_dir)
+            )
             self._kill_workers()
             raise ManagerException(
                 "Manager errored on initialization",
@@ -289,7 +292,7 @@ class Manager:
         """Checks against stop value criterion"""
         key, val = stop_val
         H = self.hist.H
-        return np.any(filter_nans(H[key][H["sim_ended"]]) <= val)
+        return bool(np.any(filter_nans(H[key][H["sim_ended"]]) <= val))
 
     def term_test(self, logged: bool = True) -> bool | int:
         """Checks termination criteria"""
@@ -398,7 +401,7 @@ class Manager:
 
         if rset_req is None:
             rset_team = []
-            default_rset = resource_manager.index_list[w - 1]
+            default_rset = resource_manager.index_list[w]
             if default_rset is not None:
                 rset_team.append(default_rset)
             Work["libE_info"]["rset_team"] = rset_team
@@ -553,7 +556,7 @@ class Manager:
                 self._kill_workers()
                 raise WorkerException(f"Received error message from worker {w}", D_recv.msg, D_recv.exc)
         elif isinstance(D_recv, logging.LogRecord):
-            logger.vdebug(f"Manager received a log message from worker {w}")
+            logger.vdebug(f"Manager received a log message from worker {w}")  # type: ignore[attr-defined]
             logging.getLogger(D_recv.name).handle(D_recv)
         else:
             logger.debug(f"Manager received data message from worker {w}")
@@ -584,7 +587,7 @@ class Manager:
 
     # --- Handle termination
 
-    def _final_receive_and_kill(self, persis_info: dict) -> (dict, int, int):
+    def _final_receive_and_kill(self, persis_info: dict) -> tuple[dict, int, int]:
         """
         Tries to receive from any active workers.
 
@@ -622,9 +625,9 @@ class Manager:
                 # Elapsed Wallclock has expired
                 if not any(self.W["persis_state"]):
                     if any(self.W["active"]):
-                        logger.manager_warning(_WALLCLOCK_MSG_ACTIVE)
+                        logger.manager_warning(_WALLCLOCK_MSG_ACTIVE)  # type: ignore[attr-defined]
                     else:
-                        logger.manager_warning(_WALLCLOCK_MSG_ALL_RETURNED)
+                        logger.manager_warning(_WALLCLOCK_MSG_ALL_RETURNED)  # type: ignore[attr-defined]
                     exit_flag = 2
             if self.WorkerExc:
                 exit_flag = 1
@@ -661,7 +664,7 @@ class Manager:
             "use_resource_sets": self.use_resource_sets,
             "gen_num_procs": self.gen_num_procs,
             "gen_num_gpus": self.gen_num_gpus,
-            "gen_on_manager": self.libE_specs.get("gen_on_manager", False),
+            "gen_on_worker": self.libE_specs.get("gen_on_worker", False),
         }
 
     def _alloc_work(self, H: npt.NDArray, persis_info: dict) -> dict:
@@ -698,7 +701,7 @@ class Manager:
 
     # --- Main loop
 
-    def run(self, persis_info: dict) -> (dict, int, int):
+    def run(self, persis_info: dict) -> tuple[dict, int, int]:
         """Runs the manager"""
         logger.debug(f"Manager initiated on node {socket.gethostname()}")
         logger.info(f"Manager exit_criteria: {self.exit_criteria}")
