@@ -12,6 +12,7 @@ import socket
 import sys
 import time
 import traceback
+from pathlib import Path
 from typing import Any
 
 import numpy as np
@@ -338,7 +339,7 @@ class Manager:
     def _save_every_k_sims(self, complete: bool) -> None:
         """Saves history every kth sim step"""
         self._save_every_k(
-            os.path.join(self.libE_specs["workflow_dir_path"], "{}_{}after_sim_{}.npy"),
+            str(Path(self.libE_specs["workflow_dir_path"]) / "{}_{}after_sim_{}.npy"),
             self.hist.sim_ended_count,
             self.libE_specs["save_every_k_sims"],
             complete,
@@ -347,7 +348,7 @@ class Manager:
     def _save_every_k_gens(self, complete: bool) -> None:
         """Saves history every kth gen step"""
         self._save_every_k(
-            os.path.join(self.libE_specs["workflow_dir_path"], "{}_{}after_gen_{}.npy"),
+            str(Path(self.libE_specs["workflow_dir_path"]) / "{}_{}after_gen_{}.npy"),
             self.hist.index,
             self.libE_specs["save_every_k_gens"],
             complete,
