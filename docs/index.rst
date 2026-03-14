@@ -26,11 +26,13 @@
    tutorials/gpcam_tutorial
    tutorials/aposmm_tutorial
    tutorials/calib_cancel_tutorial
+   tutorials/xopt_bayesian_gen
 
 .. toctree::
    :maxdepth: 1
    :caption: Examples:
 
+   examples/gest_api
    examples/gen_funcs
    examples/sim_funcs
    examples/alloc_funcs

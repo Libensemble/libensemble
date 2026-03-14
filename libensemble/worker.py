@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import logging
 import logging.handlers
+import os
 import socket
 from itertools import count
 from pathlib import Path
@@ -115,6 +116,8 @@ def worker_main(
     # Set up and run worker
     worker = Worker(comm, dtypes, workerID, sim_specs, gen_specs, libE_specs)
     with LS.loc("workflow"):
+        if Executor.executor is not None:
+            Executor.executor.base_dir = os.getcwd()
         worker.run()
 
     if libE_specs.get("profile"):
@@ -172,8 +175,8 @@ class Worker:
         self.workerID = workerID
         self.libE_specs = libE_specs
         self.stats_fmt = libE_specs.get("stats_fmt", {})
-        self.sim_runner = Runner(sim_specs)
-        self.gen_runner = Runner(gen_specs)
+        self.sim_runner = Runner.from_specs(sim_specs)
+        self.gen_runner = Runner.from_specs(gen_specs)
         self.runners = {EVAL_SIM_TAG: self.sim_runner.run, EVAL_GEN_TAG: self.gen_runner.run}
         self.calc_iter = {EVAL_SIM_TAG: 0, EVAL_GEN_TAG: 0}
         Worker._set_executor(self.workerID, self.comm)
@@ -262,6 +265,7 @@ class Worker:
 
         try:
             logger.debug(f"Starting {enum_desc}: {calc_id}")
+            out = None
             calc = self.runners[calc_type]
             with timer:
                 if self.EnsembleDirectory.use_calc_dirs(calc_type):
@@ -285,8 +289,8 @@ class Worker:
                 if tag in [STOP_TAG, PERSIS_STOP] and message is MAN_SIGNAL_FINISH:
                     calc_status = MAN_SIGNAL_FINISH
 
-            if out:
-                if len(out) >= 3:  # Out, persis_info, calc_status
+            if out is not None:
+                if not isinstance(out, np.ndarray) and len(out) >= 3:  # Out, persis_info, calc_status
                     calc_status = out[2]
                     return out
                 elif len(out) == 2:  # Out, persis_info OR Out, calc_status
