@@ -7,5 +7,5 @@ mock==5.2.0
 python-dateutil==2.9.0.post0
 anyio==4.12.1
 matplotlib==3.10.8
-mpmath==1.4.0
+mpmath==1.4.1
 rich==14.3.3
