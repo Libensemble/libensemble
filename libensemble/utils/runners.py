@@ -158,6 +158,19 @@ class StandardGenRunner(Runner):
         self._convert_initial_ingest(H_in)
         return self._loop_over_gen(tag, Work, H_in)
 
+    def _create_initial_sample(self, sample_method, num_points):
+        """Create initial sample points using the specified sampling method."""
+        from libensemble.gen_classes.sampling import UniformSample
+
+        vocs = self.specs.get("vocs")
+        samplers = {
+            "uniform": UniformSample,
+        }
+        if sample_method not in samplers:
+            raise ValueError(f"Unknown initial_sample_method: {sample_method!r}. Supported: {list(samplers.keys())}")
+        sampler = samplers[sample_method](vocs=vocs)
+        return sampler.suggest(num_points)
+
     def _persistent_result(self, calc_in, persis_info, libE_info):
         """Setup comms with manager, setup gen, loop gen to completion, return gen's results"""
         self.ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
@@ -166,14 +179,32 @@ class StandardGenRunner(Runner):
         if calc_in is not None and len(calc_in) > 0:
             self._convert_initial_ingest(calc_in)
 
-        # libE gens will hit the following line, but list_dicts_to_np will passthrough if the output is a numpy array
-        H_out = list_dicts_to_np(
-            self._get_initial_suggest(libE_info),
-            dtype=self.specs.get("out"),
-            mapping=getattr(self.gen, "variables_mapping", {}),
-        )
-        tag, Work, H_in = self.ps.send_recv(H_out)  # evaluate the initial sample
-        final_H_out = self._start_generator_loop(tag, Work, H_in)
+        sample_method = self.specs.get("initial_sample_method")
+        if sample_method is not None:
+            # libEnsemble produces the initial sample, evaluates it, and
+            # ingests results into the generator before optimization begins.
+            initial_batch = self.specs.get("initial_batch_size")
+            if not initial_batch:
+                raise ValueError("initial_sample_method requires initial_batch_size to be set in GenSpecs.")
+            H_sample = list_dicts_to_np(
+                self._create_initial_sample(sample_method, initial_batch),
+                dtype=self.specs.get("out"),
+                mapping=getattr(self.gen, "variables_mapping", {}),
+            )
+            tag, Work, H_in = self.ps.send_recv(H_sample)
+            self._convert_initial_ingest(H_in)
+            # Generator now has evaluated data — enter the normal loop
+            final_H_out = self._loop_over_gen(tag, Work, H_in)
+        else:
+            # Generator handles its own initial sampling
+            H_out = list_dicts_to_np(
+                self._get_initial_suggest(libE_info),
+                dtype=self.specs.get("out"),
+                mapping=getattr(self.gen, "variables_mapping", {}),
+            )
+            tag, Work, H_in = self.ps.send_recv(H_out)  # evaluate the initial sample
+            final_H_out = self._start_generator_loop(tag, Work, H_in)
+
         self.gen.finalize()
         return final_H_out, FINISHED_PERSISTENT_GEN_TAG
 

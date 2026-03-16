@@ -37,6 +37,7 @@ class LibensembleGenerator(Generator):
                                    "grad": ["grad_x", "grad_y"]}``.
     """
 
+
     def __init__(
         self,
         vocs: VOCS,
