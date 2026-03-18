@@ -1,6 +1,7 @@
 import argparse
 import os
 import sys
+from pathlib import Path
 
 # ==================== Command-line argument parsing ===========================
 
@@ -115,9 +116,9 @@ def _tcp_parse_args(args):
 def _ssh_parse_args(args):
     """Parses arguments for SSH with reverse tunnel."""
     nworkers = len(args.workers)
-    worker_pwd = args.worker_pwd or os.getcwd()
+    worker_pwd = Path(args.worker_pwd) if args.worker_pwd else Path.cwd()
     script_dir, script_name = os.path.split(sys.argv[0])
-    worker_script_name = os.path.join(worker_pwd, script_name)
+    worker_script_name = worker_pwd / script_name
     ssh = ["ssh", "-R", "{tunnel_port}:localhost:{manager_port}", "{worker_ip}"]
     cmd = [
         args.worker_python,

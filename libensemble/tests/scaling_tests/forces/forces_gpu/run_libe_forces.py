@@ -17,6 +17,7 @@ particle counts are reduced for CPU performance.
 
 import os
 import sys
+from pathlib import Path
 
 import numpy as np
 from forces_simf import run_forces  # Sim func from current dir
@@ -30,7 +31,7 @@ from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, Sim
 if __name__ == "__main__":
     # Initialize MPI Executor
     exctr = MPIExecutor()
-    sim_app = os.path.join(os.getcwd(), "../forces_app/forces.x")
+    sim_app = Path.cwd() / "../forces_app/forces.x"
 
     if not os.path.isfile(sim_app):
         sys.exit("forces.x not found - please build first in ../forces_app dir")

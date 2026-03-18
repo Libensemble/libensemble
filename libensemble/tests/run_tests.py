@@ -35,16 +35,16 @@ REG_RUN_LARGEST_TEST_ONLY = False
 # Test Directories - all relative to project root dir
 CODE_DIR = "libensemble"
 LIBE_SRC_DIR = CODE_DIR
-TESTING_DIR = os.path.join(CODE_DIR, "tests")
+TESTING_DIR = Path(CODE_DIR) / "tests"
 UNIT_TEST_SUBDIRS = [
     "unit_tests",
     "unit_tests_mpi_import",
     "unit_tests_nompi",
     "unit_tests_logger",
 ]
-UNIT_TEST_DIRS = [os.path.join(TESTING_DIR, subdir) for subdir in UNIT_TEST_SUBDIRS]
-REG_TEST_SUBDIR = os.path.join(TESTING_DIR, "regression_tests")
-FUNC_TEST_SUBDIR = os.path.join(TESTING_DIR, "functionality_tests")
+UNIT_TEST_DIRS = [TESTING_DIR / subdir for subdir in UNIT_TEST_SUBDIRS]
+REG_TEST_SUBDIR = TESTING_DIR / "regression_tests"
+FUNC_TEST_SUBDIR = TESTING_DIR / "functionality_tests"
 
 # Coverage merge and report dir
 COV_MERGE_DIR = TESTING_DIR
@@ -132,12 +132,13 @@ def cleanup(root_dir):
     ]
     dirs_to_clean = UNIT_TEST_DIRS + [REG_TEST_SUBDIR, FUNC_TEST_SUBDIR]
     for dir_path in dirs_to_clean:
-        full_path = os.path.join(root_dir, dir_path)
-        if "libensemble/tests/" not in full_path.replace("\\", "/"):
-            cprint(f"Safety check failed for {full_path}. Check directory", style="red")
+        full_path = Path(root_dir) / dir_path
+        full_path_str = str(full_path)
+        if "libensemble/tests/" not in full_path_str.replace("\\", "/"):
+            cprint(f"Safety check failed for {full_path_str}. Check directory", style="red")
             sys.exit(2)
         for pattern in patterns:
-            for file_path in glob.glob(os.path.join(full_path, pattern)):
+            for file_path in glob.glob(str(full_path / pattern)):
                 try:
                     if os.path.isfile(file_path) or os.path.islink(file_path):
                         os.remove(file_path)
@@ -199,8 +200,8 @@ def print_test_failed(test_num, test_script_name, comm, nprocs, duration):
 def merge_coverage_reports(root_dir):
     """Merge coverage data from multiple tests and generate a report."""
     print_heading("Generating coverage reports")
-    tests_dir = os.path.join(root_dir, "libensemble", "tests")
-    cov_files = glob.glob(os.path.join(tests_dir, "**", ".cov_*"), recursive=True)
+    tests_dir = Path(root_dir) / "libensemble" / "tests"
+    cov_files = glob.glob(str(tests_dir / "**" / ".cov_*"), recursive=True)
 
     if cov_files:
         try:
@@ -262,11 +263,11 @@ def is_open_mpi():
 def build_forces(root_dir):
     """Build forces.x using mpicc."""
     cprint("Building forces.x before running regression tests...", style="yellow", newline=True)
-    forces_app_dir = os.path.join(root_dir, "libensemble/tests/scaling_tests/forces/forces_app")
+    forces_app_dir = Path(root_dir) / "libensemble/tests/scaling_tests/forces/forces_app"
     subprocess.run(["mpicc", "-O3", "-o", "forces.x", "forces.c", "-lm"], cwd=forces_app_dir, check=True)
-    destination_dir = os.path.join(root_dir, "libensemble/tests/forces_app")
+    destination_dir = Path(root_dir) / "libensemble/tests/forces_app"
     os.makedirs(destination_dir, exist_ok=True)
-    shutil.copy(os.path.join(forces_app_dir, "forces.x"), destination_dir)
+    shutil.copy(forces_app_dir / "forces.x", destination_dir)
 
 
 def skip_test(directives, args, current_os):
@@ -335,7 +336,7 @@ def run_unit_tests(root_dir, python_exec, args):
     print_heading(f"Running unit tests (with pytest)")
     for dir_path in UNIT_TEST_DIRS:
         cprint(f"Entering unit test dir: {dir_path}", style="yellow", newline=True)
-        full_path = os.path.join(root_dir, dir_path)
+        full_path = Path(root_dir) / dir_path
         cov_rep = cov_report_type + ":cov_unit"
         cmd = python_exec + ["-m", "pytest", "--color=yes", "--timeout=120", "--cov", "--cov-report", cov_rep]
         if args.e:
@@ -366,8 +367,8 @@ def run_regression_tests(root_dir, python_exec, args, current_os):
     reg_test_list = REG_TEST_LIST
     reg_test_files = []
     for dir_path in test_dirs:
-        full_path = os.path.join(root_dir, dir_path)
-        reg_test_files.extend(glob.glob(os.path.join(full_path, reg_test_list)))
+        full_path = Path(root_dir) / dir_path
+        reg_test_files.extend(glob.glob(str(full_path / reg_test_list)))
 
     reg_test_files = sorted(reg_test_files)
     reg_pass = 0
