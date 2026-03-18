@@ -116,8 +116,8 @@ def persistent_mfkg_gen_f(H, persis_info, gen_specs, libE_info):
 
     # Example affine cost model: cost = fixed_cost + weight * s
     cost_model = AffineFidelityCostModel(
-        fidelity_weights={fidelity_index: 0.5},
-        fixed_cost=0.5,
+        fidelity_weights={fidelity_index: 0.01},
+        fixed_cost=0.99,
     )
     cost_aware_utility = InverseCostWeightedUtility(cost_model=cost_model)
 
