@@ -83,6 +83,8 @@ if __name__ == "__main__":
             "lb": np.array([0, 0]),
             # Upper bound for the n parameters.
             "ub": np.array([15, 15]),
+            "debug": True,
+            "debug_q": 1,
         },
     }
     gen_specs["user"] = {**gen_specs["user"], **mt_params}
