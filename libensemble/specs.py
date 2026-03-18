@@ -274,15 +274,6 @@ class GenSpecs(BaseModel):
     running. Only used if using the ``give_sim_work_first`` allocation function.
     """
 
-    @model_validator(mode="before")
-    def set_gen_specs_fields_from_user(cls, values):
-        """Set fields from user dict for backward compatibility."""
-        # init_sample_size is now initial_batch_size
-        if "init_sample_size" in values and "initial_batch_size" not in values:
-            values["initial_batch_size"] = values.pop("init_sample_size")
-
-        return values
-
     @model_validator(mode="after")
     def set_fields_from_vocs(self):
         """Set persis_in and outputs from VOCS if vocs is provided and fields are not set."""
