@@ -105,9 +105,9 @@ if __name__ == "__main__":
             "persis_in": ["f", "fvec"] + [n[0] for n in gen_out],
             "out": gen_out,
             "user": {
-                "initial_sample_size": 1, # The initial sampled point will be the starting point
-                "stop_after_k_runs": 1,  # Only one local optimization run will be performed 
-                "max_active_runs": 1, # Only one local optimization run will be performed,
+                "initial_sample_size": 1,  # The initial sampled point will be the starting point
+                "stop_after_k_runs": 1,  # Only one local optimization run will be performed
+                "max_active_runs": 1,  # Only one local optimization run will be performed,
                 "sample_points": np.atleast_2d(0.1 * (np.arange(n) + 1)),
                 "localopt_method": "ibcdfo_pounders",
                 "run_max_eval": 100 * (n + 1),
