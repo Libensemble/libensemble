@@ -70,7 +70,7 @@ def check_DB_and_do_run(x_to_check, sim_specs, libE_info, database_name):
         subprocess.run(["python", "/global/cfs/cdirs/m4493/ebelli/gacode/cgyro/bin/cgyro_parse.py"])
 
         # --- Resubmit loop controls ---
-        max_attempts = 4  # total attempts INCLUDING the first one
+        max_attempts = 1  # total attempts INCLUDING the first one
         attempt = 0
         while attempt < max_attempts:
             attempt += 1
