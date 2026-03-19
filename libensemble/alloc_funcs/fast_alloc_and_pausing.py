@@ -35,8 +35,8 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info, li
     gen_count = support.count_gens()
 
     if gen_specs["user"].get("single_component_at_a_time"):
-        assert (
-            alloc_specs["user"]["batch_mode"] or gen_specs["batch_mode"]
+        assert alloc_specs["user"].get("batch_mode", False) or gen_specs.get(
+            "batch_mode", False
         ), "Must be in batch mode when using 'single_component_at_a_time'"
     if len(H) != persis_info["H_len"]:
         # Something new is in the history.

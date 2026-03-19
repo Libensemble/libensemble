@@ -88,8 +88,8 @@ if __name__ == "__main__":
         "out": [("priority", float), ("resource_sets", int), ("x", float, n)],
         "give_all_with_same_priority": False,
         "async_return": False,
+        "initial_batch_size": nworkers - 1,
         "user": {
-            "initial_batch_size": nworkers - 1,
             "max_resource_sets": nworkers - 1,  # Any sim created can req. 1 worker up to all.
             "lb": np.array([-3, -2]),
             "ub": np.array([3, 2]),
