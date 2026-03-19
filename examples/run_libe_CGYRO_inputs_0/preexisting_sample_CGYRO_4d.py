@@ -8,18 +8,53 @@ import jinja2
 import numpy as np
 from CGYRO_sim import run_CGYRO_over_KY  # Sim func from current dir
 
-import libensemble.gen_funcs
 from libensemble import Ensemble
-from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc as alloc_f
 from libensemble.executors import MPIExecutor
+from libensemble.alloc_funcs.give_pregenerated_work import give_pregenerated_sim_work as alloc_f
+from libensemble.specs import AllocSpecs, ExitCriteria, LibeSpecs, SimSpecs
 
-libensemble.gen_funcs.rc.aposmm_optimizers = "ibcdfo_manifold_sampling"
 
-from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
-from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
+def make_H0_grid(lb, ub, n_samp=30):
+    """
+    Build a *pre-defined* (deterministic) sample pattern in the 2D box [lb, ub].
 
-# from ibcdfo.manifold_sampling.h_examples import pw_maximum as hfun
-from ibcdfo.manifold_sampling.h_examples import max_gamma_over_KY as hfun
+    Default pattern: a 6x5 grid = 30 points (matches your previous sim_max=30).
+    If n_samp != 30, we build a near-square grid with at least n_samp points,
+    then truncate to exactly n_samp.
+
+    Returns:
+        H0: structured numpy array with fields needed by give_pregenerated_sim_work
+    """
+    lb = np.asarray(lb, dtype=float)
+    ub = np.asarray(ub, dtype=float)
+    assert lb.shape == (2,) and ub.shape == (2,)
+    assert np.all(ub > lb)
+
+    # Choose a grid that has >= n_samp points
+    if n_samp == 30:
+        nx, ny = 6, 5
+    else:
+        nx = int(np.ceil(np.sqrt(n_samp)))
+        ny = int(np.ceil(n_samp / nx))
+
+    xs = np.linspace(lb[0], ub[0], nx)
+    ys = np.linspace(lb[1], ub[1], ny)
+    X, Y = np.meshgrid(xs, ys, indexing="xy")
+    pts = np.column_stack([X.ravel(), Y.ravel()])[:n_samp]
+    # pts = np.array([[0.5, -0.09], [0.6, -0.08], [-0.2, 0.05]])
+
+    H0 = np.zeros(
+        len(pts),
+        dtype=[
+            ("x", float, (2,)),
+            ("sim_id", int),
+            ("sim_started", bool),
+        ],
+    )
+    H0["x"] = pts
+    H0["sim_id"] = np.arange(len(pts), dtype=int)
+    H0["sim_started"] = False
+    return H0
 
 
 def main(argv):
@@ -96,53 +131,18 @@ def main(argv):
             "mpinuma": mpinuma,
         },
     )
-    
-    n = 3
-    gen_out = [
-        ("x", float, n),
-        ("x_on_cube", float, n),
-        ("sim_id", int),
-        ("local_min", bool),
-        ("local_pt", bool),
-        ("started_run", bool),
-    ]
 
-    ensemble.gen_specs = GenSpecs(
-        gen_f= gen_f,
-        persis_in= ["f", "fvec"] + [n[0] for n in gen_out],
-        out= gen_out,
-        user= {
-            "initial_sample_size": 1,
-            "stop_after_k_runs": 1,
-            "max_active_runs": 1,
-            #"sample_points": np.atleast_2d([1.30860E+00,-2.67461E-01,-8.75397E-02]),
-            # "sample_points": np.atleast_2d([2.9869233478495802, -0.0784057129731948,  0.0999019301047065]),
-            # "sample_points": np.atleast_2d([3.0157659318480223,  0.4600035013150654, -0.09702471975535]), # nt starting point
-            # "sample_points": np.atleast_2d([2.8598546331904644,  0.6930320178023068, -0.0181849390876176]), # pt starting point
-            "sample_points": np.atleast_2d([2.2660565732073676, 0.3154929781847652, 0.0585430910613574]),
-            "localopt_method": "ibcdfo_manifold_sampling",
-            "run_max_eval": 100 * (n + 1),
-            "components": 13,
-            "lb": np.array([1.0, -0.60, -0.1]),  # lower bound for input
-            "ub": np.array([2.5, 0.60, 0.1]),  # upper bound for input
-            # "lb": np.array([1.0, -0.75, -0.1]),  # lower bound for input
-            # "ub": np.array([4.0, 0.75, 0.1]),  # upper bound for input
-            "hfun": hfun,
-        },
-    )
+    # pre-generate work in H0, and use pregenerated-work allocator ---
+    lb = np.array([-0.60, -0.1], dtype=float)
+    ub = np.array([0.60, 0.1], dtype=float)
 
-    ensemble.alloc_specs = AllocSpecs(
-        alloc_f=alloc_f,
-        user={
-            "async_return": False,  # False causes batch returns
-        },
-    )
+    # This replaces LHS + sim_max=30; adjust n_samp and/or make_H0_grid as needed
+    n_samp = 25
+    n_samp = 9
+    ensemble.H0 = make_H0_grid(lb, ub, n_samp=n_samp)
 
-    # Instruct libEnsemble to exit after this many simulations
-    ensemble.exit_criteria = ExitCriteria(sim_max=40)
-
-    # Seed random streams for each worker, particularly for gen_f
-    ensemble.add_random_streams()
+    ensemble.alloc_specs = AllocSpecs(alloc_f=alloc_f)
+    ensemble.exit_criteria = ExitCriteria(sim_max=len(ensemble.H0))
 
     # Run ensemble
     ensemble.run()

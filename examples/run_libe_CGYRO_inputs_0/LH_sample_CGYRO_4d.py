@@ -93,12 +93,14 @@ def main(argv):
         gen_f=gen_f,
         inputs=[],  # No input when start persistent generator
         persis_in=["sim_id"],  # Return sim_ids of evaluated points to generator
-        outputs=[("x", float, (3,))],
+        outputs=[("x", float, (2,))],
         user={
             # "initial_batch_size": nworkers,
             "gen_batch_size": 10,
-            "lb": np.array([1.0, -0.60, -0.1]),  # lower bound for input
-            "ub": np.array([2.5, 0.60, 0.1]),  # upper bound for input
+            "lb": np.array([-0.60, -0.1]),  # lower bound for input
+            "ub": np.array([ 0.60, 0.1]),  # upper bound for input
+            # "lb": np.array([1.0, -0.60, -0.1]),  # lower bound for input
+            # "ub": np.array([2.5, 0.60, 0.1]),  # upper bound for input
             # "lb": np.array([1.0, -0.75, -0.1]),  # lower bound for input
             # "ub": np.array([4.0, 0.75, 0.1]),  # upper bound for input
         },

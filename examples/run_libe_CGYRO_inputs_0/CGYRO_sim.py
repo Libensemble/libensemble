@@ -181,8 +181,10 @@ def run_CGYRO_over_KY(H, persis_info, sim_specs, libE_info):
 
     workdir = Path.cwd()
 
-    for i, KY in enumerate(np.arange(0.1,0.80,0.05)):
-        x_to_check = np.hstack([np.squeeze(H["x"]), KY])
+    fixed_KAPPA = 1.25222
+    # for i, KY in enumerate(np.arange(0.1,0.80,0.05)):
+    for i, KY in enumerate(np.arange(0.15,0.80,0.05)):
+        x_to_check = np.hstack([fixed_KAPPA,np.squeeze(H["x"]), KY])
 
         # pristine template before running for this KY 
         shutil.copy2(backup_file, input_file)
