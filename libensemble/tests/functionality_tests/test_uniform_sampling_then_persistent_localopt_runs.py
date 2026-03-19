@@ -54,17 +54,19 @@ if __name__ == "__main__":
         "gen_f": gen_f,
         "persis_in": ["x", "f", "grad", "sim_id"],
         "out": gen_out,
+        "batch_size": 2,
+        "batch_mode": True,
+        "num_active_gens": 1,
         "user": {
             "xtol_rel": 1e-4,
             "lb": np.array([-3, -2]),
             "ub": np.array([3, 2]),
-            "gen_batch_size": 2,
             "localopt_method": "LD_MMA",
             "xtol_rel": 1e-4,
         },
     }
 
-    alloc_specs = {"alloc_f": alloc_f, "user": {"batch_mode": True, "num_active_gens": 1}}
+    alloc_specs = {"alloc_f": alloc_f}
 
     persis_info = add_unique_random_streams({}, nworkers + 1)
 

@@ -28,13 +28,16 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info, li
     if libE_info["sim_max_given"] or not libE_info["any_idle_workers"]:
         return {}, persis_info
 
+    user = {**gen_specs, **alloc_specs.get("user", {})}
     manage_resources = libE_info["use_resource_sets"]
     support = AllocSupport(W, manage_resources, persis_info, libE_info)
     Work = {}
     gen_count = support.count_gens()
 
     if gen_specs["user"].get("single_component_at_a_time"):
-        assert alloc_specs["user"]["batch_mode"], "Must be in batch mode when using 'single_component_at_a_time'"
+        assert (
+            alloc_specs["user"]["batch_mode"] or gen_specs["batch_mode"]
+        ), "Must be in batch mode when using 'single_component_at_a_time'"
     if len(H) != persis_info["H_len"]:
         # Something new is in the history.
         persis_info["need_to_give"].update(H["sim_id"][persis_info["H_len"] :].tolist())
@@ -119,13 +122,13 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info, li
             break
 
     while len(idle_gen_workers):
-        if gen_count < alloc_specs["user"].get("num_active_gens", gen_count + 1):
+        if gen_count < user.get("num_active_gens", gen_count + 1):
             lw = persis_info["last_worker"]
 
             last_size = persis_info.get("last_size")
             if len(H):
                 # Don't give gen instances in batch mode if points are unfinished
-                if alloc_specs["user"].get("batch_mode") and not all(
+                if (alloc_specs["user"].get("batch_mode") or gen_specs.get("batch_mode")) and not all(
                     np.logical_or(H["sim_ended"][last_size:], H["paused"][last_size:])
                 ):
                     break
@@ -142,7 +145,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info, li
             persis_info["last_worker"] = i
             persis_info["last_size"] = len(H)
 
-        elif gen_count >= alloc_specs["user"].get("num_active_gens", gen_count + 1):
+        elif gen_count >= user.get("num_active_gens", gen_count + 1):
             idle_gen_workers = []
 
     return Work, persis_info

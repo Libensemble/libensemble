@@ -52,8 +52,8 @@ def test_full_workflow():
         sim_specs=SimSpecs(sim_f=norm_eval),
         gen_specs=GenSpecs(
             gen_f=latin_hypercube_sample,
+            batch_size=100,
             user={
-                "gen_batch_size": 100,
                 "lb": np.array([-3]),
                 "ub": np.array([3]),
             },
@@ -95,8 +95,8 @@ def test_flakey_workflow():
             sim_specs=SimSpecs(sim_f=norm_eval),
             gen_specs=GenSpecs(
                 gen_f=latin_hypercube_sample,
+                batch_size=100,
                 user={
-                    "gen_batch_size": 100,
                     "lb": np.array([-3]),
                     "ub": np.array([3]),
                 },

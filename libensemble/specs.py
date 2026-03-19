@@ -214,9 +214,6 @@ class GenSpecs(BaseModel):
     """
     Number of points to generate in each batch. If zero, falls back to the number of
     completed evaluations most recently told to the generator.
-
-    Note: Certain generators included with libEnsemble decide
-    batch sizes via ``gen_specs["user"]`` or other methods.
     """
 
     threaded: bool | None = False

@@ -50,8 +50,8 @@ if __name__ == "__main__":
     gen_specs = {
         "gen_f": gen_f,
         "outputs": [("x", float, (2,))],
+        "batch_size": 50,
         "user": {
-            "gen_batch_size": 50,
             "lb": np.array([-3, -3]),
             "ub": np.array([3, 3]),
         },

@@ -65,10 +65,10 @@ gen_specs = {
     "gen_f": gen_f,  # Generator function
     "in": [],  # Generator input
     "out": [("x", float, (1,))],  # Name, type and size of data produced (must match sim_specs 'in')
+    "batch_size": 1000,  # How many random samples to generate in one call
     "user": {
         "lb": np.array([0]),  # Lower bound for random sample array (1D)
         "ub": np.array([32767]),  # Upper bound for random sample array (1D)
-        "gen_batch_size": 1000,  # How many random samples to generate in one call
     },
 }
 

@@ -93,10 +93,9 @@ if __name__ == "__main__":
             ("resource_sets", int),
         ],
         "async_return": False,
+        "batch_size": nworkers - 1,
         "user": {
             "range": [1, 8],
-            # Total max number of sims running concurrently.
-            "gen_batch_size": nworkers - 1,
             # Lower bound for the n parameters.
             "lb": np.array([0, 0]),
             # Upper bound for the n parameters.

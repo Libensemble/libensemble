@@ -74,8 +74,8 @@ if __name__ == "__main__":
         "give_all_with_same_priority": True,
         "num_active_gens": 1,
         "async_return": True,
+        "batch_size": 5,
         "user": {
-            "gen_batch_size": 5,
             "max_resource_sets": nworkers,
             "lb": np.array([-3, -2]),
             "ub": np.array([3, 2]),

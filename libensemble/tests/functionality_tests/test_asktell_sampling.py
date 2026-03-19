@@ -47,7 +47,6 @@ if __name__ == "__main__":
         "initial_batch_size": 20,
         "batch_size": 10,
         "user": {
-            "initial_batch_size": 20,  # for wrapper
             "lb": np.array([-3, -2]),
             "ub": np.array([3, 2]),
         },

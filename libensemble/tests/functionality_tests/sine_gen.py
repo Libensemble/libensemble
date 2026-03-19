@@ -11,7 +11,7 @@ def gen_random_sample(InputArray, persis_info, gen_specs):
 
     # Determine how many values to generate
     num = len(lower)
-    batch_size = user_specs["gen_batch_size"]
+    batch_size = gen_specs["batch_size"]
 
     # Create empty array of "batch_size" zeros. Array dtype should match "out" fields
     OutputArray = np.zeros(batch_size, dtype=gen_specs["out"])

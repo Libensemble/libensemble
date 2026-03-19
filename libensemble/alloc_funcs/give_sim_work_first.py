@@ -18,14 +18,14 @@ def give_sim_work_first(
     """
     Decide what should be given to workers. This allocation function gives any
     available simulation work first, and only when all simulations are
-    completed or running does it start (at most ``alloc_specs["user"]["num_active_gens"]``)
+    completed or running does it start (at most ``gen_specs["num_active_gens"]`` or ``alloc_specs["user"]["num_active_gens"]``)
     generator instances.
 
-    Allows for a ``alloc_specs["user"]["batch_mode"]`` where no generation
+    Allows for a ``gen_specs["batch_mode"]`` or ``alloc_specs["user"]["batch_mode"]`` where no generation
     work is given out unless all entries in ``H`` are returned.
 
     Can give points in highest priority, if ``"priority"`` is a field in ``H``.
-    If ``alloc_specs["user"]["give_all_with_same_priority"]`` is set to True, then
+    If ``gen_specs["give_all_with_same_priority"]`` or ``alloc_specs["user"]["give_all_with_same_priority"]`` is set to True, then
     all points with the same priority value are given as a batch to the sim.
 
     Workers performing sims will be assigned resources given in H["resource_sets"]
@@ -40,7 +40,8 @@ def give_sim_work_first(
         `test_uniform_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_uniform_sampling.py>`_ # noqa
     """
 
-    user = alloc_specs.get("user", {})
+    user = {**gen_specs, **alloc_specs.get("user", {})}
+
     if "cancel_sims_time" in user:
         # Cancel simulations that are taking too long
         rows = np.where(np.logical_and.reduce((H["sim_started"], ~H["sim_ended"], ~H["cancel_requested"])))[0]
@@ -52,11 +53,8 @@ def give_sim_work_first(
     if libE_info["sim_max_given"] or not libE_info["any_idle_workers"]:
         return {}, persis_info
 
-    # Initialize options - check gen_specs first
-    batch_give = gen_specs.get("give_all_with_same_priority", user.get("give_all_with_same_priority", False))
-    num_active_gens = gen_specs.get("num_active_gens", user.get("num_active_gens", 1))
-    batch_mode = gen_specs.get("batch_mode", user.get("batch_mode", False))
-
+    # Initialize alloc_specs["user"] as user.
+    batch_give = user.get("give_all_with_same_priority", False)
     gen_in = gen_specs.get("in", [])
 
     manage_resources = libE_info["use_resource_sets"]
@@ -79,11 +77,11 @@ def give_sim_work_first(
     else:
         for wid in support.avail_worker_ids(gen_workers=True):
             # Allow at most num_active_gens active generator instances
-            if gen_count >= num_active_gens:
+            if gen_count >= user.get("num_active_gens", gen_count + 1):
                 break
 
             # Do not start gen instances in batch mode if workers still working
-            if batch_mode and not support.all_sim_ended(H):
+            if user.get("batch_mode") and not support.all_sim_ended(H):
                 break
 
             # Give gen work

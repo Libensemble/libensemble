@@ -12,10 +12,10 @@ if __name__ == "__main__":  # Python-quirk required on macOS and windows
     gen_specs = GenSpecs(
         gen_f=gen_random_sample,  # Our generator function
         out=[("x", float, (1,))],  # gen_f output (name, type, size)
+        batch_size=5,  # number of x's gen_f generates per call
         user={
             "lower": np.array([-3]),  # lower boundary for random sampling
             "upper": np.array([3]),  # upper boundary for random sampling
-            "gen_batch_size": 5,  # number of x's gen_f generates per call
         },
     )
 

@@ -52,10 +52,10 @@ if __name__ == "__main__":
         "gen_f": gen_f,
         "in": ["sim_id"],
         "out": [("x", float, (1,))],
+        "batch_size": 500,
         "user": {
             "lb": np.array([-3]),
             "ub": np.array([3]),
-            "gen_batch_size": 500,
         },
     }
 

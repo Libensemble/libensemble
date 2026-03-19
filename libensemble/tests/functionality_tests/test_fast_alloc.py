@@ -43,8 +43,8 @@ if __name__ == "__main__":
         "gen_f": gen_f,
         "in": ["sim_id"],
         "out": [("x", float, (2,))],
+        "batch_size": num_pts,
         "user": {
-            "gen_batch_size": num_pts,
             "lb": np.array([-3, -2]),
             "ub": np.array([3, 2]),
         },
@@ -73,7 +73,7 @@ if __name__ == "__main__":
 
             if time == 0:
                 sim_specs["user"].pop("uniform_random_pause_ub")
-                gen_specs["user"]["gen_batch_size"] = num_pts // 2
+                gen_specs["batch_size"] = num_pts // 2
 
             persis_info["next_to_give"] = 0
             persis_info["total_gen_calls"] = 1
