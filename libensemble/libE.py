@@ -242,9 +242,17 @@ def libE(
     ]
     exit_criteria = specs_dump(ensemble.exit_criteria, by_alias=True, exclude_none=True)
 
-    # Restore the generator object (don't use serialized version)
-    if ensemble.gen_specs and hasattr(ensemble.gen_specs, "generator") and ensemble.gen_specs.generator is not None:
-        gen_specs["generator"] = ensemble.gen_specs.generator
+    # Restore objects that don't survive serialization via model_dump
+    if hasattr(ensemble.sim_specs, "simulator") and ensemble.sim_specs.simulator is not None:
+        sim_specs["simulator"] = ensemble.sim_specs.simulator
+    if hasattr(ensemble.sim_specs, "vocs") and ensemble.sim_specs.vocs is not None:
+        sim_specs["vocs"] = ensemble.sim_specs.vocs
+
+    if ensemble.gen_specs is not None:
+        if hasattr(ensemble.gen_specs, "generator") and ensemble.gen_specs.generator is not None:
+            gen_specs["generator"] = ensemble.gen_specs.generator
+        if hasattr(ensemble.gen_specs, "vocs") and ensemble.gen_specs.vocs is not None:
+            gen_specs["vocs"] = ensemble.gen_specs.vocs
 
     # Extract platform info from settings or environment
     platform_info = get_platform(libE_specs)

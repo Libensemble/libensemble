@@ -216,6 +216,16 @@ class GenSpecs(BaseModel):
     batch sizes via ``gen_specs["user"]`` or other methods.
     """
 
+    initial_sample_method: str | None = None
+    """
+    Method for producing initial sample points before starting the generator.
+    If None (default), the generator is responsible for producing its own initial
+    sample via ``suggest()``. Set to ``"uniform"`` to have libEnsemble generate
+    uniform random samples from VOCS bounds, evaluate them, and ingest the results
+    into the generator before optimization begins. The number of sample points is
+    determined by ``initial_batch_size``.
+    """
+
     threaded: bool | None = False
     """
     Instruct Worker process to launch user function to a thread.
