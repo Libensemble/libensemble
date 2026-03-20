@@ -69,6 +69,7 @@ if __name__ == "__main__":
         "gen_f": gen_f,
         "persis_in": ["f"] + [n[0] for n in gen_out],
         "out": gen_out,
+        "initial_batch_size": 100,
         "user": {
             "initial_sample_size": 100,
             "localopt_method": "LN_BOBYQA",
