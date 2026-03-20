@@ -72,6 +72,7 @@ if __name__ == "__main__":
         "in": gen_in,
         "persis_in": gen_in,
         "out": gen_out,
+        "initial_batch_size": 0,
         "user": {
             "initial_sample_size": 0,  # Don't need to do evaluations because the sampling already done below
             "localopt_method": "LD_MMA",
