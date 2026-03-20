@@ -84,7 +84,7 @@ def uniform_random_sample_with_var_priorities_and_resources(H, persis_info, gen_
     n = len(lb)
 
     if len(H) == 0:
-        b = gen_specs["batch_size"]
+        b = gen_specs["initial_batch_size"]
 
         H_o = np.zeros(b, dtype=gen_specs["out"])
         for i in range(0, b):
