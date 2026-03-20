@@ -80,7 +80,7 @@ def runline_check_by_worker(H, persis_info, sim_specs, libE_info):
     exctr = Executor.executor
     test = sim_specs["user"]["tests"][0]
     exp_list = sim_specs["user"]["expect"]
-    # p_gens = sim_specs["user"].get("persis_gens", 0)
+    p_gens = sim_specs["user"].get("persis_gens", 0)
 
     task = exctr.submit(
         calc_type="sim",
@@ -107,7 +107,7 @@ def runline_check_by_worker(H, persis_info, sim_specs, libE_info):
     else:
         wid_mod = wid
 
-    new_exp_list = exp_list[wid_mod - 1]  # - p_gens]
+    new_exp_list = exp_list[wid_mod - 1 - p_gens]
 
     if outline != new_exp_list:
         print(f"Worker {wid}:\n outline is: {outline}\n exp     is: {new_exp_list}", flush=True)

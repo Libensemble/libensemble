@@ -63,10 +63,10 @@ class Resources:
                 libE_specs=libE_specs, platform_info=platform_info, top_level_dir=top_level_dir
             )
 
-    def __init__(self, libE_specs: dict, platform_info: dict = {}, top_level_dir: str = None) -> None:
+    def __init__(self, libE_specs: dict, platform_info: dict = {}, top_level_dir: str = "") -> None:
         """Initiate a new resources object"""
         self.top_level_dir = top_level_dir or os.getcwd()
-        self.glob_resources = GlobalResources(libE_specs=libE_specs, platform_info=platform_info, top_level_dir=None)
+        self.glob_resources = GlobalResources(libE_specs=libE_specs, platform_info=platform_info, top_level_dir="")
         self.resource_manager = None  # For Manager
         self.worker_resources = None  # For Workers
 
@@ -101,7 +101,7 @@ class GlobalResources:
     :ivar int num_resource_sets: Number of resource sets, if supplied by the user.
     """
 
-    def __init__(self, libE_specs: dict, platform_info: dict = {}, top_level_dir: str = None) -> None:
+    def __init__(self, libE_specs: dict, platform_info: dict = {}, top_level_dir: str = "") -> None:
         """Initializes a new Resources instance
 
         Determines the compute resources available for current allocation, including
@@ -167,6 +167,8 @@ class GlobalResources:
         self.top_level_dir = top_level_dir
         self.dedicated_mode = libE_specs.get("dedicated_mode", False)
         self.zero_resource_workers = libE_specs.get("zero_resource_workers", [])
+        if 0 not in self.zero_resource_workers:
+            self.zero_resource_workers.append(0)
         self.num_resource_sets = libE_specs.get("num_resource_sets", None)
         self.enforce_worker_core_bounds = libE_specs.get("enforce_worker_core_bounds", False)
         self.gpus_per_group = libE_specs.get("gpus_per_group")

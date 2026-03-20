@@ -105,7 +105,7 @@ if __name__ == "__main__":
             libE_specs["zero_resource_workers"] = []  # perhaps the generator needs GPUs
 
             resourced_workers = (
-                nworkers if gen_on_worker else nworkers + 1.0
+                nworkers if gen_on_worker else nworkers + 1
             )  # note this "nworkers" decided before the extra worker starts
             sim_workers = nworkers - 1 if gen_on_worker else nworkers
 
