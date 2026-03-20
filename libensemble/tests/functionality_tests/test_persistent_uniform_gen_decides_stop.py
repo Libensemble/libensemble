@@ -36,6 +36,8 @@ if __name__ == "__main__":
         n = 2
         init_batch_size = nworkers - ngens
 
+        libE_specs["gen_on_worker"] = True
+
         if ngens >= nworkers:
             sys.exit("The number of generators must be less than the number of workers -- aborting...")
 

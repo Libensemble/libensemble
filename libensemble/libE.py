@@ -385,7 +385,7 @@ def libE_mpi(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE
         # Run manager or worker code, depending
         if is_manager:
             if resources is not None:
-                resources.set_resource_manager(nworkers)
+                resources.set_resource_manager(nworkers + 1)
             return libE_mpi_manager(
                 mpi_comm, sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0
             )

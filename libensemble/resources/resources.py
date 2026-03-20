@@ -67,8 +67,8 @@ class Resources:
         """Initiate a new resources object"""
         self.top_level_dir = top_level_dir or os.getcwd()
         self.glob_resources = GlobalResources(libE_specs=libE_specs, platform_info=platform_info, top_level_dir="")
-        self.resource_manager = None  # For Manager
-        self.worker_resources = None  # For Workers
+        self.resource_manager: ResourceManager | None = None  # For Manager
+        self.worker_resources: WorkerResources | None = None  # For Workers
 
     def set_worker_resources(self, num_workers: int, workerid: int) -> None:
         """Initiate the worker resources component of resources"""
@@ -167,8 +167,6 @@ class GlobalResources:
         self.top_level_dir = top_level_dir
         self.dedicated_mode = libE_specs.get("dedicated_mode", False)
         self.zero_resource_workers = libE_specs.get("zero_resource_workers", [])
-        if 0 not in self.zero_resource_workers:
-            self.zero_resource_workers.append(0)
         self.num_resource_sets = libE_specs.get("num_resource_sets", None)
         self.enforce_worker_core_bounds = libE_specs.get("enforce_worker_core_bounds", False)
         self.gpus_per_group = libE_specs.get("gpus_per_group")
