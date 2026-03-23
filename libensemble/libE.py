@@ -155,7 +155,7 @@ def libE(
     exit_criteria: ExitCriteria,
     persis_info: dict = {},
     alloc_specs: AllocSpecs = AllocSpecs(),
-    libE_specs: LibeSpecs = {},
+    libE_specs: LibeSpecs | dict = {},
     H0=None,
 ) -> (np.ndarray, dict, int):
     """
@@ -242,11 +242,16 @@ def libE(
     ]
     exit_criteria = specs_dump(ensemble.exit_criteria, by_alias=True, exclude_none=True)
 
-    # Restore objects that don't survive serialization via model_dump
-    if hasattr(ensemble.gen_specs, "generator") and ensemble.gen_specs.generator is not None:
-        gen_specs["generator"] = ensemble.gen_specs.generator
-    if hasattr(ensemble.gen_specs, "vocs") and ensemble.gen_specs.vocs is not None:
-        gen_specs["vocs"] = ensemble.gen_specs.vocs
+    if hasattr(ensemble.sim_specs, "simulator") and ensemble.sim_specs.simulator is not None:
+        sim_specs["simulator"] = ensemble.sim_specs.simulator
+    if hasattr(ensemble.sim_specs, "vocs") and ensemble.sim_specs.vocs is not None:
+        sim_specs["vocs"] = ensemble.sim_specs.vocs
+
+    if ensemble.gen_specs is not None:
+        if hasattr(ensemble.gen_specs, "generator") and ensemble.gen_specs.generator is not None:
+            gen_specs["generator"] = ensemble.gen_specs.generator
+        if hasattr(ensemble.gen_specs, "vocs") and ensemble.gen_specs.vocs is not None:
+            gen_specs["vocs"] = ensemble.gen_specs.vocs
 
     # Extract platform info from settings or environment
     platform_info = get_platform(libE_specs)
@@ -358,7 +363,7 @@ def libE_mpi(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE
         logger.manager_warning("*WARNING* libEnsemble detected a NULL communicator")
         return [], persis_info, 3  # Process not in mpi_comm
 
-    assert libE_specs["mpi_comm"].Get_size() > 1, "Manager only - must be at least one worker (2 MPI tasks)"
+    assert libE_specs["mpi_comm"].Get_size() >= 1, "Manager only - must be at least one MPI task"
 
     with DupComm(libE_specs["mpi_comm"]) as mpi_comm:
         is_manager = mpi_comm.Get_rank() == 0
@@ -368,7 +373,6 @@ def libE_mpi(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE
             local_host = socket.gethostname()
             libE_nodes = list(set(mpi_comm.allgather(local_host)))
             resources.add_comm_info(libE_nodes=libE_nodes)
-            nworkers = mpi_comm.Get_size() - 1
 
         exctr = Executor.executor
         if exctr is not None:
@@ -379,7 +383,8 @@ def libE_mpi(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE
         # Run manager or worker code, depending
         if is_manager:
             if resources is not None:
-                resources.set_resource_manager(nworkers)
+                n_resource_workers = mpi_comm.Get_size()
+                resources.set_resource_manager(n_resource_workers)
             return libE_mpi_manager(
                 mpi_comm, sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0
             )
@@ -497,7 +502,8 @@ def libE_local(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, li
 
     # Set manager resources after the forkpoint.
     if resources is not None:
-        resources.set_resource_manager(libE_specs["nworkers"])
+        n_resource_workers = libE_specs["nworkers"] + (not libE_specs.get("gen_on_worker", False))
+        resources.set_resource_manager(n_resource_workers)
 
     if not libE_specs["disable_log_files"]:
         exit_logger = manager_logging_config(specs=libE_specs)

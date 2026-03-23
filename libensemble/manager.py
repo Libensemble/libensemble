@@ -232,7 +232,7 @@ class Manager:
             (1, "stop_val", self.term_test_stop_val),
         ]
 
-        gen_on_manager = self.libE_specs.get("gen_on_manager", False)
+        gen_on_manager = not self.libE_specs.get("gen_on_worker", False)
 
         self.W = np.zeros(len(self.wcomms) + gen_on_manager, dtype=Manager.worker_dtype)
         if gen_on_manager:
@@ -662,7 +662,7 @@ class Manager:
             "use_resource_sets": self.use_resource_sets,
             "gen_num_procs": self.gen_num_procs,
             "gen_num_gpus": self.gen_num_gpus,
-            "gen_on_manager": self.libE_specs.get("gen_on_manager", False),
+            "gen_on_worker": self.libE_specs.get("gen_on_worker", False),
         }
 
     def _alloc_work(self, H: npt.NDArray, persis_info: dict) -> dict:

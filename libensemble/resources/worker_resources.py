@@ -105,8 +105,8 @@ class ResourceManager(RSetResources):
     def get_index_list(num_workers: int, num_rsets: int, zero_resource_list: list[int | Any]) -> list[int | None]:
         """Map WorkerID to index into a nodelist"""
         index = 0
-        index_list = []
-        for i in range(1, num_workers + 1):
+        index_list: list[int | None] = []
+        for i in range(0, num_workers):
             if i in zero_resource_list:
                 index_list.append(None)
             else:
@@ -116,6 +116,11 @@ class ResourceManager(RSetResources):
                 else:
                     index_list.append(index)
                 index += 1
+
+        for i in zero_resource_list:
+            if i >= num_workers:
+                logger.warning(f"Worker index {i} from zero_resource_workers is out of range (0-{num_workers - 1})")
+
         return index_list
 
 
@@ -364,7 +369,7 @@ class WorkerResources(RSetResources):
         local_nodelist = list(OrderedDict.fromkeys(team_list))  # Maintain order of nodes
         logger.debug(f"Worker's local_nodelist is {local_nodelist}")
 
-        slots = {}
+        slots: dict[str, list[int]] = {}
         for node in local_nodelist:
             slots[node] = []
 

@@ -132,7 +132,7 @@ class AllocSupport:
 
         wrks = []
         for wrk in self.W:
-            if fltr_recving() and fltr_persis() and fltr_zrw() and fltr_gen_workers():
+            if all((fltr_recving(), fltr_persis(), fltr_zrw(), fltr_gen_workers())):
                 wrks.append(wrk["worker_id"])
         return wrks
 

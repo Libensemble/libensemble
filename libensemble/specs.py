@@ -344,9 +344,9 @@ class LibeSpecs(BaseModel):
     nworkers: int | None = 0
     """ Number of worker processes in ``"local"``, ``"threads"``, or ``"tcp"``."""
 
-    gen_on_manager: bool | None = False
-    """ Instructs Manager process to run generator functions.
-    This generator function can access/modify user objects by reference.
+    gen_on_worker: bool = False
+    """ Instructs libEnsemble to run generator functions on a worker rank.
+    By default, the generator runs on the manager process as a thread (Worker 0).
     """
 
     mpi_comm: object | None = None
@@ -635,10 +635,11 @@ class LibeSpecs(BaseModel):
     libEnsemble processes (manager and workers) are running.
     """
 
-    zero_resource_workers: list[int] | None = []
+    zero_resource_workers: list[int] | None = [0]
     """
     list of workers that require no resources. For when a fixed mapping of workers
     to resources is required. Otherwise, use ``num_resource_sets``.
+    By default, Worker 0 (manager thread) is a zero-resource worker.
     For use with supported allocation functions.
     """
 
