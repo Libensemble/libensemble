@@ -13,7 +13,7 @@ The number of concurrent evaluations of the objective function with 2 gens will 
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local
-# TESTSUITE_NPROCS: 5 7
+# TESTSUITE_NPROCS: 3 5
 # TESTSUITE_OS_SKIP: WIN
 
 import sys
@@ -33,18 +33,13 @@ if __name__ == "__main__":
     nworkers, is_manager, libE_specs, _ = parse_args()
 
     for ngens in range(1, 3):
-        # If gen_on_worker is False (default), the first gen is on the manager (Worker 0).
-        # Subsequent gens (if ngens > 1) move to worker ranks.
-        if not libE_specs.get("gen_on_worker", False):
-            nsim_workers = nworkers - (ngens - 1)
-        else:
-            nsim_workers = nworkers - ngens
-
         n = 2
-        init_batch_size = nsim_workers
+        init_batch_size = nworkers - ngens
 
-        if nsim_workers <= 0:
-            sys.exit("The number of generators must be less than the available workers -- aborting...")
+        libE_specs["gen_on_worker"] = True
+
+        if ngens >= nworkers:
+            sys.exit("The number of generators must be less than the number of workers -- aborting...")
 
         sim_specs = {
             "sim_f": sim_f,

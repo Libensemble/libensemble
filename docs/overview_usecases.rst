@@ -53,8 +53,8 @@ to support):
 .. dropdown:: **Click Here for Use-Cases**
 
   * A user wants to optimize a simulation calculation. The simulation may
-    already be using parallel resources but not a large fraction of a 
-    computer. libEnsemble can coordinate concurrent evaluations of the 
+    already be using parallel resources but not a large fraction of a
+    computer. libEnsemble can coordinate concurrent evaluations of the
     simulation ``sim_f`` at multiple parameter values based on candidate parameter
     values produced by ``gen_f`` (possibly after each ``sim_f`` output).
 
@@ -117,7 +117,7 @@ its capabilities.
   * **User function**: A generator, simulator, or allocation function. These
     Python functions govern the libEnsemble workflow. They
     must conform to the libEnsemble API for each respective user function, but otherwise can
-    be created or modified by the user. 
+    be created or modified by the user.
     libEnsemble includes many examples of each type.
 
   * **Executor**: The executor provides a simple, portable interface for
@@ -138,14 +138,14 @@ its capabilities.
     allowing them to maintain and update data structures efficiently. These
     calculations and their assigned workers are referred to as *persistent*.
 
-  * **Resource Manager**: libEnsemble includes a built-in resource manager that can detect 
+  * **Resource Manager**: libEnsemble includes a built-in resource manager that can detect
     (or be provided with) available resources (e.g., a node list). Resources are
     divided among workers using *resource sets* and can be dynamically
     reassigned.
 
   * **Resource Set**: The smallest unit of resources that can be assigned (and
     dynamically reassigned) to workers. By default this is the provisioned resources
-    divided by the number of workers (excluding any workers listed in the 
+    divided by the number of workers (excluding any workers listed in the
     ``zero_resource_workers`` ``libE_specs`` option). It can also be set
     explicitly using the ``num_resource_sets`` ``libE_specs`` option.
 

@@ -32,7 +32,6 @@ if __name__ == "__main__":
 
     # Persistent gen does not need resources
     ensemble.libE_specs = LibeSpecs(
-        gen_on_manager=True,
         sim_dirs_make=True,
     )
 

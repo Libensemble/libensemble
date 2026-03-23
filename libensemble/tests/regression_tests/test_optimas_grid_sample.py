@@ -42,7 +42,7 @@ if __name__ == "__main__":
     n = 2
     batch_size = 4
 
-    libE_specs = LibeSpecs(gen_on_manager=True, nworkers=batch_size)
+    libE_specs = LibeSpecs(nworkers=batch_size)
 
     # Create varying parameters.
     lower_bounds = [-3.0, 2.0]

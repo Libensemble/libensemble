@@ -42,7 +42,7 @@ if __name__ == "__main__":
     n = 2
     batch_size = 2
 
-    libE_specs = LibeSpecs(gen_on_manager=True, nworkers=batch_size)
+    libE_specs = LibeSpecs(nworkers=batch_size)
 
     vocs = VOCS(
         variables={"x0": [-50.0, 5.0], "x1": [-5.0, 15.0], "res": [1.0, 8.0]},

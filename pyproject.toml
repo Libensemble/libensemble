@@ -8,12 +8,7 @@ authors = [
   { name = "John-Luke Navarro" },
 ]
 
-dependencies = [
-  "numpy",
-  "psutil",
-  "pydantic",
-  "gest-api>=0.1,<0.2",
-]
+dependencies = ["numpy", "psutil", "pydantic", "gest-api>=0.1,<0.2"]
 
 description = "A Python toolkit for coordinating asynchronous and dynamic ensembles of calculations."
 name = "libensemble"
@@ -212,7 +207,7 @@ docs = ["pyenchant", "enchant>=0.0.1,<0.0.2", "sphinx-lfs-content>=1.1.10,<2"]
 # Various config from here onward
 [tool.black]
 line-length = 120
-target-version = ['py310', 'py311', 'py312', 'py313']
+target-version = ["py311", "py312", "py313", "py314"]
 force-exclude = '''
 (
   /(

@@ -66,15 +66,7 @@ warnings.filterwarnings("ignore", category=UserWarning)
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
     nworkers, is_manager, libE_specs, _ = parse_args()
-
-    # If gen_on_worker is False (default), then all nworkers are available for sims.
-    # Worker 0 is the generator (and it is a zero_resource_worker by default).
-    if not libE_specs.get("gen_on_worker", False):
-        nsim_workers = nworkers
-    else:
-        nsim_workers = nworkers - 1
-
-    libE_specs["num_resource_sets"] = nsim_workers
+    libE_specs["num_resource_sets"] = nworkers  # Persistent gen does not need resources
     libE_specs["use_workflow_dir"] = True  # Only a place for Open MPI machinefiles
 
     if libE_specs["comms"] == "tcp":
@@ -96,8 +88,8 @@ if __name__ == "__main__":
         "persis_in": ["f", "x", "sim_id"],
         "out": [("priority", float), ("resource_sets", int), ("x", float, n)],
         "user": {
-            "initial_batch_size": nsim_workers,
-            "max_resource_sets": nsim_workers,  # Any sim created can req. 1 worker up to all.
+            "initial_batch_size": nworkers,
+            "max_resource_sets": nworkers,  # Any sim created can req. 1 worker up to all.
             "lb": np.array([-3, -2]),
             "ub": np.array([3, 2]),
         },

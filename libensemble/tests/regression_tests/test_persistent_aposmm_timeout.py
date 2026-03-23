@@ -87,6 +87,6 @@ if __name__ == "__main__":
 
     if is_manager:
         assert flag == 2, "Test should have timed out"
-        assert persis_info[1].get("run_order"), "Run_order should have been given back"
+        assert persis_info[0].get("run_order"), "Run_order should have been given back"
         min_ids = np.where(H["local_min"])
         save_libE_output(H, persis_info, __file__, nworkers)

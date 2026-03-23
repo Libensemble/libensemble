@@ -37,3 +37,4 @@ repos:
   rev: v1.19.1
   hooks:
     - id: mypy
+      args: [--config-file=pyproject.toml]

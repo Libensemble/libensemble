@@ -44,6 +44,7 @@ if __name__ == "__main__":
     comms = libE_specs["comms"]
 
     libE_specs["dedicated_mode"] = True
+    libE_specs["zero_resource_workers"] = [0]
     libE_specs["enforce_worker_core_bounds"] = True
 
     # To allow visual checking - log file not used in test
@@ -52,7 +53,7 @@ if __name__ == "__main__":
 
     # For varying size test - relate node count to nworkers
     n_gens = 1
-    nsim_workers = nworkers - n_gens
+    nsim_workers = nworkers  # - n_gens
 
     if nsim_workers % 2 == 0:
         sys.exit(
@@ -138,10 +139,17 @@ if __name__ == "__main__":
         exp_srun.append(srun_p1 + str(nodename) + srun_p2 + str(ntasks) + srun_p3 + str(ntasks) + srun_p4)
 
     test_list = test_list_base
-    exp_list = exp_srun
+    exp_list_dynamic = exp_srun.copy()
+    if nworkers == 5:
+        # Iteration 0 (Dynamic): Workers 1, 2 -> node-2; 3, 4, 5 -> node-1
+        n1 = srun_p1 + "node-1" + srun_p2 + "5" + srun_p3 + "5" + srun_p4
+        n2 = srun_p1 + "node-2" + srun_p2 + "8" + srun_p3 + "8" + srun_p4
+        exp_list_dynamic = [n2, n2, n1, n1, n1]
+        # Iteration 1 (Static): Worker 1 is gen. Workers 2, 3 -> node-1; 4, 5 -> node-2
+        exp_list_static = [n1, n1, n2, n2]
+
     sim_specs["user"] = {
         "tests": test_list,
-        "expect": exp_list,
         "persis_gens": n_gens,
     }
 
@@ -149,15 +157,21 @@ if __name__ == "__main__":
     for prob_id in range(iterations):
         if prob_id == 0:
             # Uses dynamic scheduler - will find node 2 slots first (as fewer)
-            libE_specs["num_resource_sets"] = nworkers - 1  # Any worker can be the gen
-            sim_specs["user"]["offset_for_scheduler"] = True  # Changes expected values
+            libE_specs["gen_on_worker"] = False
+            libE_specs["num_resource_sets"] = nworkers
+            sim_specs["user"]["expect"] = exp_list_dynamic
+            sim_specs["user"]["offset_for_scheduler"] = False
+            sim_specs["user"]["persis_gens"] = 0
             persis_info = add_unique_random_streams({}, nworkers + 1)
 
         else:
             # Uses static scheduler - will find node 1 slots first
+            libE_specs["gen_on_worker"] = True
+            sim_specs["user"]["expect"] = exp_list_static
             del libE_specs["num_resource_sets"]
             libE_specs["zero_resource_workers"] = [1]  # Gen must be worker 1
             sim_specs["user"]["offset_for_scheduler"] = False
+            sim_specs["user"]["persis_gens"] = 1
             persis_info = add_unique_random_streams({}, nworkers + 1)
 
         # Perform the run

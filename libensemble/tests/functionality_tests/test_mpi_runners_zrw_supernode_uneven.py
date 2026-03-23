@@ -33,9 +33,10 @@ if __name__ == "__main__":
     sim_app = "/path/to/fakeapp.x"
     comms = libE_specs["comms"]
 
-    libE_specs["zero_resource_workers"] = [1]
+    libE_specs["zero_resource_workers"] = [0, 1]
     libE_specs["dedicated_mode"] = True
     libE_specs["enforce_worker_core_bounds"] = True
+    libE_specs["gen_on_worker"] = True
 
     # To allow visual checking - log file not used in test
     log_file = "ensemble_mpi_runners_zrw_supernode_uneven_comms_" + str(comms) + "_wrks_" + str(nworkers) + ".log"
@@ -45,7 +46,7 @@ if __name__ == "__main__":
 
     # For varying size test - relate node count to nworkers
     in_place = libE_specs["zero_resource_workers"]
-    n_gens = len(in_place)
+    n_gens = len([w for w in in_place if w != 0])
     nsim_workers = nworkers - n_gens
     comms = libE_specs["comms"]
     node_file = "nodelist_mpi_runners_zrw_supernode_uneven_comms_" + str(comms) + "_wrks_" + str(nworkers)

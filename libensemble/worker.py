@@ -53,7 +53,7 @@ def worker_main(
     sim_specs: dict,
     gen_specs: dict,
     libE_specs: dict,
-    workerID: int = None,
+    workerID: int | None = None,
     log_comm: bool = True,
     resources: Resources = None,
     executor: Executor = None,
@@ -111,9 +111,10 @@ def worker_main(
         worker_logging_config(comm, workerID)
 
     LS = LocationStack()
-    LS.register_loc("workflow", Path(libE_specs.get("workflow_dir_path")))
+    LS.register_loc("workflow", Path(libE_specs.get("workflow_dir_path", ".")))
 
     # Set up and run worker
+    assert workerID is not None
     worker = Worker(comm, dtypes, workerID, sim_specs, gen_specs, libE_specs)
     with LS.loc("workflow"):
         if Executor.executor is not None:
@@ -122,7 +123,7 @@ def worker_main(
 
     if libE_specs.get("profile"):
         pr.disable()
-        profile_state_fname = "worker_%d.prof" % (workerID)
+        profile_state_fname = "worker_%d.prof" % workerID
         pr.dump_stats(profile_state_fname)
 
 
@@ -132,7 +133,7 @@ def worker_main(
 
 
 class WorkerErrMsg:
-    def __init__(self, msg, exc):
+    def __init__(self, msg: str, exc: str) -> None:
         self.msg = msg
         self.exc = exc
 
@@ -180,7 +181,7 @@ class Worker:
         self.runners = {EVAL_SIM_TAG: self.sim_runner.run, EVAL_GEN_TAG: self.gen_runner.run}
         self.calc_iter = {EVAL_SIM_TAG: 0, EVAL_GEN_TAG: 0}
         Worker._set_executor(self.workerID, self.comm)
-        Worker._set_resources(self.workerID, self.comm)
+        Worker._set_resources(self.workerID, self.comm, self.libE_specs)
         self.EnsembleDirectory = EnsembleDirectory(libE_specs=libE_specs)
 
     @staticmethod
@@ -218,11 +219,11 @@ class Worker:
             return False
 
     @staticmethod
-    def _set_resources(workerID, comm: Comm) -> bool:
+    def _set_resources(workerID, comm: Comm, libE_specs) -> bool:
         """Sets worker ID in the resources, return True if set"""
         resources = Resources.resources
         if isinstance(resources, Resources):
-            resources.set_worker_resources(comm.get_num_workers(), workerID)
+            resources.set_worker_resources(comm.get_num_workers() + 1, workerID)
             return True
         else:
             logger.debug(f"No resources set on worker {workerID}")
@@ -240,7 +241,7 @@ class Worker:
         calc_id = calc_id.rjust(5, " ")
         return enum_desc, calc_id
 
-    def _handle_calc(self, Work: dict, calc_in: npt.NDArray) -> (npt.NDArray, dict, int):
+    def _handle_calc(self, Work: dict, calc_in: npt.NDArray) -> tuple[npt.NDArray | None, dict, int | str]:
         """Runs a calculation on this worker object.
 
         This routine calls the user calculations. Exceptions are caught,
@@ -282,7 +283,7 @@ class Worker:
 
                 logger.debug(f"Returned from user function for {enum_desc} {calc_id}")
 
-            calc_status = UNSET_TAG
+            calc_status: int | str = UNSET_TAG
             # Check for buffered receive
             if self.comm.recv_buffer:
                 tag, message = self.comm.recv()
@@ -316,7 +317,7 @@ class Worker:
 
             logging.getLogger(LogConfig.config.stats_name).info(calc_msg)
 
-    def _get_calc_msg(self, enum_desc: str, calc_id: int, calc_type: int, timer: Timer, status: str) -> str:
+    def _get_calc_msg(self, enum_desc: str, calc_id: str, calc_type: str, timer: Timer, status: int | str) -> str:
         """Construct line for libE_stats.txt file"""
         calc_msg = f"{enum_desc} {calc_id}: {calc_type} {timer}"
 
@@ -332,7 +333,7 @@ class Worker:
 
         return calc_msg
 
-    def _recv_H_rows(self, Work: dict) -> (dict, int, npt.NDArray):
+    def _recv_H_rows(self, Work: dict) -> tuple[dict, int, npt.NDArray]:
         """Unpacks Work request and receives any history rows"""
         libE_info = Work["libE_info"]
         calc_type = Work["tag"]
@@ -346,7 +347,7 @@ class Worker:
 
         return libE_info, calc_type, calc_in
 
-    def _handle(self, Work: dict) -> dict:
+    def _handle(self, Work: dict) -> dict | None:
         """Handles a work request from the manager"""
         # Check work request and receive second message (if needed)
         libE_info, calc_type, calc_in = self._recv_H_rows(Work)

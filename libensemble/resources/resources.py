@@ -63,12 +63,12 @@ class Resources:
                 libE_specs=libE_specs, platform_info=platform_info, top_level_dir=top_level_dir
             )
 
-    def __init__(self, libE_specs: dict, platform_info: dict = {}, top_level_dir: str = None) -> None:
+    def __init__(self, libE_specs: dict, platform_info: dict = {}, top_level_dir: str = "") -> None:
         """Initiate a new resources object"""
         self.top_level_dir = top_level_dir or os.getcwd()
-        self.glob_resources = GlobalResources(libE_specs=libE_specs, platform_info=platform_info, top_level_dir=None)
-        self.resource_manager = None  # For Manager
-        self.worker_resources = None  # For Workers
+        self.glob_resources = GlobalResources(libE_specs=libE_specs, platform_info=platform_info, top_level_dir="")
+        self.resource_manager: ResourceManager | None = None  # For Manager
+        self.worker_resources: WorkerResources | None = None  # For Workers
 
     def set_worker_resources(self, num_workers: int, workerid: int) -> None:
         """Initiate the worker resources component of resources"""
@@ -101,7 +101,7 @@ class GlobalResources:
     :ivar int num_resource_sets: Number of resource sets, if supplied by the user.
     """
 
-    def __init__(self, libE_specs: dict, platform_info: dict = {}, top_level_dir: str = None) -> None:
+    def __init__(self, libE_specs: dict, platform_info: dict = {}, top_level_dir: str = "") -> None:
         """Initializes a new Resources instance
 
         Determines the compute resources available for current allocation, including

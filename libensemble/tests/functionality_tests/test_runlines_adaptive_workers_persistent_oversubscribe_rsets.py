@@ -31,9 +31,9 @@ from libensemble.tools import add_unique_random_streams, parse_args, save_libE_o
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
     nworkers, is_manager, libE_specs, _ = parse_args()
-    nsim_workers = nworkers - 1
+    nsim_workers = nworkers
 
-    libE_specs["zero_resource_workers"] = [1]
+    libE_specs["zero_resource_workers"] = [0]
     rsets = nsim_workers * 2
     libE_specs["num_resource_sets"] = rsets
 
@@ -64,7 +64,7 @@ if __name__ == "__main__":
         "persis_in": ["f", "x", "sim_id"],
         "out": [("priority", float), ("resource_sets", int), ("x", float, n), ("x_on_cube", float, n)],
         "user": {
-            "initial_batch_size": nworkers - 1,
+            "initial_batch_size": nworkers,
             "max_resource_sets": max_rsets,
             "lb": np.array([-3, -2]),
             "ub": np.array([3, 2]),
@@ -91,7 +91,7 @@ if __name__ == "__main__":
         "node_file": node_file,
     }  # Name of file containing a node-list
 
-    persis_info = add_unique_random_streams({}, nworkers + 1)
+    persis_info = add_unique_random_streams({}, nworkers)
     exit_criteria = {"sim_max": 40, "wallclock_max": 300}
 
     # Perform the run

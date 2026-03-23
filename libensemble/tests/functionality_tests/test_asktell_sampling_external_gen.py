@@ -44,7 +44,7 @@ def sim_f_scalar(In):
 
 if __name__ == "__main__":
 
-    libE_specs = LibeSpecs(gen_on_manager=True)
+    libE_specs = LibeSpecs()
 
     for test in range(1):  # 2
 
