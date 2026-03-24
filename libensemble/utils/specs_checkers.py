@@ -100,3 +100,10 @@ def _check_logical_cores(values):
             scg(values, "logical_cores_per_node") % scg(values, "cores_per_node") == 0
         ), "Logical cores doesn't divide evenly into cores"
     return values
+
+
+def _check_adjust_zrw_on_gen_on_worker(values):
+    """When gen_on_worker is set the default zero_resource_worker value complicates resources"""
+    if scg(values, "gen_on_worker") and scg(values, "zero_resource_workers") == [0]:
+        scs(values, "zero_resource_workers", [])
+    return values

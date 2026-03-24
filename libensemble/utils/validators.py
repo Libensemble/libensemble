@@ -7,6 +7,7 @@ from pydantic import field_validator, model_validator
 
 from libensemble.resources.platforms import Platform
 from libensemble.utils.specs_checkers import (
+    _check_adjust_zrw_on_gen_on_worker,
     _check_any_workers_and_disable_rm_if_tcp,
     _check_exit_criteria,
     _check_H0,
@@ -115,6 +116,11 @@ check_inputs_exist = field_validator(
 )(classmethod(check_inputs_exist))
 check_gpu_setting_type = field_validator("gpu_setting_type")(classmethod(check_gpu_setting_type))
 check_mpi_runner_type = field_validator("mpi_runner")(classmethod(check_mpi_runner_type))
+
+
+@model_validator(mode="after")
+def check_adjust_zrw_on_gen_on_worker(self):
+    return _check_adjust_zrw_on_gen_on_worker(self)
 
 
 @model_validator(mode="after")
