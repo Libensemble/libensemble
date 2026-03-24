@@ -166,7 +166,7 @@ class GlobalResources:
         """
         self.top_level_dir = top_level_dir
         self.dedicated_mode = libE_specs.get("dedicated_mode", False)
-        self.zero_resource_workers = libE_specs.get("zero_resource_workers", [0])
+        self.zero_resource_workers = libE_specs.get("zero_resource_workers", [])
         self.num_resource_sets = libE_specs.get("num_resource_sets", None)
         self.enforce_worker_core_bounds = libE_specs.get("enforce_worker_core_bounds", False)
         self.gpus_per_group = libE_specs.get("gpus_per_group")
