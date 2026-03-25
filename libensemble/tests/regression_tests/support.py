@@ -69,7 +69,7 @@ def write_uniform_gen_func(H, persis_info, gen_specs, _):
     ub = gen_specs["user"]["ub"]
     lb = gen_specs["user"]["lb"]
     n = len(lb)
-    b = gen_specs["user"]["gen_batch_size"]
+    b = gen_specs["batch_size"]
     H_o = np.zeros(b, dtype=gen_specs["out"])
     H_o["x"] = persis_info["rand_stream"].uniform(lb, ub, (b, n))
     with open("test_gen_out.txt", "a") as f:
@@ -105,7 +105,7 @@ persis_info_1 = {
     "next_to_give": 0,  # Remembers next H row to give in alloc_f
 }
 
-persis_info_1[0] = {
+persis_info_1[0] = {  # noqa
     "run_order": {},  # Used by manager to remember run order
     "total_runs": 0,  # Used by manager to count total runs
     "rand_stream": np.random.default_rng(1),

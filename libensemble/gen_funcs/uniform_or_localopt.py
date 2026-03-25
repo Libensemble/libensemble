@@ -15,7 +15,7 @@ from libensemble.tools.persistent_support import PersistentSupport
 
 def uniform_or_localopt(H, persis_info, gen_specs, libE_info):
     """
-    This generation function returns ``gen_specs["user"]["gen_batch_size"]`` uniformly
+    This generation function returns ``gen_specs["batch_size"]`` uniformly
     sampled points when called in nonpersistent mode (i.e., when
     ``libE_info["persistent"]`` isn't ``True``).  Otherwise, the generation
     function starts a persistent nlopt local optimization run.
@@ -31,7 +31,7 @@ def uniform_or_localopt(H, persis_info, gen_specs, libE_info):
         ub = gen_specs["user"]["ub"]
         lb = gen_specs["user"]["lb"]
         n = len(lb)
-        b = gen_specs["user"]["gen_batch_size"]
+        b = gen_specs["batch_size"]
 
         H_o = np.zeros(b, dtype=gen_specs["out"])
         for i in range(0, b):

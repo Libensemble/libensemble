@@ -31,8 +31,7 @@ from optimas.core import Task
 from optimas.generators import AxMultitaskGenerator
 
 from libensemble import Ensemble
-from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
-from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
+from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
 
 
 def eval_func_multitask(input_params):
@@ -73,7 +72,6 @@ if __name__ == "__main__":
         vocs=vocs,
     )
 
-    alloc_specs = AllocSpecs(alloc_f=alloc_f)
     exit_criteria = ExitCriteria(sim_max=15)
 
     H0 = None  # or np.load("multitask_first_pass.npy")
@@ -92,7 +90,6 @@ if __name__ == "__main__":
         workflow = Ensemble(
             libE_specs=libE_specs,
             sim_specs=sim_specs,
-            alloc_specs=alloc_specs,
             gen_specs=gen_specs,
             exit_criteria=exit_criteria,
             H0=H0,
