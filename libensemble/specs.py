@@ -261,9 +261,9 @@ class GenSpecs(BaseModel):
     Only used if using the ``only_persistent_gens`` allocation function (the default).
     """
 
-    give_all_with_same_priority: bool = False
+    batch_evaluate_same_priority: bool = False
     """
-    Give all points with the same priority value as a batch to the sim.
+    Pass all points with the same priority value as a batch to a single simulator call.
     """
 
     alt_type: bool = False

@@ -68,7 +68,7 @@ if __name__ == "__main__":
         "persis_in": ["f", "x", "sim_id"],
         "out": [("priority", float), ("num_procs", int), ("num_gpus", int), ("x", float, n)],
         "initial_batch_size": nsim_workers,
-        "give_all_with_same_priority": False,
+        "batch_evaluate_same_priority": False,
         "async_return": False,
         "user": {
             "max_procs": max(nsim_workers // 2, 1),  # Any sim created can req. 1 worker up to max

@@ -50,7 +50,7 @@ if __name__ == "__main__":
         "persis_in": ["f", "x", "sim_id"],
         "out": [("priority", float), ("resource_sets", int), ("x", float, n)],
         "initial_batch_size": ensemble.nworkers - 1,
-        "give_all_with_same_priority": False,
+        "batch_evaluate_same_priority": False,
         "async_return": False,
         "user": {
             "max_resource_sets": ensemble.nworkers - 1,  # Any sim created can req. 1 worker up to all.
