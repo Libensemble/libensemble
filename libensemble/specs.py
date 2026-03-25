@@ -243,13 +243,13 @@ class GenSpecs(BaseModel):
 
     num_active_gens: int = 1
     """
-    Maximum number of persistent generators to start. Default: 1.
+    Maximum number of persistent generators to start.
     Only used if using the ``only_persistent_gens`` allocation function (the default).
     """
 
     async_return: bool = False
     """
-    Return results to generator as they come in (after sample). Default: False (batch return).
+    Return results to generator as they come in (after sample). Default of False implies batch return.
     Only used if using the ``only_persistent_gens`` allocation function (the default).
     """
 
@@ -341,13 +341,6 @@ class AllocSpecs(BaseModel):
     .. note::
         As of libEnsemble v2.0, generator-specific allocation options (e.g., ``async_return``,
         ``num_active_gens``) have been moved to :class:`GenSpecs<libensemble.specs.GenSpecs>`.
-    """
-
-    outputs: list[tuple] = Field([], alias="out")
-    """
-    list of 2- or 3-tuples corresponding to NumPy dtypes. e.g. ``("dim", int, (3,))``, or ``("path", str)``.
-    Allocation functions that modify libEnsemble's History array with additional fields should list those
-    fields here. Also used to construct libEnsemble's history array.
     """
     # end_alloc_tag
 
