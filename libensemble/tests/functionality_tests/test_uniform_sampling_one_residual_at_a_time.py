@@ -57,8 +57,10 @@ if __name__ == "__main__":
         "gen_f": gen_f,
         "in": ["pt_id"],
         "out": [("x", float, n), ("priority", float), ("paused", bool), ("obj_component", int), ("pt_id", int)],
+        "batch_size": 2,
+        "batch_mode": True,  # Wait until all sim evals are done
+        "num_active_gens": 1,  # Only allow one active generator
         "user": {
-            "gen_batch_size": 2,
             "single_component_at_a_time": True,
             "combine_component_func": lambda x: np.sum(np.power(x, 2)),
             "lb": (-2 - np.pi / 10) * np.ones(n),
@@ -71,8 +73,6 @@ if __name__ == "__main__":
         "alloc_f": give_sim_work_first,  # Allocation function
         "user": {
             "stop_on_NaNs": True,  # Should alloc preempt evals
-            "batch_mode": True,  # Wait until all sim evals are done
-            "num_active_gens": 1,  # Only allow one active generator
             "stop_partial_fvec_eval": True,  # Should alloc preempt evals
         },
     }

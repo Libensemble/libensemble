@@ -5,7 +5,7 @@ from pathlib import Path
 import pydantic
 from pydantic import BaseModel, Field, model_validator
 
-from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
+from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens
 
 __all__ = ["SimSpecs", "GenSpecs", "AllocSpecs", "ExitCriteria", "LibeSpecs", "_EnsembleSpecs"]
 
@@ -200,20 +200,20 @@ class GenSpecs(BaseModel):
 
     initial_batch_size: int = 0
     """
-    Number of initial points to request that the generator create. If zero, falls back to ``batch_size``.
-    If both options are zero, defaults to the number of workers.
+    Initial sample size.
+    For standardized generators, this is the number of initial points to request that the
+    generator create. If zero, falls back to ``batch_size``.
+    For persistent generators, this is the number of points evaluated before switching
+    from batch return to asynchronous return (if ``async_return`` is True).
 
-    Note: Certain generators included with libEnsemble decide
-    batch sizes via ``gen_specs["user"]`` or other methods.
+    Note: Certain generators included with libEnsemble decide batch sizes via
+    ``gen_specs["user"]`` or other methods.
     """
 
     batch_size: int = 0
     """
     Number of points to generate in each batch. If zero, falls back to the number of
     completed evaluations most recently told to the generator.
-
-    Note: Certain generators included with libEnsemble decide
-    batch sizes via ``gen_specs["user"]`` or other methods.
     """
 
     initial_sample_method: str | None = None
@@ -241,6 +241,44 @@ class GenSpecs(BaseModel):
     """
     A VOCS object. If provided and persis_in/outputs are not explicitly set,
     they will be automatically derived from VOCS.
+    """
+
+    # Only used if using the only_persistent_gens allocation function (default)
+    num_active_gens: int = 1
+    """
+    Maximum number of persistent generators to start. Default: 1.
+    Only used if using the ``only_persistent_gens`` allocation function (the default).
+    """
+
+    async_return: bool = False
+    """
+    Return results to gen as they come in (after sample). Default: False (batch return).
+    Only used if using the ``only_persistent_gens`` allocation function (the default).
+    """
+
+    active_recv_gen: bool = False
+    """
+    Create gen in active receive mode. If True, the manager does not need to wait
+    for a return from the generator before sending further returned points.
+    Default: False. Only used if using the ``only_persistent_gens`` allocation function (the default).
+    """
+
+    give_all_with_same_priority: bool = False
+    """
+    If True, then all points with the same priority value are given as a batch to the sim.
+    Default: False. Only used if using the ``only_persistent_gens`` allocation function (the default).
+    """
+
+    alt_type: bool = False
+    """
+    If True, then the specialized allocator behavior for some persistent gens is used.
+    Only used if using the ``only_persistent_gens`` allocation function (the default).
+    """
+
+    batch_mode: bool = False
+    """
+    If True, then the generator will not be started if there are still simulations
+    running. Only used if using the ``give_sim_work_first`` allocation function.
     """
 
     @model_validator(mode="after")
@@ -290,16 +328,24 @@ class AllocSpecs(BaseModel):
     Specifications for configuring an Allocation Function.
     """
 
-    alloc_f: object = give_sim_work_first
+    alloc_f: object = only_persistent_gens
     """
     Python function matching the ``alloc_f`` interface. Decides when simulator and generator functions
     should be called, and with what resources and parameters.
+
+    .. note::
+        For libEnsemble v2.0, the default allocation function is now ``only_persistent_gens``, instead
+        of ``give_sim_work_first``.
     """
 
-    user: dict | None = {"num_active_gens": 1}
+    user: dict | None = {}
     """
     A user-data dictionary to place bounds, constants, settings, or other parameters
     for customizing the allocation function.
+
+    .. note::
+        As of libEnsemble v2.0, generator-specific allocation options (e.g., ``async_return``,
+        ``num_active_gens``) have been moved to :class:`GenSpecs<libensemble.specs.GenSpecs>`.
     """
 
     outputs: list[tuple] = Field([], alias="out")

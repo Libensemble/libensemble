@@ -76,8 +76,10 @@ if __name__ == "__main__":
     gen_specs = {
         "gen_f": uniform_random_sample_cancel,  # Function generating sim_f input
         "out": [("x", float, (2,)), ("cancel_requested", bool)],
+        "batch_size": 50,
+        "batch_mode": True,
+        "num_active_gens": 1,
         "user": {
-            "gen_batch_size": 50,  # Used by this specific gen_f
             "lb": np.array([-3, -2]),  # Used by this specific gen_f
             "ub": np.array([3, 2]),  # Used by this specific gen_f
         },
@@ -90,16 +92,11 @@ if __name__ == "__main__":
 
     a_spec_1 = {
         "alloc_f": gswf,
-        "user": {
-            "batch_mode": True,
-            "num_active_gens": 1,
-        },
     }
 
     a_spec_2 = {
         "alloc_f": gswf,
         "user": {
-            "batch_mode": True,
             "num_active_gens": 2,
         },
     }
