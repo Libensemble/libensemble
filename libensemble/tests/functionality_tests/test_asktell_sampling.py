@@ -33,7 +33,6 @@ def sim_f(In):
 
 if __name__ == "__main__":
     nworkers, is_manager, libE_specs, _ = parse_args()
-    libE_specs["gen_on_worker"] = False
 
     sim_specs = {
         "sim_f": sim_f,
