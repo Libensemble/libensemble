@@ -19,7 +19,7 @@ __all__ = [
 @output_data([("x", float, 2)])  # default: can be overwritten in gen_specs
 def uniform_random_sample(_, persis_info, gen_specs):
     """
-    Generates ``gen_specs["user"]["gen_batch_size"]`` points uniformly over the domain
+    Generates ``gen_specs["batch_size"]`` points uniformly over the domain
     defined by ``gen_specs["user"]["ub"]`` and ``gen_specs["user"]["lb"]``.
 
     .. seealso::
@@ -29,7 +29,7 @@ def uniform_random_sample(_, persis_info, gen_specs):
     lb = gen_specs["user"]["lb"]
 
     n = len(lb)
-    b = gen_specs["user"]["gen_batch_size"]
+    b = gen_specs["batch_size"]
 
     H_o = np.zeros(b, dtype=gen_specs["out"])
 
@@ -40,7 +40,7 @@ def uniform_random_sample(_, persis_info, gen_specs):
 
 def uniform_random_sample_with_variable_resources(_, persis_info, gen_specs):
     """
-    Generates ``gen_specs["user"]["gen_batch_size"]`` points uniformly over the domain
+    Generates ``gen_specs["batch_size"]`` points uniformly over the domain
     defined by ``gen_specs["user"]["ub"]`` and ``gen_specs["user"]["lb"]``.
 
     Also randomly requests a different number of resource sets to be used in each evaluation.
@@ -56,7 +56,7 @@ def uniform_random_sample_with_variable_resources(_, persis_info, gen_specs):
     max_rsets = gen_specs["user"]["max_resource_sets"]
 
     n = len(lb)
-    b = gen_specs["user"]["gen_batch_size"]
+    b = gen_specs["batch_size"]
 
     H_o = np.zeros(b, dtype=gen_specs["out"])
 
@@ -84,7 +84,7 @@ def uniform_random_sample_with_var_priorities_and_resources(H, persis_info, gen_
     n = len(lb)
 
     if len(H) == 0:
-        b = gen_specs["user"]["initial_batch_size"]
+        b = gen_specs["initial_batch_size"]
 
         H_o = np.zeros(b, dtype=gen_specs["out"])
         for i in range(0, b):
@@ -119,7 +119,7 @@ def uniform_random_sample_obj_components(H, persis_info, gen_specs):
 
     n = len(lb)
     m = gen_specs["user"]["components"]
-    b = gen_specs["user"]["gen_batch_size"]
+    b = gen_specs["batch_size"]
 
     H_o = np.zeros(b * m, dtype=gen_specs["out"])
     for i in range(0, b):
@@ -143,7 +143,7 @@ def uniform_random_sample_cancel(_, persis_info, gen_specs):
     lb = gen_specs["user"]["lb"]
 
     n = len(lb)
-    b = gen_specs["user"]["gen_batch_size"]
+    b = gen_specs["batch_size"]
 
     H_o = np.zeros(b, dtype=gen_specs["out"])
     for i in range(b):
@@ -158,7 +158,7 @@ def uniform_random_sample_cancel(_, persis_info, gen_specs):
 @output_data([("x", float, (1,))])
 def latin_hypercube_sample(_, persis_info, gen_specs):
     """
-    Generates ``gen_specs["user"]["gen_batch_size"]`` points in a Latin
+    Generates ``gen_specs["batch_size"]`` points in a Latin
     hypercube sample over the domain defined by ``gen_specs["user"]["ub"]`` and
     ``gen_specs["user"]["lb"]``.
 
@@ -170,7 +170,7 @@ def latin_hypercube_sample(_, persis_info, gen_specs):
     lb = gen_specs["user"]["lb"]
 
     n = len(lb)
-    b = gen_specs["user"]["gen_batch_size"]
+    b = gen_specs["batch_size"]
 
     H_o = np.zeros(b, dtype=gen_specs["out"])
 

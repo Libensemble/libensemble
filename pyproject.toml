@@ -182,6 +182,7 @@ pip = ">=25.2,<26"
 setuptools = ">=80.8.0,<81"
 numpy = ">=2.2.6,<3"
 pydantic = ">=2.12.4,<3"
+gest-api = ">=0.1,<0.2"
 
 
 # macOS dependencies
@@ -242,9 +243,7 @@ extend-exclude = ["*.bib", "*.xml", "docs/nitpicky"]
 # Initial, permissive mypy configuration for libensemble.
 # Allows incremental adoption. To be tightened in future releases.
 packages = ["libensemble.utils"]
-exclude = '''
-libensemble/utils/(launcher|loc_stack|runners|pydantic|output_directory)\.py
-'''
+exclude = 'libensemble/utils/(launcher|loc_stack|runners|pydantic|output_directory)\.py$|libensemble/tests/regression_tests/support\.py$|libensemble/tests/functionality_tests/.*'
 disable_error_code = ["import-not-found", "import-untyped"]
 ignore_missing_imports = true
 follow_imports = "skip"

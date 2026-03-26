@@ -43,8 +43,10 @@ if __name__ == "__main__":
         "gen_f": gen_f,
         "in": ["sim_id"],
         "out": [("x", float, (2,))],
+        "batch_size": 5,
+        "batch_mode": False,
+        "num_active_gens": 1,
         "user": {
-            "gen_batch_size": 5,
             "lb": np.array([-3, -2]),
             "ub": np.array([3, 2]),
         },
@@ -54,8 +56,6 @@ if __name__ == "__main__":
         "alloc_f": give_sim_work_first,
         "user": {
             "cancel_sims_time": 3,
-            "batch_mode": False,
-            "num_active_gens": 1,
         },
     }
 

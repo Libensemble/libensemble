@@ -32,7 +32,6 @@ import sys
 
 import numpy as np
 
-from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.executors.mpi_executor import MPIExecutor
 from libensemble.gen_funcs.persistent_sampling_var_resources import uniform_sample_with_sim_gen_resources as gen_f
 
@@ -77,20 +76,15 @@ if __name__ == "__main__":
         "gen_f": gen_f,
         "persis_in": ["f", "x", "sim_id"],
         "out": [("num_procs", int), ("num_gpus", int), ("x", float, n)],
+        "initial_batch_size": nworkers - 1,
+        "give_all_with_same_priority": False,
+        "async_return": False,
         "user": {
             "initial_batch_size": "set_in_loop",
             "max_procs": "set_in_loop",  # Any sim created can req. 1 worker up to all.
             "lb": np.array([-3, -2]),
             "ub": np.array([3, 2]),
             "dry_run": dry_run,
-        },
-    }
-
-    alloc_specs = {
-        "alloc_f": alloc_f,
-        "user": {
-            "give_all_with_same_priority": False,
-            "async_return": False,  # False batch returns
         },
     }
 
@@ -139,8 +133,6 @@ if __name__ == "__main__":
                 gen_specs["user"]["max_procs"] = max(sim_workers - 1, 1)
 
             # Perform the run
-            H, persis_info, flag = libE(
-                sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs, alloc_specs=alloc_specs
-            )
+            H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
 
 # All asserts are in gen and sim funcs

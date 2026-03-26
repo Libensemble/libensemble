@@ -33,13 +33,12 @@ in the libEnsemble documentation.
 import numpy as np
 
 from libensemble import Ensemble
-from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.gen_funcs.persistent_surmise_calib import surmise_calib as gen_f
 
 # Import libEnsemble items for this test
 from libensemble.sim_funcs.surmise_test_function import borehole as sim_f
 from libensemble.sim_funcs.surmise_test_function import tstd2theta
-from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, SimSpecs
+from libensemble.specs import ExitCriteria, GenSpecs, SimSpecs
 from libensemble.tools import add_unique_random_streams
 
 if __name__ == "__main__":
@@ -84,18 +83,12 @@ if __name__ == "__main__":
                 "step_add_theta": step_add_theta,  # No. of thetas to generate per step
                 "n_explore_theta": n_explore_theta,  # No. of thetas to explore each step
                 "obsvar": obsvar,  # Variance for generating noise in obs
-                "init_sample_size": init_sample_size,  # Initial batch size inc. observations
                 "priorloc": 1,  # Prior location in the unit cube
                 "priorscale": 0.5,  # Standard deviation of prior
             },
-        ),
-        alloc_specs=AllocSpecs(
-            alloc_f=alloc_f,
-            user={
-                "init_sample_size": init_sample_size,
-                "async_return": True,  # True = Return results to gen as they come in (after sample)
-                "active_recv_gen": True,  # Persistent gen can handle irregular communications
-            },
+            initial_batch_size=init_sample_size,
+            async_return=True,
+            active_recv_gen=True,
         ),
         exit_criteria=ExitCriteria(sim_max=max_evals),
     )

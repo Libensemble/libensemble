@@ -25,11 +25,11 @@ __all__ = [
 ]
 
 
-def _get_user_params(user_specs):
+def _get_user_params(gen_specs):
     """Extract user params"""
-    b = user_specs["initial_batch_size"]
-    ub = user_specs["ub"]
-    lb = user_specs["lb"]
+    b = gen_specs["initial_batch_size"]
+    ub = gen_specs["user"]["ub"]
+    lb = gen_specs["user"]["lb"]
     n = len(lb)  # dimension
     return b, n, lb, ub
 
@@ -43,7 +43,7 @@ def uniform_sample(_, persis_info, gen_specs, libE_info):
         `test_uniform_sampling_with_variable_resources.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_uniform_sampling_with_variable_resources.py>`_
     """  # noqa
 
-    b, n, lb, ub = _get_user_params(gen_specs["user"])
+    b, n, lb, ub = _get_user_params(gen_specs)
     rng = persis_info["rand_stream"]
     ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
     tag = None
@@ -76,7 +76,7 @@ def uniform_sample_with_var_gpus(_, persis_info, gen_specs, libE_info):
         `test_GPU_variable_resources.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_GPU_variable_resources.py>`_
     """  # noqa
 
-    b, n, lb, ub = _get_user_params(gen_specs["user"])
+    b, n, lb, ub = _get_user_params(gen_specs)
     rng = persis_info["rand_stream"]
     ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
     tag = None
@@ -111,7 +111,7 @@ def uniform_sample_with_procs_gpus(_, persis_info, gen_specs, libE_info):
         `test_GPU_variable_resources.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_GPU_variable_resources.py>`_
     """  # noqa
 
-    b, n, lb, ub = _get_user_params(gen_specs["user"])
+    b, n, lb, ub = _get_user_params(gen_specs)
     rng = persis_info["rand_stream"]
     ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
     tag = None
@@ -137,7 +137,7 @@ def uniform_sample_with_var_priorities(_, persis_info, gen_specs, libE_info):
     resource sets and priorities are requested for each point.
     """
 
-    b, n, lb, ub = _get_user_params(gen_specs["user"])
+    b, n, lb, ub = _get_user_params(gen_specs)
     rng = persis_info["rand_stream"]
     ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
 
@@ -175,7 +175,7 @@ def uniform_sample_diff_simulations(_, persis_info, gen_specs, libE_info):
         `test_GPU_variable_resources_multi_task.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_GPU_variable_resources_multi_task.py>`_
     """  # noqa
 
-    b, n, lb, ub = _get_user_params(gen_specs["user"])
+    b, n, lb, ub = _get_user_params(gen_specs)
     rng = persis_info["rand_stream"]
     ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
     tag = None
@@ -209,7 +209,7 @@ def uniform_sample_with_sim_gen_resources(_, persis_info, gen_specs, libE_info):
         `test_GPU_variable_resources.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_GPU_variable_resources.py>`_
     """  # noqa
 
-    b, n, lb, ub = _get_user_params(gen_specs["user"])
+    b, n, lb, ub = _get_user_params(gen_specs)
     rng = persis_info["rand_stream"]
     ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
     tag = None

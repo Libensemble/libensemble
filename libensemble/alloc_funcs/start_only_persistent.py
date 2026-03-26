@@ -7,12 +7,12 @@ from libensemble.tools.alloc_support import AllocSupport, InsufficientFreeResour
 def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info, libE_info):
     """
     This allocation function will give simulation work if possible, but
-    otherwise start up to ``alloc_specs["user"]["num_active_gens"]``
+    otherwise start up to ``gen_specs["num_active_gens"]`` or ``alloc_specs["user"]["num_active_gens"]``
     persistent generators (defaulting to one).
 
     By default, evaluation results are given back to the generator once
     all generated points have been returned from the simulation evaluation.
-    If ``alloc_specs["user"]["async_return"]`` is set to True, then any
+    If ``gen_specs["async_return"]`` or ``alloc_specs["user"]["async_return"]`` is set to True, then any
     returned points are given back to the generator.
 
     If any workers are marked as zero_resource_workers, then these will only
@@ -56,11 +56,12 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info, l
         return {}, persis_info
 
     # Initialize alloc_specs["user"] as user.
-    user = alloc_specs.get("user", {})
+    user = {**gen_specs, **alloc_specs.get("user", {})}
+
     manage_resources = libE_info["use_resource_sets"]
 
     active_recv_gen = user.get("active_recv_gen", False)  # Persistent gen can handle irregular communications
-    init_sample_size = user.get("init_sample_size", 0)  # Always batch return until this many evals complete
+    initial_batch_size = user.get("initial_batch_size", 0)  # Always batch return until this many evals complete
     batch_give = user.get("give_all_with_same_priority", False)
 
     support = AllocSupport(W, manage_resources, persis_info, libE_info)
@@ -68,7 +69,7 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info, l
     Work = {}
 
     # Asynchronous return to generator
-    async_return = user.get("async_return", False) and sum(H["sim_ended"]) >= init_sample_size
+    async_return = user.get("async_return", False) and sum(H["sim_ended"]) >= initial_batch_size
 
     if gen_count < persis_info.get("num_gens_started", 0):
         # When a persistent worker is done, trigger a shutdown (returning exit condition of 1)
