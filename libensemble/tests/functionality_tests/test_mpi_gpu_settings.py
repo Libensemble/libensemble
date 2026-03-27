@@ -39,7 +39,7 @@ persistent generator.
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local
-# TESTSUITE_NPROCS: 3 6
+# TESTSUITE_NPROCS: 4 7
 
 import os
 import sys
@@ -88,7 +88,7 @@ if __name__ == "__main__":
         "out": [("priority", float), ("resource_sets", int), ("x", float, n)],
         "give_all_with_same_priority": False,
         "async_return": False,
-        "initial_batch_size": nworkers - 1,
+        "initial_batch_size": nworkers,
         "user": {
             "max_resource_sets": nworkers,  # Any sim created can req. 1 worker up to all.
             "lb": np.array([-3, -2]),

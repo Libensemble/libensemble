@@ -4,7 +4,7 @@ import numpy as np
 
 from libensemble.message_numbers import EVAL_GEN_TAG, EVAL_SIM_TAG
 from libensemble.resources.resources import Resources
-from libensemble.resources.scheduler import InsufficientFreeResources, InsufficientResourcesError, ResourceScheduler
+from libensemble.resources.scheduler import InsufficientResourcesError, ResourceScheduler
 from libensemble.utils.misc import extract_H_ranges
 
 logger = logging.getLogger(__name__)
@@ -76,13 +76,13 @@ class AllocSupport:
         """
         rset_team = None
         if self.resources is not None:
-            # Try schedule to non-gpu rsets first
-            if use_gpus is None:
+            # When GPUs exist and use_gpus not explicitly set, try GPU rsets first
+            if use_gpus is None and self.sched.resources.total_num_gpu_rsets > 0:
                 try:
-                    rset_team = self.sched.assign_resources(rsets_req, use_gpus=False, user_params=user_params)
+                    rset_team = self.sched.assign_resources(rsets_req, use_gpus=True, user_params=user_params)
                     return rset_team
-                except (InsufficientFreeResources, InsufficientResourcesError):
-                    pass
+                except InsufficientResourcesError:
+                    pass  # More rsets requested than GPU rsets exist - fall back to any
 
             rset_team = self.sched.assign_resources(rsets_req, use_gpus, user_params)
         return rset_team
@@ -160,11 +160,6 @@ class AllocSupport:
             )
         else:
             num_rsets_req = 1
-        if "use_gpus" in H.dtype.names:
-            if np.any(H[H_rows]["use_gpus"]):
-                use_gpus = True
-            else:
-                use_gpus = False
         if "num_gpus" in H.dtype.names:
             gpus_per_rset = self.resources.resource_manager.gpus_per_rset
             num_rsets_req_for_gpus = AllocSupport._convert_rows_to_rsets(
