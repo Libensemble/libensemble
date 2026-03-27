@@ -4,7 +4,11 @@ import numpy as np
 
 from libensemble.message_numbers import EVAL_GEN_TAG, EVAL_SIM_TAG
 from libensemble.resources.resources import Resources
-from libensemble.resources.scheduler import InsufficientResourcesError, ResourceScheduler
+from libensemble.resources.scheduler import (  # noqa
+    InsufficientFreeResources,
+    InsufficientResourcesError,
+    ResourceScheduler,
+)
 from libensemble.utils.misc import extract_H_ranges
 
 logger = logging.getLogger(__name__)
