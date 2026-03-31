@@ -249,15 +249,15 @@ class GenSpecs(BaseModel):
 
     async_return: bool = False
     """
-    Return results to generator as they come in (after sample). Default of False implies batch return.
+    Return results to generator one-at-a-time as they come in (after sample). Default of False
+    implies batch return.
     Only used if using the ``only_persistent_gens`` allocation function (the default).
     """
 
     active_recv_gen: bool = False
     """
-    Initialize generator in active-receive mode. The manager won't wait for new points
-    from the generator upon passing back simulation results or other instructions.
-    This eliminates the "handshake" between manager and generator.
+    Initialize generator in active-receive mode. The generator can receive results
+    even if it's not ready to produce new points.
     Only used if using the ``only_persistent_gens`` allocation function (the default).
     """
 
