@@ -32,11 +32,10 @@ if __name__ == "__main__":
     nworkers, is_manager, libE_specs, _ = parse_args()
     nsim_workers = nworkers
 
-    libE_specs["zero_resource_workers"] = [0]
     rsets = nsim_workers * 2
     libE_specs["num_resource_sets"] = rsets
 
-    num_gens = len(libE_specs["zero_resource_workers"])
+    num_gens = 1
     total_nodes = (nworkers - num_gens) // 2  # 2 resourced workers per node.
 
     print(f"sim_workers: {nsim_workers}.  rsets: {rsets}.  Nodes: {total_nodes}", flush=True)

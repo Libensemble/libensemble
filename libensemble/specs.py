@@ -635,7 +635,7 @@ class LibeSpecs(BaseModel):
     num_resource_sets: int | None = 0
     """
     Total number of resource sets. Resources will be divided into this number.
-    If not set, resources will be divided evenly (excluding zero_resource_workers).
+    If not set, resources will be divided evenly by the number of workers.
     """
 
     gen_num_procs: int | None = 0
@@ -679,14 +679,6 @@ class LibeSpecs(BaseModel):
     """
     Instructs libEnsemble’s MPI executor not to run applications on nodes where
     libEnsemble processes (manager and workers) are running.
-    """
-
-    zero_resource_workers: list[int] | None = [0]
-    """
-    list of workers that require no resources. For when a fixed mapping of workers
-    to resources is required. Otherwise, use ``num_resource_sets``.
-    By default, Worker 0 (manager thread) is a zero-resource worker.
-    For use with supported allocation functions.
     """
 
     gen_workers: list[int] | None = []

@@ -145,8 +145,7 @@ its capabilities.
 
   * **Resource Set**: The smallest unit of resources that can be assigned (and
     dynamically reassigned) to workers. By default this is the provisioned resources
-    divided by the number of workers (excluding any workers listed in the
-    ``zero_resource_workers`` ``libE_specs`` option). It can also be set
+    divided by the number of workers. It can also be set
     explicitly using the ``num_resource_sets`` ``libE_specs`` option.
 
   * **Slot**: Resource sets enumerated on a node (starting from zero). If

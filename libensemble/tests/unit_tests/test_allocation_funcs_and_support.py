@@ -19,10 +19,10 @@ H0 = []
 
 W = np.array(
     [
-        (1, False, 0, 0, False, False),
-        (2, False, 0, 0, False, False),
-        (3, False, 0, 0, False, False),
-        (4, False, 0, 0, False, False),
+        (1, False, 0, 0, False),
+        (2, False, 0, 0, False),
+        (3, False, 0, 0, False),
+        (4, False, 0, 0, False),
     ],
     dtype=[
         ("worker_id", "<i8"),
@@ -30,7 +30,6 @@ W = np.array(
         ("active", "<i8"),
         ("persis_state", "<i8"),
         ("active_recv", "?"),
-        ("zero_resource_worker", "?"),
     ],
 )
 
@@ -147,13 +146,6 @@ def test_als_worker_ids():
         flag = 0
     assert flag == 0, "AllocSupport didn't error on invalid options for avail_worker_ids()"
 
-    W_zrw = W.copy()
-    W_zrw["zero_resource_worker"] = np.array([True, 0, 0, 0])
-    als = AllocSupport(W_zrw, True)
-    assert als.avail_worker_ids(zero_resource_workers=True) == [
-        1
-    ], "avail_worker_ids() didn't return expected zero resource worker list."
-
 
 def test_als_worker_ids_with_gen_mgr():
     als = AllocSupport(W_gen_mgr, True)
@@ -225,7 +217,6 @@ def test_als_sim_work():
 
     W_ps = W.copy()
     W_ps["persis_state"] = np.array([EVAL_GEN_TAG, 0, 0, 0])
-    W_ps["zero_resource_worker"] = np.array([True, 0, 0, 0])
     als = AllocSupport(_WorkerIndexer(W_ps, False), True)
     Work = {}
     Work[1] = als.sim_work(1, H, ["x"], np.array([0, 1, 2, 3, 4]), persis_info[1], persistent=True)

@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 import os
 from collections import Counter, OrderedDict
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 import numpy as np
 
@@ -51,7 +51,6 @@ class ResourceManager(RSetResources):
         self.index_list = ResourceManager.get_index_list(
             self.num_workers,
             self.total_num_rsets,
-            resources.zero_resource_workers,
         )
 
         self.rsets = np.zeros(self.total_num_rsets, dtype=ResourceManager.man_rset_dtype)
@@ -102,25 +101,17 @@ class ResourceManager(RSetResources):
             self.nongpu_rsets_free += np.count_nonzero(~self.rsets["gpus"][rsets_to_free])
 
     @staticmethod
-    def get_index_list(num_workers: int, num_rsets: int, zero_resource_list: list[int | Any]) -> list[int | None]:
+    def get_index_list(num_workers: int, num_rsets: int) -> list[int | None]:
         """Map WorkerID to index into a nodelist"""
         index = 0
         index_list: list[int | None] = []
-        for i in range(1, num_workers + 1):
-            if i in zero_resource_list:
+        for i in range(0, num_workers + 1):
+            if index >= num_rsets:
+                # Not enough rsets
                 index_list.append(None)
             else:
-                if index >= num_rsets:
-                    # Not enough rsets
-                    index_list.append(None)
-                else:
-                    index_list.append(index)
-                index += 1
-
-        for i in zero_resource_list:
-            if i >= num_workers:
-                logger.warning(f"Worker index {i} from zero_resource_workers is out of range (0-{num_workers - 1})")
-
+                index_list.append(index)
+            index += 1
         return index_list
 
 
@@ -202,7 +193,6 @@ class WorkerResources(RSetResources):
         self.matching_slots = True
         self.slot_count = None
         self.slots_on_node = None
-        self.zero_resource_workers = resources.zero_resource_workers
         self.local_node_count = len(self.local_nodelist)
         self.set_slot_count()
         self.gen_nprocs = None
@@ -311,9 +301,6 @@ class WorkerResources(RSetResources):
                  slot_count - number of slots on each node
                  local_node_count
         """
-        if self.workerID in self.zero_resource_workers:
-            return
-
         if rset_team != self.rset_team:  # Order matters
             self.rset_team = rset_team
             self.num_rsets = len(rset_team)

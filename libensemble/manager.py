@@ -165,7 +165,6 @@ class Manager:
         ("persis_state", int),
         ("active_recv", bool),
         ("gen_started_time", float),
-        ("zero_resource_worker", bool),
     ]
 
     def _run_additional_worker(self, hist, sim_specs, gen_specs, libE_specs):
@@ -253,9 +252,6 @@ class Manager:
         if self.resources is not None:
             gresource = self.resources.glob_resources
             self.scheduler_opts = gresource.update_scheduler_opts(self.scheduler_opts)
-            for wrk in self.W:
-                if wrk["worker_id"] in gresource.zero_resource_workers:
-                    wrk["zero_resource_worker"] = True
 
         for wrk in self.W:
             if wrk["worker_id"] in self.libE_specs.get("gen_workers", []):
