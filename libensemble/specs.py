@@ -271,11 +271,6 @@ class GenSpecs(BaseModel):
     Enable specialized allocator behavior for ``only_persistent_gens``.
     """
 
-    batch_mode: bool = False
-    """
-    Don't query the generator until all running simulations have finished.
-    """
-
     @model_validator(mode="after")
     def set_fields_from_vocs(self):
         """Set persis_in and outputs from VOCS if vocs is provided and fields are not set."""
@@ -339,8 +334,9 @@ class AllocSpecs(BaseModel):
     for customizing the allocation function.
 
     .. note::
-        As of libEnsemble v2.0, generator-specific allocation options (e.g., ``async_return``,
-        ``num_active_gens``) have been moved to :class:`GenSpecs<libensemble.specs.GenSpecs>`.
+        As of libEnsemble v2.0, options related to the default allocation function
+        (e.g., ``async_return``, ``num_active_gens``) have been moved to
+        :class:`GenSpecs<libensemble.specs.GenSpecs>`.
     """
     # end_alloc_tag
 

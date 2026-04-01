@@ -39,7 +39,6 @@ if __name__ == "__main__":
         "in": ["sim_id"],
         "out": [("x", float, (2,))],
         "batch_size": 5,
-        "batch_mode": False,
         "num_active_gens": 2,
         "user": {
             "lb": np.array([-3, -2]),
@@ -49,6 +48,9 @@ if __name__ == "__main__":
 
     alloc_specs = {
         "alloc_f": give_sim_work_first,
+        "user": {
+            "batch_mode": False,
+        },
     }
 
     persis_info = add_unique_random_streams({}, nworkers + 1)

@@ -55,7 +55,6 @@ if __name__ == "__main__":
         "persis_in": ["x", "f", "grad", "sim_id"],
         "out": gen_out,
         "batch_size": 2,
-        "batch_mode": True,
         "num_active_gens": 1,
         "user": {
             "xtol_rel": 1e-4,
@@ -66,7 +65,7 @@ if __name__ == "__main__":
         },
     }
 
-    alloc_specs = {"alloc_f": alloc_f}
+    alloc_specs = {"alloc_f": alloc_f, "user": {"batch_mode": True}}
 
     persis_info = add_unique_random_streams({}, nworkers + 1)
 
