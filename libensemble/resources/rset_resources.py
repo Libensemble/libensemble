@@ -129,8 +129,7 @@ class RSetResources:
     @staticmethod
     def get_workers2assign2(num_workers, resources):
         """Returns workers to assign resources to"""
-        zero_resource_list = resources.zero_resource_workers
-        return num_workers - len(zero_resource_list)
+        return num_workers
 
     @staticmethod
     def even_assignment(nnodes, nworkers):

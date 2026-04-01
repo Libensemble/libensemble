@@ -35,6 +35,7 @@ from the simple forces example are highlighted:
     # Optional - to print GPU settings
     from libensemble.tools.test_support import check_gpu_setting
 
+
     def run_forces(H, persis_info, sim_specs, libE_info):
         """Launches the forces MPI app and auto-assigns ranks and GPU resources.
 
@@ -153,6 +154,7 @@ and use this information however you want.
             output = np.zeros(1, dtype=sim_specs["out"])
             output["energy"][0] = final_energy
 
+
         return output
 
     The above code will assign a GPU to each worker on CUDA-capable systems,
@@ -214,7 +216,6 @@ For example::
 
     python run_libe_forces.py --nworkers 9
 
-See :ref:`zero-resource workers<zero_resource_workers>` for more ways to express this.
 
 Changing the number of GPUs per worker
 --------------------------------------

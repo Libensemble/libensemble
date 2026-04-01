@@ -80,8 +80,8 @@ def test_libe_specs():
     libE_specs = {"mpi_comm": Fake_MPI(), "comms": "mpi"}
     ls = LibeSpecs.model_validate(libE_specs)
 
-    libE_specs["sim_input_dir"] = "./simdir"
-    libE_specs["sim_dir_copy_files"] = ["./simdir"]
+    libE_specs["sim_input_dir"] = "."
+    libE_specs["sim_dir_copy_files"] = ["."]
     ls = LibeSpecs.model_validate(libE_specs)
 
     libE_specs = {"comms": "tcp", "nworkers": 4}
@@ -94,7 +94,7 @@ def test_libe_specs():
 
 
 def test_libe_specs_invalid():
-    bad_specs = {"comms": "local", "zero_resource_workers": 2, "sim_input_dirs": ["obj"]}
+    bad_specs = {"comms": "local", "sim_input_dirs": ["obj"]}
 
     try:
         LibeSpecs.model_validate(bad_specs)

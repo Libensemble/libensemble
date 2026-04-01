@@ -16,7 +16,6 @@ from doing any resource detection or management.
    :titlesonly:
    :caption: Resource Manager:
 
-   Zero-resource workers (e.g., Persistent gen does not need resources) <zero_resource_workers>
    overview
    resource_detection
    scheduler_module

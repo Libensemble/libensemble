@@ -4,8 +4,12 @@
 # Building flat MPI
 # -------------------------------------------------
 
-# GCC
-mpicc -O3 -o forces.x forces.c -lm
+# macOS (Apple Silicon with pixi) / GCC
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    mpicc -cc=clang -O3 -o forces.x forces.c -lm
+else
+    mpicc -O3 -o forces.x forces.c -lm
+fi
 
 # Intel
 # mpiicc -O3 -o forces.x forces.c
