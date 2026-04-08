@@ -102,10 +102,15 @@ class ResourceManager(RSetResources):
 
     @staticmethod
     def get_index_list(num_workers: int, num_rsets: int) -> list[int | None]:
-        """Map WorkerID to index into a nodelist"""
+        """Map WorkerID to index into a nodelist.
+
+        Index 0 is always None since workers are 1-indexed. Worker 0 (gen-on-manager)
+        resource assignment is handled separately. For gen_on_worker mode, worker 0 is
+        never started, so index_list[0] is never accessed.
+        """
         index = 0
-        index_list: list[int | None] = []
-        for i in range(0, num_workers + 1):
+        index_list: list[int | None] = [None]  # index 0: worker 0 not in default rset mapping
+        for i in range(1, num_workers + 1):
             if index >= num_rsets:
                 # Not enough rsets
                 index_list.append(None)

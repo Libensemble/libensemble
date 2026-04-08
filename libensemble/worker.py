@@ -223,7 +223,7 @@ class Worker:
         """Sets worker ID in the resources, return True if set"""
         resources = Resources.resources
         if isinstance(resources, Resources):
-            resources.set_worker_resources(comm.get_num_workers() + 1, workerID)
+            resources.set_worker_resources(comm.get_num_workers(), workerID)
             return True
         else:
             logger.debug(f"No resources set on worker {workerID}")
