@@ -128,7 +128,7 @@ if __name__ == "__main__":
 
     if is_manager:
         print(H[["x", "f", "local_min"]])
-        assert persis_info[1].get("run_order"), "Run_order should have been given back"
+        assert persis_info[0].get("run_order"), "Run_order should have been given back"
         assert flag == 0
 
         save_libE_output(H, persis_info, __file__, nworkers)
