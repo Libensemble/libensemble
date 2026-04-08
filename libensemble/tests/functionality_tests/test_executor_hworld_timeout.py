@@ -37,7 +37,6 @@ if __name__ == "__main__":
     nworkers, is_manager, libE_specs, _ = parse_args()
 
     libE_specs["disable_resource_manager"] = True
-    libE_specs["gen_on_worker"] = True
 
     cores_per_task = 1
     logical_cores = multiprocessing.cpu_count()
@@ -93,7 +92,7 @@ if __name__ == "__main__":
 
     persis_info = add_unique_random_streams({}, nworkers + 1)
 
-    exit_criteria = {"wallclock_max": 10}
+    exit_criteria = {"wallclock_max": 10, "sim_max": nworkers}
 
     # TCP does not support multiple libE calls
     if libE_specs["comms"] == "tcp":
