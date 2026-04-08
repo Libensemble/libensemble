@@ -37,6 +37,7 @@ if __name__ == "__main__":
     nworkers, is_manager, libE_specs, _ = parse_args()
 
     libE_specs["disable_resource_manager"] = True
+    libE_specs["gen_on_worker"] = True
 
     cores_per_task = 1
     logical_cores = multiprocessing.cpu_count()
