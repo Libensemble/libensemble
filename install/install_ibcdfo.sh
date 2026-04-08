@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-git glone https://github.com/POptUS/MINQ
+git clone https://github.com/POptUS/MINQ
 pushd MINQ/py/minq5/
 export PYTHONPATH="$PYTHONPATH:$(pwd)"
 echo "PYTHONPATH=$PYTHONPATH" >> $GITHUB_ENV
