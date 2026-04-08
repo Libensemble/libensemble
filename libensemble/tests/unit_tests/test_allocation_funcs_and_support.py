@@ -35,11 +35,11 @@ W = np.array(
 
 W_gen_mgr = np.array(
     [
-        (0, True, 0, 0, False, False),
-        (1, False, 0, 0, False, False),
-        (2, False, 0, 0, False, False),
-        (3, False, 0, 0, False, False),
-        (4, False, 0, 0, False, False),
+        (0, True, 0, 0, False),
+        (1, False, 0, 0, False),
+        (2, False, 0, 0, False),
+        (3, False, 0, 0, False),
+        (4, False, 0, 0, False),
     ],
     dtype=[
         ("worker_id", "<i8"),
@@ -47,7 +47,6 @@ W_gen_mgr = np.array(
         ("active", "<i8"),
         ("persis_state", "<i8"),
         ("active_recv", "?"),
-        ("zero_resource_worker", "?"),
     ],
 )
 
@@ -172,13 +171,6 @@ def test_als_worker_ids_with_gen_mgr():
     except AllocException:
         flag = 0
     assert flag == 0, "AllocSupport didn't error on invalid options for avail_worker_ids()"
-
-    W_zrw = W_gen_mgr.copy()
-    W_zrw["zero_resource_worker"] = np.array([True, 0, 0, 0, 0])
-    als = AllocSupport(W_zrw, True)
-    assert als.avail_worker_ids(zero_resource_workers=True) == [
-        0
-    ], "avail_worker_ids() didn't return expected zero resource worker list."
 
 
 def test_als_evaluate_gens():

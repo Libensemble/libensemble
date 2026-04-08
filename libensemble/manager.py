@@ -396,7 +396,7 @@ class Manager:
 
         if rset_req is None:
             rset_team = []
-            default_rset = resource_manager.index_list[w - 1]  # type: ignore
+            default_rset = resource_manager.index_list[w]  # type: ignore
             if default_rset is not None:
                 rset_team.append(default_rset)
             Work["libE_info"]["rset_team"] = rset_team

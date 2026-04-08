@@ -96,7 +96,6 @@ if __name__ == "__main__":
             # reset
             libE_specs = base_libE_specs.copy()
             libE_specs["gen_on_worker"] = gen_on_worker
-            libE_specs["zero_resource_workers"] = []  # perhaps the generator needs GPUs
 
             resourced_workers = (
                 nworkers if gen_on_worker else nworkers + 1

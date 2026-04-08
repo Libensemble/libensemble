@@ -7,7 +7,6 @@ from pydantic.fields import FieldInfo
 from libensemble import specs
 from libensemble.resources import platforms
 from libensemble.utils.validators import (
-    check_adjust_zrw_on_gen_on_worker,
     check_any_workers_and_disable_rm_if_tcp,
     check_exit_criteria,
     check_gpu_setting_type,
@@ -96,7 +95,6 @@ if "sphinx" not in sys.modules:
             "set_default_comms": set_default_comms,
             "set_workflow_dir": set_workflow_dir,
             "set_calc_dirs_on_input_dir": set_calc_dirs_on_input_dir,
-            "check_adjust_zrw_on_gen_on_worker": check_adjust_zrw_on_gen_on_worker,
         },
     )
 

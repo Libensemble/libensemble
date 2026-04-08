@@ -41,8 +41,7 @@ class RSetResources:
 
         Determines the compute resources available for each resource set.
 
-        Unless resource sets is set explicitly, the number of resource sets is the number of workers,
-        excluding any workers defined as zero resource workers.
+        Unless resource sets is set explicitly, the number of resource sets is the number of workers.
 
         Parameters
         ----------
@@ -50,8 +49,8 @@ class RSetResources:
         num_workers: int
             The total number of workers
 
-        resources: Resources
-            A Resources object containing global nodelist and intranode information
+        resources: GlobalResources
+            A GlobalResources object containing global nodelist and intranode information
 
         """
         self.num_workers = num_workers

@@ -2,7 +2,7 @@
 Runs libEnsemble run-lines for adaptive workers with persistent gen.
 
 Default setup is designed to run on 2*N + 1 workers - to modify, change total_nodes.
-where one worker is a zero-resource persistent gen.
+where one worker is a persistent gen without assigned resources.
 
 Execute via one of the following commands (e.g. 5 workers):
    mpiexec -np 6 python test_runlines_adaptive_workers_persistent_oversubscribe_rsets.py

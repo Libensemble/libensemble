@@ -111,7 +111,7 @@ class ResourceManager(RSetResources):
                 index_list.append(None)
             else:
                 index_list.append(index)
-            index += 1
+                index += 1
         return index_list
 
 
