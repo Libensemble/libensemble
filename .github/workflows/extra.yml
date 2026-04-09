@@ -101,7 +101,7 @@ jobs:
             mv libensemble/tests/.cov* .
 
         - name: Upload coverage reports to Codecov
-          uses: codecov/codecov-action@v5
+          uses: codecov/codecov-action@v6
           env:
             CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
@@ -111,4 +111,4 @@ jobs:
         runs-on: ubuntu-latest
         steps:
         - uses: actions/checkout@v6
-        - uses: crate-ci/typos@v1.44.0
+        - uses: crate-ci/typos@v1.45.0
