@@ -49,6 +49,8 @@ from libensemble.tools import add_unique_random_streams, parse_args
 if __name__ == "__main__":
     nworkers, is_manager, libE_specs, _ = parse_args()
 
+    libE_specs["num_resource_sets"] = nworkers + 1  # Persistent gen DOES need resources
+
     # Mock GPU system / uncomment to detect GPUs
     libE_specs["sim_dirs_make"] = True  # Will only contain files if dry_run is False
     libE_specs["gen_dirs_make"] = True  # Will only contain files if dry_run is False
@@ -76,12 +78,11 @@ if __name__ == "__main__":
         "gen_f": gen_f,
         "persis_in": ["f", "x", "sim_id"],
         "out": [("num_procs", int), ("num_gpus", int), ("x", float, n)],
-        "initial_batch_size": nworkers - 1,
+        "initial_batch_size": nworkers,
         "give_all_with_same_priority": False,
         "async_return": False,
         "user": {
-            "initial_batch_size": "set_in_loop",
-            "max_procs": "set_in_loop",  # Any sim created can req. 1 worker up to all.
+            "max_procs": nworkers,  # Any sim created can req. 1 worker up to all.
             "lb": np.array([-3, -2]),
             "ub": np.array([3, 2]),
             "dry_run": dry_run,
@@ -89,6 +90,10 @@ if __name__ == "__main__":
     }
 
     exit_criteria = {"sim_max": 20}
+    libE_specs["resource_info"] = {
+        "cores_on_node": ((nworkers + 1) * 2, (nworkers + 1) * 4),
+        "gpus_on_node": nworkers + 1,
+    }
 
     base_libE_specs = libE_specs.copy()
     for gen_on_worker in [False, True]:
@@ -96,22 +101,7 @@ if __name__ == "__main__":
             # reset
             libE_specs = base_libE_specs.copy()
             libE_specs["gen_on_worker"] = gen_on_worker
-
-            resourced_workers = (
-                nworkers if gen_on_worker else nworkers + 1
-            )  # note this "nworkers" decided before the extra worker starts
-            sim_workers = nworkers - 1 if gen_on_worker else nworkers
-
-            gen_specs["user"]["initial_batch_size"] = sim_workers
-            gen_specs["user"]["max_procs"] = sim_workers
-
-            libE_specs["num_resource_sets"] = resourced_workers
-            libE_specs["resource_info"] = {
-                "cores_on_node": (resourced_workers * 2, resourced_workers * 4),
-                "gpus_on_node": resourced_workers,
-            }
-
-            persis_info = add_unique_random_streams({}, resourced_workers)
+            persis_info = add_unique_random_streams({}, nworkers + 1)
 
             if run == 0:
                 libE_specs["gen_num_procs"] = 2
@@ -123,13 +113,13 @@ if __name__ == "__main__":
                 persis_info["gen_num_gpus"] = 1
             elif run == 3:
                 # Two GPUs per resource set
-                libE_specs["resource_info"]["gpus_on_node"] = resourced_workers * 2
+                libE_specs["resource_info"]["gpus_on_node"] = nworkers * 2
                 persis_info["gen_num_gpus"] = 1
             elif run == 4:
                 # Two GPUs requested for gen
                 persis_info["gen_num_procs"] = 2
                 persis_info["gen_num_gpus"] = 2
-                gen_specs["user"]["max_procs"] = max(sim_workers - 1, 1)
+                gen_specs["user"]["max_procs"] = max(nworkers - 2, 1)
 
             # Perform the run
             H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
