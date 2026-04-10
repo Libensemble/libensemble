@@ -64,12 +64,10 @@ if __name__ == "__main__":
         },
     }
 
-    persis_info = {}
-
     exit_criteria = {"sim_max": 40, "wallclock_max": 300}
 
     # Perform the run
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, libE_specs=libE_specs)
 
     if is_manager:
         assert len(np.unique(H["gen_ended_time"])) == 8

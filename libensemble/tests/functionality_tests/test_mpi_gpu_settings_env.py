@@ -78,7 +78,6 @@ if __name__ == "__main__":
         },
     }
 
-    persis_info = {}
     exit_criteria = {"sim_max": 10}
 
     # Ensure LIBE_PLATFORM environment variable is not set.
@@ -91,4 +90,4 @@ if __name__ == "__main__":
     exctr.register_app(full_path=six_hump_camel_app, app_name="six_hump_camel")
 
     # Perform the run
-    H, _, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
+    H, _, flag = libE(sim_specs, gen_specs, exit_criteria, libE_specs=libE_specs)

@@ -71,12 +71,10 @@ if __name__ == "__main__":
 
     alloc_specs = {"alloc_f": alloc_f}
 
-    persis_info = {}
-
     exit_criteria = {"sim_max": 1000}
 
     # Perform the run
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs, libE_specs)
 
     if is_manager:
         print("[Manager]:", H[np.where(H["local_min"])]["x"])
@@ -84,8 +82,7 @@ if __name__ == "__main__":
         assert np.sum(H["local_pt"]) > 100, "Why didn't at least 100 local points occur?"
 
     if libE_specs["comms"] == "mpi":
-        persis_info = {}
         gen_specs["user"]["run_max_eval"] = 10 * (n + 1)
-        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs, libE_specs)
         if is_manager:
             assert flag == 0

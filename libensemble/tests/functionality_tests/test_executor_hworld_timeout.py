@@ -90,8 +90,6 @@ if __name__ == "__main__":
         "alloc_f": give_sim_work_first,
     }
 
-    persis_info = {}
-
     exit_criteria = {"wallclock_max": 10}
 
     # TCP does not support multiple libE calls
@@ -102,9 +100,7 @@ if __name__ == "__main__":
 
     for i in range(iterations):
         # Perform the run
-        H, persis_info, flag = libE(
-            sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs=libE_specs
-        )
+        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs, libE_specs=libE_specs)
 
         if is_manager:
             print("\nChecking expected task status against Workers ...\n")

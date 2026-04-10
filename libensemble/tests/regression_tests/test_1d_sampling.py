@@ -36,7 +36,6 @@ if __name__ == "__main__":
         },
     )
 
-    sampling.persis_info = {}
     sampling.exit_criteria = ExitCriteria(sim_max=500)
 
     sampling.run()

@@ -59,8 +59,6 @@ if __name__ == "__main__":
         },
     }
 
-    persis_info = {}
-
     exit_criteria = {"gen_max": 501}
 
     alloc_specs = {
@@ -68,7 +66,7 @@ if __name__ == "__main__":
     }
 
     # Perform the run
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs=alloc_specs)
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs)
 
     if is_manager:
         # assert libE_specs["comms"] == "mpi", "MPI default comms should be set"

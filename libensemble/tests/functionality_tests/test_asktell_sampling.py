@@ -58,11 +58,11 @@ if __name__ == "__main__":
     vocs = VOCS(variables=variables, objectives=objectives)
 
     exit_criteria = {"gen_max": 201}
-    persis_info = {}
 
     for test in range(3):
         if test == 0:
             generator = UniformSample(vocs)
+            persis_info = {}
 
         elif test == 1:
             persis_info["num_gens_started"] = 0
@@ -86,7 +86,7 @@ if __name__ == "__main__":
             }
 
         gen_specs["generator"] = generator
-        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
+        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, libE_specs=libE_specs)
 
         if is_manager:
             print(H[["sim_id", "x", "f"]][:10])

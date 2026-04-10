@@ -83,9 +83,7 @@ if __name__ == "__main__":
 
     alloc_specs = {"alloc_f": alloc_f}
 
-    persis_info = {}
-
     exit_criteria = {"sim_max": 20}  # must be bigger than sample size to enter into optimization code.
 
     # Perform the run
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs, libE_specs)

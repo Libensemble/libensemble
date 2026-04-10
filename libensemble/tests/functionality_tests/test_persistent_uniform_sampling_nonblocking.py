@@ -52,7 +52,7 @@ if __name__ == "__main__":
         },
     }
 
-    persis_info = {}
+    persis_info = {i: {} for i in range(nworkers)}
     for i in persis_info:
         persis_info[i]["get_grad"] = True
 

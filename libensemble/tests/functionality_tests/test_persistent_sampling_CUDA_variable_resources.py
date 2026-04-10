@@ -72,7 +72,6 @@ if __name__ == "__main__":
     }
 
     libE_specs["scheduler_opts"] = {"match_slots": True}
-    persis_info = {}
     exit_criteria = {"sim_max": 40, "wallclock_max": 300}
 
     # Perform the run

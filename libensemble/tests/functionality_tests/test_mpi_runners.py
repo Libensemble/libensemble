@@ -61,7 +61,6 @@ if __name__ == "__main__":
     }
     libE_specs["resource_info"] = custom_resources
 
-    persis_info = {}
     exit_criteria = {"sim_max": nworkers * rounds}
 
     sim_specs = {
@@ -237,7 +236,7 @@ if __name__ == "__main__":
         alloc_specs = {"alloc_f": give_sim_work_first}
 
         # Perform the run
-        H, pinfo, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs=libE_specs)
+        H, _, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs, libE_specs=libE_specs)
 
     # for run_set in ['mpich', 'openmpi', 'aprun', 'srun', 'jsrun', 'rename_mpich', 'custom']:
     for run_set in ["mpich", "aprun", "srun", "jsrun", "rename_mpich", "custom"]:

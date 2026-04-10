@@ -57,8 +57,6 @@ if __name__ == "__main__":
         },
     }
 
-    persis_info = {}
-
     # num sim_ended_count conditions in executor_hworld
     exit_criteria = {"sim_max": nworkers * 5}
 
@@ -67,7 +65,7 @@ if __name__ == "__main__":
     }
 
     # Perform the run
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs=libE_specs)
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs, libE_specs=libE_specs)
 
     if is_manager:
         print("\nChecking expected task status against Workers ...\n")

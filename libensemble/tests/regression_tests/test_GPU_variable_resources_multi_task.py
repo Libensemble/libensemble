@@ -87,7 +87,6 @@ if __name__ == "__main__":
         },
     )
 
-    gpu_test.persis_info = {}
     gpu_test.exit_criteria = ExitCriteria(sim_max=40, wallclock_max=300)
 
     if gpu_test.ready():

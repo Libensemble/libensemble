@@ -43,11 +43,9 @@ called with such dictionaries to initiate libEnsemble. A simple calling script
 
     sim_specs = {"sim_f": sim_find_sine, "in": ["x"], "out": [("y", float)]}
 
-    persis_info = {}
-
     exit_criteria = {"sim_max": 80}
 
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, libE_specs=libE_specs)
 
 This will initiate libEnsemble with a Manager and ``nworkers`` workers (parsed from
 the command line), and runs on laptops or supercomputers. If an exception is
@@ -90,11 +88,9 @@ all platforms and comms-types may resemble:
             "out": [("y", float)],
         }
 
-        persis_info = {}
-
         exit_criteria = {"sim_max": 80}
 
-        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
+        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, libE_specs=libE_specs)
 
 Alternatively, you may set the multiprocessing start method to ``"fork"`` via the following:
 

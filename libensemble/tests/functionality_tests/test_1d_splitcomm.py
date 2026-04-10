@@ -56,14 +56,10 @@ if __name__ == "__main__":
         "alloc_f": give_sim_work_first,
     }
 
-    persis_info = {}
-
     exit_criteria = {"gen_max": 501}
 
     # Perform the run
-    H, persis_info, flag = libE(
-        sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs=alloc_specs, libE_specs=libE_specs
-    )
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs, libE_specs=libE_specs)
 
     if is_manager:
         assert len(H) >= 501

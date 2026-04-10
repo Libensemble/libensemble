@@ -50,8 +50,6 @@ if __name__ == "__main__":
         },
     }
 
-    persis_info = {}
-
     exit_criteria = {"sim_max": 2 * num_pts, "wallclock_max": 300}
 
     if libE_specs["comms"] == "tcp":
@@ -75,6 +73,7 @@ if __name__ == "__main__":
                 sim_specs["user"].pop("uniform_random_pause_ub")
                 gen_specs["batch_size"] = num_pts // 2
 
+            persis_info = {}
             persis_info["next_to_give"] = 0
             persis_info["total_gen_calls"] = 1
 

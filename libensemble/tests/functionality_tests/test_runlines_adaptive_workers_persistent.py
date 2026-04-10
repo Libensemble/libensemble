@@ -82,11 +82,10 @@ if __name__ == "__main__":
         "node_file": node_file,
     }  # Name of file containing a node-list
 
-    persis_info = {}
     exit_criteria = {"sim_max": 40, "wallclock_max": 300}
 
     # Perform the run
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, libE_specs=libE_specs)
 
     if is_manager:
         assert flag == 0

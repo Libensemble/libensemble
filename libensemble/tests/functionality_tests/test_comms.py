@@ -52,8 +52,6 @@ if __name__ == "__main__":
         },
     }
 
-    persis_info = {}
-
     exit_criteria = {"sim_max": sim_max, "wallclock_max": 300}
 
     alloc_specs = {
@@ -61,9 +59,7 @@ if __name__ == "__main__":
     }
 
     # Perform the run
-    H, persis_info, flag = libE(
-        sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs=alloc_specs, libE_specs=libE_specs
-    )
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs, libE_specs=libE_specs)
 
     if is_manager:
         assert flag == 0

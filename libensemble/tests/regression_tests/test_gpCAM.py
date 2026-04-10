@@ -85,10 +85,8 @@ if __name__ == "__main__":
             gen_specs["user"]["ask_max_iter"] = 1  # For quicker test
             exit_criteria = {"sim_max": num_batches * batch_size, "wallclock_max": 300}
 
-        persis_info = {}
-
         # Perform the run
-        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
+        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, libE_specs=libE_specs)
 
         if is_manager:
             assert len(np.unique(H["gen_ended_time"])) == num_batches

@@ -101,8 +101,6 @@ def run_surmise_calib():
         exit_criteria=ExitCriteria(sim_max=max_evals),
     )
 
-    test.persis_info = {}
-
     # Perform the run
     H, _, _ = test.run()
 

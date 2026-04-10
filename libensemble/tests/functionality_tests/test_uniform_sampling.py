@@ -56,8 +56,6 @@ if __name__ == "__main__":
     }
     # end_gen_specs_rst_tag
 
-    persis_info = {}
-
     exit_criteria = {"gen_max": 501, "wallclock_max": 300}
 
     alloc_specs = {
@@ -72,9 +70,7 @@ if __name__ == "__main__":
             sim_specs["user"] = {"history_file": hfile}
 
         # Perform the run
-        H, persis_info, flag = libE(
-            sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs=libE_specs
-        )
+        H, _, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs, libE_specs=libE_specs)
 
         if is_manager:
             assert flag == 0

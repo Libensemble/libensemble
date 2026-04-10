@@ -56,10 +56,8 @@ if __name__ == "__main__":
 
     exit_criteria = {"gen_max": 150, "wallclock_max": 300}
 
-    persis_info = {}
-
     # Perform the run
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, libE_specs=libE_specs)
 
     if is_manager:
         # For reproducible test, only tests if cancel requested on points - not whether got evaluated

@@ -57,17 +57,13 @@ if __name__ == "__main__":
         },
     }
 
-    persis_info = {}
-
     exit_criteria = {"sim_max": 21}
 
     alloc_specs = {
         "alloc_f": give_sim_work_first,
     }
 
-    H, persis_info, flag = libE(
-        sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs=alloc_specs, libE_specs=libE_specs
-    )
+    H, _, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs, libE_specs=libE_specs)
 
     if is_manager:
         assert os.path.isdir(o_ensemble), f"Ensemble directory {o_ensemble} not created."

@@ -94,7 +94,6 @@ if __name__ == "__main__":
 
     alloc_specs = {"alloc_f": give_sim_work_first}
 
-    persis_info = {}
     exit_criteria = {"sim_max": (nsim_workers) * rounds}
 
     # Each worker has 2 nodes. Basic test list for portable options
@@ -121,6 +120,6 @@ if __name__ == "__main__":
     }
 
     # Perform the run
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs=libE_specs)
+    H, _, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs, libE_specs=libE_specs)
 
     # All asserts are in sim func

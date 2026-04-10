@@ -65,8 +65,6 @@ if __name__ == "__main__":
         "alloc_f": alloc_f,
     }
 
-    persis_info = {}
-
     # Set sim_max small so persistent worker is quickly terminated
     exit_criteria = {"sim_max": 10, "wallclock_max": 300}
 
@@ -74,7 +72,7 @@ if __name__ == "__main__":
         sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
 
     # Perform the run
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs, libE_specs)
 
     if is_manager:
         assert flag == 0
