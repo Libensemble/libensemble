@@ -25,7 +25,7 @@ from libensemble.gen_funcs.persistent_sampling import persistent_request_shutdow
 # Import libEnsemble items for this test
 from libensemble.libE import libE
 from libensemble.sim_funcs.branin.branin_obj import call_branin as sim_f
-from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
+from libensemble.tools import parse_args, save_libE_output
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
@@ -59,7 +59,7 @@ if __name__ == "__main__":
             },
         }
 
-        persis_info = add_unique_random_streams({}, nworkers + 1)
+        persis_info = {}
 
         exit_criteria = {"gen_max": 50, "wallclock_max": 300}
 

@@ -33,7 +33,7 @@ from libensemble.gen_funcs.persistent_sampling_var_resources import uniform_samp
 from libensemble.libE import libE
 from libensemble.sim_funcs import six_hump_camel
 from libensemble.sim_funcs.var_resources import gpu_variable_resources_subenv as sim_f
-from libensemble.tools import add_unique_random_streams, parse_args
+from libensemble.tools import parse_args
 
 # from libensemble import logger
 # logger.set_level("DEBUG")  # For testing the test
@@ -78,7 +78,7 @@ if __name__ == "__main__":
         },
     }
 
-    persis_info = add_unique_random_streams({}, nworkers + 1)
+    persis_info = {}
     exit_criteria = {"sim_max": 10}
 
     # Ensure LIBE_PLATFORM environment variable is not set.

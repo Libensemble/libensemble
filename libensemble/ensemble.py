@@ -5,7 +5,6 @@ import numpy.typing as npt
 from libensemble.executors import Executor
 from libensemble.libE import libE
 from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
-from libensemble.tools import add_unique_random_streams
 from libensemble.tools import parse_args as parse_args_f
 from libensemble.tools import save_libE_output
 from libensemble.tools.parse_args import mpi_init
@@ -64,7 +63,6 @@ class Ensemble:
                 },
             )
 
-            sampling.add_random_streams()
             sampling.exit_criteria = ExitCriteria(sim_max=100)
 
             if __name__ == "__main__":
@@ -166,7 +164,7 @@ class Ensemble:
         exit_criteria: ExitCriteria | None = {},
         libE_specs: LibeSpecs | None = LibeSpecs(),
         alloc_specs: AllocSpecs | None = AllocSpecs(),
-        persis_info: dict | None = {},
+        persis_info: dict = {},
         executor: Executor | None = None,
         H0: npt.NDArray | None = None,
         parse_args: bool | None = False,
@@ -174,7 +172,7 @@ class Ensemble:
         self.sim_specs = sim_specs
         self.gen_specs = gen_specs
         self.exit_criteria = exit_criteria
-        self._libE_specs = libE_specs
+        self._libE_specs: LibeSpecs | dict | None = libE_specs
         self.alloc_specs = alloc_specs
         self.persis_info = persis_info
         self.executor = executor
@@ -183,17 +181,17 @@ class Ensemble:
         self._nworkers = 0
         self.is_manager = False
         self.parsed = False
-        self._known_comms = None
+        self._known_comms: str = ""
 
         if parse_args:
             self._parse_args()
             self.parsed = True
-            self._known_comms = self._libE_specs.comms
+            self._known_comms = getattr(self._libE_specs, "comms", "")
 
         if not self._known_comms and self._libE_specs is not None:
             if isinstance(self._libE_specs, dict):
                 self._libE_specs = LibeSpecs(**self._libE_specs)
-            self._known_comms = self._libE_specs.comms
+            self._known_comms = getattr(self._libE_specs, "comms", "")
 
         if self._known_comms == "local":
             self.is_manager = True
@@ -202,9 +200,9 @@ class Ensemble:
 
         elif self._known_comms == "mpi" and not parse_args:
             # Set internal _nworkers - not libE_specs (avoid "nworkers will be ignored" warning)
-            self._nworkers, self.is_manager = mpi_init(self._libE_specs.mpi_comm)
+            self._nworkers, self.is_manager = mpi_init(getattr(self._libE_specs, "mpi_comm", None))
 
-    def _parse_args(self) -> (int, bool, LibeSpecs):
+    def _parse_args(self) -> tuple[int, bool, LibeSpecs]:
         # Set internal _nworkers - not libE_specs (avoid "nworkers will be ignored" warning)
         self._nworkers, self.is_manager, libE_specs_parsed, self.extra_args = parse_args_f()
 
@@ -257,7 +255,7 @@ class Ensemble:
     def _refresh_executor(self):
         Executor.executor = self.executor or Executor.executor
 
-    def run(self) -> (npt.NDArray, dict, int):
+    def run(self) -> tuple[npt.NDArray, dict, int]:
         """
         Initializes libEnsemble.
 
@@ -298,7 +296,7 @@ class Ensemble:
 
         self._refresh_executor()
 
-        if self._libE_specs.comms != self._known_comms:
+        if getattr(self._libE_specs, "comms", "") != self._known_comms:
             raise ValueError(CHANGED_COMMS_WARN)
 
         self.H, self.persis_info, self.flag = libE(
@@ -322,32 +320,6 @@ class Ensemble:
         self._nworkers = value
         if self._libE_specs:
             self._libE_specs.nworkers = value
-
-    def add_random_streams(self, num_streams: int = 0, seed: str = ""):
-        """
-
-        Adds ``np.random`` generators for each worker ID to ``self.persis_info``.
-
-        Parameters
-        ----------
-
-        num_streams: int, Optional
-
-            Number of matching worker ID and random stream entries to create. Defaults to
-            ``self.nworkers``.
-
-        seed: str, Optional
-
-            Seed for NumPy's RNG.
-
-        """
-        if num_streams:
-            nstreams = num_streams
-        else:
-            nstreams = self.nworkers
-
-        self.persis_info = add_unique_random_streams(self.persis_info, nstreams + 1, seed=seed)
-        return self.persis_info
 
     def save_output(self, basename: str, append_attrs: bool = True):
         """

@@ -7,6 +7,7 @@ from gpcam import GPOptimizer as GP
 from numpy.lib.recfunctions import repack_fields
 
 from libensemble.message_numbers import EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG, PERSIS_STOP, STOP_TAG
+from libensemble.tools import get_rng
 from libensemble.tools.persistent_support import PersistentSupport
 
 __all__ = [
@@ -15,10 +16,9 @@ __all__ = [
 ]
 
 
-def _initialize_gpcAM(user_specs, libE_info, persis_info):
+def _initialize_gpcAM(user_specs, libE_info, persis_info, gen_specs):
     """Extract user params"""
-    rng_seed = user_specs.get("rng_seed")  # Will default to None
-    rng = persis_info.get("rand_stream") or np.random.default_rng(rng_seed)
+    rng = get_rng(gen_specs, libE_info)
     b = user_specs["batch_size"]
     lb = np.array(user_specs["lb"])
     ub = np.array(user_specs["ub"])
@@ -166,7 +166,9 @@ def persistent_gpCAM(H_in, persis_info, gen_specs, libE_info):
         `test_gpCAM.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_gpCAM.py>`_
     """  # noqa
 
-    rng, batch_size, n, lb, ub, x_new, y_new, ps = _initialize_gpcAM(gen_specs["user"], libE_info, persis_info)
+    rng, batch_size, n, lb, ub, x_new, y_new, ps = _initialize_gpcAM(
+        gen_specs["user"], libE_info, persis_info, gen_specs
+    )
     ask_max_iter = gen_specs["user"].get("ask_max_iter") or 10
     test_points = _read_testpoints(gen_specs["user"])
     noise = 1e-8  # Initializes noise
@@ -230,7 +232,9 @@ def persistent_gpCAM_covar(H_in, persis_info, gen_specs, libE_info):
     noise = 1e-12
 
     test_points = _read_testpoints(U)
-    rng, batch_size, n, lb, ub, x_new, y_new, ps = _initialize_gpcAM(gen_specs["user"], libE_info, persis_info)
+    rng, batch_size, n, lb, ub, x_new, y_new, ps = _initialize_gpcAM(
+        gen_specs["user"], libE_info, persis_info, gen_specs
+    )
 
     # Send batches until manager sends stop tag
     tag = None

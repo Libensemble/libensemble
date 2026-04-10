@@ -16,6 +16,7 @@ from mpmath import gamma
 
 from libensemble.gen_funcs.aposmm_localopt_support import ConvergedMsg, LocalOptInterfacer, simulate_recv_from_manager
 from libensemble.message_numbers import EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG, PERSIS_STOP, STOP_TAG
+from libensemble.tools import get_rng
 from libensemble.tools.persistent_support import PersistentSupport
 
 # from scipy.spatial.distance import cdist
@@ -163,6 +164,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
     try:
         user_specs = gen_specs["user"]
         ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
+        rng = get_rng(gen_specs, libE_info)
         n, n_s, rk_const, ld, mu, nu, comm, local_H = initialize_APOSMM(H, user_specs, libE_info)
         (
             local_opters,
@@ -189,7 +191,14 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                 something_sent = False
             else:
                 persis_info = add_k_sample_points_to_local_H(
-                    user_specs["initial_sample_size"], user_specs, persis_info, n, comm, local_H, sim_id_to_child_inds
+                    user_specs["initial_sample_size"],
+                    user_specs,
+                    persis_info,
+                    n,
+                    comm,
+                    local_H,
+                    sim_id_to_child_inds,
+                    rng,
                 )
                 something_sent = True
             if not user_specs.get("standalone") and user_specs.get("generate_sample_points", True):
@@ -287,7 +296,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
 
             if num_samples > 0:
                 persis_info = add_k_sample_points_to_local_H(
-                    num_samples, user_specs, persis_info, n, comm, local_H, sim_id_to_child_inds
+                    num_samples, user_specs, persis_info, n, comm, local_H, sim_id_to_child_inds, rng
                 )
                 new_inds_to_send_mgr = new_inds_to_send_mgr + list(range(len(local_H) - num_samples, len(local_H)))
 
@@ -763,7 +772,7 @@ def initialize_children(user_specs):
     return local_opters, sim_id_to_child_inds, run_order, run_pts, total_runs, ended_runs, fields_to_pass
 
 
-def add_k_sample_points_to_local_H(k, user_specs, persis_info, n, comm, local_H, sim_id_to_child_inds):
+def add_k_sample_points_to_local_H(k, user_specs, persis_info, n, comm, local_H, sim_id_to_child_inds, rng):
     if "sample_points" in user_specs:
         v = np.sum(~local_H["local_pt"])  # Number of sample points so far
         sampled_points = user_specs["sample_points"][v : v + k]
@@ -773,7 +782,7 @@ def add_k_sample_points_to_local_H(k, user_specs, persis_info, n, comm, local_H,
         k = k - len(sampled_points)
 
     if k > 0:
-        sampled_points = persis_info["rand_stream"].uniform(0, 1, (k, n))
+        sampled_points = rng.uniform(0, 1, (k, n))
         add_to_local_H(local_H, sampled_points, user_specs, on_cube=True)
 
     return persis_info

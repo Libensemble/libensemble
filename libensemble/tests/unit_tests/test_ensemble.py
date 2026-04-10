@@ -62,7 +62,6 @@ def test_full_workflow():
         alloc_specs=AllocSpecs(alloc_f=give_sim_work_first),
     )
 
-    ens.add_random_streams()
     ens.run()
     if ens.is_manager:
         assert len(ens.H) >= 101
@@ -104,7 +103,6 @@ def test_flakey_workflow():
             exit_criteria=ExitCriteria(gen_max=101),
         )
         ens.sim_specs.inputs = (["x"],)  # note trailing comma
-        ens.add_random_streams()
         ens.run()
     except ValidationError:
         flag = 0

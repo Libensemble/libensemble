@@ -22,10 +22,9 @@ from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 from libensemble.gen_funcs.sampling import latin_hypercube_sample as gen_f
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel as sim_f
 from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, SimSpecs
-from libensemble.tools import add_unique_random_streams
 
 
-def create_H0(persis_info, gen_specs, H0_size):
+def create_H0(gen_specs, H0_size):
     """Create an H0 for give_pregenerated_sim_work"""
     # Manually creating H0
     ub = gen_specs["user"]["ub"]
@@ -34,7 +33,7 @@ def create_H0(persis_info, gen_specs, H0_size):
     b = H0_size
 
     H0 = np.zeros(b, dtype=[("x", float, 2), ("sim_id", int), ("sim_started", bool)])
-    H0["x"] = persis_info[0]["rand_stream"].uniform(lb, ub, (b, n))
+    H0["x"] = np.random.uniform(lb, ub, (b, n))
     H0["sim_id"] = range(b)
     H0["sim_started"] = False
     return H0
@@ -58,8 +57,7 @@ if __name__ == "__main__":
     }
     sampling.gen_specs = GenSpecs(**gen_specs)
     sampling.exit_criteria = ExitCriteria(sim_max=100)
-    sampling.persis_info = add_unique_random_streams({}, sampling.nworkers + 1)
-    sampling.H0 = create_H0(sampling.persis_info, gen_specs, 50)
+    sampling.H0 = create_H0(gen_specs, 50)
     sampling.alloc_specs = AllocSpecs(alloc_f=give_sim_work_first)
     sampling.run()
 

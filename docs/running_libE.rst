@@ -177,8 +177,8 @@ concurrent simulations.
 If modifying a workflow to use ``gen_on_manager`` consider the following.
 
 * Set ``nworkers`` to the number of workers desired for running simulations.
-* If using :meth:`add_unique_random_streams()<tools.add_unique_random_streams>`
-  to seed random streams, the default generator seed will be zero.
+* Generators should initialize their own random streams using
+  :meth:`get_rng()<tools.get_rng>`.
 * If you have a line like ``libE_specs["nresource_sets"] = nworkers -1``, this
   line should be removed.
 * If the generator does use resources, ``nresource_sets`` can be increased as needed

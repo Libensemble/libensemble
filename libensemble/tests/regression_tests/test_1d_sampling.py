@@ -21,9 +21,7 @@ from libensemble.gen_funcs.persistent_sampling import persistent_uniform
 # Import libEnsemble items for this test
 from libensemble.sim_funcs.simple_sim import norm_eval as sim_f
 from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
-from libensemble.tools import add_unique_random_streams
 
-# Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
     sampling = Ensemble(parse_args=True)
     sampling.libE_specs = LibeSpecs(save_every_k_gens=300, safe_mode=False, disable_log_files=True)
@@ -38,7 +36,7 @@ if __name__ == "__main__":
         },
     )
 
-    sampling.persis_info = add_unique_random_streams({}, sampling.nworkers + 1)
+    sampling.persis_info = {}
     sampling.exit_criteria = ExitCriteria(sim_max=500)
 
     sampling.run()

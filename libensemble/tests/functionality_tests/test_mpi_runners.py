@@ -18,7 +18,7 @@ from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
 from libensemble.libE import libE
 from libensemble.sim_funcs.run_line_check import runline_check as sim_f
 from libensemble.tests.regression_tests.common import create_node_file
-from libensemble.tools import add_unique_random_streams, parse_args
+from libensemble.tools import parse_args
 
 # logger.set_level("DEBUG")  # For testing the test
 logger.set_level("INFO")
@@ -61,7 +61,7 @@ if __name__ == "__main__":
     }
     libE_specs["resource_info"] = custom_resources
 
-    persis_info = add_unique_random_streams({}, nworkers + 1)
+    persis_info = {}
     exit_criteria = {"sim_max": nworkers * rounds}
 
     sim_specs = {

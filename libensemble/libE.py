@@ -30,7 +30,6 @@ called with such dictionaries to initiate libEnsemble. A simple calling script
     from libensemble.libE import libE
     from generator import gen_random_sample
     from simulator import sim_find_sine
-    from libensemble.tools import add_unique_random_streams
 
     nworkers, is_manager, libE_specs, _ = parse_args()
 
@@ -44,7 +43,7 @@ called with such dictionaries to initiate libEnsemble. A simple calling script
 
     sim_specs = {"sim_f": sim_find_sine, "in": ["x"], "out": [("y", float)]}
 
-    persis_info = add_unique_random_streams({}, nworkers + 1)
+    persis_info = {}
 
     exit_criteria = {"sim_max": 80}
 
@@ -69,7 +68,6 @@ all platforms and comms-types may resemble:
     from libensemble.libE import libE
     from generator import gen_random_sample
     from simulator import sim_find_sine
-    from libensemble.tools import add_unique_random_streams
 
     if __name__ == "__main__":
         nworkers, is_manager, libE_specs, _ = parse_args()
@@ -92,7 +90,7 @@ all platforms and comms-types may resemble:
             "out": [("y", float)],
         }
 
-        persis_info = add_unique_random_streams({}, nworkers + 1)
+        persis_info = {}
 
         exit_criteria = {"sim_max": 80}
 
@@ -121,8 +119,12 @@ import socket
 import sys
 import traceback
 from pathlib import Path
+from typing import TYPE_CHECKING, cast
 
 import numpy as np
+
+if TYPE_CHECKING:
+    from libensemble.logger import LibensembleLogger
 
 from libensemble.comms.comms import QCommProcess, QCommThread, Timeout
 from libensemble.comms.logs import manager_logging_config
@@ -143,7 +145,7 @@ from libensemble.utils.timer import Timer
 from libensemble.version import __version__
 from libensemble.worker import worker_main
 
-logger = logging.getLogger(__name__)
+logger = cast("LibensembleLogger", logging.getLogger(__name__))
 # To change logging level for just this module
 # logger.setLevel(logging.DEBUG)
 
@@ -157,7 +159,7 @@ def libE(
     alloc_specs: AllocSpecs = AllocSpecs(),
     libE_specs: LibeSpecs = {},
     H0=None,
-) -> (np.ndarray, dict, int):
+) -> tuple[np.ndarray, dict, int]:
     """
     Parameters
     ----------

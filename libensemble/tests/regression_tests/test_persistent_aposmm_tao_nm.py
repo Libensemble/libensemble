@@ -30,7 +30,7 @@ from libensemble.sim_funcs.six_hump_camel import six_hump_camel as sim_f
 libensemble.gen_funcs.rc.aposmm_optimizers = "petsc"
 from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc as alloc_f
 from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
-from libensemble.tools import add_unique_random_streams, parse_args
+from libensemble.tools import parse_args
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
@@ -71,7 +71,7 @@ if __name__ == "__main__":
 
     alloc_specs = {"alloc_f": alloc_f}
 
-    persis_info = add_unique_random_streams({}, nworkers + 1)
+    persis_info = {}
 
     exit_criteria = {"sim_max": 1000}
 
@@ -84,7 +84,7 @@ if __name__ == "__main__":
         assert np.sum(H["local_pt"]) > 100, "Why didn't at least 100 local points occur?"
 
     if libE_specs["comms"] == "mpi":
-        persis_info = add_unique_random_streams({}, nworkers + 1)
+        persis_info = {}
         gen_specs["user"]["run_max_eval"] = 10 * (n + 1)
         H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
         if is_manager:

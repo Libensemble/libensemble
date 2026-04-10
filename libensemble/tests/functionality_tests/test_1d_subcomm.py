@@ -22,7 +22,7 @@ from libensemble.gen_funcs.sampling import latin_hypercube_sample as gen_f
 from libensemble.libE import libE
 from libensemble.sim_funcs.simple_sim import norm_eval as sim_f
 from libensemble.tests.regression_tests.common import mpi_comm_excl
-from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
+from libensemble.tools import parse_args, save_libE_output
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
@@ -60,7 +60,7 @@ if __name__ == "__main__":
         "alloc_f": give_sim_work_first,
     }
 
-    persis_info = add_unique_random_streams({}, nworkers + 1, seed=1234)
+    persis_info = {}
 
     exit_criteria = {"gen_max": 501}
 

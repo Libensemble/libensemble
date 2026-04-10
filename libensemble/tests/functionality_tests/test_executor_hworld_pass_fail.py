@@ -24,7 +24,7 @@ from libensemble.libE import libE
 from libensemble.message_numbers import TASK_FAILED, WORKER_DONE, WORKER_KILL_ON_ERR, WORKER_KILL_ON_TIMEOUT
 from libensemble.sim_funcs.executor_hworld import executor_hworld as sim_f
 from libensemble.tests.regression_tests.common import build_simfunc
-from libensemble.tools import add_unique_random_streams, parse_args
+from libensemble.tools import parse_args
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local tcp
@@ -84,7 +84,7 @@ if __name__ == "__main__":
         },
     }
 
-    persis_info = add_unique_random_streams({}, nworkers + 1)
+    persis_info = {}
 
     # num sim_ended_count conditions in executor_hworld
     exit_criteria = {"sim_max": nworkers * 5}

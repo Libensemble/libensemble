@@ -29,9 +29,7 @@ from libensemble.gen_funcs.persistent_fd_param_finder import fd_param_finder as 
 from libensemble.sim_funcs.noisy_vector_mapping import func_wrapper as sim_f
 from libensemble.sim_funcs.noisy_vector_mapping import noisy_function
 from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, SimSpecs
-from libensemble.tools import add_unique_random_streams
 
-# Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
     x0 = np.array([1.23, 4.56])  # point about which we are calculating finite difference parameters
     f0 = noisy_function(x0)
@@ -62,7 +60,7 @@ if __name__ == "__main__":
         alloc_specs=AllocSpecs(alloc_f=alloc_f),
         exit_criteria=ExitCriteria(gen_max=1000),
     )
-    fd_test.persis_info = add_unique_random_streams({}, fd_test.nworkers + 1)
+    fd_test.persis_info = {}
 
     shutil.copy("./scripts_used_by_reg_tests/ECnoise.m", "./")
 

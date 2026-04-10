@@ -28,7 +28,7 @@ import numpy as np
 from libensemble import logger
 from libensemble.libE import libE
 from libensemble.message_numbers import WORKER_DONE
-from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
+from libensemble.tools import parse_args, save_libE_output
 
 # Ax uses a deprecated warn command.
 warnings.filterwarnings("ignore", category=UserWarning)
@@ -111,7 +111,7 @@ if __name__ == "__main__":
     exit_criteria = {"sim_max": 20}  # Exit after running sim_max simulations
 
     # Create a different random number stream for each worker and the manager
-    persis_info = add_unique_random_streams({}, nworkers + 1)
+    persis_info = {}
 
     # Run LibEnsemble, and store results in history array H
     H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)

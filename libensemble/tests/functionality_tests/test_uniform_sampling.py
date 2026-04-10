@@ -28,7 +28,7 @@ from libensemble.sim_funcs.mock_sim import mock_sim
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel
 from libensemble.tests.regression_tests.common import read_generated_file
 from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
-from libensemble.tools import add_unique_random_streams, parse_args
+from libensemble.tools import parse_args
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
@@ -56,7 +56,7 @@ if __name__ == "__main__":
     }
     # end_gen_specs_rst_tag
 
-    persis_info = add_unique_random_streams({}, nworkers + 1)
+    persis_info = {}
 
     exit_criteria = {"gen_max": 501, "wallclock_max": 300}
 

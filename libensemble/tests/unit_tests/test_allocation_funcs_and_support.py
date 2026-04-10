@@ -8,7 +8,6 @@ from libensemble.history import History
 from libensemble.message_numbers import EVAL_GEN_TAG, EVAL_SIM_TAG
 from libensemble.resources.resources import Resources
 from libensemble.resources.scheduler import InsufficientResourcesError, ResourceScheduler
-from libensemble.tools import add_unique_random_streams
 from libensemble.tools.alloc_support import AllocException, AllocSupport
 from libensemble.tools.fields_keys import libE_fields
 from libensemble.utils.misc import _WorkerIndexer
@@ -151,7 +150,7 @@ def test_als_evaluate_gens():
 
 
 def test_als_sim_work():
-    persis_info = add_unique_random_streams({}, 5)
+    persis_info = {i: {} for i in range(10)}
     als = AllocSupport(W, True)
     Work = {}
     Work[1] = als.sim_work(1, H, ["x"], np.array([0, 1, 2, 3, 4]), persis_info[1])
@@ -189,7 +188,7 @@ def test_als_sim_work():
 
 
 def test_als_gen_work():
-    persis_info = add_unique_random_streams({}, 5)
+    persis_info = {i: {} for i in range(10)}
     als = AllocSupport(W, True)
     Work = {}
     Work[1] = als.gen_work(1, ["sim_id"], range(0, 5), persis_info[1])

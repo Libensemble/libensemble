@@ -17,7 +17,7 @@ from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
 from libensemble.libE import libE
 from libensemble.manager import LoggedException
-from libensemble.tools import add_unique_random_streams, parse_args
+from libensemble.tools import parse_args
 
 
 # Define sim_func
@@ -46,7 +46,7 @@ if __name__ == "__main__":
         },
     }
 
-    persis_info = add_unique_random_streams({}, nworkers + 1)
+    persis_info = {}
 
     alloc_specs = {
         "alloc_f": give_sim_work_first,

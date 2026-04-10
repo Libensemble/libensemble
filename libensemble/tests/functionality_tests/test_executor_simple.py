@@ -20,7 +20,7 @@ from libensemble.libE import libE
 # Import libEnsemble items for this test
 from libensemble.message_numbers import WORKER_DONE
 from libensemble.sim_funcs.executor_hworld import executor_hworld as sim_f
-from libensemble.tools import add_unique_random_streams, parse_args
+from libensemble.tools import parse_args
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local
@@ -57,7 +57,7 @@ if __name__ == "__main__":
         },
     }
 
-    persis_info = add_unique_random_streams({}, nworkers + 1)
+    persis_info = {}
 
     # num sim_ended_count conditions in executor_hworld
     exit_criteria = {"sim_max": nworkers * 5}

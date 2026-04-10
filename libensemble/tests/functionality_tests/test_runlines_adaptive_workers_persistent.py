@@ -25,7 +25,7 @@ from libensemble.libE import libE
 from libensemble.sim_funcs import helloworld
 from libensemble.sim_funcs.var_resources import multi_points_with_variable_resources as sim_f
 from libensemble.tests.regression_tests.common import create_node_file
-from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
+from libensemble.tools import parse_args, save_libE_output
 
 # from libensemble.gen_funcs.persistent_sampling import persistent_uniform as gen_f
 
@@ -82,7 +82,7 @@ if __name__ == "__main__":
         "node_file": node_file,
     }  # Name of file containing a node-list
 
-    persis_info = add_unique_random_streams({}, nworkers + 1)
+    persis_info = {}
     exit_criteria = {"sim_max": 40, "wallclock_max": 300}
 
     # Perform the run

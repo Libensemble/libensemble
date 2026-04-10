@@ -26,7 +26,7 @@ from libensemble.gen_funcs.persistent_sampling import persistent_uniform as gen_
 # Import libEnsemble items for this test
 from libensemble.libE import libE
 from libensemble.sim_funcs.six_hump_camel import persistent_six_hump_camel as sim_f
-from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
+from libensemble.tools import parse_args, save_libE_output
 
 # from libensemble import logger
 # logger.set_level("DEBUG")
@@ -64,7 +64,7 @@ if __name__ == "__main__":
         },
     }
 
-    persis_info = add_unique_random_streams({}, nworkers + 1)
+    persis_info = {}
 
     exit_criteria = {"sim_max": 40, "wallclock_max": 300}
 

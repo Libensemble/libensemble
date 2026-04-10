@@ -13,7 +13,7 @@ from libensemble.executors.mpi_executor import MPIExecutor
 # Import libEnsemble modules
 from libensemble.libE import libE
 from libensemble.manager import ManagerException
-from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
+from libensemble.tools import parse_args, save_libE_output
 
 PERSIS_GEN = False
 
@@ -89,15 +89,11 @@ libE_specs["profile"] = False  # Whether to have libE profile on (default False)
 sim_max = 8
 exit_criteria = {"sim_max": sim_max}
 
-# Create a different random number stream for each worker and the manager
-persis_info = add_unique_random_streams({}, nworkers + 1)
-
 try:
     H, persis_info, flag = libE(
         sim_specs,
         gen_specs,
         exit_criteria,
-        persis_info=persis_info,
         alloc_specs=alloc_specs,
         libE_specs=libE_specs,
     )

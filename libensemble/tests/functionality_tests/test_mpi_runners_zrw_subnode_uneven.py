@@ -26,7 +26,7 @@ from libensemble.gen_funcs.persistent_sampling import persistent_uniform as gen_
 from libensemble.libE import libE
 from libensemble.sim_funcs.run_line_check import runline_check_by_worker as sim_f
 from libensemble.tests.regression_tests.common import create_node_file
-from libensemble.tools import add_unique_random_streams, parse_args
+from libensemble.tools import parse_args
 
 # logger.set_level("DEBUG")  # For testing the test
 logger.set_level("INFO")
@@ -149,14 +149,14 @@ if __name__ == "__main__":
             # Uses dynamic scheduler - will find node 2 slots first (as fewer)
             libE_specs["num_resource_sets"] = nworkers - 1  # Any worker can be the gen
             sim_specs["user"]["offset_for_scheduler"] = True  # Changes expected values
-            persis_info = add_unique_random_streams({}, nworkers + 1)
+            persis_info = {}
 
         else:
             # Uses static scheduler - will find node 1 slots first
             del libE_specs["num_resource_sets"]
             libE_specs["zero_resource_workers"] = [1]  # Gen must be worker 1
             sim_specs["user"]["offset_for_scheduler"] = False
-            persis_info = add_unique_random_streams({}, nworkers + 1)
+            persis_info = {}
 
         # Perform the run
         H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)

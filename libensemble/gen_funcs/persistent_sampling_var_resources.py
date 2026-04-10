@@ -12,6 +12,7 @@ import numpy as np
 
 from libensemble.executors.executor import Executor
 from libensemble.message_numbers import EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG, PERSIS_STOP, STOP_TAG
+from libensemble.tools import get_rng
 from libensemble.tools.persistent_support import PersistentSupport
 from libensemble.tools.test_support import check_gpu_setting
 
@@ -44,7 +45,7 @@ def uniform_sample(_, persis_info, gen_specs, libE_info):
     """  # noqa
 
     b, n, lb, ub = _get_user_params(gen_specs)
-    rng = persis_info["rand_stream"]
+    rng = get_rng(gen_specs, libE_info)
     ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
     tag = None
 
@@ -77,7 +78,7 @@ def uniform_sample_with_var_gpus(_, persis_info, gen_specs, libE_info):
     """  # noqa
 
     b, n, lb, ub = _get_user_params(gen_specs)
-    rng = persis_info["rand_stream"]
+    rng = get_rng(gen_specs, libE_info)
     ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
     tag = None
     max_gpus = gen_specs["user"]["max_gpus"]
@@ -112,7 +113,7 @@ def uniform_sample_with_procs_gpus(_, persis_info, gen_specs, libE_info):
     """  # noqa
 
     b, n, lb, ub = _get_user_params(gen_specs)
-    rng = persis_info["rand_stream"]
+    rng = get_rng(gen_specs, libE_info)
     ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
     tag = None
 
@@ -138,7 +139,7 @@ def uniform_sample_with_var_priorities(_, persis_info, gen_specs, libE_info):
     """
 
     b, n, lb, ub = _get_user_params(gen_specs)
-    rng = persis_info["rand_stream"]
+    rng = get_rng(gen_specs, libE_info)
     ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
 
     H_o = np.zeros(b, dtype=gen_specs["out"])
@@ -176,7 +177,7 @@ def uniform_sample_diff_simulations(_, persis_info, gen_specs, libE_info):
     """  # noqa
 
     b, n, lb, ub = _get_user_params(gen_specs)
-    rng = persis_info["rand_stream"]
+    rng = get_rng(gen_specs, libE_info)
     ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
     tag = None
 

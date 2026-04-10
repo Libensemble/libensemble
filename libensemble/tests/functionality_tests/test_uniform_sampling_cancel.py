@@ -30,7 +30,7 @@ from libensemble.gen_funcs.sampling import uniform_random_sample_cancel
 from libensemble.libE import libE
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel
 from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
-from libensemble.tools import add_unique_random_streams, parse_args
+from libensemble.tools import parse_args
 
 
 def create_H0(persis_info, gen_specs, sim_max):
@@ -86,7 +86,7 @@ if __name__ == "__main__":
     }
     # end_gen_specs_rst_tag
 
-    persis_info = add_unique_random_streams({}, nworkers + 1)
+    persis_info = {}
     sim_max = 500
     exit_criteria = {"sim_max": sim_max, "wallclock_max": 300}
 

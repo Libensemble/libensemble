@@ -85,7 +85,6 @@ if __name__ == "__main__":
             libE_specs=libE_specs,
         )
 
-        ensemble.add_random_streams()
         ensemble.run()
 
         if ensemble.is_manager:

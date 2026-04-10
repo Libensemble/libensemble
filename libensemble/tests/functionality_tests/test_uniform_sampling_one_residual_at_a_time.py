@@ -29,7 +29,7 @@ from libensemble.gen_funcs.sampling import uniform_random_sample_obj_components 
 from libensemble.libE import libE
 from libensemble.sim_funcs.chwirut1 import chwirut_eval as sim_f
 from libensemble.tests.regression_tests.support import persis_info_3 as persis_info
-from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
+from libensemble.tools import parse_args, save_libE_output
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
@@ -78,7 +78,6 @@ if __name__ == "__main__":
     }
     # end_alloc_specs_rst_tag
 
-    persis_info = add_unique_random_streams(persis_info, nworkers + 1)
     persis_info_safe = deepcopy(persis_info)
 
     exit_criteria = {"sim_max": budget, "wallclock_max": 300}

@@ -33,7 +33,7 @@ from libensemble.gen_funcs.persistent_gpCAM import persistent_gpCAM, persistent_
 # Import libEnsemble items for this test
 from libensemble.libE import libE
 from libensemble.sim_funcs.rosenbrock import rosenbrock_eval as sim_f
-from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
+from libensemble.tools import parse_args, save_libE_output
 
 warnings.filterwarnings("ignore", message="Default hyperparameter_bounds")
 warnings.filterwarnings("ignore", message="Hyperparameters initialized")
@@ -85,7 +85,7 @@ if __name__ == "__main__":
             gen_specs["user"]["ask_max_iter"] = 1  # For quicker test
             exit_criteria = {"sim_max": num_batches * batch_size, "wallclock_max": 300}
 
-        persis_info = add_unique_random_streams({}, nworkers + 1)
+        persis_info = {}
 
         # Perform the run
         H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)

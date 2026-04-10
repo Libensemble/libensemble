@@ -24,7 +24,7 @@ from libensemble.gen_funcs.persistent_sampling_var_resources import uniform_samp
 from libensemble.libE import libE
 from libensemble.sim_funcs import six_hump_camel
 from libensemble.sim_funcs.var_resources import CUDA_variable_resources as sim_f
-from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
+from libensemble.tools import parse_args, save_libE_output
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
@@ -72,13 +72,13 @@ if __name__ == "__main__":
     }
 
     libE_specs["scheduler_opts"] = {"match_slots": True}
-    persis_info = add_unique_random_streams({}, nworkers + 1)
+    persis_info = {}
     exit_criteria = {"sim_max": 40, "wallclock_max": 300}
 
     # Perform the run
 
     for i in range(2):
-        persis_info = add_unique_random_streams({}, nworkers + 1)
+        persis_info = {}
         libE_specs["workflow_dir_path"] = libE_specs["workflow_dir_path"][:-1] + str(i)
         H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
 
