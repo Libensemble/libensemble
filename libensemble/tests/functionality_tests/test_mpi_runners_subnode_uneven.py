@@ -84,7 +84,7 @@ if __name__ == "__main__":
 
     gen_specs = {
         "gen_f": gen_f,
-        "in": [],
+        "in": ["sim_id"],
         "out": [("x", float, (n,))],
         "batch_size": 20,
         "user": {
@@ -139,6 +139,6 @@ if __name__ == "__main__":
     }
 
     # Perform the run
-    H, _, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs, libE_specs=libE_specs)
+    H, _, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs, libE_specs=libE_specs)
 
     # All asserts are in sim func

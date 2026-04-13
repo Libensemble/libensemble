@@ -70,7 +70,7 @@ if __name__ == "__main__":
             sim_specs["user"] = {"history_file": hfile}
 
         # Perform the run
-        H, _, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs, libE_specs=libE_specs)
+        H, _, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs, libE_specs=libE_specs)
 
         if is_manager:
             assert flag == 0
