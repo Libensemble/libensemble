@@ -9,12 +9,11 @@ Execute via one of the following commands (e.g. 3 workers):
 The number of concurrent evaluations of the objective function will be 4-1=3.
 """
 
-import numpy as np
+from gest_api.vocs import VOCS
 
 from libensemble import logger
-from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 from libensemble.executors.mpi_executor import MPIExecutor
-from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
+from libensemble.gen_classes import UniformSample
 from libensemble.libE import libE
 from libensemble.sim_funcs.run_line_check import runline_check as sim_f
 from libensemble.tests.regression_tests.common import create_node_file
@@ -70,15 +69,15 @@ if __name__ == "__main__":
     }
 
     gen_specs = {
-        "gen_f": gen_f,
         "in": ["sim_id"],
         "out": [("x", float, (2,))],
         "batch_size": 100,
-        "user": {
-            "lb": np.array([-3, -2]),
-            "ub": np.array([3, 2]),
-        },
     }
+
+    variables = {"x0": [-3, 3], "x1": [-2, 2]}
+    objectives = {"f": "EXPLORE"}
+    vocs = VOCS(variables=variables, objectives=objectives)
+    gen_specs["generator"] = UniformSample(vocs)
 
     # Each worker has 2 nodes. Basic test list for portable options
     test_list_base = [
@@ -233,10 +232,8 @@ if __name__ == "__main__":
             "tests": test_list,
         }
 
-        alloc_specs = {"alloc_f": give_sim_work_first}
-
         # Perform the run
-        H, _, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs, libE_specs=libE_specs)
+        H, _, flag = libE(sim_specs, gen_specs, exit_criteria, libE_specs=libE_specs)
 
     # for run_set in ['mpich', 'openmpi', 'aprun', 'srun', 'jsrun', 'rename_mpich', 'custom']:
     for run_set in ["mpich", "aprun", "srun", "jsrun", "rename_mpich", "custom"]:
