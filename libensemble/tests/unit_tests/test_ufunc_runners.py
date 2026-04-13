@@ -112,10 +112,10 @@ def test_globus_compute_runner_pass():
 def test_globus_compute_runner_fail():
     calc_in, sim_specs, gen_specs = get_ufunc_args()
 
-    gen_specs["globus_compute_endpoint"] = "4321"
+    sim_specs["globus_compute_endpoint"] = "4321"
 
     with mock.patch("globus_compute_sdk.Executor"):
-        runner = Runner.from_specs(gen_specs)
+        runner = Runner.from_specs(sim_specs)
 
         #  Creating Mock Globus ComputeExecutor and Globus Compute future object - yes exception
         globus_compute_mock = mock.Mock()
@@ -124,12 +124,12 @@ def test_globus_compute_runner_fail():
         globus_compute_future.exception.return_value = Exception
 
         runner.globus_compute_executor = globus_compute_mock
-        runners = {2: runner.run}
+        runners = {1: runner.run}
 
         libE_info = {"H_rows": np.array([2, 3, 4]), "workerID": 1, "comm": "fakecomm"}
 
         with pytest.raises(Exception):
-            out, persis_info = runners[2](calc_in, {"libE_info": libE_info, "persis_info": {}, "tag": 2})
+            out, persis_info = runners[1](calc_in, {"libE_info": libE_info, "persis_info": {}, "tag": 1})
             pytest.fail("Expected exception")
 
 

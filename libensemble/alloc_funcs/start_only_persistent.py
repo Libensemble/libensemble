@@ -34,7 +34,7 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info, l
     async_return: Boolean, optional
         Return results to gen as they come in (after sample). Default: False (batch return).
 
-    give_all_with_same_priority: Boolean, optional
+    batch_evaluate_same_priority: Boolean, optional
         If True, then all points with the same priority value are given as a batch to the sim.
         Default is False
 
@@ -62,7 +62,7 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info, l
 
     active_recv_gen = user.get("active_recv_gen", False)  # Persistent gen can handle irregular communications
     initial_batch_size = user.get("initial_batch_size", 0)  # Always batch return until this many evals complete
-    batch_give = user.get("give_all_with_same_priority", False)
+    batch_give = user.get("batch_evaluate_same_priority", False)
 
     support = AllocSupport(W, manage_resources, persis_info, libE_info)
     gen_count = support.count_persis_gens()

@@ -225,7 +225,7 @@ accessible on the remote system::
     exctr.register_app(full_path="/home/user/forces.x", app_name="forces")
     task = exctr.submit(app_name="forces", num_procs=64)
 
-Specify a Globus Compute endpoint in either :class:`sim_specs<libensemble.specs.SimSpecs>` or :class:`gen_specs<libensemble.specs.GenSpecs>` via the ``globus_compute_endpoint``
+Specify a Globus Compute endpoint in :class:`sim_specs<libensemble.specs.SimSpecs>` via the ``globus_compute_endpoint``
 argument. For example::
 
     from libensemble.specs import SimSpecs

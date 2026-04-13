@@ -51,8 +51,7 @@ if __name__ == "__main__":
         "gen_f": gen_f,
         "in": ["sim_id"],
         "out": [("priority", float), ("resource_sets", int), ("x", float, n), ("x_on_cube", float, n)],
-        "batch_mode": False,
-        "give_all_with_same_priority": True,
+        "batch_evaluate_same_priority": True,
         "num_active_gens": 1,
         "initial_batch_size": 5,
         "user": {
@@ -64,6 +63,9 @@ if __name__ == "__main__":
 
     alloc_specs = {
         "alloc_f": give_sim_work_first,
+        "user": {
+            "batch_mode": False,
+        },
     }
 
     comms = libE_specs["comms"]
