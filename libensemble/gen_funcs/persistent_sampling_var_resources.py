@@ -211,7 +211,7 @@ def uniform_sample_with_sim_gen_resources(_, persis_info, gen_specs, libE_info):
     """  # noqa
 
     b, n, lb, ub = _get_user_params(gen_specs)
-    rng = persis_info["rand_stream"]
+    rng = get_rng(gen_specs, libE_info)
     ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
     tag = None
 
