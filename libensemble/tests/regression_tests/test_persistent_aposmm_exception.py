@@ -82,12 +82,10 @@ if __name__ == "__main__":
 
     exit_criteria = {"sim_max": 1000}
 
-    persis_info = {}
-
     libE_specs["abort_on_exception"] = False
     try:
         # Perform the run, which will fail because we want to test exception handling
-        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs, libE_specs=libE_specs)
     except Exception as e:
         if is_manager:
             if e.args[1].endswith("NLopt roundoff-limited"):

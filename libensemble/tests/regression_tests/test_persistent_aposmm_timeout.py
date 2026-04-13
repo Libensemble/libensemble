@@ -81,10 +81,8 @@ if __name__ == "__main__":
     # Setting a very high sim_max value and a short wallclock_max so timeout will occur
     exit_criteria = {"sim_max": 50000, "wallclock_max": 5}
 
-    persis_info = {}
-
     # Perform the run
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs, libE_specs=libE_specs)
 
     if is_manager:
         assert flag == 2, "Test should have timed out"

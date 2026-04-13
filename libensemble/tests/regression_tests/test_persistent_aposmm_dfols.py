@@ -89,8 +89,6 @@ if __name__ == "__main__":
 
     alloc_specs = {"alloc_f": alloc_f}
 
-    persis_info = {}
-
     # Tell libEnsemble when to stop (stop_val key must be in H)
     exit_criteria = {
         "sim_max": 1000,
@@ -100,7 +98,7 @@ if __name__ == "__main__":
     # end_exit_criteria_rst_tag
 
     # Perform the run
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs, libE_specs=libE_specs)
 
     if is_manager:
         assert persis_info[0].get("run_order"), "Run_order should have been given back"
@@ -128,10 +126,8 @@ if __name__ == "__main__":
             #     assert np.linalg.norm(d) <= 1e-5
 
     if libE_specs["comms"] == "mpi":
-        # Quickly try a different DFO-LS exit condition
-        persis_info = {}
-        gen_specs["user"]["dfols_kwargs"]["rhoend"] = 1e-16
-        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+        # Quickly try a different DFO-LS exit condition        gen_specs["user"]["dfols_kwargs"]["rhoend"] = 1e-16
+        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs, libE_specs=libE_specs)
 
         if is_manager:
             assert flag == 0

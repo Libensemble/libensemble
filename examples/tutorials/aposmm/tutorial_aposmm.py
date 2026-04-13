@@ -43,6 +43,6 @@ alloc_specs = {"alloc_f": persistent_aposmm_alloc}
 
 exit_criteria = {"sim_max": 2000}
 
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs, libE_specs)
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs, libE_specs=libE_specs)
 if is_manager:
     print("Minima:", H[np.where(H["local_min"])]["x"])
