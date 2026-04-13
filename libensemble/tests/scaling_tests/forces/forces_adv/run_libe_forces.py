@@ -77,8 +77,7 @@ if PERSIS_GEN:
     alloc_specs = {}
     gen_specs["async_return"] = False
 else:
-    alloc_specs = {"alloc_f": alloc_f}
-    gen_specs["batch_mode"] = True
+    alloc_specs = {"alloc_f": alloc_f, "user": {"batch_mode": True}}
     gen_specs["num_active_gens"] = 1
 
 libE_specs["save_every_k_gens"] = 1000  # Save every K steps

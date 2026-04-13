@@ -78,8 +78,8 @@ if __name__ == "__main__":
         "gen_f": gen_f,
         "persis_in": ["f", "x", "sim_id"],
         "out": [("num_procs", int), ("num_gpus", int), ("x", float, n)],
-        "initial_batch_size": nworkers,
-        "give_all_with_same_priority": False,
+        "initial_batch_size": nworkers - 1,
+        "batch_evaluate_same_priority": False,
         "async_return": False,
         "user": {
             "max_procs": nworkers,  # Any sim created can req. 1 worker up to all.

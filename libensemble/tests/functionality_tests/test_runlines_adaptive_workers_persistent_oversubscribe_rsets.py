@@ -62,7 +62,7 @@ if __name__ == "__main__":
         "persis_in": ["f", "x", "sim_id"],
         "out": [("priority", float), ("resource_sets", int), ("x", float, n), ("x_on_cube", float, n)],
         "initial_batch_size": nworkers - 1,
-        "give_all_with_same_priority": False,
+        "batch_evaluate_same_priority": False,
         "user": {
             "max_resource_sets": max_rsets,
             "lb": np.array([-3, -2]),

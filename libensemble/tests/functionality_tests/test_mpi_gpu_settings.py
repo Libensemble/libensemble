@@ -86,7 +86,7 @@ if __name__ == "__main__":
         "gen_f": gen_f,
         "persis_in": ["f", "x", "sim_id"],
         "out": [("priority", float), ("resource_sets", int), ("x", float, n)],
-        "give_all_with_same_priority": False,
+        "batch_evaluate_same_priority": False,
         "async_return": False,
         "initial_batch_size": nworkers,
         "user": {

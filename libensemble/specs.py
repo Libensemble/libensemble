@@ -157,18 +157,23 @@ class SimSpecs(BaseModel):
 
 class GenSpecs(BaseModel):
     """
-    Specifications for configuring a Generator Function.
+    Specifications for configuring a Generator.
+    """
+
+    generator: object | None = None
+    """
+    A pre-initialized generator object. Produces parameters for evaluation by a
+    simulator function, and makes decisions based on simulator function output.
+
+    These inherit from the `gest-api`
+    (https://github.com/campa-consortium/gest-api) base class. Recommended over
+    the classic ``gen_f`` interface.
     """
 
     gen_f: object | None = None
     """
     Python function matching the ``gen_f`` interface. Produces parameters for evaluation by a
     simulator function, and makes decisions based on simulator function output.
-    """
-
-    generator: object | None = None
-    """
-    A pre-initialized generator object.
     """
 
     inputs: list[str] | None = Field(default=[], alias="in")
@@ -189,13 +194,6 @@ class GenSpecs(BaseModel):
     e.g. ``("dim", int, (3,))``, or ``("path", str)``. Typically used to initialize an
     output array within the generator: ``out = np.zeros(100, dtype=gen_specs["out"])``.
     Also used to construct libEnsemble's history array.
-    """
-
-    globus_compute_endpoint: str | None = ""
-    """
-    A Globus Compute (https://www.globus.org/compute) ID corresponding to an active endpoint on a remote system.
-    libEnsemble's workers will submit generator function instances to this endpoint instead of
-    calling them locally.
     """
 
     initial_batch_size: int = 0
@@ -243,42 +241,34 @@ class GenSpecs(BaseModel):
     they will be automatically derived from VOCS.
     """
 
-    # Only used if using the only_persistent_gens allocation function (default)
     num_active_gens: int = 1
     """
-    Maximum number of persistent generators to start. Default: 1.
+    Maximum number of persistent generators to start.
     Only used if using the ``only_persistent_gens`` allocation function (the default).
     """
 
     async_return: bool = False
     """
-    Return results to gen as they come in (after sample). Default: False (batch return).
+    Return results to generator one-at-a-time as they come in (after sample). Default of False
+    implies batch return.
     Only used if using the ``only_persistent_gens`` allocation function (the default).
     """
 
     active_recv_gen: bool = False
     """
-    Create gen in active receive mode. If True, the manager does not need to wait
-    for a return from the generator before sending further returned points.
-    Default: False. Only used if using the ``only_persistent_gens`` allocation function (the default).
+    Initialize generator in active-receive mode. The generator can receive results
+    even if it's not ready to produce new points.
+    Only used if using the ``only_persistent_gens`` allocation function (the default).
     """
 
-    give_all_with_same_priority: bool = False
+    batch_evaluate_same_priority: bool = False
     """
-    If True, then all points with the same priority value are given as a batch to the sim.
-    Default: False. Only used if using the ``only_persistent_gens`` allocation function (the default).
+    Pass all points with the same priority value as a batch to a single simulator call.
     """
 
     alt_type: bool = False
     """
-    If True, then the specialized allocator behavior for some persistent gens is used.
-    Only used if using the ``only_persistent_gens`` allocation function (the default).
-    """
-
-    batch_mode: bool = False
-    """
-    If True, then the generator will not be started if there are still simulations
-    running. Only used if using the ``give_sim_work_first`` allocation function.
+    Enable specialized allocator behavior for ``only_persistent_gens``.
     """
 
     @model_validator(mode="after")
@@ -344,15 +334,9 @@ class AllocSpecs(BaseModel):
     for customizing the allocation function.
 
     .. note::
-        As of libEnsemble v2.0, generator-specific allocation options (e.g., ``async_return``,
-        ``num_active_gens``) have been moved to :class:`GenSpecs<libensemble.specs.GenSpecs>`.
-    """
-
-    outputs: list[tuple] = Field([], alias="out")
-    """
-    list of 2- or 3-tuples corresponding to NumPy dtypes. e.g. ``("dim", int, (3,))``, or ``("path", str)``.
-    Allocation functions that modify libEnsemble's History array with additional fields should list those
-    fields here. Also used to construct libEnsemble's history array.
+        As of libEnsemble v2.0, options related to the default allocation function
+        (e.g., ``async_return``, ``num_active_gens``) have been moved to
+        :class:`GenSpecs<libensemble.specs.GenSpecs>`.
     """
     # end_alloc_tag
 
