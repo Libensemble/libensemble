@@ -42,7 +42,7 @@ from libensemble.tools import parse_args
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
     nworkers, is_manager, libE_specs, _ = parse_args()
-    libE_specs["num_resource_sets"] = nworkers - 1  # Persistent gen does not need resources
+    libE_specs["num_resource_sets"] = nworkers  # Persistent gen does not need resources
     libE_specs["use_workflow_dir"] = True  # Only a place for Open MPI machinefiles
 
     # Optional for organization of output scripts
@@ -69,10 +69,10 @@ if __name__ == "__main__":
         "persis_in": ["f", "x", "sim_id"],
         "out": [("priority", float), ("resource_sets", int), ("x", float, n)],
         "initial_batch_size": nworkers - 1,
-        "give_all_with_same_priority": False,
+        "batch_evaluate_same_priority": False,
         "async_return": False,
         "user": {
-            "max_resource_sets": nworkers - 1,  # Any sim created can req. 1 worker up to all.
+            "max_resource_sets": nworkers,  # Any sim created can req. 1 worker up to all.
             "lb": np.array([-3, -2]),
             "ub": np.array([3, 2]),
         },

@@ -47,9 +47,6 @@ model = specs.GenSpecs.model_fields
 model["inputs"] = FieldInfo.merge_field_infos(model["inputs"], Field(alias="in"))
 model["outputs"] = FieldInfo.merge_field_infos(model["outputs"], Field(alias="out"))
 
-model = specs.AllocSpecs.model_fields
-model["outputs"] = FieldInfo.merge_field_infos(model["outputs"], Field(alias="out"))
-
 specs.SimSpecs.model_rebuild(force=True)
 specs.GenSpecs.model_rebuild(force=True)
 specs.AllocSpecs.model_rebuild(force=True)

@@ -89,7 +89,7 @@ if __name__ == "__main__":
         H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 
         if is_manager:
-            assert persis_info[1].get("run_order"), "Run_order should have been given back"
+            assert persis_info[0].get("run_order"), "Run_order should have been given back"
             min_ids = np.where(H["local_min"])
 
             # The minima are known on this test problem. If the above [lb, ub] domain is

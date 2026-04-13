@@ -39,7 +39,7 @@ persistent generator.
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local
-# TESTSUITE_NPROCS: 3 6
+# TESTSUITE_NPROCS: 4 7
 
 import os
 import sys
@@ -65,7 +65,7 @@ warnings.filterwarnings("ignore", category=UserWarning)
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
     nworkers, is_manager, libE_specs, _ = parse_args()
-    libE_specs["num_resource_sets"] = nworkers - 1  # Persistent gen does not need resources
+    libE_specs["num_resource_sets"] = nworkers  # Persistent gen does not need resources
     libE_specs["use_workflow_dir"] = True  # Only a place for Open MPI machinefiles
 
     if libE_specs["comms"] == "tcp":
@@ -86,11 +86,11 @@ if __name__ == "__main__":
         "gen_f": gen_f,
         "persis_in": ["f", "x", "sim_id"],
         "out": [("priority", float), ("resource_sets", int), ("x", float, n)],
-        "give_all_with_same_priority": False,
+        "batch_evaluate_same_priority": False,
         "async_return": False,
-        "initial_batch_size": nworkers - 1,
+        "initial_batch_size": nworkers,
         "user": {
-            "max_resource_sets": nworkers - 1,  # Any sim created can req. 1 worker up to all.
+            "max_resource_sets": nworkers,  # Any sim created can req. 1 worker up to all.
             "lb": np.array([-3, -2]),
             "ub": np.array([3, 2]),
         },

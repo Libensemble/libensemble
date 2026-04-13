@@ -6,7 +6,7 @@ import numpy.lib.recfunctions
 import libensemble.manager as man
 import libensemble.tests.unit_tests.setup as setup
 
-libE_specs = {"comms": "local"}
+libE_specs = {"comms": "local", "gen_on_worker": True}
 
 
 def test_term_test_1():

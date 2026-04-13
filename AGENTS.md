@@ -7,8 +7,8 @@ Read the ``README.rst`` for an overview of libEnsemble.
 - The manager determines how and when points get passed to workers via an allocation function.
 - See ``libensemble/tests/regression_tests/test_1d_sampling.py`` for a simple example of the libEnsemble interface.
 
-Repository Layout
------------------
+Critical Repository Layout Information
+--------------------------------------
 
 - ``libensemble/`` - Source code.
 -   ``/alloc_funcs`` - Allocation functions. Policies for passing work between the manager and workers.
@@ -23,27 +23,17 @@ Repository Layout
     - ``/functionality_tests`` - Primarily tests libEnsemble code only.
     - ``/regression_tests`` - Tests libEnsemble code with external code. Often more closely resembles actual use-cases.
     - ``/unit_tests`` - Tests for individual modules.
--   ``/tools`` - Tools. Misc functions and classes to ease development.
--   ``/utils`` - Utilities. Misc functions and classes used internally by multiple modules.
 -   ``ensemble.py`` - The primary interface for parameterizing and running libEnsemble.
 -   ``generators.py`` - Base classes for generators that adhere to the `gest-api` standard.
--   ``history.py`` - Module for recording points that have been generated and simulation results. NumPy array.
--   ``libE.py`` - libE main file. Previous primary interface for parameterizing and running libEnsemble.
--   ``logger.py`` - Logging configuration.
+-   ``history.py`` - Module for recording points that have been generated and simulation results. NumPy structured array.
+-   ``libE.py`` - libE main file. Previous primary interface for parameterizing and running libEnsemble. The primary interface in ``ensemble.py`` wraps this function.
 -   ``manager.py`` - Module for maintaining the history array and passing points between the workers.
 -   ``message_numbers.py`` - Constants that represent states of the ensemble.
 -   ``specs.py`` - Dataclasses for parameterizing the ensemble. Most importantly, contains ``LibeSpecs, SimSpecs, GenSpecs``.
 -   ``worker.py`` - Module for running generators and simulators. Communicates with the manager.
--   ``version.py`` - Version file.
-
-- ``.github/`` - GitHub actions. See ``.github/workflows/`` for the CI.
-- ``docs/`` - Documentation. Check here first for information before reading the source code.
 - ``examples/`` - The ``*_funcs`` and ``calling_scripts`` directories contain symlinks to examples further in the source code.
 -   ``/libE_submission_scripts`` - Example scripts for submitting libEnsemble jobs to HPC systems.
 -   ``/tutorials`` - Tutorials on how to use libEnsemble.
-- ``pyproject.toml`` - Project configuration file. Contains information about the project and its dependencies.
-
-Other files in the root directory should be self-documenting.
 
 Information about Generators
 ----------------------------

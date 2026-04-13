@@ -90,7 +90,7 @@ if __name__ == "__main__":
         "alloc_f": give_sim_work_first,
     }
 
-    exit_criteria = {"wallclock_max": 10}
+    exit_criteria = {"wallclock_max": 10, "sim_max": nworkers}
 
     # TCP does not support multiple libE calls
     if libE_specs["comms"] == "tcp":

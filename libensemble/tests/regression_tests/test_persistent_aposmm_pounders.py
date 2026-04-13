@@ -92,7 +92,6 @@ if __name__ == "__main__":
             "lb": lb,
             "ub": ub,
         },
-        "batch_mode": True,
         "num_active_gens": 1,
     }
 

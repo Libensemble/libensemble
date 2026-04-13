@@ -15,8 +15,8 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info, l
     If ``gen_specs["async_return"]`` or ``alloc_specs["user"]["async_return"]`` is set to True, then any
     returned points are given back to the generator.
 
-    If any workers are marked as zero_resource_workers, then these will only
-    be used for generators.
+    "" or ``alloc_specs["user"]["num_active_gens"]``
+    persistent generators (defaulting to one).
 
     If any of the persistent generators has exited, then ensemble shutdown
     is triggered.
@@ -34,7 +34,7 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info, l
     async_return: Boolean, optional
         Return results to gen as they come in (after sample). Default: False (batch return).
 
-    give_all_with_same_priority: Boolean, optional
+    batch_evaluate_same_priority: Boolean, optional
         If True, then all points with the same priority value are given as a batch to the sim.
         Default is False
 
@@ -62,7 +62,7 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info, l
 
     active_recv_gen = user.get("active_recv_gen", False)  # Persistent gen can handle irregular communications
     initial_batch_size = user.get("initial_batch_size", 0)  # Always batch return until this many evals complete
-    batch_give = user.get("give_all_with_same_priority", False)
+    batch_give = user.get("batch_evaluate_same_priority", False)
 
     support = AllocSupport(W, manage_resources, persis_info, libE_info)
     gen_count = support.count_persis_gens()
@@ -94,11 +94,10 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info, l
 
     # Now the give_sim_work_first part
     points_to_evaluate = ~H["sim_started"] & ~H["cancel_requested"]
-    avail_workers = support.avail_worker_ids(persistent=False, zero_resource_workers=False, gen_workers=False)
+    avail_workers = support.avail_worker_ids(persistent=False, gen_workers=False)
     if user.get("alt_type"):
         avail_workers = list(
-            set(support.avail_worker_ids(persistent=False, zero_resource_workers=False))
-            | set(support.avail_worker_ids(persistent=EVAL_SIM_TAG, zero_resource_workers=False))
+            set(support.avail_worker_ids(persistent=False)) | set(support.avail_worker_ids(persistent=EVAL_SIM_TAG))
         )
     for wid in avail_workers:
         if not np.any(points_to_evaluate):
@@ -118,9 +117,9 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info, l
 
         points_to_evaluate[sim_ids_to_send] = False
 
-    # Start persistent gens if no worker to give out. Uses zero_resource_workers if defined.
+    # Start persistent gens if no worker to give out.
     if not np.any(points_to_evaluate):
-        avail_workers = support.avail_worker_ids(persistent=False, zero_resource_workers=True, gen_workers=True)
+        avail_workers = support.avail_worker_ids(persistent=False, gen_workers=True)
 
         for wid in avail_workers:
             if gen_count < user.get("num_active_gens", 1):

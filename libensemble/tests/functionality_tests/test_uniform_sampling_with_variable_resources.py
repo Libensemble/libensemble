@@ -68,8 +68,7 @@ if __name__ == "__main__":
             ("x_on_cube", float, n),
         ],
         "batch_size": 5,
-        "batch_mode": False,
-        "give_all_with_same_priority": True,
+        "batch_evaluate_same_priority": True,
         "num_active_gens": 1,
         "async_return": True,
         "user": {
@@ -81,6 +80,9 @@ if __name__ == "__main__":
 
     alloc_specs = {
         "alloc_f": give_sim_work_first,
+        "user": {
+            "batch_mode": False,
+        },
     }
 
     # This can improve scheduling when tasks may run across multiple nodes

@@ -49,7 +49,6 @@ if __name__ == "__main__":
         "persis_in": ["x", "f"],
         "out": gen_out,
         "batch_size": 2,
-        "batch_mode": True,
         "num_active_gens": 1,
         "user": {
             "localopt_method": "LN_BOBYQA",
@@ -63,6 +62,9 @@ if __name__ == "__main__":
 
     alloc_specs = {
         "alloc_f": alloc_f,
+        "user": {
+            "batch_mode": True,
+        },
     }
 
     # Set sim_max small so persistent worker is quickly terminated

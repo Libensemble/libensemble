@@ -2,7 +2,7 @@
 Runs libEnsemble run-lines for adaptive workers with persistent gen.
 
 Default setup is designed to run on 2*N + 1 workers - to modify, change total_nodes.
-where one worker is a zero-resource persistent gen.
+where one worker is a persistent gen without assigned resources.
 
 Execute via one of the following commands (e.g. 5 workers):
    mpiexec -np 6 python test_runlines_adaptive_workers_persistent_oversubscribe_rsets.py
@@ -30,13 +30,12 @@ from libensemble.tools import parse_args, save_libE_output
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
     nworkers, is_manager, libE_specs, _ = parse_args()
-    nsim_workers = nworkers - 1
+    nsim_workers = nworkers
 
-    libE_specs["zero_resource_workers"] = [1]
     rsets = nsim_workers * 2
     libE_specs["num_resource_sets"] = rsets
 
-    num_gens = len(libE_specs["zero_resource_workers"])
+    num_gens = 1
     total_nodes = (nworkers - num_gens) // 2  # 2 resourced workers per node.
 
     print(f"sim_workers: {nsim_workers}.  rsets: {rsets}.  Nodes: {total_nodes}", flush=True)
@@ -63,7 +62,7 @@ if __name__ == "__main__":
         "persis_in": ["f", "x", "sim_id"],
         "out": [("priority", float), ("resource_sets", int), ("x", float, n), ("x_on_cube", float, n)],
         "initial_batch_size": nworkers - 1,
-        "give_all_with_same_priority": False,
+        "batch_evaluate_same_priority": False,
         "user": {
             "max_resource_sets": max_rsets,
             "lb": np.array([-3, -2]),

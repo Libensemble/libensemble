@@ -67,23 +67,3 @@ may be multiple nodes or a partition of a node in each resource set. If the spli
 is uneven, resource sets are not split between nodes. For example, if there are
 two nodes and five resource sets, one node will have three resource sets, and
 the other will have two.
-
-Placing zero-resource functions on a fixed worker
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-If the generator must always be on worker one, then instead of using
-``num_resource_sets``, use the ``zero_resource_workers`` *libE_specs* option:
-
-.. code-block:: python
-
-    libE_specs["zero_resource_workers"] = [1]
-
-in the calling script and worker one will not be allocated resources. In general,
-set the parameter ``zero_resource_workers`` to a list of worker IDs that should not
-have resources assigned.
-
-This approach can be useful if running in
-:doc:`distributed mode<../platforms/platforms_index>`.
-
-The use of the ``zero_resource_workers`` *libE_specs* option must be supported by
-the allocation function, see :ref:`start_only_persistent<start_only_persistent_label>`)

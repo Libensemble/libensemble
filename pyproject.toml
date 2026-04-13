@@ -187,7 +187,7 @@ gest-api = ">=0.1,<0.2"
 
 # macOS dependencies
 [tool.pixi.target.osx-arm64.dependencies]
-clang_osx-arm64 = ">=21.1.7,<22"
+clang_osx-arm64 = ">=22.1.0,<23"
 
 # Linux dependencies
 [tool.pixi.target.linux-64.dependencies]
@@ -208,7 +208,7 @@ docs = ["pyenchant", "enchant>=0.0.1,<0.0.2", "sphinx-lfs-content>=1.1.10,<2"]
 # Various config from here onward
 [tool.black]
 line-length = 120
-target-version = ['py310', 'py311', 'py312', 'py313']
+target-version = ["py311", "py312", "py313", "py314"]
 force-exclude = '''
 (
   /(

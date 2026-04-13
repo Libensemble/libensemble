@@ -35,6 +35,7 @@ if __name__ == "__main__":
     libE_specs["H_file_prefix"] = "splitcomm_" + str(sub_comm_number)
     libE_specs["safe_mode"] = False
     libE_specs["disable_log_files"] = True
+    libE_specs["gen_on_worker"] = True
 
     sim_specs = {
         "sim_f": sim_f,

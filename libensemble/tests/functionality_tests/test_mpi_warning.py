@@ -45,7 +45,6 @@ if __name__ == "__main__":
     sampling.alloc_specs = AllocSpecs(alloc_f=give_sim_work_first)
 
     sampling.exit_criteria = ExitCriteria(sim_max=100)
-    sampling.add_random_streams()
 
     if sampling.is_manager:
         if os.path.exists(log_file):

@@ -58,7 +58,6 @@ if __name__ == "__main__":
         "in": ["pt_id"],
         "out": [("x", float, n), ("priority", float), ("paused", bool), ("obj_component", int), ("pt_id", int)],
         "batch_size": 2,
-        "batch_mode": True,  # Wait until all sim evals are done
         "num_active_gens": 1,  # Only allow one active generator
         "user": {
             "single_component_at_a_time": True,
@@ -74,6 +73,7 @@ if __name__ == "__main__":
         "user": {
             "stop_on_NaNs": True,  # Should alloc preempt evals
             "stop_partial_fvec_eval": True,  # Should alloc preempt evals
+            "batch_mode": True,  # Wait until all sim evals are done
         },
     }
     # end_alloc_specs_rst_tag

@@ -33,13 +33,6 @@ parser.add_argument(
 parser.add_argument("--tester_args", type=str, nargs="*", help="Additional arguments for use by specific testers")
 
 
-def _get_zrw(nworkers, nsim_workers):
-    """Determine zero resource workers from workers and sim workers"""
-    ngen_workers = nworkers - nsim_workers
-    assert ngen_workers > 0, "nsim_workers cannot be greater than number of workers"
-    return [i for i in range(1, ngen_workers + 1)]
-
-
 def mpi_init(mpi_comm):
     """Initialize MPI"""
     from mpi4py import MPI, rc
@@ -65,7 +58,6 @@ def _mpi_parse_args(args):
     # Convenience option which sets other libE_specs options.
     nsim_workers = args.nsim_workers
     if nsim_workers is not None:
-        # libE_specs["zero_resource_workers"] = _get_zrw(nworkers, nsim_workers)
         libE_specs["num_resource_sets"] = libE_specs.get("num_resource_sets", nsim_workers)
 
     return nworkers, is_manager, libE_specs, args.tester_args
@@ -83,7 +75,6 @@ def _local_parse_args(args):
     nsim_workers = args.nsim_workers
     if nsim_workers is not None:
         nworkers = nworkers or nsim_workers + 1
-        # libE_specs["zero_resource_workers"] = _get_zrw(nworkers, nsim_workers)
         libE_specs["num_resource_sets"] = libE_specs.get("num_resource_sets", nsim_workers)
 
     nworkers = nworkers or 4
@@ -198,7 +189,7 @@ def parse_args():
         --nworkers/-n,    (For 'local' or 'tcp' comms) Set number of workers.
         --nresource_sets, Explicitly set the number of resource sets. This sets
                           libE_specs["num_resource_sets"]. By default, resources will be
-                          divided by workers (excluding zero_resource_workers).
+                          divided by workers.
         --nsim_workers,   (For 'local" or 'mpi' comms) A convenience option for cases with
                           persistent generators - sets the number of simulation workers.
                           If used with no other criteria, one additional worker for running a
@@ -214,7 +205,7 @@ def parse_args():
         $ python calling_script --nworkers 4
         $ python calling_script -n 4
 
-        Run with 'local' comms and 5 workers - one gen worker (no resources), and 4 sim workers.
+        Run with 'local' comms and 5 workers - one gen worker and 4 sim workers.
         $ python calling_script --comms local --nsim_workers 4
 
         Run with 'local' comms with 4 workers and 8 resource sets. The extra resource sets will

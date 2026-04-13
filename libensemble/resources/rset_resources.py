@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 if TYPE_CHECKING:
-    from libensemble.resources.resources import Resources
+    from libensemble.resources.resources import GlobalResources
 
 logger = logging.getLogger(__name__)
 # To change logging level for just this module
@@ -36,13 +36,12 @@ class RSetResources:
         # ('pool', int),    # Pool ID (eg. separate gen/sim resources) - not yet used.
     ]
 
-    def __init__(self, num_workers: int, resources: Resources):
+    def __init__(self, num_workers: int, resources: GlobalResources):
         """Initializes a new RSetResources instance
 
         Determines the compute resources available for each resource set.
 
-        Unless resource sets is set explicitly, the number of resource sets is the number of workers,
-        excluding any workers defined as zero resource workers.
+        Unless resource sets is set explicitly, the number of resource sets is the number of workers.
 
         Parameters
         ----------
@@ -50,8 +49,8 @@ class RSetResources:
         num_workers: int
             The total number of workers
 
-        resources: Resources
-            A Resources object containing global nodelist and intranode information
+        resources: GlobalResources
+            A GlobalResources object containing global nodelist and intranode information
 
         """
         self.num_workers = num_workers
@@ -129,8 +128,7 @@ class RSetResources:
     @staticmethod
     def get_workers2assign2(num_workers, resources):
         """Returns workers to assign resources to"""
-        zero_resource_list = resources.zero_resource_workers
-        return num_workers - len(zero_resource_list)
+        return num_workers
 
     @staticmethod
     def even_assignment(nnodes, nworkers):

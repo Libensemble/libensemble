@@ -31,6 +31,8 @@ from libensemble.tools import parse_args, save_libE_output
 if __name__ == "__main__":
     nworkers, is_manager, libE_specs, _ = parse_args()
 
+    libE_specs["gen_on_worker"] = True
+
     if nworkers < 2:
         sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
 

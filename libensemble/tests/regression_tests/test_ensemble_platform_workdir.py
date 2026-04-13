@@ -66,7 +66,6 @@ if __name__ == "__main__":
         "user": {"dry_run": True},
     }
 
-    ensemble.add_random_streams()
     ensemble.run()
 
     if ensemble.is_manager:

@@ -106,8 +106,6 @@ if __name__ == "__main__":
             workflow.exit_criteria = ExitCriteria(sim_max=200)
             workflow.libE_specs.abort_on_exception = False
 
-        workflow.add_random_streams()
-
         try:
             H, _, _ = workflow.run()
         except Exception as e:

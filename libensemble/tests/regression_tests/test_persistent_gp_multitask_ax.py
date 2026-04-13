@@ -2,8 +2,6 @@
 Example of multi-fidelity optimization using a persistent GP gen_func (calling
 Ax).
 
-This test uses the gen_on_manager option (persistent generator runs on
-a thread). Therefore nworkers is the number of simulation workers.
 
 Execute via one of the following commands:
    mpiexec -np 4 python test_persistent_gp_multitask_ax.py
@@ -63,7 +61,6 @@ def run_simulation(H, persis_info, sim_specs, libE_info):
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
     nworkers, is_manager, libE_specs, _ = parse_args()
-    libE_specs["gen_on_manager"] = True
 
     mt_params = {
         "name_hifi": "expensive_model",
@@ -110,11 +107,8 @@ if __name__ == "__main__":
     # Exit criteria
     exit_criteria = {"sim_max": 20}  # Exit after running sim_max simulations
 
-    # Create a different random number stream for each worker and the manager
-    persis_info = {}
-
     # Run LibEnsemble, and store results in history array H
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, libE_specs=libE_specs)
 
     # Save results to numpy file
     if is_manager:

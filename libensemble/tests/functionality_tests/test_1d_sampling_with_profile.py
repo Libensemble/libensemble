@@ -32,6 +32,7 @@ if __name__ == "__main__":
     libE_specs["profile"] = True
     libE_specs["safe_mode"] = False
     libE_specs["kill_canceled_sims"] = False
+    libE_specs["gen_on_worker"] = True
 
     sim_specs = {
         "sim_f": sim_f,
