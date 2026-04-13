@@ -85,8 +85,6 @@ if __name__ == "__main__":
     exit_criteria = {"sim_max": 1000}
 
     for run in range(2):
-        persis_info = {}
-
         if run == 1:
             gen_specs["user"]["localopt_method"] = "scipy_BFGS"
             gen_specs["user"]["opt_return_codes"] = [0]
@@ -94,7 +92,7 @@ if __name__ == "__main__":
             sim_specs["out"] = [("f", float), ("grad", float, n)]
 
         # Perform the run
-        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs, libE_specs=libE_specs)
 
         if is_manager:
             print("[Manager]:", H[np.where(H["local_min"])]["x"])
@@ -115,7 +113,6 @@ if __name__ == "__main__":
     # Now let's run on the same problem with a really large n (but we won't test
     # convergence to all local min). Note that sim_f uses only entries x[0:2]
     n = 400
-    persis_info = {}
     gen_specs["out"][0:2] = [("x", float, n), ("x_on_cube", float, n)]
     gen_specs["user"]["lb"] = np.zeros(n)
     gen_specs["user"]["ub"] = np.ones(n)
@@ -127,7 +124,7 @@ if __name__ == "__main__":
     sim_specs["out"] = [("f", float)]
     gen_specs["persis_in"].remove("grad")
 
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs, libE_specs=libE_specs)
 
     if is_manager:
         assert np.sum(H["sim_ended"]) >= exit_criteria["sim_max"], "Run didn't finish"

@@ -63,9 +63,6 @@ if __name__ == "__main__":
 
     alloc_specs = {
         "alloc_f": give_sim_work_first,
-        "user": {
-            "batch_mode": False,
-        },
     }
 
     comms = libE_specs["comms"]
@@ -85,7 +82,7 @@ if __name__ == "__main__":
     exit_criteria = {"sim_max": 40, "wallclock_max": 300}
 
     # Perform the run
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=libE_specs, libE_specs=libE_specs)
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs, libE_specs=libE_specs)
 
     if is_manager:
         assert flag == 0
