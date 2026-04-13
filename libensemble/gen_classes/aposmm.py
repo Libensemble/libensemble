@@ -401,7 +401,10 @@ class APOSMM(LibensembleGenerator):
         if not self._told_initial_sample:
             if not self._initial_sample_generated:
                 total = self._user_specs["initial_sample_size"]
-                self._add_k_sample_points(total, self._user_specs, self.persis_info, self._n, [], self.local_H, self._sim_id_to_child_inds)
+                self._add_k_sample_points(
+                    total, self._user_specs, self.persis_info,
+                    self._n, [], self.local_H, self._sim_id_to_child_inds,
+                )
                 self._initial_sample_generated = True
                 self._initial_suggest_idx = 0
 
@@ -443,7 +446,9 @@ class APOSMM(LibensembleGenerator):
                         if isinstance(x_new, ConvergedMsg):
                             x_opt = x_new.x
                             opt_flag = x_new.opt_flag
-                            opt_ind = self._update_history_optimal(x_opt, opt_flag, self.local_H, self._run_order[child_idx])
+                            opt_ind = self._update_history_optimal(
+                                x_opt, opt_flag, self.local_H, self._run_order[child_idx],
+                            )
                             new_opt_inds.append(opt_ind)
                             self._local_opters.pop(child_idx)
                             self._ended_runs.append(child_idx)
@@ -459,7 +464,9 @@ class APOSMM(LibensembleGenerator):
                                 self._sim_id_to_child_inds[sid] = (child_idx,)
 
         # Decide where to start new local optimization runs
-        starting_inds = self._decide_where_to_start(self.local_H, self._n, self._n_s, self._rk_const, self._ld, self._mu, self._nu)
+        starting_inds = self._decide_where_to_start(
+            self.local_H, self._n, self._n_s, self._rk_const, self._ld, self._mu, self._nu,
+        )
 
         for ind in starting_inds:
             if len([p for p in self._local_opters.values() if p.is_running]) < self._max_active_runs:
@@ -491,7 +498,10 @@ class APOSMM(LibensembleGenerator):
             num_samples = self._n_r - len(new_inds)
 
         if num_samples > 0:
-            self._add_k_sample_points(num_samples, self._user_specs, self.persis_info, self._n, [], self.local_H, self._sim_id_to_child_inds)
+            self._add_k_sample_points(
+                num_samples, self._user_specs, self.persis_info,
+                self._n, [], self.local_H, self._sim_id_to_child_inds,
+            )
             new_inds = new_inds + list(range(len(self.local_H) - num_samples, len(self.local_H)))
 
         all_inds = new_inds + new_opt_inds
