@@ -16,7 +16,7 @@ Critical Repository Layout Information
 -   ``/executors`` - An interface for launching executables, often simulations.
 -   ``/gen_classes`` - Generators that adhere to the `gest-api` standard.
                        Recommended over entries from ``/gen_funcs`` that perform similar functionality.
--   ``/gen_funcs`` - Generator functions. Modules for producing points for simulations.
+-   ``/gen_funcs`` - Generator functions. Modules for producing points for simulations. (Legacy)
 -   ``/resources`` - Classes and functions for managing compute resources for MPI tasks, libensemble workers.
 -   ``/sim_funcs`` - Simulator functions. Modules for running simulations or performing experiments.
 -   ``/tests`` - Tests.
@@ -85,3 +85,15 @@ for local development running individual tests is sufficient.
 - Individual unit tests can be run with ``pixi run -e dev pytest path/to/test_file``.
 - A libEnsemble run typically outputs an ``ensemble.log`` and ``libE_stats.txt`` file in the working directory. Check these files for tracebacks or run statistics.
 - An "ensemble" or "workflow" directory may also be created, often containing per-simulation output directories
+
+Modernizing Scripts for libEnsemble 2.0
+---------------------------------------
+
+When modernizing existing libEnsemble scripts (functionality tests, regression tests, or user examples) for version 2.0, follow these steps:
+
+- **Switch to `gest-api` Generators**: Replace legacy generator functions (from `libensemble.gen_funcs`) with standardized generator classes (from `libensemble.gen_classes` or other `gest-api` compatible sources).
+- **Use `VOCS` for Parameterization**: Standardized generators are parameterized by a `VOCS` object (from `gest_api.vocs`). Define variables and objectives within this object.
+- **Set `gen_specs["generator"]`**: Instead of `gen_f`, use the `generator` field in `GenSpecs` to pass the initialized generator class.
+- **Remove Explicit `AllocSpecs`**: In libEnsemble 2.0, `only_persistent_gens` is the default allocator. Scripts that previously used `give_sim_work_first` or other simple allocators can often remove `alloc_specs` entirely when switching to standardized generators.
+- **Generator Placement**: By default, generators run on the manager thread (Worker 0). This means all allocated workers are available for simulation tasks unless `gen_on_worker` is explicitly set to `True` in `libE_specs`.
+- **Mandatory Fields**: Ensure `gen_specs["in"]` or `gen_specs["persis_in"]` includes at least one field (e.g., `["sim_id"]`) if feedback is sent back to the generator, to satisfy the allocator's requirements.
