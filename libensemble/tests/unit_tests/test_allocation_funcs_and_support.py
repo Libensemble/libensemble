@@ -19,10 +19,10 @@ H0 = []
 
 W = np.array(
     [
-        (1, False, 0, 0, False, False),
-        (2, False, 0, 0, False, False),
-        (3, False, 0, 0, False, False),
-        (4, False, 0, 0, False, False),
+        (1, False, 0, 0, False),
+        (2, False, 0, 0, False),
+        (3, False, 0, 0, False),
+        (4, False, 0, 0, False),
     ],
     dtype=[
         ("worker_id", "<i8"),
@@ -30,9 +30,26 @@ W = np.array(
         ("active", "<i8"),
         ("persis_state", "<i8"),
         ("active_recv", "?"),
-        ("zero_resource_worker", "?"),
     ],
 )
+
+W_gen_mgr = np.array(
+    [
+        (0, True, 0, 0, False),
+        (1, False, 0, 0, False),
+        (2, False, 0, 0, False),
+        (3, False, 0, 0, False),
+        (4, False, 0, 0, False),
+    ],
+    dtype=[
+        ("worker_id", "<i8"),
+        ("gen_worker", "?"),
+        ("active", "<i8"),
+        ("persis_state", "<i8"),
+        ("active_recv", "?"),
+    ],
+)
+
 
 fields = [("x", "<f8", 2), ("priority", "<f8")]
 H = np.zeros(5, dtype=libE_fields + fields)
@@ -58,6 +75,7 @@ def test_decide_work_and_resources():
     sim_specs, gen_specs, exit_criteria = setup.make_criteria_and_specs_1()
     hist = History(al, sim_specs, gen_specs, exit_criteria, H0)
 
+    libE_specs["gen_on_worker"] = True  # otherwise the Manager init starts the additional worker
     mgr = man.Manager(hist, libE_specs, al, sim_specs, gen_specs, exit_criteria)
     W = mgr.W
 
@@ -127,12 +145,32 @@ def test_als_worker_ids():
         flag = 0
     assert flag == 0, "AllocSupport didn't error on invalid options for avail_worker_ids()"
 
-    W_zrw = W.copy()
-    W_zrw["zero_resource_worker"] = np.array([True, 0, 0, 0])
-    als = AllocSupport(W_zrw, True)
-    assert als.avail_worker_ids(zero_resource_workers=True) == [
-        1
-    ], "avail_worker_ids() didn't return expected zero resource worker list."
+
+def test_als_worker_ids_with_gen_mgr():
+    als = AllocSupport(W_gen_mgr, True)
+    assert als.avail_worker_ids() == [0, 1, 2, 3, 4], "avail_worker_ids() didn't return expected available worker list."
+
+    W_ps = W_gen_mgr.copy()
+    W_ps["persis_state"] = np.array([EVAL_GEN_TAG, 0, 0, 0, 0])
+    als = AllocSupport(W_ps, True)
+    assert als.avail_worker_ids(persistent=EVAL_GEN_TAG) == [
+        0
+    ], "avail_worker_ids() didn't return expected persistent worker list."
+
+    W_ar = W_gen_mgr.copy()
+    W_ar["active_recv"] = np.array([True, 0, 0, 0, 0])
+    W_ar["persis_state"] = np.array([EVAL_GEN_TAG, 0, 0, 0, 0])
+    als = AllocSupport(W_ar, True)
+    assert als.avail_worker_ids(persistent=EVAL_GEN_TAG, active_recv=True) == [
+        0
+    ], "avail_worker_ids() didn't return expected persistent worker list."
+
+    flag = 1
+    try:
+        als.avail_worker_ids(active_recv=True)
+    except AllocException:
+        flag = 0
+    assert flag == 0, "AllocSupport didn't error on invalid options for avail_worker_ids()"
 
 
 def test_als_evaluate_gens():
@@ -171,7 +209,6 @@ def test_als_sim_work():
 
     W_ps = W.copy()
     W_ps["persis_state"] = np.array([EVAL_GEN_TAG, 0, 0, 0])
-    W_ps["zero_resource_worker"] = np.array([True, 0, 0, 0])
     als = AllocSupport(_WorkerIndexer(W_ps, False), True)
     Work = {}
     Work[1] = als.sim_work(1, H, ["x"], np.array([0, 1, 2, 3, 4]), persis_info[1], persistent=True)
@@ -510,6 +547,7 @@ if __name__ == "__main__":
     test_als_init_withresources()
     test_als_assign_resources()
     test_als_worker_ids()
+    test_als_worker_ids_with_gen_mgr()
     test_als_evaluate_gens()
     test_als_sim_work()
     test_als_gen_work()

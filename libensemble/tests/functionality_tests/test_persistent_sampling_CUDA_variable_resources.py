@@ -34,8 +34,6 @@ if __name__ == "__main__":
 
     libE_specs["num_resource_sets"] = nworkers - 1  # Any worker can be the gen
 
-    # libE_specs["zero_resource_workers"] = [1]  # If first worker must be gen, use this instead
-
     libE_specs["sim_dirs_make"] = True
     libE_specs["workflow_dir_path"] = "./ensemble_CUDA/workflow_" + libE_specs["comms"] + "_w" + str(nworkers) + "_N"
     libE_specs["sim_dir_copy_files"] = [".gitignore"]

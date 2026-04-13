@@ -2,7 +2,7 @@
 Runs libEnsemble run-lines for adaptive workers with persistent gen.
 
 Default setup is designed to run on 2*N + 1 workers - to modify, change total_nodes.
-where one worker is a zero-resource persistent gen.
+where one worker is a persistent gen without assigned resources.
 
 Execute via one of the following commands (e.g. 5 workers):
    mpiexec -np 6 python test_runlines_adaptive_workers_persistent_oversubscribe_rsets.py
@@ -30,13 +30,12 @@ from libensemble.tools import add_unique_random_streams, parse_args, save_libE_o
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
     nworkers, is_manager, libE_specs, _ = parse_args()
-    nsim_workers = nworkers - 1
+    nsim_workers = nworkers
 
-    libE_specs["zero_resource_workers"] = [1]
     rsets = nsim_workers * 2
     libE_specs["num_resource_sets"] = rsets
 
-    num_gens = len(libE_specs["zero_resource_workers"])
+    num_gens = 1
     total_nodes = (nworkers - num_gens) // 2  # 2 resourced workers per node.
 
     print(f"sim_workers: {nsim_workers}.  rsets: {rsets}.  Nodes: {total_nodes}", flush=True)
@@ -86,7 +85,7 @@ if __name__ == "__main__":
         "node_file": node_file,
     }  # Name of file containing a node-list
 
-    persis_info = add_unique_random_streams({}, nworkers + 1)
+    persis_info = add_unique_random_streams({}, nworkers)
     exit_criteria = {"sim_max": 40, "wallclock_max": 300}
 
     # Perform the run

@@ -63,12 +63,12 @@ class Resources:
                 libE_specs=libE_specs, platform_info=platform_info, top_level_dir=top_level_dir
             )
 
-    def __init__(self, libE_specs: dict, platform_info: dict = {}, top_level_dir: str = None) -> None:
+    def __init__(self, libE_specs: dict, platform_info: dict = {}, top_level_dir: str = "") -> None:
         """Initiate a new resources object"""
         self.top_level_dir = top_level_dir or os.getcwd()
-        self.glob_resources = GlobalResources(libE_specs=libE_specs, platform_info=platform_info, top_level_dir=None)
-        self.resource_manager = None  # For Manager
-        self.worker_resources = None  # For Workers
+        self.glob_resources = GlobalResources(libE_specs=libE_specs, platform_info=platform_info, top_level_dir="")
+        self.resource_manager: ResourceManager | None = None  # For Manager
+        self.worker_resources: WorkerResources | None = None  # For Workers
 
     def set_worker_resources(self, num_workers: int, workerid: int) -> None:
         """Initiate the worker resources component of resources"""
@@ -96,12 +96,10 @@ class GlobalResources:
     :ivar list global_nodelist: list of all nodes available for running user applications
     :ivar int logical_cores_avail_per_node: Logical cores (including SMT threads) available on a node
     :ivar int physical_cores_avail_per_node: Physical cores available on a node
-    :ivar list zero_resource_workers: List of workerIDs to have no resources.
-    :ivar bool dedicated_mode: Whether to remove libE nodes from global nodelist.
     :ivar int num_resource_sets: Number of resource sets, if supplied by the user.
     """
 
-    def __init__(self, libE_specs: dict, platform_info: dict = {}, top_level_dir: str = None) -> None:
+    def __init__(self, libE_specs: dict, platform_info: dict = {}, top_level_dir: str = "") -> None:
         """Initializes a new Resources instance
 
         Determines the compute resources available for current allocation, including
@@ -121,12 +119,9 @@ class GlobalResources:
             will not be available to worker-launched tasks (user applications). They will
             be removed from the nodelist (if present), before dividing into resource sets.
 
-        zero_resource_workers: List[int], Optional
-            List of workers that require no resources.
-
         num_resource_sets: int, Optional
             The total number of resource sets. Resources will be divided into this number.
-            Default: None. If None, resources will be divided by workers (excluding zero_resource_workers).
+            Default: None. If None, resources will be divided by workers.
 
         cores_on_node: tuple (int, int), Optional
             If supplied gives (physical cores, logical cores) for the nodes. If not supplied,
@@ -166,7 +161,6 @@ class GlobalResources:
         """
         self.top_level_dir = top_level_dir
         self.dedicated_mode = libE_specs.get("dedicated_mode", False)
-        self.zero_resource_workers = libE_specs.get("zero_resource_workers", [])
         self.num_resource_sets = libE_specs.get("num_resource_sets", None)
         self.enforce_worker_core_bounds = libE_specs.get("enforce_worker_core_bounds", False)
         self.gpus_per_group = libE_specs.get("gpus_per_group")

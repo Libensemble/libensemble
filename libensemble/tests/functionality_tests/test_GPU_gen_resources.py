@@ -49,7 +49,7 @@ from libensemble.tools import add_unique_random_streams, parse_args
 if __name__ == "__main__":
     nworkers, is_manager, libE_specs, _ = parse_args()
 
-    libE_specs["num_resource_sets"] = nworkers  # Persistent gen DOES need resources
+    libE_specs["num_resource_sets"] = nworkers + 1  # Persistent gen DOES need resources
 
     # Mock GPU system / uncomment to detect GPUs
     libE_specs["sim_dirs_make"] = True  # Will only contain files if dry_run is False
@@ -82,7 +82,7 @@ if __name__ == "__main__":
         "batch_evaluate_same_priority": False,
         "async_return": False,
         "user": {
-            "max_procs": nworkers - 1,  # Any sim created can req. 1 worker up to all.
+            "max_procs": nworkers,  # Any sim created can req. 1 worker up to all.
             "lb": np.array([-3, -2]),
             "ub": np.array([3, 2]),
             "dry_run": dry_run,
@@ -90,21 +90,24 @@ if __name__ == "__main__":
     }
 
     exit_criteria = {"sim_max": 20}
-    libE_specs["resource_info"] = {"cores_on_node": (nworkers * 2, nworkers * 4), "gpus_on_node": nworkers}
+    libE_specs["resource_info"] = {
+        "cores_on_node": ((nworkers + 1) * 2, (nworkers + 1) * 4),
+        "gpus_on_node": nworkers + 1,
+    }
 
     base_libE_specs = libE_specs.copy()
-    for gen_on_manager in [False, True]:
+    for gen_on_worker in [False, True]:
         for run in range(5):
             # reset
             libE_specs = base_libE_specs.copy()
-            libE_specs["gen_on_manager"] = gen_on_manager
+            libE_specs["gen_on_worker"] = gen_on_worker
             persis_info = add_unique_random_streams({}, nworkers + 1)
 
             if run == 0:
                 libE_specs["gen_num_procs"] = 2
             elif run == 1:
-                if gen_on_manager:
-                    print("SECOND LIBE CALL WITH GEN ON MANAGER")
+                if gen_on_worker:
+                    print("SECOND LIBE CALL WITH GEN ON WORKER INSTEAD OF MANAGER")
                 libE_specs["gen_num_gpus"] = 1
             elif run == 2:
                 persis_info["gen_num_gpus"] = 1

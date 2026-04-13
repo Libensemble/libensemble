@@ -13,7 +13,7 @@ The number of concurrent evaluations of the objective function with 2 gens will 
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local
-# TESTSUITE_NPROCS: 5 7
+# TESTSUITE_NPROCS: 4 6
 # TESTSUITE_OS_SKIP: WIN
 
 import sys
@@ -34,6 +34,8 @@ if __name__ == "__main__":
     for ngens in range(1, 3):
         n = 2
         init_batch_size = nworkers - ngens
+
+        libE_specs["gen_on_worker"] = True
 
         if ngens >= nworkers:
             sys.exit("The number of generators must be less than the number of workers -- aborting...")

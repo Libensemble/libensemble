@@ -264,7 +264,10 @@ def build_forces(root_dir):
     """Build forces.x using mpicc."""
     cprint("Building forces.x before running regression tests...", style="yellow", newline=True)
     forces_app_dir = Path(root_dir) / "libensemble/tests/scaling_tests/forces/forces_app"
-    subprocess.run(["mpicc", "-O3", "-o", "forces.x", "forces.c", "-lm"], cwd=forces_app_dir, check=True)
+    build_cmd = ["mpicc", "-O3", "-o", "forces.x", "forces.c", "-lm"]
+    if platform.system() == "Darwin":
+        build_cmd = ["mpicc", "-cc=clang", "-O3", "-o", "forces.x", "forces.c", "-lm"]
+    subprocess.run(build_cmd, cwd=forces_app_dir, check=True)
     destination_dir = Path(root_dir) / "libensemble/tests/forces_app"
     os.makedirs(destination_dir, exist_ok=True)
     shutil.copy(forces_app_dir / "forces.x", destination_dir)

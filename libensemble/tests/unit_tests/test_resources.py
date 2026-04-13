@@ -688,40 +688,6 @@ def test_get_local_nodelist_distrib_mode_uneven_split(tmp_path):
     os.remove(tmp_path / "node_list")
 
 
-def test_map_workerid_to_index():
-    num_workers = 4
-    num_rsets = 4
-
-    zero_resource_list = []
-    index_list = ResourceManager.get_index_list(num_workers, num_rsets, zero_resource_list)
-    for workerID in range(1, num_workers + 1):
-        index = index_list[workerID - 1]
-        assert index == workerID - 1, "index incorrect. Received: " + str(index)
-
-    zero_resource_list = [1]
-    index_list = ResourceManager.get_index_list(num_workers, num_rsets, zero_resource_list)
-    for workerID in range(2, num_workers + 1):
-        index = index_list[workerID - 1]
-        assert index == workerID - 2, "index incorrect. Received: " + str(index)
-
-    zero_resource_list = [1, 2]
-    index_list = ResourceManager.get_index_list(num_workers, num_rsets, zero_resource_list)
-    for workerID in range(3, num_workers + 1):
-        index = index_list[workerID - 1]
-        assert index == workerID - 3, "index incorrect. Received: " + str(index)
-
-    zero_resource_list = [1, 3]
-    index_list = ResourceManager.get_index_list(num_workers, num_rsets, zero_resource_list)
-
-    workerID = 2
-    index = index_list[workerID - 1]
-    assert index == 0, "index incorrect. Received: " + str(index)
-
-    workerID = 4
-    index = index_list[workerID - 1]
-    assert index == 1, "index incorrect. Received: " + str(index)
-
-
 def test_get_group_list():
     # 8 resource sets on different nodes --------------------------------------
     split_list = [
@@ -1033,7 +999,6 @@ if __name__ == "__main__":
     test_get_local_nodelist_distrib_mode()
     test_get_local_nodelist_distrib_mode_uneven_split()
 
-    test_map_workerid_to_index()
     test_get_group_list()
     test_machinefile_from_resources()
     test_wresources_set_gpus()
