@@ -10,11 +10,11 @@ The number of concurrent evaluations of the objective function will be 4-1=3.
 """
 
 import numpy as np
+from gest_api.vocs import VOCS
 
 import libensemble.sim_funcs.six_hump_camel as six_hump_camel
-from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 from libensemble.executors.mpi_executor import MPIExecutor
-from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
+from libensemble.gen_classes.sampling import UniformSample
 from libensemble.libE import libE
 
 # Import libEnsemble items for this test
@@ -47,25 +47,24 @@ if __name__ == "__main__":
     }
 
     gen_specs = {
-        "gen_f": gen_f,
         "in": ["sim_id"],
+        "persis_in": ["x", "f", "sim_id"],
         "out": [("x", float, (2,))],
         "batch_size": nworkers,
-        "user": {
-            "lb": np.array([-3, -2]),
-            "ub": np.array([3, 2]),
-        },
     }
+
+    variables = {"x0": [-3, 3], "x1": [-2, 2]}
+    objectives = {"f": "EXPLORE"}
+
+    vocs = VOCS(variables=variables, objectives=objectives)
+
+    gen_specs["generator"] = UniformSample(vocs)
 
     # num sim_ended_count conditions in executor_hworld
     exit_criteria = {"sim_max": nworkers * 5}
 
-    alloc_specs = {
-        "alloc_f": give_sim_work_first,
-    }
-
     # Perform the run
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs, libE_specs=libE_specs)
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, libE_specs=libE_specs)
 
     if is_manager:
         print("\nChecking expected task status against Workers ...\n")

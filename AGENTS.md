@@ -23,7 +23,7 @@ Critical Repository Layout Information
     - ``/functionality_tests`` - Primarily tests libEnsemble code only.
     - ``/regression_tests`` - Tests libEnsemble code with external code. Often more closely resembles actual use-cases.
     - ``/unit_tests`` - Tests for individual modules.
--   ``ensemble.py`` - The primary interface for parameterizing and running libEnsemble.
+-   ``ensemble.py`` - The primary interface for parameterizing and running libEnsemble. The ``Ensemble`` class in this module wraps the lower-level ``libE`` function and automates argument parsing and state management.
 -   ``generators.py`` - Base classes for generators that adhere to the `gest-api` standard.
 -   ``history.py`` - Module for recording points that have been generated and simulation results. NumPy structured array.
 -   ``libE.py`` - libE main file. Previous primary interface for parameterizing and running libEnsemble. The primary interface in ``ensemble.py`` wraps this function.
@@ -45,8 +45,10 @@ Its fields match ``sim_specs/gen_specs["out"]`` or ``vocs`` attributes, plus add
 long-running loop, sending and receiving points to and from the manager until the ensemble was complete.
 - A ``gest-api`` or "standardized" generator is a class that at a minimum implements ``suggest`` and ``ingest`` methods, and is parameterized by a ``vocs``.
 - See ``libensemble/generators.py`` for more information about the ``gest-api`` standard.
-- If using a generator that adheres to the ``gest-api`` standard, or a classic persistent generator, use the ``start_only_persistent`` allocation function.
 - Generators are often used for simple sampling, optimization, calibration, uncertainty quantification, and other simulation-based tasks.
+- **Automatic Variable Mapping**: Subclasses of ``LibensembleGenerator`` (like ``UniformSample``) automatically map all ``VOCS`` variables to a single multi-dimensional ``"x"`` field in the History array if no explicit ``variables_mapping`` is provided.
+- **Mandatory Input Fields**: Even for simple generators that don't ingest data, ``gen_specs["in"]`` or ``gen_specs["persis_in"]`` must be defined if using an allocation function like ``only_persistent_gens`` that attempts to send rows. If these are empty, the manager will raise an ``AssertionError`` stating that no fields were requested to be sent.
+- **Default Allocator**: ``only_persistent_gens`` is the default allocator for standardized ``gest-api`` generators. It treats these generators as persistent entities that communicate throughout the run.
 
 General Guidelines
 ------------------
@@ -67,7 +69,7 @@ Development Environment
 -----------------------
 
 - ``pixi`` is the recommended environment manager for libEnsemble development.  See ``pyproject.toml`` for the list
-of dependencies and the available testing environments.
+of dependencies and the available testing environments. (Note: If ``pixi`` is not in your system path, it can often be found in ``/opt/homebrew/bin/pixi`` or ``/usr/local/bin/pixi``).
 - Enter the development environment with ``pixi shell -e dev``. This environment contains the most common dependencies for development and testing.
 - For one-off commands, use ``pixi run -e dev``. This will run a single command in the development environment.
 - If ``pixi`` is not available or not preferred by the user, ``pip install -e .`` can be used instead. Other dependencies may need to be installed manually.
@@ -77,7 +79,7 @@ the configuration and ``pyproject.toml`` for other configuration.
 Testing
 -------
 
-- Run tests with the ``run-tests.py`` script: ``python libensemble/tests/run-tests.py``.  See ``libensemble/tests/run-tests.py`` for usage information.
+- Run tests with the ``run_tests.py`` script: ``python libensemble/tests/run_tests.py``.  See ``libensemble/tests/run_tests.py`` for usage information.
 - Some tests require third party software to be installed. When developing a feature or fixing a bug, since the entire test suite will be run on Github Actions,
 for local development running individual tests is sufficient.
 - Individual unit tests can be run with ``pixi run -e dev pytest path/to/test_file``.
