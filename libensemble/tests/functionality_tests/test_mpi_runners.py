@@ -36,7 +36,6 @@ if __name__ == "__main__":
 
     libE_specs["dedicated_mode"] = True
     libE_specs["enforce_worker_core_bounds"] = True
-    libE_specs["gen_on_worker"] = True
 
     # To allow visual checking - log file not used in test
     log_file = "ensemble_mpi_runners_comms_" + str(comms) + "_wrks_" + str(nworkers) + ".log"
