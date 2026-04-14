@@ -72,7 +72,6 @@ _PERSIS_RETURN_WARNING = (
     + "not currently added to the manager's history to avoid possibly overwriting, but\n"
     + "will be added to the manager's history in a future release. If you want to\n"
     + "overwrite/append, you can set the libE_specs option ``use_persis_return_gen``\n"
-    + "or ``use_persis_return_sim``"
     "\n" + 79 * "*" + "\n\n"
 )
 
@@ -91,7 +90,7 @@ def save_libE_output(
     persis_info: dict,
     basename: str,
     nworkers: int,
-    dest_path: str = None,
+    dest_path: str | Path = "",
     mess: str = "Run completed",
     append_attrs: bool = True,
 ) -> str:
@@ -141,7 +140,7 @@ def save_libE_output(
         Append run attributes to the base filename.
 
     """
-    if dest_path is None:
+    if not dest_path:
         dest_path = Path.cwd()
     else:
         dest_path = Path(dest_path)
@@ -252,7 +251,7 @@ def check_npy_file_exists(filename: str, basename: bool = False, max_wait: int =
 
     check_file_exists = check_basename_file_exists if basename else check_exact_file_exists
     sleep_interval = 0.1
-    total_wait_time = 0
+    total_wait_time = 0.0
     file_exists = False
     while total_wait_time < max_wait:
         if check_file_exists():

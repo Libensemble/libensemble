@@ -601,9 +601,6 @@ class LibeSpecs(BaseModel):
     use_persis_return_gen: bool | None = False
     """ Adds persistent generator output fields to the History array on return. """
 
-    use_persis_return_sim: bool | None = False
-    """ Adds persistent simulator output fields to the History array on return. """
-
     final_gen_send: bool | None = False
     """
     Send final simulation results to persistent generators before shutdown.

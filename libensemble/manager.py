@@ -491,8 +491,6 @@ class Manager:
                 if calc_status is FINISHED_PERSISTENT_GEN_TAG and self.libE_specs.get("use_persis_return_gen", False):
                     self._ensure_sim_id_in_persis_in(final_data)
                     self.hist.update_history_x_in(w, final_data, self.W[w]["gen_started_time"])
-                elif calc_status is FINISHED_PERSISTENT_SIM_TAG and self.libE_specs.get("use_persis_return_sim", False):
-                    self.hist.update_history_f(D_recv, self.kill_canceled_sims)
                 else:
                     logger.info(_PERSIS_RETURN_WARNING)
             self.W[w]["persis_state"] = 0
