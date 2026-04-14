@@ -10,8 +10,6 @@ automatically installed alongside libEnsemble:
 * NumPy_        ``>= 1.21``
 * psutil_       ``>= 5.9.4``
 * `pydantic`_   ``>= 2``
-* pyyaml_       ``>= v6.0``
-* tomli_        ``>= 1.2.1``
 * gest-api_     ``>= 0.1,<0.2``
 
 We recommend installing in a virtual environment from ``uv``, ``conda`` or another source.
@@ -108,12 +106,12 @@ Further recommendations for selected HPC systems are given in the
         The above command will install the latest release of libEnsemble with
         the required dependencies only. Other optional
         dependencies can be specified through variants. The following
-        line installs libEnsemble version 0.7.2 with some common variants
+        line installs libEnsemble version 1.5.0 with some common variants
         (e.g., using :doc:`APOSMM<../examples/aposmm>`):
 
         .. code-block:: bash
 
-            spack install py-libensemble @0.7.2 +mpi +scipy +mpmath +petsc4py +nlopt
+            spack install py-libensemble @1.5.0 +mpi +scipy +mpmath +petsc4py +nlopt
 
         The list of variants can be found by running::
 
@@ -121,7 +119,7 @@ Further recommendations for selected HPC systems are given in the
 
         On some platforms you may wish to run libEnsemble without ``mpi4py``,
         using a serial PETSc build. This is often preferable if running on
-        the launch nodes of a three-tier system (e.g., Summit)::
+        the launch nodes of a three-tier system::
 
             spack install py-libensemble +scipy +mpmath +petsc4py ^py-petsc4py~mpi ^petsc~mpi~hdf5~hypre~superlu-dist
 
@@ -171,13 +169,10 @@ Further recommendations for selected HPC systems are given in the
         ``Python`` and the packages distributed with it (e.g., ``numpy``), and will
         often include the system MPI library.
 
-Optional Dependencies for Additional Features
----------------------------------------------
+Globus Compute
+--------------
 
-The following packages may be installed separately to enable additional features:
-
-* pyyaml_ and tomli_ - Parameterize libEnsemble via yaml or toml
-* `Globus Compute`_ - Submit simulation or generator function instances to remote Globus Compute endpoints
+`Globus Compute`_ may be installed optionally to submit simulation function instances to remote Globus Compute endpoints.
 
 .. _conda-forge: https://conda-forge.org/
 .. _Conda: https://docs.conda.io/en/latest/
@@ -191,9 +186,7 @@ The following packages may be installed separately to enable additional features
 .. _pydantic: https://docs.pydantic.dev/1.10/
 .. _PyPI: https://pypi.org
 .. _Python: http://www.python.org
-.. _pyyaml: https://pyyaml.org/
 .. _Spack: https://spack.readthedocs.io/en/latest
 .. _spack_libe: https://github.com/Libensemble/spack_libe
-.. _tomli: https://pypi.org/project/tomli/
 .. _tqdm: https://tqdm.github.io/
 .. _uv: https://docs.astral.sh/uv/
