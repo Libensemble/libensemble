@@ -45,6 +45,7 @@ def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, alloc_specs, per
             opt_ind = np.all(H["x"] == persis_info[i]["x_opt"], axis=1)
             assert sum(opt_ind) == 1, "There must be just one optimum"
             H["local_min"][opt_ind] = True
+        if "rand_stream" in persis_info[i]:
             persis_info[i] = {"rand_stream": persis_info[i]["rand_stream"]}
 
     # If wid is idle, but in persistent mode, and its calculated values have
