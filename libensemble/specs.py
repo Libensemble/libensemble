@@ -434,7 +434,7 @@ class LibeSpecs(BaseModel):
     ``False`` by default to protect results.
     """
 
-    workflow_dir_path: str | Path | None = "."
+    workflow_dir_path: str | Path = "."
     """
     Optional path to the workflow directory.
     """

@@ -32,7 +32,7 @@ CORRESPONDING_CLASSES = {
 class Ensemble:
     """
     The primary object for a libEnsemble workflow.
-    Parses and validates settings, sets up logging, and maintains output.
+    Parses and validates settings and maintains output.
 
     .. dropdown:: Example
         :open:
@@ -40,43 +40,37 @@ class Ensemble:
         .. code-block:: python
             :linenos:
 
-            import numpy as np
+            from gest_api.vocs import VOCS
 
             from libensemble import Ensemble
-            from libensemble.gen_funcs.sampling import latin_hypercube_sample
+            from libensemble.gen_classes.sampling import UniformSample
             from libensemble.sim_funcs.simple_sim import norm_eval
-            from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
+            from libensemble.specs import ExitCriteria, GenSpecs, SimSpecs
 
-            libE_specs = LibeSpecs(nworkers=4)
-            sampling = Ensemble(libE_specs=libE_specs)
+            sampling = Ensemble(parse_args=True)
             sampling.sim_specs = SimSpecs(
                 sim_f=norm_eval,
                 inputs=["x"],
                 outputs=[("f", float)],
             )
-            sampling.gen_specs = GenSpecs(
-                gen_f=latin_hypercube_sample,
-                outputs=[("x", float, (1,))],
-                user={
-                    "gen_batch_size": 50,
-                    "lb": np.array([-3]),
-                    "ub": np.array([3]),
-                },
+
+            vocs = VOCS(
+                variables={"x": [-3, 3]},
+                objectives={"f": "EXPLORE"},
             )
 
-            sampling.add_random_streams()
+            generator = UniformSample(vocs=vocs)
+
+            sampling.gen_specs = GenSpecs(
+                gen_f=generator,
+                batch_size=50,
+            )
+
             sampling.exit_criteria = ExitCriteria(sim_max=100)
 
             if __name__ == "__main__":
                 sampling.run()
                 sampling.save_output(__file__)
-
-
-    Run the above example via ``python this_file.py``.
-
-    Instead of using the libE_specs line, you can also use ``sampling = Ensemble(parse_args=True)``
-    and run via ``python this_file.py -n 4`` (4 workers). The ``parse_args=True`` parameter
-    instructs the Ensemble class to read command-line arguments.
 
     Configure by:
 
@@ -117,25 +111,25 @@ class Ensemble:
     Parameters
     ----------
 
-    sim_specs: :obj:`dict` or :class:`SimSpecs<libensemble.specs.SimSpecs>`
+    sim_specs: class:`SimSpecs<libensemble.specs.SimSpecs>`
 
-        Specifications for the simulation function
+        Specifications for the simulator function.
 
-    gen_specs: :obj:`dict` or :class:`GenSpecs<libensemble.specs.GenSpecs>`, Optional
+    gen_specs: class:`GenSpecs<libensemble.specs.GenSpecs>`, Optional
 
-        Specifications for the generator function
+        Specifications for the generator.
 
-    exit_criteria: :obj:`dict` or :class:`ExitCriteria<libensemble.specs.ExitCriteria>`, Optional
+    exit_criteria: class:`ExitCriteria<libensemble.specs.ExitCriteria>`, Optional
 
-        Tell libEnsemble when to stop a run
+        Tell libEnsemble when to stop a run.
 
-    libE_specs: :obj:`dict` or :class:`LibeSpecs<libensemble.specs.LibeSpecs>`, Optional
+    libE_specs: class:`LibeSpecs<libensemble.specs.LibeSpecs>`, Optional
 
-        Specifications for libEnsemble
+        Specifications for libEnsemble.
 
-    alloc_specs: :obj:`dict` or :class:`AllocSpecs<libensemble.specs.AllocSpecs>`, Optional
+    alloc_specs: class:`AllocSpecs<libensemble.specs.AllocSpecs>`, Optional
 
-        Specifications for the allocation function
+        Specifications for the allocation function.
 
     persis_info: :obj:`dict`, Optional
 
@@ -144,12 +138,12 @@ class Ensemble:
 
     executor: :class:`Executor<libensemble.executors.executor.Executor>`, Optional
 
-        libEnsemble Executor instance for use within simulation or generator functions
+        libEnsemble Executor instance for use within simulation or generator functions.
 
     H0: `NumPy structured array <https://docs.scipy.org/doc/numpy/user/basics.rec.html>`_, Optional
 
         A libEnsemble history to be prepended to this run's history
-        :ref:`(example)<funcguides-history>`
+        :ref:`(example)<funcguides-history>`.
 
     parse_args: bool, Optional
 
@@ -161,24 +155,20 @@ class Ensemble:
 
     def __init__(
         self,
-        sim_specs: SimSpecs | dict | None = SimSpecs(),
-        gen_specs: GenSpecs | dict | None = GenSpecs(),
-        exit_criteria: ExitCriteria | dict | None = {},
-        libE_specs: LibeSpecs | dict | None = LibeSpecs(),
-        alloc_specs: AllocSpecs | dict | None = AllocSpecs(),
-        persis_info: dict | None = {},
+        sim_specs: SimSpecs = SimSpecs(),
+        gen_specs: GenSpecs = GenSpecs(),
+        exit_criteria: ExitCriteria = ExitCriteria(),
+        libE_specs: LibeSpecs = LibeSpecs(),
+        alloc_specs: AllocSpecs = AllocSpecs(),
+        persis_info: dict = {},
         executor: Executor | None = None,
         H0: npt.NDArray | None = None,
-        parse_args: bool | None = False,
+        parse_args: bool = False,
     ):
         self.sim_specs = sim_specs
         self.gen_specs = gen_specs
         self.exit_criteria = exit_criteria
-        self._libE_specs: LibeSpecs | None = None
-        if isinstance(libE_specs, dict):
-            self._libE_specs = LibeSpecs(**libE_specs)
-        else:
-            self._libE_specs = libE_specs
+        self._libE_specs: LibeSpecs = libE_specs
         self.alloc_specs = alloc_specs
         self.persis_info = persis_info
         self.executor = executor
@@ -224,33 +214,26 @@ class Ensemble:
         return all([i for i in [self.exit_criteria, self._libE_specs, self.sim_specs]])
 
     @property
-    def libE_specs(self) -> LibeSpecs | None:
+    def libE_specs(self) -> LibeSpecs:
         return self._libE_specs
 
     @libE_specs.setter
     def libE_specs(self, new_specs):
-        # We need to deal with libE_specs being specified as dict or class, and
-        #   "not" overwrite the internal libE_specs["comms"].
-
         # Respect everything if libE_specs isn't set
         if not hasattr(self, "_libE_specs") or not self._libE_specs:
-            if isinstance(new_specs, dict):
-                self._libE_specs = LibeSpecs(**new_specs)
-            else:
-                self._libE_specs = new_specs
+            self._libE_specs = new_specs
             return
 
         # Cast new libE_specs temporarily to dict
-        if not isinstance(new_specs, dict):  # exclude_defaults should only be enabled with Pydantic v2
-            if new_specs.comms != "mpi" and new_specs.comms != self._libE_specs.comms:  # passing in a non-default comms
-                raise ValueError(OVERWRITE_COMMS_WARN)
-            platform_specs_set = False
-            if new_specs.platform_specs != {}:  # bugginess across Pydantic versions for recursively casting to dict
-                platform_specs_set = True
-                platform_specs = new_specs.platform_specs
-            new_specs = specs_dump(new_specs, exclude_none=True, exclude_defaults=True)
-            if platform_specs_set:
-                new_specs["platform_specs"] = specs_dump(platform_specs, exclude_none=True)
+        if new_specs.comms != "mpi" and new_specs.comms != self._libE_specs.comms:  # passing in a non-default comms
+            raise ValueError(OVERWRITE_COMMS_WARN)
+        platform_specs_set = False
+        if new_specs.platform_specs != {}:  # bugginess across Pydantic versions for recursively casting to dict
+            platform_specs_set = True
+            platform_specs = new_specs.platform_specs
+        new_specs = specs_dump(new_specs, exclude_none=True, exclude_defaults=True)
+        if platform_specs_set:
+            new_specs["platform_specs"] = specs_dump(platform_specs, exclude_none=True)
 
         # Unset "comms" if we already have a libE_specs that contains that field, that came from parse_args
         if new_specs.get("comms") and hasattr(self._libE_specs, "comms"):
@@ -269,10 +252,10 @@ class Ensemble:
 
             Manager--worker intercommunications are parsed from the ``comms`` key of
             :ref:`libE_specs<datastruct-libe-specs>`. An MPI runtime is assumed by default
-            if ``--comms local`` wasn't specified on the command-line or in ``libE_specs``.
+            if ``-n N`` wasn't specified on the command-line or ``comms="local"`` in ``libE_specs``.
 
             If a MPI communicator was provided in ``libE_specs``, then each ``.run()`` call
-            will initiate intercommunications on a **duplicate** of that communicator.
+            will initiate on a **duplicate** of that communicator.
             Otherwise, a duplicate of ``COMM_WORLD`` will be used.
 
         Returns
@@ -368,8 +351,7 @@ class Ensemble:
         Format: ``<basename>_results_History_length=<length>_evals=<Completed evals>_ranks=<nworkers>``
         """
         if self.is_manager:
-            if self._get_option("libE_specs", "workflow_dir_path"):
-                assert self.libE_specs is not None
+            if getattr(self.libE_specs, "workflow_dir_path", False):
                 save_libE_output(
                     self.H,
                     self.persis_info,
@@ -380,11 +362,3 @@ class Ensemble:
                 )
             else:
                 save_libE_output(self.H, self.persis_info, basename, self.nworkers, append_attrs=append_attrs)
-
-    def _get_option(self, specs, name):
-        """Gets a specs value, underlying spec is either a dict or a class"""
-        attr = getattr(self, specs)
-        if isinstance(attr, dict):
-            return attr.get(name)
-        else:
-            return getattr(attr, name)
