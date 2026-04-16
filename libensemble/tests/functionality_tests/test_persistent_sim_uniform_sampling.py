@@ -26,7 +26,7 @@ from libensemble.gen_funcs.persistent_sampling import persistent_uniform as gen_
 # Import libEnsemble items for this test
 from libensemble.libE import libE
 from libensemble.sim_funcs.six_hump_camel import persistent_six_hump_camel as sim_f
-from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
+from libensemble.tools import parse_args, save_libE_output
 
 # from libensemble import logger
 # logger.set_level("DEBUG")
@@ -64,12 +64,10 @@ if __name__ == "__main__":
         },
     }
 
-    persis_info = add_unique_random_streams({}, nworkers + 1)
-
     exit_criteria = {"sim_max": 40, "wallclock_max": 300}
 
     # Perform the run
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, libE_specs=libE_specs)
 
     if is_manager:
         assert len(np.unique(H["gen_ended_time"])) == 8

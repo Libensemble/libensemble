@@ -32,7 +32,7 @@ from time import time
 from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc as alloc_f
 from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
 from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
-from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
+from libensemble.tools import parse_args, save_libE_output
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
@@ -85,8 +85,6 @@ if __name__ == "__main__":
     exit_criteria = {"sim_max": 1000}
 
     for run in range(2):
-        persis_info = add_unique_random_streams({}, nworkers + 1)
-
         if run == 1:
             gen_specs["user"]["localopt_method"] = "scipy_BFGS"
             gen_specs["user"]["opt_return_codes"] = [0]
@@ -94,7 +92,7 @@ if __name__ == "__main__":
             sim_specs["out"] = [("f", float), ("grad", float, n)]
 
         # Perform the run
-        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs, libE_specs=libE_specs)
 
         if is_manager:
             print("[Manager]:", H[np.where(H["local_min"])]["x"])
@@ -115,7 +113,6 @@ if __name__ == "__main__":
     # Now let's run on the same problem with a really large n (but we won't test
     # convergence to all local min). Note that sim_f uses only entries x[0:2]
     n = 400
-    persis_info = add_unique_random_streams({}, nworkers + 1)
     gen_specs["out"][0:2] = [("x", float, n), ("x_on_cube", float, n)]
     gen_specs["user"]["lb"] = np.zeros(n)
     gen_specs["user"]["ub"] = np.ones(n)
@@ -127,7 +124,7 @@ if __name__ == "__main__":
     sim_specs["out"] = [("f", float)]
     gen_specs["persis_in"].remove("grad")
 
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs, libE_specs=libE_specs)
 
     if is_manager:
         assert np.sum(H["sim_ended"]) >= exit_criteria["sim_max"], "Run didn't finish"

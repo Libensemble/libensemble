@@ -22,7 +22,7 @@ and inference problems on the world's leading supercomputers such as Frontier, A
 
 `Quickstart`_
 
-**New:** libEnsemble nows supports the `gest-api`_ generator standard, and can run with 
+**New:** libEnsemble nows supports the `gest-api`_ generator standard, and can run with
 Optimas and Xopt generators.
 
 The |ScriptCreator| to generate customized scripts for running ensembles with your
@@ -81,7 +81,6 @@ and an exit condition. Run the following four-worker example via ``python this_f
             exit_criteria=exit_criteria,
         )
 
-        sampling.add_random_streams()
         sampling.run()
 
         if sampling.is_manager:

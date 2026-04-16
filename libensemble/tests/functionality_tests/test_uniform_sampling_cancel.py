@@ -30,7 +30,7 @@ from libensemble.gen_funcs.sampling import uniform_random_sample_cancel
 from libensemble.libE import libE
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel
 from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
-from libensemble.tools import add_unique_random_streams, parse_args
+from libensemble.tools import get_rng, parse_args
 
 
 def create_H0(persis_info, gen_specs, sim_max):
@@ -42,7 +42,8 @@ def create_H0(persis_info, gen_specs, sim_max):
     b = sim_max
 
     H0 = np.zeros(b, dtype=[("x", float, 2), ("sim_id", int), ("sim_started", bool), ("cancel_requested", bool)])
-    H0["x"] = persis_info[0]["rand_stream"].uniform(lb, ub, (b, n))
+    rng = get_rng(gen_specs, {})
+    H0["x"] = rng.uniform(lb, ub, (b, n))
     H0["sim_id"] = range(b)
     H0["sim_started"] = False
     for i in range(b):
@@ -85,7 +86,7 @@ if __name__ == "__main__":
     }
     # end_gen_specs_rst_tag
 
-    persis_info = add_unique_random_streams({}, nworkers + 1)
+    persis_info = {}
     sim_max = 500
     exit_criteria = {"sim_max": sim_max, "wallclock_max": 300}
 
@@ -126,6 +127,7 @@ if __name__ == "__main__":
     if is_manager:
         print("Testing cancellations with non-persistent gen functions")
 
+    persis_info = {0: {}}
     for testnum in range(1, 6):
         alloc_specs = allocs[testnum]
         if is_manager:
@@ -142,7 +144,7 @@ if __name__ == "__main__":
 
         # Perform the run - do not overwrite persis_info
         H, persis_out, flag = libE(
-            sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs=libE_specs, H0=H0
+            sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs=alloc_specs, libE_specs=libE_specs, H0=H0
         )
 
         if is_manager:

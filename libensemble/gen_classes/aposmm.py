@@ -1,7 +1,7 @@
 import copy
 import warnings
 from math import gamma, pi, sqrt
-from typing import List
+from typing import Any, Dict, List, Optional
 
 import numpy as np
 from gest_api.vocs import VOCS
@@ -175,9 +175,9 @@ class APOSMM(PersistentGenInterfacer):
         max_active_runs: int,
         initial_sample_size: int,
         History: npt.NDArray = [],
-        sample_points: npt.NDArray = None,
+        sample_points: Optional[npt.NDArray] = None,
         localopt_method: str = "scipy_Nelder-Mead",
-        rk_const: float = None,
+        rk_const: Optional[float] = None,
         xtol_abs: float = 1e-6,
         ftol_abs: float = 1e-6,
         opt_return_codes: list[int] = [0],
@@ -192,10 +192,9 @@ class APOSMM(PersistentGenInterfacer):
 
         self.vocs = vocs
 
-        gen_specs = {}
+        gen_specs: Dict[str, Any] = {}
         gen_specs["user"] = {}
-        persis_info = {}
-        libE_info = {}
+        libE_info: Dict[str, Any] = {}
         gen_specs["gen_f"] = aposmm
         n = len(list(vocs.variables.keys()))
 
@@ -222,7 +221,7 @@ class APOSMM(PersistentGenInterfacer):
             if val is not None:
                 gen_specs["user"][k] = val
 
-        super().__init__(vocs, History, persis_info, gen_specs, libE_info, **kwargs)
+        super().__init__(vocs, History, {}, gen_specs, libE_info, **kwargs)
 
         # Set bounds using the correct x mapping
         x_mapping = self.variables_mapping["x"]
@@ -270,14 +269,14 @@ class APOSMM(PersistentGenInterfacer):
 
         # SH - Need to know if this is gen_on_manager or not.
         self.persis_info["nworkers"] = gen_specs["user"].get("max_active_runs")
-        self.all_local_minima = []
+        self.all_local_minima: List[npt.NDArray] = []
         self._suggest_idx = 0
-        self._last_suggest = None
-        self._ingest_buf = None
+        self._last_suggest: Optional[npt.NDArray] = None
+        self._ingest_buf: Optional[npt.NDArray] = None
         self._n_buffd_results = 0
         self._told_initial_sample = False
-        self._first_called_method = None
-        self._last_call = None
+        self._first_called_method: Optional[str] = None
+        self._last_call: Optional[str] = None
         self._last_num_points = 0
 
     def _slot_in_data(self, results):
@@ -324,6 +323,7 @@ class APOSMM(PersistentGenInterfacer):
                 self.finalize()
                 raise RuntimeError("Cannot suggest points since APOSMM is currently expecting to receive a sample")
             self._last_suggest = super().suggest_numpy(num_points)
+            assert self._last_suggest is not None
 
             if self._last_suggest["local_min"].any():  # filter out local minima rows
                 min_idxs = self._last_suggest["local_min"]
@@ -331,6 +331,7 @@ class APOSMM(PersistentGenInterfacer):
                 self._last_suggest = self._last_suggest[~min_idxs]
 
         if num_points > 0:  # we've been suggested for a selection of the last suggest
+            assert self._last_suggest is not None
             results = np.copy(self._last_suggest[self._suggest_idx : self._suggest_idx + num_points])
             self._suggest_idx += num_points
 
@@ -367,6 +368,7 @@ class APOSMM(PersistentGenInterfacer):
             self._n_buffd_results += len(results)
 
         if self._enough_initial_sample():
+            assert self._ingest_buf is not None
             if "sim_id" in results.dtype.names and not self._told_initial_sample:
                 self._ingest_buf["sim_id"] = range(len(self._ingest_buf))
             super().ingest_numpy(self._ingest_buf, tag)

@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 import os
 import sys
+from pathlib import Path
 
 import numpy as np
-from pathlib import Path
 from forces_simf import run_forces  # Sim func from current dir
 
 from libensemble import Ensemble
@@ -56,9 +56,6 @@ if __name__ == "__main__":
 
     # Instruct libEnsemble to exit after this many simulations
     ensemble.exit_criteria = ExitCriteria(sim_max=8)
-
-    # Seed random streams for each worker, particularly for gen_f
-    ensemble.add_random_streams()
 
     # Run ensemble
     ensemble.run()

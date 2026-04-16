@@ -39,7 +39,7 @@ from libensemble.gen_funcs.persistent_sampling_var_resources import uniform_samp
 from libensemble.libE import libE
 from libensemble.sim_funcs import six_hump_camel
 from libensemble.sim_funcs.var_resources import gpu_variable_resources_from_gen as sim_f
-from libensemble.tools import add_unique_random_streams, parse_args
+from libensemble.tools import parse_args
 
 # from libensemble import logger
 # logger.set_level("DEBUG")  # For testing the test
@@ -101,7 +101,7 @@ if __name__ == "__main__":
             # reset
             libE_specs = base_libE_specs.copy()
             libE_specs["gen_on_worker"] = gen_on_worker
-            persis_info = add_unique_random_streams({}, nworkers + 1)
+            persis_info = {}
 
             if run == 0:
                 libE_specs["gen_num_procs"] = 2

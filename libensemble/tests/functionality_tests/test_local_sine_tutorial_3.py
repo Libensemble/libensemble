@@ -32,7 +32,6 @@ if __name__ == "__main__":  # Python-quirk required on macOS and windows
     # replace libE_specs with parse_args=True. Detects MPI runtime
     ensemble = Ensemble(sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs, parse_args=True)
 
-    ensemble.add_random_streams()
     ensemble.run()  # start the ensemble. Blocks until completion.
 
     if ensemble.is_manager:  # only True on rank 0

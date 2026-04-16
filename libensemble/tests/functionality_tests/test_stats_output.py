@@ -28,7 +28,7 @@ from libensemble.gen_funcs.sampling import uniform_random_sample_with_variable_r
 from libensemble.libE import libE
 from libensemble.sim_funcs import helloworld, six_hump_camel
 from libensemble.sim_funcs.var_resources import multi_points_with_variable_resources as sim_f
-from libensemble.tools import add_unique_random_streams, parse_args
+from libensemble.tools import parse_args
 
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 from check_libE_stats import check_libE_stats
@@ -107,7 +107,7 @@ if __name__ == "__main__":
             libE_specs["stats_fmt"] = {"task_datetime": True, "show_resource_sets": True}
             check_task_datetime = True
 
-        persis_info = add_unique_random_streams({}, nworkers + 1)
+        persis_info = {}
 
         # Perform the run
         H, persis_info, flag = libE(

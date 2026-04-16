@@ -13,8 +13,8 @@ and from the corresponding workers. These are received in the ``persis_info``
 argument of user functions, and returned as the optional second return value.
 
 A typical example is a random number generator stream to be used in consecutive
-calls to a generator (see
-:meth:`add_unique_random_streams()<tools.add_unique_random_streams>`)
+calls to a generator. Generators should initialize their own RNG using
+:meth:`get_rng()<tools.get_rng>`.
 
 All other entries persist on the manager and can be updated in the calling script
 between ensemble invocations, or in the allocation function.

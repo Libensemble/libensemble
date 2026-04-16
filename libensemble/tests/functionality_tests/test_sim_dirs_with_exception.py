@@ -23,7 +23,7 @@ from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
 from libensemble.libE import libE
 from libensemble.manager import LoggedException
 from libensemble.tests.regression_tests.support import write_sim_func as sim_f
-from libensemble.tools import add_unique_random_streams, parse_args
+from libensemble.tools import parse_args
 
 nworkers, is_manager, libE_specs, _ = parse_args()
 
@@ -58,15 +58,11 @@ if __name__ == "__main__":
         "alloc_f": give_sim_work_first,
     }
 
-    persis_info = add_unique_random_streams({}, nworkers + 1)
-
     exit_criteria = {"sim_max": 21}
 
     return_flag = 1
     try:
-        H, persis_info, flag = libE(
-            sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs=libE_specs
-        )
+        H, _, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs, libE_specs=libE_specs)
     except LoggedException as e:
         print(f"Caught deliberate exception: {e}")
         return_flag = 0
