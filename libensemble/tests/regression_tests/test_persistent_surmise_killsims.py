@@ -41,7 +41,7 @@ from libensemble.gen_funcs.persistent_surmise_calib import surmise_calib as gen_
 from libensemble.libE import libE
 from libensemble.sim_funcs.borehole_kills import borehole as sim_f
 from libensemble.tests.regression_tests.common import build_borehole  # current location
-from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
+from libensemble.tools import parse_args, save_libE_output
 
 # from libensemble import logger
 # logger.set_level("DEBUG")  # To get debug logging in ensemble.log
@@ -118,7 +118,7 @@ if __name__ == "__main__":
         },
     }
 
-    persis_info = add_unique_random_streams({}, nworkers + 1)
+    persis_info = {}
     exit_criteria = {"sim_max": max_evals}
 
     # Perform the run

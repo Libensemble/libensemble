@@ -166,60 +166,27 @@ def save_libE_output(
     return str(h_filename.with_suffix(".npy"))
 
 
-# ===================== per-process numpy random-streams =======================
-
-
-def add_unique_random_streams(persis_info: dict, nstreams: int, seed: str = "") -> dict:
+def get_rng(gen_specs: dict, libE_info: dict) -> np.random.Generator:
     """
-    Creates nstreams random number streams for the libE manager and workers
-    when nstreams is num_workers + 1. Stream i is initialized with seed i by default.
-    Otherwise the streams can be initialized with a provided seed.
+    Returns a numpy random number generator.
 
-    The entries are appended to the provided persis_info dictionary.
-
-    .. code-block:: python
-
-        persis_info = add_unique_random_streams(old_persis_info, nworkers + 1)
+    If ``gen_seed`` is provided in ``gen_specs["user"]``, the generator is
+    initialized with ``gen_seed + libE_info["workerID"]``. Otherwise, the
+    generator is initialized with a random seed.
 
     Parameters
     ----------
 
-    persis_info: :obj:`dict`
+    gen_specs: :obj:`dict`
+        Generation specifications dictionary.
 
-        Persistent information dictionary.
-        :ref:`(example)<datastruct-persis-info>`
-
-    nstreams: :obj:`int`
-
-        Number of independent random number streams to produce.
-
-    seed: :obj:`int`
-
-        (Optional) Seed for identical random number streams for each worker. If
-        explicitly set to ``None``, random number streams are unique and seed
-        via other pseudorandom mechanisms.
-
+    libE_info: :obj:`dict`
+        libEnsemble information dictionary.
     """
-
-    for i in range(nstreams):
-        if isinstance(seed, int) or seed is None:
-            random_seed = seed
-        else:
-            random_seed = i
-
-        if i in persis_info:
-            persis_info[i].update(
-                {
-                    "rand_stream": np.random.default_rng(random_seed),
-                    "worker_num": i,
-                }
-            )
-        else:
-            persis_info[i] = {
-                "rand_stream": np.random.default_rng(random_seed),
-                "worker_num": i,
-            }
-    return persis_info
+    seed = gen_specs.get("user", {}).get("gen_seed")
+    if seed is not None:
+        return np.random.default_rng(seed + libE_info.get("workerID", 0))
+    return np.random.default_rng()
 
 
 def check_npy_file_exists(filename: str, basename: bool = False, max_wait: int = 3) -> bool:

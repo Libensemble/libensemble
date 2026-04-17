@@ -55,7 +55,6 @@ if __name__ == "__main__":
         exit_criteria=exit_criteria,
     )
 
-    sampling.add_random_streams()
     sampling.alloc_specs = AllocSpecs(alloc_f=give_sim_work_first)
     H, persis_info, flag = sampling.run()
 

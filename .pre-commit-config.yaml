@@ -37,4 +37,4 @@ repos:
   rev: v1.19.1
   hooks:
     - id: mypy
-      exclude: ^libensemble/utils/(launcher|loc_stack|runners|pydantic|output_directory)\.py$|^libensemble/tests/regression_tests/support\.py$|^libensemble/tests/functionality_tests/|^libensemble/tests/unit_tests/
+      exclude: ^libensemble/utils/(launcher|loc_stack|runners|pydantic|output_directory)\.py$|libensemble/tests/(regression_tests|functionality_tests|unit_tests|scaling_tests)/.*

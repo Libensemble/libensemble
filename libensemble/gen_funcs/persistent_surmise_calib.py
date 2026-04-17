@@ -17,6 +17,7 @@ from libensemble.gen_funcs.surmise_calib_support import (
     thetaprior,
 )
 from libensemble.message_numbers import EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG, PERSIS_STOP, STOP_TAG
+from libensemble.tools import get_rng
 from libensemble.tools.persistent_support import PersistentSupport
 
 
@@ -101,15 +102,15 @@ def cancel_columns(obs_offset, c, n_x, pending, ps):
     ps.request_cancel_sim_ids(sim_ids_to_cancel)
 
 
-def assign_priority(n_x, n_thetas):
+def assign_priority(n_x, n_thetas, rng):
     """Assign priorities to points."""
     # Arbitrary priorities
     priority = np.arange(n_x * n_thetas)
-    np.random.shuffle(priority)
+    rng.shuffle(priority)
     return priority
 
 
-def load_H(H, xs, thetas, offset=0, set_priorities=False):
+def load_H(H, xs, thetas, rng, offset=0, set_priorities=False):
     """Fill inputs into H0.
 
     There will be num_points x num_thetas entries
@@ -122,7 +123,7 @@ def load_H(H, xs, thetas, offset=0, set_priorities=False):
 
     if set_priorities:
         n_x = len(xs)
-        H["priority"] = assign_priority(n_x, n_thetas)
+        H["priority"] = assign_priority(n_x, n_thetas, rng)
 
 
 def gen_truevals(x, gen_specs):
@@ -139,7 +140,7 @@ def gen_truevals(x, gen_specs):
 
 def surmise_calib(H, persis_info, gen_specs, libE_info):
     """Generator to select and obviate parameters for calibration."""
-    rand_stream = persis_info["rand_stream"]
+    rng = get_rng(gen_specs, libE_info)
     n_thetas = gen_specs["user"]["n_init_thetas"]
     n_x = gen_specs["user"]["num_x_vals"]  # Num of x points
     step_add_theta = gen_specs["user"]["step_add_theta"]  # No. of thetas to generate per step
@@ -149,10 +150,10 @@ def surmise_calib(H, persis_info, gen_specs, libE_info):
     priorscale = gen_specs["user"]["priorscale"]
     ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
 
-    prior = thetaprior(priorloc, priorscale)
+    prior = thetaprior(priorloc, priorscale, rng)
 
     # Create points at which to evaluate the sim
-    x = gen_xs(n_x, rand_stream)
+    x = gen_xs(n_x, rng)
 
     H_o = gen_truevals(x, gen_specs)
     obs_offset = len(H_o)
@@ -163,12 +164,12 @@ def surmise_calib(H, persis_info, gen_specs, libE_info):
 
     returned_fevals = np.reshape(calc_in["f"], (1, n_x))
     true_fevals = returned_fevals
-    obs, obsvar = gen_observations(true_fevals, obsvar_const, rand_stream)
+    obs, obsvar = gen_observations(true_fevals, obsvar_const, rng)
 
     # Generate a batch of inputs and load into H
     H_o = np.zeros(n_x * (n_thetas), dtype=gen_specs["out"])
     theta = gen_thetas(prior, n_thetas)
-    load_H(H_o, x, theta, set_priorities=True)
+    load_H(H_o, x, theta, rng, set_priorities=True)
     tag, Work, calc_in = ps.send_recv(H_o)
     # -------------------------------------------------------------------------
 
@@ -233,7 +234,7 @@ def surmise_calib(H, persis_info, gen_specs, libE_info):
 
             # n_thetas = step_add_theta
             H_o = np.zeros(n_x * (len(new_theta)), dtype=gen_specs["out"])
-            load_H(H_o, x, new_theta, set_priorities=True)
+            load_H(H_o, x, new_theta, rng, set_priorities=True)
             tag, Work, calc_in = ps.send_recv(H_o)
 
             # Determine evaluations to cancel

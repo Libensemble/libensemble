@@ -29,7 +29,7 @@ from libensemble.sim_funcs.periodic_func import func_wrapper as sim_f
 libensemble.gen_funcs.rc.aposmm_optimizers = "nlopt"
 from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc as alloc_f
 from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
-from libensemble.tools import add_unique_random_streams, parse_args
+from libensemble.tools import parse_args
 
 
 def assertion(passed):
@@ -82,12 +82,10 @@ if __name__ == "__main__":
 
     exit_criteria = {"sim_max": 1000}
 
-    persis_info = add_unique_random_streams({}, nworkers + 1)
-
     libE_specs["abort_on_exception"] = False
     try:
         # Perform the run, which will fail because we want to test exception handling
-        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs, libE_specs=libE_specs)
     except Exception as e:
         if is_manager:
             if e.args[1].endswith("NLopt roundoff-limited"):
