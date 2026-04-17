@@ -185,8 +185,11 @@ def check_H0(values):
 
 def check_set_gen_specs_from_variables(values):
     if not len(scg(values, "outputs")):
-        if scg(values, "generator") and len(scg(values, "generator").gen_specs["out"]):
-            scs(values, "outputs", scg(values, "generator").gen_specs["out"])
+        generator = scg(values, "generator")
+        if generator and hasattr(generator, "gen_specs"):
+            out = generator.gen_specs.get("out", [])
+            if len(out):
+                scs(values, "outputs", out)
     return values
 
 
