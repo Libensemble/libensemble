@@ -8,40 +8,16 @@ Generator and :ref:`Simulator functions<funcguides-sim>` have relatively similar
 Writing a Generator
 -------------------
 
-.. tab-set::
+.. code-block:: python
 
-    .. tab-item:: Non-decorated
-        :sync: nodecorate
+    def my_generator(Input, persis_info, gen_specs, libE_info):
+        batch_size = gen_specs["user"]["batch_size"]
 
-        .. code-block:: python
+        Output = np.zeros(batch_size, gen_specs["out"])
+        # ...
+        Output["x"], persis_info = generate_next_simulation_inputs(Input["f"], persis_info)
 
-            def my_generator(Input, persis_info, gen_specs, libE_info):
-                batch_size = gen_specs["user"]["batch_size"]
-
-                Output = np.zeros(batch_size, gen_specs["out"])
-                # ...
-                Output["x"], persis_info = generate_next_simulation_inputs(Input["f"], persis_info)
-
-                return Output, persis_info
-
-    .. tab-item:: Decorated
-        :sync: decorate
-
-        .. code-block:: python
-
-            from libensemble.specs import input_fields, output_data
-
-
-            @input_fields(["f"])
-            @output_data([("x", float)])
-            def my_generator(Input, persis_info, gen_specs, libE_info):
-                batch_size = gen_specs["user"]["batch_size"]
-
-                Output = np.zeros(batch_size, gen_specs["out"])
-                # ...
-                Output["x"], persis_info = generate_next_simulation_inputs(Input["f"], persis_info)
-
-                return Output, persis_info
+        return Output, persis_info
 
 Most ``gen_f`` function definitions written by users resemble::
 
@@ -60,29 +36,14 @@ Valid generator functions can accept a subset of the above parameters. So a very
 
 If ``gen_specs`` was initially defined:
 
-.. tab-set::
+.. code-block:: python
 
-    .. tab-item:: Non-decorated function
-        :sync: nodecorate
-
-        .. code-block:: python
-
-            gen_specs = GenSpecs(
-                gen_f=my_generator,
-                inputs=["f"],
-                outputs=["x", float, (1,)],
-                user={"batch_size": 128},
-            )
-
-    .. tab-item:: Decorated function
-        :sync: decorate
-
-        .. code-block:: python
-
-            gen_specs = GenSpecs(
-                gen_f=my_generator,
-                user={"batch_size": 128},
-            )
+    gen_specs = GenSpecs(
+        gen_f=my_generator,
+        inputs=["f"],
+        outputs=["x", float, (1,)],
+        user={"batch_size": 128},
+    )
 
 Then user parameters and a *local* array of outputs may be obtained/initialized like::
 

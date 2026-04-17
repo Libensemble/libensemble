@@ -12,9 +12,13 @@ import logging
 import os
 import subprocess
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, field_validator, model_validator
 
 from libensemble.utils.misc import specs_dump
+
+# These will be imported later to avoid circular imports?
+# But pydantic_bindings moved them here.
+# Actually I need them from validators.py.
 
 logger = logging.getLogger(__name__)
 # To change logging level for just this module
@@ -31,6 +35,28 @@ class Platform(BaseModel):
 
     All are optional, and any not defined will be determined by libEnsemble's auto-detection.
     """
+
+    model_config = ConfigDict(
+        arbitrary_types_allowed=True, populate_by_name=True, extra="forbid", validate_assignment=True
+    )
+
+    @field_validator("gpu_setting_type")
+    def check_gpu_setting_type(cls, value):
+        from libensemble.utils.validators import check_gpu_setting_type
+
+        return check_gpu_setting_type(cls, value)
+
+    @field_validator("mpi_runner")
+    def check_mpi_runner_type(cls, value):
+        from libensemble.utils.validators import check_mpi_runner_type
+
+        return check_mpi_runner_type(cls, value)
+
+    @model_validator(mode="after")
+    def check_logical_cores(self):
+        from libensemble.utils.validators import check_logical_cores
+
+        return check_logical_cores(self)
 
     mpi_runner: str | None = None
     """MPI runner: One of ``"mpich"``, ``"openmpi"``, ``"aprun"``,

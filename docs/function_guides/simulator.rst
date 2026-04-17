@@ -8,40 +8,16 @@ Simulator and :ref:`Generator functions<funcguides-gen>` have relatively similar
 Writing a Simulator
 -------------------
 
-.. tab-set::
+.. code-block:: python
 
-    .. tab-item:: Non-decorated
-        :sync: nodecorate
+    def my_simulation(Input, persis_info, sim_specs, libE_info):
+        batch_size = sim_specs["user"]["batch_size"]
 
-        .. code-block:: python
+        Output = np.zeros(batch_size, sim_specs["out"])
+        # ...
+        Output["f"], persis_info = do_a_simulation(Input["x"], persis_info)
 
-            def my_simulation(Input, persis_info, sim_specs, libE_info):
-                batch_size = sim_specs["user"]["batch_size"]
-
-                Output = np.zeros(batch_size, sim_specs["out"])
-                # ...
-                Output["f"], persis_info = do_a_simulation(Input["x"], persis_info)
-
-                return Output, persis_info
-
-    .. tab-item:: Decorated
-        :sync: decorate
-
-        .. code-block:: python
-
-            from libensemble.specs import input_fields, output_data
-
-
-            @input_fields(["x"])
-            @output_data([("f", float)])
-            def my_simulation(Input, persis_info, sim_specs, libE_info):
-                batch_size = sim_specs["user"]["batch_size"]
-
-                Output = np.zeros(batch_size, sim_specs["out"])
-                # ...
-                Output["f"], persis_info = do_a_simulation(Input["x"], persis_info)
-
-                return Output, persis_info
+        return Output, persis_info
 
 Most ``sim_f`` function definitions written by users resemble::
 
@@ -60,29 +36,14 @@ Valid simulator functions can accept a subset of the above parameters. So a very
 
 If ``sim_specs`` was initially defined:
 
-.. tab-set::
+.. code-block:: python
 
-    .. tab-item:: Non-decorated function
-        :sync: nodecorate
-
-        .. code-block:: python
-
-            sim_specs = SimSpecs(
-                sim_f=my_simulation,
-                inputs=["x"],
-                outputs=["f", float, (1,)],
-                user={"batch_size": 128},
-            )
-
-    .. tab-item:: Decorated function
-        :sync: decorate
-
-        .. code-block:: python
-
-            sim_specs = SimSpecs(
-                sim_f=my_simulation,
-                user={"batch_size": 128},
-            )
+    sim_specs = SimSpecs(
+        sim_f=my_simulation,
+        inputs=["x"],
+        outputs=["f", float, (1,)],
+        user={"batch_size": 128},
+    )
 
 Then user parameters and a *local* array of outputs may be obtained/initialized like::
 
