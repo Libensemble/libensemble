@@ -31,11 +31,6 @@ if pydantic.__version__ == "2.6.0":
     warnings.filterwarnings("ignore", message="Pydantic serializer warnings:")
 
 
-"""
-Pydantic-version agnostic
-"""
-
-
 def _get_dtype(field, name: str):
     """Get dtype from a VOCS field, handling discrete variables."""
     dtype = getattr(field, "dtype", None)
@@ -313,10 +308,6 @@ class GenSpecs(BaseModel):
         return check_valid_in(cls, v)
 
     @model_validator(mode="after")
-    def check_set_gen_specs_from_variables(self):
-        return check_set_gen_specs_from_variables(self)
-
-    @model_validator(mode="after")
     def set_fields_from_vocs(self):
         """Set persis_in and outputs from VOCS if vocs is provided and fields are not set."""
         if self.vocs is None:
@@ -356,6 +347,10 @@ class GenSpecs(BaseModel):
                 self.persis_in.append("_id")
 
         return self
+
+    @model_validator(mode="after")
+    def check_set_gen_specs_from_variables(self):
+        return check_set_gen_specs_from_variables(self)
 
 
 class AllocSpecs(BaseModel):
