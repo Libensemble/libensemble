@@ -33,7 +33,7 @@ from time import time
 from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc as alloc_f
 from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
 from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
-from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
+from libensemble.tools import parse_args, save_libE_output
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
@@ -81,12 +81,10 @@ if __name__ == "__main__":
 
     alloc_specs = {"alloc_f": alloc_f}
 
-    persis_info = add_unique_random_streams({}, nworkers + 1, seed=4321)
-
     exit_criteria = {"sim_max": 2000}
 
     # Perform the run
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs, libE_specs=libE_specs)
 
     if is_manager:
         print("[Manager]:", H[np.where(H["local_min"])]["x"])

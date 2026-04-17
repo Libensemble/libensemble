@@ -62,8 +62,6 @@ if __name__ == "__main__":
 
         n = 2
 
-        workflow.libE_specs.gen_on_worker = False
-
         vocs = VOCS(
             variables={"core": [-3, 3], "edge": [-2, 2], "core_on_cube": [-3, 3], "edge_on_cube": [-2, 2]},
             objectives={"energy": "MINIMIZE"},
@@ -105,8 +103,6 @@ if __name__ == "__main__":
             )  # wrong parameter, but check we get error message
             workflow.exit_criteria = ExitCriteria(sim_max=200)
             workflow.libE_specs.abort_on_exception = False
-
-        workflow.add_random_streams()
 
         try:
             H, _, _ = workflow.run()

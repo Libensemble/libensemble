@@ -5,6 +5,7 @@ This module contains multiple generator functions for sampling a domain.
 import numpy as np
 
 from libensemble.specs import output_data
+from libensemble.tools import get_rng
 
 __all__ = [
     "uniform_random_sample",
@@ -17,7 +18,7 @@ __all__ = [
 
 
 @output_data([("x", float, 2)])  # default: can be overwritten in gen_specs
-def uniform_random_sample(_, persis_info, gen_specs):
+def uniform_random_sample(_, persis_info, gen_specs, libE_info):
     """
     Generates ``gen_specs["batch_size"]`` points uniformly over the domain
     defined by ``gen_specs["user"]["ub"]`` and ``gen_specs["user"]["lb"]``.
@@ -25,6 +26,10 @@ def uniform_random_sample(_, persis_info, gen_specs):
     .. seealso::
         `test_uniform_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_uniform_sampling.py>`_ # noqa
     """
+    if "rand_stream" not in persis_info:
+        persis_info["rand_stream"] = get_rng(gen_specs, libE_info)
+    rng = persis_info["rand_stream"]
+
     ub = gen_specs["user"]["ub"]
     lb = gen_specs["user"]["lb"]
 
@@ -33,12 +38,12 @@ def uniform_random_sample(_, persis_info, gen_specs):
 
     H_o = np.zeros(b, dtype=gen_specs["out"])
 
-    H_o["x"] = persis_info["rand_stream"].uniform(lb, ub, (b, n))
+    H_o["x"] = rng.uniform(lb, ub, (b, n))
 
     return H_o, persis_info
 
 
-def uniform_random_sample_with_variable_resources(_, persis_info, gen_specs):
+def uniform_random_sample_with_variable_resources(_, persis_info, gen_specs, libE_info):
     """
     Generates ``gen_specs["batch_size"]`` points uniformly over the domain
     defined by ``gen_specs["user"]["ub"]`` and ``gen_specs["user"]["lb"]``.
@@ -50,6 +55,9 @@ def uniform_random_sample_with_variable_resources(_, persis_info, gen_specs):
     .. seealso::
         `test_uniform_sampling_with_variable_resources.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_uniform_sampling_with_variable_resources.py>`_ # noqa
     """
+    if "rand_stream" not in persis_info:
+        persis_info["rand_stream"] = get_rng(gen_specs, libE_info)
+    rng = persis_info["rand_stream"]
 
     ub = gen_specs["user"]["ub"]
     lb = gen_specs["user"]["lb"]
@@ -60,15 +68,15 @@ def uniform_random_sample_with_variable_resources(_, persis_info, gen_specs):
 
     H_o = np.zeros(b, dtype=gen_specs["out"])
 
-    H_o["x"] = persis_info["rand_stream"].uniform(lb, ub, (b, n))
-    H_o["resource_sets"] = persis_info["rand_stream"].integers(1, max_rsets + 1, b)
+    H_o["x"] = rng.uniform(lb, ub, (b, n))
+    H_o["resource_sets"] = rng.integers(1, max_rsets + 1, b)
 
     print(f'GEN: H rsets requested: {H_o["resource_sets"]}')
 
     return H_o, persis_info
 
 
-def uniform_random_sample_with_var_priorities_and_resources(H, persis_info, gen_specs):
+def uniform_random_sample_with_var_priorities_and_resources(H, persis_info, gen_specs, libE_info):
     """
     Generates points uniformly over the domain defined by ``gen_specs["user"]["ub"]`` and
     ``gen_specs["user"]["lb"]``. Also, randomly requests a different priority and number of
@@ -77,6 +85,10 @@ def uniform_random_sample_with_var_priorities_and_resources(H, persis_info, gen_
     This generator is used to test/demonstrate setting of priorities and resource sets.
 
     """
+    if "rand_stream" not in persis_info:
+        persis_info["rand_stream"] = get_rng(gen_specs, libE_info)
+    rng = persis_info["rand_stream"]
+
     ub = gen_specs["user"]["ub"]
     lb = gen_specs["user"]["lb"]
     max_rsets = gen_specs["user"]["max_resource_sets"]
@@ -89,7 +101,7 @@ def uniform_random_sample_with_var_priorities_and_resources(H, persis_info, gen_
         H_o = np.zeros(b, dtype=gen_specs["out"])
         for i in range(0, b):
             # x= i*np.ones(n)
-            x = persis_info["rand_stream"].uniform(lb, ub, (1, n))
+            x = rng.uniform(lb, ub, (1, n))
             H_o["x"][i] = x
             H_o["resource_sets"][i] = 1
             H_o["priority"] = 1
@@ -97,15 +109,15 @@ def uniform_random_sample_with_var_priorities_and_resources(H, persis_info, gen_
     else:
         H_o = np.zeros(1, dtype=gen_specs["out"])
         # H_o["x"] = len(H)*np.ones(n)  # Can use a simple count for testing.
-        H_o["x"] = persis_info["rand_stream"].uniform(lb, ub)
-        H_o["resource_sets"] = persis_info["rand_stream"].integers(1, max_rsets + 1)
+        H_o["x"] = rng.uniform(lb, ub)
+        H_o["resource_sets"] = rng.integers(1, max_rsets + 1)
         H_o["priority"] = 10 * H_o["resource_sets"]
         # print("Created sim for {} resource sets".format(H_o["resource_sets"]), flush=True)
 
     return H_o, persis_info
 
 
-def uniform_random_sample_obj_components(H, persis_info, gen_specs):
+def uniform_random_sample_obj_components(H, persis_info, gen_specs, libE_info):
     """
     Generates points uniformly over the domain defined by ``gen_specs["user"]["ub"]``
     and ``gen_specs["user"]["lb"]`` but requests each ``obj_component`` be evaluated
@@ -114,6 +126,10 @@ def uniform_random_sample_obj_components(H, persis_info, gen_specs):
     .. seealso::
         `test_uniform_sampling_one_residual_at_a_time.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_uniform_sampling_one_residual_at_a_time.py>`_ # noqa
     """
+    if "rand_stream" not in persis_info:
+        persis_info["rand_stream"] = get_rng(gen_specs, libE_info)
+    rng = persis_info["rand_stream"]
+
     ub = gen_specs["user"]["ub"]
     lb = gen_specs["user"]["lb"]
 
@@ -123,9 +139,9 @@ def uniform_random_sample_obj_components(H, persis_info, gen_specs):
 
     H_o = np.zeros(b * m, dtype=gen_specs["out"])
     for i in range(0, b):
-        x = persis_info["rand_stream"].uniform(lb, ub, (1, n))
+        x = rng.uniform(lb, ub, (1, n))
         H_o["x"][i * m : (i + 1) * m, :] = np.tile(x, (m, 1))
-        H_o["priority"][i * m : (i + 1) * m] = persis_info["rand_stream"].uniform(0, 1, m)
+        H_o["priority"][i * m : (i + 1) * m] = rng.uniform(0, 1, m)
         H_o["obj_component"][i * m : (i + 1) * m] = np.arange(0, m)
 
         H_o["pt_id"][i * m : (i + 1) * m] = len(H) // m + i
@@ -133,12 +149,16 @@ def uniform_random_sample_obj_components(H, persis_info, gen_specs):
     return H_o, persis_info
 
 
-def uniform_random_sample_cancel(_, persis_info, gen_specs):
+def uniform_random_sample_cancel(_, persis_info, gen_specs, libE_info):
     """
     Similar to uniform_random_sample but with immediate cancellation of
     selected points for testing.
 
     """
+    if "rand_stream" not in persis_info:
+        persis_info["rand_stream"] = get_rng(gen_specs, libE_info)
+    rng = persis_info["rand_stream"]
+
     ub = gen_specs["user"]["ub"]
     lb = gen_specs["user"]["lb"]
 
@@ -150,13 +170,13 @@ def uniform_random_sample_cancel(_, persis_info, gen_specs):
         if i % 10 == 0:
             H_o[i]["cancel_requested"] = True
 
-    H_o["x"] = persis_info["rand_stream"].uniform(lb, ub, (b, n))
+    H_o["x"] = rng.uniform(lb, ub, (b, n))
 
     return H_o, persis_info
 
 
 @output_data([("x", float, (1,))])
-def latin_hypercube_sample(_, persis_info, gen_specs):
+def latin_hypercube_sample(_, persis_info, gen_specs, libE_info):
     """
     Generates ``gen_specs["batch_size"]`` points in a Latin
     hypercube sample over the domain defined by ``gen_specs["user"]["ub"]`` and
@@ -165,6 +185,9 @@ def latin_hypercube_sample(_, persis_info, gen_specs):
     .. seealso::
         `test_1d_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_1d_sampling.py>`_ # noqa
     """
+    if "rand_stream" not in persis_info:
+        persis_info["rand_stream"] = get_rng(gen_specs, libE_info)
+    rng = persis_info["rand_stream"]
 
     ub = gen_specs["user"]["ub"]
     lb = gen_specs["user"]["lb"]
@@ -174,7 +197,7 @@ def latin_hypercube_sample(_, persis_info, gen_specs):
 
     H_o = np.zeros(b, dtype=gen_specs["out"])
 
-    A = lhs_sample(n, b, persis_info["rand_stream"])
+    A = lhs_sample(n, b, rng)
 
     H_o["x"] = A * (ub - lb) + lb
 

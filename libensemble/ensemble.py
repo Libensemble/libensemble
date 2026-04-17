@@ -5,7 +5,6 @@ import numpy.typing as npt
 from libensemble.executors import Executor
 from libensemble.libE import libE
 from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
-from libensemble.tools import add_unique_random_streams
 from libensemble.tools import parse_args as parse_args_f
 from libensemble.tools import save_libE_output
 from libensemble.tools.parse_args import mpi_init
@@ -177,16 +176,14 @@ class Ensemble:
         self._nworkers = 0
         self.is_manager = False
         self.parsed = False
-        self._known_comms = None
+        self._known_comms: str = ""
 
         if parse_args:
             self._parse_args()
             self.parsed = True
-            if self._libE_specs:
-                self._known_comms = self._libE_specs.comms
 
-        if not self._known_comms and self._libE_specs is not None:
-            self._known_comms = self._libE_specs.comms
+        if self._libE_specs:
+            self._known_comms = getattr(self._libE_specs, "comms", "")
 
         if self._known_comms == "local":
             self.is_manager = True
@@ -196,7 +193,7 @@ class Ensemble:
         elif self._known_comms == "mpi" and not parse_args:
             # Set internal _nworkers - not libE_specs (avoid "nworkers will be ignored" warning)
             if self._libE_specs:
-                self._nworkers, self.is_manager = mpi_init(self._libE_specs.mpi_comm)
+                self._nworkers, self.is_manager = mpi_init(getattr(self._libE_specs, "mpi_comm", None))
 
     def _parse_args(self) -> tuple[int, bool, LibeSpecs]:
         # Set internal _nworkers - not libE_specs (avoid "nworkers will be ignored" warning)
@@ -284,7 +281,7 @@ class Ensemble:
         """
 
         self._refresh_executor()
-        if self._libE_specs and self._libE_specs.comms != self._known_comms:
+        if self._libE_specs and getattr(self._libE_specs, "comms", "") != self._known_comms:
             raise ValueError(CHANGED_COMMS_WARN)
 
         assert self._libE_specs is not None
@@ -309,32 +306,6 @@ class Ensemble:
         self._nworkers = value
         if self._libE_specs:
             self._libE_specs.nworkers = value
-
-    def add_random_streams(self, num_streams: int = 0, seed: str = ""):
-        """
-
-        Adds ``np.random`` generators for each worker ID to ``self.persis_info``.
-
-        Parameters
-        ----------
-
-        num_streams: int, Optional
-
-            Number of matching worker ID and random stream entries to create. Defaults to
-            ``self.nworkers``.
-
-        seed: str, Optional
-
-            Seed for NumPy's RNG.
-
-        """
-        if num_streams:
-            nstreams = num_streams
-        else:
-            nstreams = self.nworkers
-
-        self.persis_info = add_unique_random_streams(self.persis_info, nstreams + 1, seed=seed)
-        return self.persis_info
 
     def save_output(self, basename: str, append_attrs: bool = True):
         """

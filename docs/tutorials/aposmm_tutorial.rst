@@ -146,7 +146,7 @@ function:
     from libensemble.libE import libE
     from libensemble.gen_funcs.persistent_aposmm import aposmm
     from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc
-    from libensemble.tools import parse_args, add_unique_random_streams
+    from libensemble.tools import parse_args
 
 This allocation function starts a single Persistent APOSMM routine and provides
 ``sim_f`` output for points requested by APOSMM. Points can be sampled points
@@ -241,7 +241,7 @@ random sampling seeding:
     :linenos:
 
     exit_criteria = {"sim_max": 2000}
-    persis_info = add_unique_random_streams({}, nworkers + 1)
+    persis_info = {}
 
 Finally, add statements to :doc:`initiate libEnsemble<../libe_module>`, and quickly
 check calculated minima:

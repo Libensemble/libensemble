@@ -30,7 +30,6 @@ if __name__ == "__main__":
     exit_criteria = ExitCriteria(gen_max=160)
 
     ensemble = Ensemble(sim_specs, gen_specs, exit_criteria, libE_specs, alloc_specs)
-    ensemble.add_random_streams()
     ensemble.run()
 
     if ensemble.flag != 0:

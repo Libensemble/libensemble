@@ -26,7 +26,7 @@ from libensemble.gen_funcs.persistent_sampling import persistent_uniform as gen_
 # Import libEnsemble items for this test
 from libensemble.libE import libE
 from libensemble.sim_funcs.rosenbrock import rosenbrock_eval as sim_f
-from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
+from libensemble.tools import parse_args, save_libE_output
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
@@ -60,7 +60,7 @@ if __name__ == "__main__":
     libE_specs["kill_canceled_sims"] = False
 
     for run in range(5):
-        persis_info = add_unique_random_streams({}, nworkers + 1)
+        persis_info = {}
         for i in persis_info:
             persis_info[i]["get_grad"] = True
 

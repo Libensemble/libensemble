@@ -23,7 +23,7 @@ from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
 from libensemble.libE import libE
 from libensemble.sim_funcs.executor_hworld import executor_hworld as sim_f
 from libensemble.tests.regression_tests.common import build_simfunc
-from libensemble.tools import add_unique_random_streams, parse_args
+from libensemble.tools import parse_args
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local tcp
@@ -90,8 +90,6 @@ if __name__ == "__main__":
         "alloc_f": give_sim_work_first,
     }
 
-    persis_info = add_unique_random_streams({}, nworkers + 1)
-
     exit_criteria = {"wallclock_max": 10, "sim_max": nworkers}
 
     # TCP does not support multiple libE calls
@@ -102,9 +100,7 @@ if __name__ == "__main__":
 
     for i in range(iterations):
         # Perform the run
-        H, persis_info, flag = libE(
-            sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs=libE_specs
-        )
+        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs, libE_specs=libE_specs)
 
         if is_manager:
             print("\nChecking expected task status against Workers ...\n")

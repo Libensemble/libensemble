@@ -12,7 +12,7 @@ from libensemble import logger
 from libensemble.gen_funcs.persistent_ax_multitask import persistent_gp_mt_ax_gen_f
 from libensemble.libE import libE
 from libensemble.message_numbers import WORKER_DONE
-from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
+from libensemble.tools import parse_args, save_libE_output
 
 nworkers, is_manager, libE_specs, _ = parse_args()
 
@@ -85,7 +85,7 @@ logger.set_level("INFO")
 exit_criteria = {"sim_max": 20}  # Exit after running sim_max simulations
 
 # Create a different random number stream for each worker and the manager
-persis_info = add_unique_random_streams({}, nworkers + 1)
+persis_info = {}
 
 # Run LibEnsemble, and store results in history array H
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)

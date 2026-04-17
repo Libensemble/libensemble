@@ -28,7 +28,7 @@ from libensemble.sim_funcs.mock_sim import mock_sim
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel
 from libensemble.tests.regression_tests.common import read_generated_file
 from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
-from libensemble.tools import add_unique_random_streams, parse_args
+from libensemble.tools import parse_args
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
@@ -56,8 +56,6 @@ if __name__ == "__main__":
     }
     # end_gen_specs_rst_tag
 
-    persis_info = add_unique_random_streams({}, nworkers + 1)
-
     exit_criteria = {"gen_max": 501, "wallclock_max": 300}
 
     alloc_specs = {
@@ -72,9 +70,7 @@ if __name__ == "__main__":
             sim_specs["user"] = {"history_file": hfile}
 
         # Perform the run
-        H, persis_info, flag = libE(
-            sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs=libE_specs
-        )
+        H, _, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs, libE_specs=libE_specs)
 
         if is_manager:
             assert flag == 0

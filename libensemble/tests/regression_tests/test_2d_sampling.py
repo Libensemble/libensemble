@@ -41,7 +41,6 @@ if __name__ == "__main__":
     sampling.alloc_specs = AllocSpecs(alloc_f=give_sim_work_first)
 
     sampling.exit_criteria = ExitCriteria(sim_max=200)
-    sampling.add_random_streams()
 
     sampling.run()
     if sampling.is_manager:

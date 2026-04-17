@@ -28,7 +28,6 @@ if __name__ == "__main__":  # Python-quirk required on macOS and windows
     exit_criteria = ExitCriteria(sim_max=80)  # Stop libEnsemble after 80 simulations
 
     ensemble = Ensemble(sim_specs, gen_specs, exit_criteria, libE_specs)
-    ensemble.add_random_streams()  # setup the random streams unique to each worker
     ensemble.run()  # start the ensemble. Blocks until completion.
 
     history = ensemble.H  # start visualizing our results

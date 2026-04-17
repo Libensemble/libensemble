@@ -9,7 +9,6 @@ from numpy import typing as npt
 from libensemble.comms.comms import QCommProcess  # , QCommThread
 from libensemble.executors import Executor
 from libensemble.message_numbers import EVAL_GEN_TAG, PERSIS_STOP
-from libensemble.tools.tools import add_unique_random_streams
 from libensemble.utils.misc import list_dicts_to_np, np_to_list_dicts, unmap_numpy_array
 
 
@@ -76,7 +75,7 @@ class LibensembleGenerator(Generator):
                 self.gen_specs["user"] = {}
             self.gen_specs["user"].update(kwargs)
         if not persis_info.get("rand_stream"):
-            self.persis_info = add_unique_random_streams({}, 4, seed=4321)[1]
+            self.persis_info = {"rand_stream": np.random.default_rng(4321 + 1), "worker_num": 1}
         else:
             self.persis_info = persis_info
 
@@ -136,7 +135,7 @@ class PersistentGenInterfacer(LibensembleGenerator):
         self.gen_f = gen_specs["gen_f"]
         self.History = History
         self.libE_info = libE_info
-        self._running_gen_f = None
+        self._running_gen_f: Optional[QCommProcess] = None
         self.gen_result = None
 
     def setup(self) -> None:
@@ -159,6 +158,7 @@ class PersistentGenInterfacer(LibensembleGenerator):
         )
 
         # This can be set here since the object isnt started until the first suggest
+        assert self._running_gen_f is not None
         self.libE_info["comm"] = self._running_gen_f.comm
 
     def _prep_fields(self, results: npt.NDArray) -> npt.NDArray:
@@ -183,10 +183,11 @@ class PersistentGenInterfacer(LibensembleGenerator):
         """Send the results of evaluations to the generator."""
         self.ingest_numpy(list_dicts_to_np(results, mapping=self.variables_mapping), tag)
 
-    def suggest_numpy(self, num_points: int = 0) -> npt.NDArray:
+    def suggest_numpy(self, num_points: Optional[int] = 0) -> npt.NDArray:
         """Request the next set of points to evaluate, as a NumPy array."""
         if self._running_gen_f is None:
             self.setup()
+            assert self._running_gen_f is not None
             self._running_gen_f.run()
         _, suggest_full = self._running_gen_f.recv()
         return suggest_full["calc_out"]
@@ -195,14 +196,17 @@ class PersistentGenInterfacer(LibensembleGenerator):
         """Send the results of evaluations to the generator, as a NumPy array."""
         if self._running_gen_f is None:
             self.setup()
+            assert self._running_gen_f is not None
             self._running_gen_f.run()
 
         if results is not None:
             results = self._prep_fields(results)
             Work = {"libE_info": {"H_rows": np.copy(results["sim_id"]), "persistent": True, "executor": None}}
+            assert self._running_gen_f is not None
             self._running_gen_f.send(tag, Work)
             self._running_gen_f.send(tag, np.copy(results))
         else:
+            assert self._running_gen_f is not None
             self._running_gen_f.send(tag, None)
 
     def finalize(self) -> None:
@@ -210,6 +214,7 @@ class PersistentGenInterfacer(LibensembleGenerator):
         if self._running_gen_f is None:
             raise RuntimeError("Generator has not been started.")
         self.ingest_numpy(None, PERSIS_STOP)  # conversion happens in ingest
+        assert self._running_gen_f is not None
         self.gen_result = self._running_gen_f.result()
 
     def export(

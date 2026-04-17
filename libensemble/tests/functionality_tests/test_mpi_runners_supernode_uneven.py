@@ -17,7 +17,7 @@ from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
 from libensemble.libE import libE
 from libensemble.sim_funcs.run_line_check import runline_check_by_worker as sim_f
 from libensemble.tests.regression_tests.common import create_node_file
-from libensemble.tools import add_unique_random_streams, parse_args
+from libensemble.tools import parse_args
 
 # logger.set_level("DEBUG")  # For testing the test
 logger.set_level("INFO")
@@ -83,7 +83,6 @@ if __name__ == "__main__":
         },
     }
 
-    persis_info = add_unique_random_streams({}, nworkers + 1)
     exit_criteria = {"sim_max": (nsim_workers) * rounds}
 
     # Each worker has either 3 or 2 nodes. Basic test list for portable options
@@ -135,6 +134,6 @@ if __name__ == "__main__":
     alloc_specs = {"alloc_f": give_sim_work_first}
 
     # Perform the run
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs=libE_specs)
+    H, _, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs, libE_specs=libE_specs)
 
     # All asserts are in sim func

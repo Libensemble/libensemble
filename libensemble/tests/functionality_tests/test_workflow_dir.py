@@ -22,7 +22,7 @@ from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
 from libensemble.libE import libE
 from libensemble.tests.regression_tests.support import write_sim_func as sim_f
-from libensemble.tools import add_unique_random_streams, parse_args
+from libensemble.tools import parse_args
 
 nworkers, is_manager, libE_specs, _ = parse_args()
 
@@ -63,8 +63,6 @@ if __name__ == "__main__":
         "alloc_f": give_sim_work_first,
     }
 
-    persis_info = add_unique_random_streams({}, nworkers + 1)
-
     exit_criteria = {"sim_max": 21}
 
     ensemble_lens = []
@@ -75,9 +73,7 @@ if __name__ == "__main__":
             "./test_workflow" + str(i) + "_nworkers" + str(nworkers) + "_comms-" + libE_specs["comms"]
         )
 
-        H, persis_info, flag = libE(
-            sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs=alloc_specs, libE_specs=libE_specs
-        )
+        H, _, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs, libE_specs=libE_specs)
 
         assert os.path.isdir(libE_specs["workflow_dir_path"]), "workflow_dir not created"
         assert all(
