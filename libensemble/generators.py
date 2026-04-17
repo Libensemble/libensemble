@@ -220,7 +220,9 @@ class PersistentGenInterfacer(LibensembleGenerator):
     def export(
         self, vocs_field_names: bool = False, as_dicts: bool = False
     ) -> tuple[npt.NDArray | list | None, dict | None, int | None]:
-        """Return the generator's results
+        """
+        Return the generator's results.
+
         Parameters
         ----------
         vocs_field_names : bool, optional
@@ -229,6 +231,7 @@ class PersistentGenInterfacer(LibensembleGenerator):
         as_dicts : bool, optional
             If True, return local_H as list of dictionaries instead of numpy array.
             Default is False.
+
         Returns
         -------
         local_H : npt.NDArray | list
