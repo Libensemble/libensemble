@@ -59,11 +59,6 @@ class AxParameterWarning(Warning):  # Ensure it's a real warning subclass
 sys.modules["ax.exceptions.core"] = MagicMock()
 sys.modules["ax.exceptions.core"].AxParameterWarning = AxParameterWarning
 
-# from libensemble import *
-# from libensemble.alloc_funcs import *
-# from libensemble.gen_funcs import *
-# from libensemble.sim_funcs import *
-
 
 # sys.path.insert(0, os.path.abspath('.'))
 sys.path.append(os.path.abspath("../libensemble"))
@@ -112,13 +107,7 @@ spelling_ignore_importable_modules = True
 
 bibtex_bibfiles = ["references.bib"]
 bibtex_default_style = "unsrt"
-# autosectionlabel_prefix_document = True
-# extensions = ['sphinx.ext.autodoc', 'sphinx.ext.napoleon', 'sphinx.ext.imgconverter']
-# breathe_projects = { "libEnsemble": "../code/src/xml/" }
-# breathe_default_project = "libEnsemble"
 
-##breathe_projects_source = {"libEnsemble" : ( "../code/src/", ["libE.py", "test.cpp"] )}
-# breathe_projects_source = {"libEnsemble" : ( "../code/src/", ["test.cpp","test2.cpp"] )}
 
 autodoc_member_order = "bysource"
 model_show_field_summary = "bysource"
@@ -185,6 +174,7 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", "**.ipynb_checkpoints"]
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = "sphinx"
+pygments_dark_style = "monokai"
 
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = False
@@ -210,9 +200,9 @@ for line in open("nitpicky"):
 # html_theme = 'sphinxdoc'
 # html_theme = "sphinx_book_theme"
 
-html_theme = "sphinx_rtd_theme"
+html_theme = "furo"
 
-html_logo = "./images/libE_logo_white.png"
+# html_logo = "./images/libE_logo_white.png"
 html_favicon = "./images/libE_logo_circle.png"
 html_title = "libEnsemble"
 
@@ -221,7 +211,12 @@ html_title = "libEnsemble"
 # documentation.
 #
 html_theme_options = {
-    "logo_only": True,
+    "announcement": "<em>libEnsemble v2.0 is released, with many new features and changes.</em>",
+    "source_repository": "https://github.com/Libensemble/libensemble/",
+    "source_branch": "main",
+    "source_directory": "docs/",
+    "light_logo": "libE_logo.png",
+    "dark_logo": "libE_logo_white.png",
 }
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -238,22 +233,6 @@ def remove_noqa(app, what, name, obj, options, lines):
 def setup(app):
     app.add_css_file("my_theme.css")
     app.connect("autodoc-process-docstring", remove_noqa)
-
-
-# Custom sidebar templates, must be a dictionary that maps document names
-# to template names.
-#
-# This is required for the alabaster theme
-# refs: http://alabaster.readthedocs.io/en/latest/installation.html#sidebars
-# html_sidebars = {
-#    '**': [
-#        'about.html',
-#        'navigation.html',
-#        'relations.html',  # needs 'show_related': True theme option to display
-#        'searchbox.html',
-#        'donate.html',
-#    ]
-# }
 
 
 # -- Options for HTMLHelp output ------------------------------------------
