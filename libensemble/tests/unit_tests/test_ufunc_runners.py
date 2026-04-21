@@ -30,8 +30,8 @@ def get_ufunc_args():
 def test_normal_runners():
     calc_in, sim_specs, gen_specs = get_ufunc_args()
 
-    simrunner = Runner(sim_specs)
-    genrunner = Runner(gen_specs)
+    simrunner = Runner.from_specs(sim_specs)
+    genrunner = Runner.from_specs(gen_specs)
     assert not hasattr(simrunner, "globus_compute_executor") and not hasattr(
         genrunner, "globus_compute_executor"
     ), "Globus Compute use should not be detected without setting endpoint fields"
@@ -47,7 +47,7 @@ def test_thread_runners():
     sim_specs["sim_f"] = tupilize
     persis_info = {"hello": "threads"}
 
-    simrunner = Runner(sim_specs)
+    simrunner = Runner.from_specs(sim_specs)
     result = simrunner._result(calc_in, persis_info, {})
     assert result == (calc_in, persis_info)
     assert hasattr(simrunner, "thread_handle")
@@ -75,7 +75,7 @@ def test_globus_compute_runner_init():
     sim_specs["globus_compute_endpoint"] = "1234"
 
     with mock.patch("globus_compute_sdk.Executor"):
-        runner = Runner(sim_specs)
+        runner = Runner.from_specs(sim_specs)
 
         assert hasattr(
             runner, "globus_compute_executor"
@@ -89,7 +89,7 @@ def test_globus_compute_runner_pass():
     sim_specs["globus_compute_endpoint"] = "1234"
 
     with mock.patch("globus_compute_sdk.Executor"):
-        runner = Runner(sim_specs)
+        runner = Runner.from_specs(sim_specs)
 
         #  Creating Mock Globus ComputeExecutor and Globus Compute future object - no exception
         globus_compute_mock = mock.Mock()
@@ -112,10 +112,10 @@ def test_globus_compute_runner_pass():
 def test_globus_compute_runner_fail():
     calc_in, sim_specs, gen_specs = get_ufunc_args()
 
-    gen_specs["globus_compute_endpoint"] = "4321"
+    sim_specs["globus_compute_endpoint"] = "4321"
 
     with mock.patch("globus_compute_sdk.Executor"):
-        runner = Runner(gen_specs)
+        runner = Runner.from_specs(sim_specs)
 
         #  Creating Mock Globus ComputeExecutor and Globus Compute future object - yes exception
         globus_compute_mock = mock.Mock()
@@ -124,12 +124,12 @@ def test_globus_compute_runner_fail():
         globus_compute_future.exception.return_value = Exception
 
         runner.globus_compute_executor = globus_compute_mock
-        runners = {2: runner.run}
+        runners = {1: runner.run}
 
         libE_info = {"H_rows": np.array([2, 3, 4]), "workerID": 1, "comm": "fakecomm"}
 
         with pytest.raises(Exception):
-            out, persis_info = runners[2](calc_in, {"libE_info": libE_info, "persis_info": {}, "tag": 2})
+            out, persis_info = runners[1](calc_in, {"libE_info": libE_info, "persis_info": {}, "tag": 1})
             pytest.fail("Expected exception")
 
 

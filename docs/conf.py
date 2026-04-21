@@ -31,7 +31,7 @@ class Mock(MagicMock):
         return MagicMock()
 
 
-autodoc_mock_imports = ["ax", "balsam", "gpcam", "IPython", "matplotlib", "pandas", "scipy", "surmise"]
+autodoc_mock_imports = ["ax", "gpcam", "IPython", "matplotlib", "pandas", "scipy", "surmise"]
 
 MOCK_MODULES = [
     "argparse",
@@ -67,9 +67,9 @@ sys.modules["ax.exceptions.core"].AxParameterWarning = AxParameterWarning
 
 # sys.path.insert(0, os.path.abspath('.'))
 sys.path.append(os.path.abspath("../libensemble"))
-##sys.path.append(os.path.abspath('../libensemble'))
 sys.path.append(os.path.abspath("../libensemble/alloc_funcs"))
 sys.path.append(os.path.abspath("../libensemble/gen_funcs"))
+sys.path.append(os.path.abspath("../libensemble/gen_classes"))
 sys.path.append(os.path.abspath("../libensemble/sim_funcs"))
 sys.path.append(os.path.abspath("../libensemble/comms"))
 sys.path.append(os.path.abspath("../libensemble/utils"))
@@ -101,6 +101,7 @@ extensions = [
     "sphinxcontrib.autodoc_pydantic",
     "sphinx_design",
     "sphinx_copybutton",
+    "sphinx_lfs_content",
 ]
 
 spelling_word_list_filename = "spelling_wordlist.txt"

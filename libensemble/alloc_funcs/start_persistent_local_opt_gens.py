@@ -27,6 +27,9 @@ def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, alloc_specs, per
     if libE_info["sim_max_given"] or not libE_info["any_idle_workers"]:
         return {}, persis_info
 
+    if not persis_info:
+        persis_info = {i: {} for i in range(len(W))}
+
     manage_resources = libE_info["use_resource_sets"]
     support = AllocSupport(W, manage_resources, persis_info, libE_info)
     Work = {}
@@ -42,6 +45,7 @@ def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, alloc_specs, per
             opt_ind = np.all(H["x"] == persis_info[i]["x_opt"], axis=1)
             assert sum(opt_ind) == 1, "There must be just one optimum"
             H["local_min"][opt_ind] = True
+        if "rand_stream" in persis_info[i]:
             persis_info[i] = {"rand_stream": persis_info[i]["rand_stream"]}
 
     # If wid is idle, but in persistent mode, and its calculated values have

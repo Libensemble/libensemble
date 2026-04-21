@@ -24,6 +24,7 @@ E.g., if running on one node with eight GPUs, then use:
 
 import os
 import sys
+from pathlib import Path
 
 import numpy as np
 from forces_simf import run_forces  # Sim func from current dir
@@ -39,8 +40,8 @@ if __name__ == "__main__":
     exctr = MPIExecutor()
 
     # Register simulation executable with executor
-    cpu_app = os.path.join(os.getcwd(), "../forces_app/forces_cpu.x")
-    gpu_app = os.path.join(os.getcwd(), "../forces_app/forces_gpu.x")
+    cpu_app = Path.cwd() / "../forces_app/forces_cpu.x"
+    gpu_app = Path.cwd() / "../forces_app/forces_gpu.x"
 
     if not os.path.isfile(cpu_app):
         sys.exit(f"{cpu_app} not found - please build first in ../forces_app dir")
@@ -96,9 +97,6 @@ if __name__ == "__main__":
 
     # Instruct libEnsemble to exit after this many simulations.
     ensemble.exit_criteria = ExitCriteria(sim_max=nsim_workers * 2)
-
-    # Seed random streams for each worker, particularly for gen_f.
-    ensemble.add_random_streams()
 
     # Run ensemble
     ensemble.run()

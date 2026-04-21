@@ -4,9 +4,9 @@ import warnings
 from pathlib import Path
 
 import pydantic
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
-from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
+from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens
 
 __all__ = ["SimSpecs", "GenSpecs", "AllocSpecs", "ExitCriteria", "LibeSpecs", "_EnsembleSpecs"]
 
@@ -20,6 +20,46 @@ Pydantic-version agnostic
 """
 
 
+def _get_dtype(field, name: str):
+    """Get dtype from a VOCS field, handling discrete variables."""
+    dtype = getattr(field, "dtype", None)
+    # For discrete variables, infer dtype from values if not specified
+    if dtype is None and hasattr(field, "values"):
+        values = field.values
+        if values:
+            # Validate all values are the same type (required for NumPy array)
+            value_types = {type(v) for v in values}
+            if len(value_types) > 1:
+                raise ValueError(
+                    f"Discrete variable '{name}' has mixed types {value_types}. "
+                    "All values must be the same type to be stored in NumPy array."
+                )
+            # Infer dtype from any value (all same type, scalar)
+            # next(iter(values)) gets an element without creating a list
+            sample_val = next(iter(values))
+            if isinstance(sample_val, str):
+                max_len = max(len(v) for v in values)
+                dtype = f"U{max_len}"
+            else:
+                dtype = type(sample_val)
+    return dtype
+
+
+def _convert_dtype_to_output_tuple(name: str, dtype):
+    """Convert dtype to proper output tuple format for NumPy dtype specification."""
+    if dtype is None:
+        dtype = float
+    if isinstance(dtype, tuple):
+        # Check if first element is a type (type, (shape,)) format
+        if len(dtype) > 1 and (isinstance(dtype[0], type) or isinstance(dtype[0], str)):
+            return (name, dtype[0], dtype[1])
+        else:
+            # Just shape (shape,) format, default to float
+            return (name, float, dtype)
+    else:
+        return (name, dtype)
+
+
 class SimSpecs(BaseModel):
     """
     Specifications for configuring a Simulation Function.
@@ -29,6 +69,12 @@ class SimSpecs(BaseModel):
     """
     Python function matching the ``sim_f`` interface. Evaluates parameters
     produced by a generator function.
+    """
+
+    simulator: object | None = None
+    """
+    A pre-initialized simulator object or callable in gest-api format.
+    When provided, sim_f defaults to gest_api_sim wrapper.
     """
 
     inputs: list[str] | None = Field(default=[], alias="in")
@@ -71,10 +117,58 @@ class SimSpecs(BaseModel):
     the simulator function.
     """
 
+    vocs: object | None = None
+    """
+    A VOCS object. If provided and inputs/outputs are not explicitly set,
+    they will be automatically derived from VOCS.
+    """
+
+    @model_validator(mode="after")
+    def set_fields_from_vocs(self):
+        """Set inputs and outputs from VOCS if vocs is provided and fields are not set."""
+        # If simulator is provided but sim_f is not, default to gest_api_sim
+        if self.simulator is not None and self.sim_f is None:
+            from libensemble.sim_funcs.gest_api_wrapper import gest_api_sim
+
+            self.sim_f = gest_api_sim
+
+        if self.vocs is None:
+            return self
+
+        # Set inputs: variables + constants (what the sim receives)
+        if not self.inputs:
+            input_fields = []
+            for attr in ["variables", "constants"]:
+                if obj := getattr(self.vocs, attr, None):
+                    input_fields.extend(list(obj.keys()))
+            self.inputs = input_fields
+
+        # Set outputs: objectives + observables + constraints (what the sim produces)
+        if not self.outputs:
+            out_fields = []
+            for attr in ["objectives", "observables", "constraints"]:
+                if obj := getattr(self.vocs, attr, None):
+                    for name, field in obj.items():
+                        dtype = getattr(field, "dtype", None)
+                        out_fields.append(_convert_dtype_to_output_tuple(name, dtype))
+            self.outputs = out_fields
+
+        return self
+
 
 class GenSpecs(BaseModel):
     """
-    Specifications for configuring a Generator Function.
+    Specifications for configuring a Generator.
+    """
+
+    generator: object | None = None
+    """
+    A pre-initialized generator object. Produces parameters for evaluation by a
+    simulator function, and makes decisions based on simulator function output.
+
+    These inherit from the `gest-api`
+    (https://github.com/campa-consortium/gest-api) base class. Recommended over
+    the classic ``gen_f`` interface.
     """
 
     gen_f: object | None = None
@@ -103,11 +197,32 @@ class GenSpecs(BaseModel):
     Also used to construct libEnsemble's history array.
     """
 
-    globus_compute_endpoint: str | None = ""
+    initial_batch_size: int = 0
     """
-    A Globus Compute (https://www.globus.org/compute) ID corresponding to an active endpoint on a remote system.
-    libEnsemble's workers will submit generator function instances to this endpoint instead of
-    calling them locally.
+    Initial sample size.
+    For standardized generators, this is the number of initial points to request that the
+    generator create. If zero, falls back to ``batch_size``.
+    For persistent generators, this is the number of points evaluated before switching
+    from batch return to asynchronous return (if ``async_return`` is True).
+
+    Note: Certain generators included with libEnsemble decide batch sizes via
+    ``gen_specs["user"]`` or other methods.
+    """
+
+    batch_size: int = 0
+    """
+    Number of points to generate in each batch. If zero, falls back to the number of
+    completed evaluations most recently told to the generator.
+    """
+
+    initial_sample_method: str | None = None
+    """
+    Method for producing initial sample points before starting the generator.
+    If None (default), the generator is responsible for producing its own initial
+    sample via ``suggest()``. Set to ``"uniform"`` to have libEnsemble generate
+    uniform random samples from VOCS bounds, evaluate them, and ingest the results
+    into the generator before optimization begins. The number of sample points is
+    determined by ``initial_batch_size``.
     """
 
     threaded: bool | None = False
@@ -121,29 +236,108 @@ class GenSpecs(BaseModel):
     customizing the generator function
     """
 
+    vocs: object | None = None
+    """
+    A VOCS object. If provided and persis_in/outputs are not explicitly set,
+    they will be automatically derived from VOCS.
+    """
+
+    num_active_gens: int = 1
+    """
+    Maximum number of persistent generators to start.
+    Only used if using the ``only_persistent_gens`` allocation function (the default).
+    """
+
+    async_return: bool = False
+    """
+    Return results to generator one-at-a-time as they come in (after sample). Default of False
+    implies batch return.
+    Only used if using the ``only_persistent_gens`` allocation function (the default).
+    """
+
+    active_recv_gen: bool = False
+    """
+    Initialize generator in active-receive mode. The generator can receive results
+    even if it's not ready to produce new points.
+    Only used if using the ``only_persistent_gens`` allocation function (the default).
+    """
+
+    batch_evaluate_same_priority: bool = False
+    """
+    Pass all points with the same priority value as a batch to a single simulator call.
+    """
+
+    alt_type: bool = False
+    """
+    Enable specialized allocator behavior for ``only_persistent_gens``.
+    """
+
+    @model_validator(mode="after")
+    def set_fields_from_vocs(self):
+        """Set persis_in and outputs from VOCS if vocs is provided and fields are not set."""
+        if self.vocs is None:
+            return self
+
+        # Set persis_in: ALL VOCS fields (variables + constants + objectives + observables + constraints)
+        if not self.persis_in:
+            persis_in_fields = []
+            for attr in ["variables", "constants", "objectives", "observables", "constraints"]:
+                if obj := getattr(self.vocs, attr, None):
+                    persis_in_fields.extend(list(obj.keys()))
+            self.persis_in = persis_in_fields
+
+        # Set inputs: same as persis_in for gest-api generators (needed for H0 ingestion)
+        if not self.inputs and self.generator is not None:
+            self.inputs = self.persis_in
+
+        # Set outputs: variables + constants (what the generator produces)
+        if not self.outputs:
+            out_fields = []
+            for attr in ["variables", "constants"]:
+                if obj := getattr(self.vocs, attr, None):
+                    for name, field in obj.items():
+                        dtype = _get_dtype(field, name)
+                        out_fields.append(_convert_dtype_to_output_tuple(name, dtype))
+            self.outputs = out_fields
+
+        # Add _id field if generator returns_id is True
+        if self.generator is not None and getattr(self.generator, "returns_id", False):
+            if self.outputs is None:
+                self.outputs = []
+            if "_id" not in [f[0] for f in self.outputs]:
+                self.outputs.append(("_id", int))
+            if self.persis_in is None:
+                self.persis_in = []
+            if "_id" not in self.persis_in:
+                self.persis_in.append("_id")
+
+        return self
+
 
 class AllocSpecs(BaseModel):
     """
     Specifications for configuring an Allocation Function.
     """
 
-    alloc_f: object = give_sim_work_first
+    alloc_f: object = only_persistent_gens
     """
     Python function matching the ``alloc_f`` interface. Decides when simulator and generator functions
     should be called, and with what resources and parameters.
+
+    .. note::
+        For libEnsemble v2.0, the default allocation function is now ``only_persistent_gens``, instead
+        of ``give_sim_work_first``.
     """
 
-    user: dict | None = {"num_active_gens": 1}
+    user: dict | None = {}
     """
     A user-data dictionary to place bounds, constants, settings, or other parameters
     for customizing the allocation function.
-    """
 
-    outputs: list[tuple] = Field([], alias="out")
-    """
-    list of 2- or 3-tuples corresponding to NumPy dtypes. e.g. ``("dim", int, (3,))``, or ``("path", str)``.
-    Allocation functions that modify libEnsemble's History array with additional fields should list those
-    fields here. Also used to construct libEnsemble's history array.
+    .. note::
+        As of libEnsemble v2.0, options related to the default allocation function
+        (e.g., ``async_return``, ``num_active_gens``) have been moved to
+        :class:`GenSpecs<libensemble.specs.GenSpecs>`.
     """
     # end_alloc_tag
 
@@ -181,9 +375,9 @@ class LibeSpecs(BaseModel):
     nworkers: int | None = 0
     """ Number of worker processes in ``"local"``, ``"threads"``, or ``"tcp"``."""
 
-    gen_on_manager: bool | None = False
-    """ Instructs Manager process to run generator functions.
-    This generator function can access/modify user objects by reference.
+    gen_on_worker: bool = False
+    """ Instructs libEnsemble to run generator functions on a worker rank.
+    By default, the generator runs on the manager process as a thread (Worker 0).
     """
 
     mpi_comm: object | None = None
@@ -444,7 +638,7 @@ class LibeSpecs(BaseModel):
     num_resource_sets: int | None = 0
     """
     Total number of resource sets. Resources will be divided into this number.
-    If not set, resources will be divided evenly (excluding zero_resource_workers).
+    If not set, resources will be divided evenly by the number of workers.
     """
 
     gen_num_procs: int | None = 0
@@ -488,13 +682,6 @@ class LibeSpecs(BaseModel):
     """
     Instructs libEnsemble’s MPI executor not to run applications on nodes where
     libEnsemble processes (manager and workers) are running.
-    """
-
-    zero_resource_workers: list[int] | None = []
-    """
-    list of workers that require no resources. For when a fixed mapping of workers
-    to resources is required. Otherwise, use ``num_resource_sets``.
-    For use with supported allocation functions.
     """
 
     gen_workers: list[int] | None = []

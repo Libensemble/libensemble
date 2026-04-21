@@ -15,6 +15,7 @@ import os
 import numpy as np
 
 import libensemble.sim_funcs.six_hump_camel as six_hump_camel
+from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 from libensemble.executors.mpi_executor import MPIExecutor
 from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
 from libensemble.libE import libE
@@ -23,7 +24,7 @@ from libensemble.libE import libE
 from libensemble.message_numbers import TASK_FAILED, WORKER_DONE, WORKER_KILL_ON_ERR, WORKER_KILL_ON_TIMEOUT
 from libensemble.sim_funcs.executor_hworld import executor_hworld as sim_f
 from libensemble.tests.regression_tests.common import build_simfunc
-from libensemble.tools import add_unique_random_streams, parse_args
+from libensemble.tools import parse_args
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local tcp
@@ -79,20 +80,22 @@ if __name__ == "__main__":
         "gen_f": gen_f,
         "in": ["sim_id"],
         "out": [("x", float, (2,))],
+        "batch_size": nworkers,
         "user": {
             "lb": np.array([-3, -2]),
             "ub": np.array([3, 2]),
-            "gen_batch_size": nworkers,
         },
     }
-
-    persis_info = add_unique_random_streams({}, nworkers + 1)
 
     # num sim_ended_count conditions in executor_hworld
     exit_criteria = {"sim_max": nworkers * 5}
 
+    alloc_specs = {
+        "alloc_f": give_sim_work_first,
+    }
+
     # Perform the run
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs, libE_specs=libE_specs)
 
     if is_manager:
         print("\nChecking expected task status against Workers ...\n")

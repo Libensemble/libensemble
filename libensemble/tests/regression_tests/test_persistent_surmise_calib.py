@@ -30,19 +30,26 @@ in the libEnsemble documentation.
 # Requires:
 #   Install Surmise package
 
+import sys
+
 import numpy as np
 
 from libensemble import Ensemble
-from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.gen_funcs.persistent_surmise_calib import surmise_calib as gen_f
 
 # Import libEnsemble items for this test
 from libensemble.sim_funcs.surmise_test_function import borehole as sim_f
 from libensemble.sim_funcs.surmise_test_function import tstd2theta
-from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, SimSpecs
-from libensemble.tools import add_unique_random_streams
+from libensemble.specs import ExitCriteria, GenSpecs, SimSpecs
+from libensemble.tools import parse_args
 
-if __name__ == "__main__":
+
+def run_surmise_calib():
+    nworkers, is_manager, libE_specs, _ = parse_args()
+
+    if nworkers < 2:
+        sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
+
     n_init_thetas = 15  # Initial batch of thetas
     n_x = 25  # No. of x values
     nparams = 4  # No. of theta params
@@ -84,23 +91,15 @@ if __name__ == "__main__":
                 "step_add_theta": step_add_theta,  # No. of thetas to generate per step
                 "n_explore_theta": n_explore_theta,  # No. of thetas to explore each step
                 "obsvar": obsvar,  # Variance for generating noise in obs
-                "init_sample_size": init_sample_size,  # Initial batch size inc. observations
                 "priorloc": 1,  # Prior location in the unit cube
                 "priorscale": 0.5,  # Standard deviation of prior
             },
-        ),
-        alloc_specs=AllocSpecs(
-            alloc_f=alloc_f,
-            user={
-                "init_sample_size": init_sample_size,
-                "async_return": True,  # True = Return results to gen as they come in (after sample)
-                "active_recv_gen": True,  # Persistent gen can handle irregular communications
-            },
+            initial_batch_size=init_sample_size,
+            async_return=True,
+            active_recv_gen=True,
         ),
         exit_criteria=ExitCriteria(sim_max=max_evals),
     )
-
-    test.persis_info = add_unique_random_streams({}, test.nworkers + 1)
 
     # Perform the run
     H, _, _ = test.run()
@@ -113,3 +112,7 @@ if __name__ == "__main__":
 
         # The following line is only to cover parts of tstd2theta
         tstd2theta(H[0]["thetas"].squeeze(), hard=False)
+
+
+if __name__ == "__main__":
+    run_surmise_calib()

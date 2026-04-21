@@ -128,8 +128,8 @@ The remaining values above are useful for efficient filtering of H values
 
 Descriptions of included allocation functions can be found :doc:`here<../examples/alloc_funcs>`.
 The default allocation function is
-``give_sim_work_first``. During its worker ID loop, it checks if there's unallocated
+``start_only_persistent``. During its worker ID loop, it checks if there's unallocated
 work and assigns simulations for that work. Otherwise, it initializes
 generators for up to ``"num_active_gens"`` instances. Other settings like
 ``batch_mode`` are also supported. See
-:ref:`here<gswf_label>` for more information about ``give_sim_work_first``.
+:ref:`here<start_only_persistent_label>` for more information.

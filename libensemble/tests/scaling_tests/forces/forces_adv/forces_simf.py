@@ -1,5 +1,6 @@
 import os
 import time
+from pathlib import Path
 
 import numpy as np
 
@@ -101,7 +102,7 @@ def run_forces(H, persis_info, sim_specs, libE_info):
 
     # Stat file to check for bad runs
     statfile = "forces.stat"
-    filepath = os.path.join(task.workdir, statfile)
+    filepath = Path(task.workdir) / statfile
     line = None
 
     poll_interval = 0.1  # secs

@@ -5,7 +5,7 @@ import libensemble.gen_funcs
 from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc
 from libensemble.gen_funcs.persistent_aposmm import aposmm
 from libensemble.libE import libE
-from libensemble.tools import add_unique_random_streams, parse_args
+from libensemble.tools import parse_args
 
 libensemble.gen_funcs.rc.aposmm_optimizers = "scipy"
 
@@ -42,8 +42,7 @@ gen_specs = {
 alloc_specs = {"alloc_f": persistent_aposmm_alloc}
 
 exit_criteria = {"sim_max": 2000}
-persis_info = add_unique_random_streams({}, nworkers + 1)
 
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs, libE_specs=libE_specs)
 if is_manager:
     print("Minima:", H[np.where(H["local_min"])]["x"])

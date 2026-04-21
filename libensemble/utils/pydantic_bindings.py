@@ -15,8 +15,8 @@ from libensemble.utils.validators import (
     check_inputs_exist,
     check_logical_cores,
     check_mpi_runner_type,
-    check_output_fields,
     check_provided_ufuncs,
+    check_set_gen_specs_from_variables,
     check_valid_comms_type,
     check_valid_in,
     check_valid_out,
@@ -47,9 +47,6 @@ model = specs.GenSpecs.model_fields
 model["inputs"] = FieldInfo.merge_field_infos(model["inputs"], Field(alias="in"))
 model["outputs"] = FieldInfo.merge_field_infos(model["outputs"], Field(alias="out"))
 
-model = specs.AllocSpecs.model_fields
-model["outputs"] = FieldInfo.merge_field_infos(model["outputs"], Field(alias="out"))
-
 specs.SimSpecs.model_rebuild(force=True)
 specs.GenSpecs.model_rebuild(force=True)
 specs.AllocSpecs.model_rebuild(force=True)
@@ -77,6 +74,7 @@ if "sphinx" not in sys.modules:
         __validators__={
             "check_valid_out": check_valid_out,
             "check_valid_in": check_valid_in,
+            "check_set_gen_specs_from_variables": check_set_gen_specs_from_variables,
             "genf_set_in_out_from_attrs": genf_set_in_out_from_attrs,
         },
     )
@@ -102,7 +100,6 @@ if "sphinx" not in sys.modules:
         __base__=specs._EnsembleSpecs,
         __validators__={
             "check_exit_criteria": check_exit_criteria,
-            "check_output_fields": check_output_fields,
             "check_H0": check_H0,
             "check_provided_ufuncs": check_provided_ufuncs,
         },

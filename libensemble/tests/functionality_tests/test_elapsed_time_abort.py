@@ -21,7 +21,7 @@ from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
 # Import libEnsemble items for this test
 from libensemble.libE import libE
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel as sim_f
-from libensemble.tools import add_unique_random_streams, eprint, parse_args, save_libE_output
+from libensemble.tools import eprint, parse_args, save_libE_output
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
@@ -38,8 +38,9 @@ if __name__ == "__main__":
         "gen_f": gen_f,
         "in": ["sim_id"],
         "out": [("x", float, (2,))],
+        "batch_size": 5,
+        "num_active_gens": 2,
         "user": {
-            "gen_batch_size": 5,
             "lb": np.array([-3, -2]),
             "ub": np.array([3, 2]),
         },
@@ -49,18 +50,13 @@ if __name__ == "__main__":
         "alloc_f": give_sim_work_first,
         "user": {
             "batch_mode": False,
-            "num_active_gens": 2,
         },
     }
-
-    persis_info = add_unique_random_streams({}, nworkers + 1)
 
     exit_criteria = {"wallclock_max": 1}
 
     # Perform the run
-    H, persis_info, flag = libE(
-        sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs, alloc_specs=alloc_specs
-    )
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, libE_specs=libE_specs, alloc_specs=alloc_specs)
 
     if is_manager:
         eprint(flag)

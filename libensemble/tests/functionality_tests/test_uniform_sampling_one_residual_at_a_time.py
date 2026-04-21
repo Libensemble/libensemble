@@ -29,7 +29,7 @@ from libensemble.gen_funcs.sampling import uniform_random_sample_obj_components 
 from libensemble.libE import libE
 from libensemble.sim_funcs.chwirut1 import chwirut_eval as sim_f
 from libensemble.tests.regression_tests.support import persis_info_3 as persis_info
-from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
+from libensemble.tools import parse_args, save_libE_output
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
@@ -57,8 +57,9 @@ if __name__ == "__main__":
         "gen_f": gen_f,
         "in": ["pt_id"],
         "out": [("x", float, n), ("priority", float), ("paused", bool), ("obj_component", int), ("pt_id", int)],
+        "batch_size": 2,
+        "num_active_gens": 1,  # Only allow one active generator
         "user": {
-            "gen_batch_size": 2,
             "single_component_at_a_time": True,
             "combine_component_func": lambda x: np.sum(np.power(x, 2)),
             "lb": (-2 - np.pi / 10) * np.ones(n),
@@ -71,14 +72,12 @@ if __name__ == "__main__":
         "alloc_f": give_sim_work_first,  # Allocation function
         "user": {
             "stop_on_NaNs": True,  # Should alloc preempt evals
-            "batch_mode": True,  # Wait until all sim evals are done
-            "num_active_gens": 1,  # Only allow one active generator
             "stop_partial_fvec_eval": True,  # Should alloc preempt evals
+            "batch_mode": True,  # Wait until all sim evals are done
         },
     }
     # end_alloc_specs_rst_tag
 
-    persis_info = add_unique_random_streams(persis_info, nworkers + 1)
     persis_info_safe = deepcopy(persis_info)
 
     exit_criteria = {"sim_max": budget, "wallclock_max": 300}

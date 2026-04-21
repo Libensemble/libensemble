@@ -33,8 +33,7 @@ Variable resource assignment
 In slightly more detail, the resource manager divides resources into **resource sets**.
 One resource set is the smallest unit of resources that can be assigned (and
 dynamically reassigned) to workers. By default, the provisioned resources are
-divided by the number of workers (excluding any workers given in the
-``zero_resource_workers`` :class:`libE_specs<libensemble.specs.LibeSpecs>` option).
+divided by the number of workers.
 However, it can also be set directly by the ``num_resource_sets``
 :class:`libE_specs<libensemble.specs.LibeSpecs>` option. If the latter is set, the
 dynamic resource assignment algorithm will always be used.
@@ -217,19 +216,11 @@ Persistent generator
 You have *one* persistent generator and want *eight* workers to run concurrent
 simulations. In this case you can run with *nine* workers.
 
-Either explicitly set eight resource sets (recommended):
+Explicitly set eight resource sets (recommended):
 
 .. code-block:: python
 
     libE_specs["num_resource_sets"] = 8
-
-Or if the generator should always be the same worker, use one zero-resource worker:
-
-.. code-block:: python
-
-    libE_specs["zero_resource_workers"] = [1]
-
-For the second option, an allocation function supporting zero-resource workers must be used.
 
 Using the two-node example above, the initial worker mapping in this example will be:
 

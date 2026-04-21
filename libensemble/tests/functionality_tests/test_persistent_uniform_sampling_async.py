@@ -20,17 +20,18 @@ import sys
 
 import numpy as np
 
-from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.gen_funcs.persistent_sampling import persistent_uniform as gen_f
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
 from libensemble.sim_funcs.branin.branin_obj import call_branin as sim_f
-from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
+from libensemble.tools import parse_args, save_libE_output
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
     nworkers, is_manager, libE_specs, _ = parse_args()
+
+    libE_specs["gen_on_worker"] = True
 
     if nworkers < 2:
         sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
@@ -47,24 +48,18 @@ if __name__ == "__main__":
         "gen_f": gen_f,
         "persis_in": ["f", "x", "sim_id"],
         "out": [("x", float, (n,))],
+        "initial_batch_size": nworkers,
+        "async_return": True,
         "user": {
-            "initial_batch_size": nworkers,  # Ensure > 1 alloc to send all sims
             "lb": np.array([-3, -2]),
             "ub": np.array([3, 2]),
         },
     }
 
-    alloc_specs = {
-        "alloc_f": alloc_f,
-        "user": {"async_return": True},
-    }
-
-    persis_info = add_unique_random_streams({}, nworkers + 1)
-
     exit_criteria = {"gen_max": 100, "wallclock_max": 300}
 
     # Perform the run
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, libE_specs=libE_specs)
 
     if is_manager:
         [_, counts] = np.unique(H["gen_ended_time"], return_counts=True)

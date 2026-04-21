@@ -1,13 +1,20 @@
 import logging
 import time
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import numpy as np
 import numpy.typing as npt
 
 from libensemble.tools.fields_keys import libE_fields, protected_libE_fields
 
+if TYPE_CHECKING:
+    from libensemble.logger import LibensembleLogger
+
 logger = logging.getLogger(__name__)
+if TYPE_CHECKING:
+    assert isinstance(logger, LibensembleLogger)
+
 
 # For debug messages - uncomment
 # logger.setLevel(logging.DEBUG)
@@ -69,20 +76,29 @@ class History:
                 H[field][: len(H0)] = H0[field]
 
             if "sim_started" not in fields:
-                logger.manager_warning("Marking entries in H0 as having been 'sim_started' and 'sim_ended'")
+                logger.manager_warning(  # type: ignore[attr-defined]
+                    "Marking entries in H0 as having been 'sim_started' and 'sim_ended'"
+                )
+
                 H["sim_started"][: len(H0)] = 1
                 H["sim_ended"][: len(H0)] = 1
             elif "sim_ended" not in fields:
-                logger.manager_warning("Marking entries in H0 as having been 'sim_ended' if 'sim_started'")
+                logger.manager_warning(  # type: ignore[attr-defined]
+                    "Marking entries in H0 as having been 'sim_ended' if 'sim_started'"
+                )
+
                 H["sim_ended"][: len(H0)] = H0["sim_started"]
 
             if "sim_id" not in fields:
-                logger.manager_warning("Assigning sim_ids to entries in H0")
+                logger.manager_warning("Assigning sim_ids to entries in H0")  # type: ignore[attr-defined]
+
                 H["sim_id"][: len(H0)] = np.arange(0, len(H0))
         else:
             H = np.zeros(L + len(H0), dtype=specs_dtype_list)
 
         H["sim_id"][-L:] = -1
+        if "_id" in H.dtype.names:
+            H["_id"][-L:] = -1
         H["sim_started_time"][-L:] = np.inf
         H["gen_informed_time"][-L:] = np.inf
 
@@ -96,14 +112,14 @@ class History:
         self.safe_mode = False
         self.use_cache = False
 
-        self.sim_started_count = np.sum(H["sim_started"])
-        self.sim_ended_count = np.sum(H["sim_ended"])
-        self.gen_informed_count = np.sum(H["gen_informed"])
+        self.sim_started_count: int = np.sum(H["sim_started"])
+        self.sim_ended_count: int = np.sum(H["sim_ended"])
+        self.gen_informed_count: int = np.sum(H["gen_informed"])
         self.given_back_warned = False
 
-        self.sim_started_offset = self.sim_started_count
-        self.sim_ended_offset = self.sim_ended_count
-        self.gen_informed_offset = self.gen_informed_count
+        self.sim_started_offset: int = self.sim_started_count
+        self.sim_ended_offset: int = self.sim_ended_count
+        self.gen_informed_offset: int = self.gen_informed_count
 
         self.last_started = -1
         self.last_ended = -1
@@ -118,7 +134,10 @@ class History:
         self.cache_set = False
 
     def _append_new_fields(self, H_f: npt.NDArray) -> None:
-        dtype_new = np.dtype(list(set(self.H.dtype.descr + H_f.dtype.descr)))
+        import numpy.lib.recfunctions as rfn
+
+        dtype_new: np.dtype = np.dtype(list(set(self.H.dtype.descr + rfn.repack_fields(H_f).dtype.descr)))
+
         H_new = np.zeros(len(self.H), dtype=dtype_new)
         old_fields = self.H.dtype.names
         for field in old_fields:
@@ -154,10 +173,10 @@ class History:
         Updates the history after points have been evaluated
         """
 
-        new_inds = D["libE_info"]["H_rows"]  # The list of rows (as a numpy array)
+        new_inds = D["libE_info"]["H_rows"]
         returned_H = D["calc_out"]
-        fields = returned_H.dtype.names if returned_H is not None else []
 
+        fields = returned_H.dtype.names if returned_H is not None else []
         if returned_H is not None and any([field not in self.H.dtype.names for field in returned_H.dtype.names]):
             self._append_new_fields(returned_H)
 
@@ -229,7 +248,7 @@ class History:
                     self.H["gen_informed"][ind] = True
 
             if self.using_H0 and not self.given_back_warned:
-                logger.manager_warning(
+                logger.manager_warning(  # type: ignore[attr-defined]
                     "Giving entries in H0 back to gen. Marking entries in H0 as 'gen_informed' if 'sim_ended'."
                 )
                 self.given_back_warned = True
@@ -307,6 +326,8 @@ class History:
         """
         H_1 = np.zeros(k, dtype=self.H.dtype)
         H_1["sim_id"] = -1
+        if "_id" in H_1.dtype.names:
+            H_1["_id"] = -1
         H_1["sim_started_time"] = np.inf
         H_1["gen_informed_time"] = np.inf
         if "resource_sets" in H_1.dtype.names:

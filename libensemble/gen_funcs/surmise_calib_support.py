@@ -7,9 +7,10 @@ import scipy.stats as sps
 class thetaprior:
     """Define the class instance of priors provided to the methods."""
 
-    def __init__(self, loc, scale):
+    def __init__(self, loc, scale, rng):
         self._loc = loc
         self._scale = scale
+        self._rng = rng
 
     def lpdf(self, theta):
         """Return log prior density."""
@@ -21,7 +22,7 @@ class thetaprior:
         """Return random draws from prior."""
         loc = self._loc
         scale = self._scale
-        return np.vstack((sps.norm.rvs(loc, scale, size=(n, 4))))
+        return self._rng.normal(loc, scale, (n, 4))
 
 
 def gen_true_theta():

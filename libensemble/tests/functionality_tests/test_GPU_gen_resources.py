@@ -32,7 +32,6 @@ import sys
 
 import numpy as np
 
-from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.executors.mpi_executor import MPIExecutor
 from libensemble.gen_funcs.persistent_sampling_var_resources import uniform_sample_with_sim_gen_resources as gen_f
 
@@ -40,7 +39,7 @@ from libensemble.gen_funcs.persistent_sampling_var_resources import uniform_samp
 from libensemble.libE import libE
 from libensemble.sim_funcs import six_hump_camel
 from libensemble.sim_funcs.var_resources import gpu_variable_resources_from_gen as sim_f
-from libensemble.tools import add_unique_random_streams, parse_args
+from libensemble.tools import parse_args
 
 # from libensemble import logger
 # logger.set_level("DEBUG")  # For testing the test
@@ -50,7 +49,7 @@ from libensemble.tools import add_unique_random_streams, parse_args
 if __name__ == "__main__":
     nworkers, is_manager, libE_specs, _ = parse_args()
 
-    libE_specs["num_resource_sets"] = nworkers  # Persistent gen DOES need resources
+    libE_specs["num_resource_sets"] = nworkers + 1  # Persistent gen DOES need resources
 
     # Mock GPU system / uncomment to detect GPUs
     libE_specs["sim_dirs_make"] = True  # Will only contain files if dry_run is False
@@ -79,39 +78,36 @@ if __name__ == "__main__":
         "gen_f": gen_f,
         "persis_in": ["f", "x", "sim_id"],
         "out": [("num_procs", int), ("num_gpus", int), ("x", float, n)],
+        "initial_batch_size": nworkers - 1,
+        "batch_evaluate_same_priority": False,
+        "async_return": False,
         "user": {
-            "initial_batch_size": nworkers - 1,
-            "max_procs": nworkers - 1,  # Any sim created can req. 1 worker up to all.
+            "max_procs": nworkers,  # Any sim created can req. 1 worker up to all.
             "lb": np.array([-3, -2]),
             "ub": np.array([3, 2]),
             "dry_run": dry_run,
         },
     }
 
-    alloc_specs = {
-        "alloc_f": alloc_f,
-        "user": {
-            "give_all_with_same_priority": False,
-            "async_return": False,  # False batch returns
-        },
+    exit_criteria = {"sim_max": 20}
+    libE_specs["resource_info"] = {
+        "cores_on_node": ((nworkers + 1) * 2, (nworkers + 1) * 4),
+        "gpus_on_node": nworkers + 1,
     }
 
-    exit_criteria = {"sim_max": 20}
-    libE_specs["resource_info"] = {"cores_on_node": (nworkers * 2, nworkers * 4), "gpus_on_node": nworkers}
-
     base_libE_specs = libE_specs.copy()
-    for gen_on_manager in [False, True]:
+    for gen_on_worker in [False, True]:
         for run in range(5):
             # reset
             libE_specs = base_libE_specs.copy()
-            libE_specs["gen_on_manager"] = gen_on_manager
-            persis_info = add_unique_random_streams({}, nworkers + 1)
+            libE_specs["gen_on_worker"] = gen_on_worker
+            persis_info = {}
 
             if run == 0:
                 libE_specs["gen_num_procs"] = 2
             elif run == 1:
-                if gen_on_manager:
-                    print("SECOND LIBE CALL WITH GEN ON MANAGER")
+                if gen_on_worker:
+                    print("SECOND LIBE CALL WITH GEN ON WORKER INSTEAD OF MANAGER")
                 libE_specs["gen_num_gpus"] = 1
             elif run == 2:
                 persis_info["gen_num_gpus"] = 1
@@ -126,8 +122,6 @@ if __name__ == "__main__":
                 gen_specs["user"]["max_procs"] = max(nworkers - 2, 1)
 
             # Perform the run
-            H, persis_info, flag = libE(
-                sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs, alloc_specs=alloc_specs
-            )
+            H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
 
 # All asserts are in gen and sim funcs

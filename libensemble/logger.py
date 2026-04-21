@@ -1,4 +1,5 @@
 import logging
+from typing import TYPE_CHECKING, Any
 
 from libensemble.comms.logs import LogConfig
 
@@ -6,7 +7,15 @@ from libensemble.comms.logs import LogConfig
 
 MANAGER_WARNING = 35
 logging.addLevelName(MANAGER_WARNING, "MANAGER_WARNING")
-logging.MANAGER_WARNING = MANAGER_WARNING
+setattr(logging, "MANAGER_WARNING", MANAGER_WARNING)
+
+
+if TYPE_CHECKING:
+
+    class LibensembleLogger(logging.Logger):
+        def manager_warning(self, message: str, *args: Any, **kwargs: Any) -> None: ...  # noqa: E704
+
+        def vdebug(self, message: str, *args: Any, **kwargs: Any) -> None: ...  # noqa: E704
 
 
 def manager_warning(self, message: str, *args, **kwargs) -> None:
@@ -14,11 +23,11 @@ def manager_warning(self, message: str, *args, **kwargs) -> None:
         self._log(MANAGER_WARNING, message, args, **kwargs)
 
 
-logging.Logger.manager_warning = manager_warning
+setattr(logging.Logger, "manager_warning", manager_warning)
 
 VDEBUG = 5
 logging.addLevelName(VDEBUG, "VDEBUG")
-logging.VDEBUG = VDEBUG
+setattr(logging, "VDEBUG", VDEBUG)
 
 
 def vdebug(self, message, *args, **kwargs):
@@ -26,7 +35,7 @@ def vdebug(self, message, *args, **kwargs):
         self._log(VDEBUG, message, args, **kwargs)
 
 
-logging.Logger.vdebug = vdebug
+setattr(logging.Logger, "vdebug", vdebug)
 
 LogConfig(__package__)
 

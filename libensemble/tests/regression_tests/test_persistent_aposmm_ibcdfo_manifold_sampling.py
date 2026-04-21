@@ -36,11 +36,10 @@ libensemble.gen_funcs.rc.aposmm_optimizers = "ibcdfo_manifold_sampling"
 
 from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc as alloc_f
 from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
-from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
+from libensemble.tools import parse_args, save_libE_output
 
 try:
-    from ibcdfo.manifold_sampling import manifold_sampling_primal  # noqa: F401
-    from ibcdfo.manifold_sampling.h_examples import pw_maximum as hfun
+    import ibcdfo  # noqa: F401
 
 except ModuleNotFoundError:
     sys.exit("Please 'pip install ibcdfo'")
@@ -110,20 +109,18 @@ if __name__ == "__main__":
         },
     }
 
-    gen_specs["user"]["hfun"] = hfun
+    gen_specs["user"]["hfun"] = ibcdfo.manifold_sampling.h_pw_maximum
 
     alloc_specs = {"alloc_f": alloc_f}
-
-    persis_info = add_unique_random_streams({}, nworkers + 1)
 
     exit_criteria = {"sim_max": 500}
 
     # Perform the run
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs, libE_specs=libE_specs)
 
     if is_manager:
         assert np.min(H["f"]) == 2.0, "The best is 2"
-        assert persis_info[1].get("run_order"), "Run_order should have been given back"
+        assert persis_info[0].get("run_order"), "Run_order should have been given back"
         assert flag == 0
 
         save_libE_output(H, persis_info, __file__, nworkers)

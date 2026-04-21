@@ -24,7 +24,7 @@ from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
 # Import libEnsemble items for this test
 from libensemble.libE import libE
 from libensemble.sim_funcs.branin.branin_obj import call_branin as sim_f
-from libensemble.tools import add_unique_random_streams, parse_args
+from libensemble.tools import parse_args
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
@@ -43,14 +43,12 @@ if __name__ == "__main__":
         "gen_f": gen_f,
         "in": ["sim_id"],
         "out": [("x", float, (2,))],
+        "batch_size": num_pts,
         "user": {
-            "gen_batch_size": num_pts,
             "lb": np.array([-3, -2]),
             "ub": np.array([3, 2]),
         },
     }
-
-    persis_info = add_unique_random_streams({}, nworkers + 1)
 
     exit_criteria = {"sim_max": 2 * num_pts, "wallclock_max": 300}
 
@@ -73,8 +71,9 @@ if __name__ == "__main__":
 
             if time == 0:
                 sim_specs["user"].pop("uniform_random_pause_ub")
-                gen_specs["user"]["gen_batch_size"] = num_pts // 2
+                gen_specs["batch_size"] = num_pts // 2
 
+            persis_info = {}
             persis_info["next_to_give"] = 0
             persis_info["total_gen_calls"] = 1
 

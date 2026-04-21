@@ -29,7 +29,7 @@ from libensemble.gen_funcs.sampling import uniform_random_sample_with_variable_r
 from libensemble.libE import libE
 from libensemble.sim_funcs import helloworld, six_hump_camel
 from libensemble.sim_funcs.var_resources import multi_points_with_variable_resources as sim_f
-from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
+from libensemble.tools import parse_args, save_libE_output
 
 if __name__ == "__main__":
     nworkers, is_manager, libE_specs, _ = parse_args()
@@ -67,8 +67,11 @@ if __name__ == "__main__":
             ("x", float, n),
             ("x_on_cube", float, n),
         ],
+        "batch_size": 5,
+        "batch_evaluate_same_priority": True,
+        "num_active_gens": 1,
+        "async_return": True,
         "user": {
-            "gen_batch_size": 5,
             "max_resource_sets": nworkers,
             "lb": np.array([-3, -2]),
             "ub": np.array([3, 2]),
@@ -79,9 +82,6 @@ if __name__ == "__main__":
         "alloc_f": give_sim_work_first,
         "user": {
             "batch_mode": False,
-            "give_all_with_same_priority": True,
-            "num_active_gens": 1,
-            "async_return": True,
         },
     }
 
@@ -110,7 +110,7 @@ if __name__ == "__main__":
                 libE_specs["ensemble_dir_path"] = "ensemble_hw_forkserver" + en_suffix
                 set_start_method("forkserver", force=True)
 
-        persis_info = add_unique_random_streams({}, nworkers + 1)
+        persis_info = {}
 
         # Perform the run
         H, persis_info, flag = libE(

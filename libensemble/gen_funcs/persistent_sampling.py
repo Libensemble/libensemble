@@ -4,6 +4,7 @@ import numpy as np
 
 from libensemble.message_numbers import EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG, PERSIS_STOP, STOP_TAG
 from libensemble.specs import output_data, persistent_input_fields
+from libensemble.tools import get_rng
 from libensemble.tools.persistent_support import PersistentSupport
 
 __all__ = [
@@ -16,9 +17,9 @@ __all__ = [
 ]
 
 
-def _get_user_params(user_specs):
+def _get_user_params(user_specs, gen_specs):
     """Extract user params"""
-    b = user_specs["initial_batch_size"]
+    b = gen_specs.get("initial_batch_size") or user_specs.get("initial_batch_size") or gen_specs.get("init_sample_size")
     ub = user_specs["ub"]
     lb = user_specs["lb"]
     n = len(lb)  # dimension
@@ -43,19 +44,18 @@ def persistent_uniform(_, persis_info, gen_specs, libE_info):
         `test_persistent_uniform_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_persistent_uniform_sampling.py>`_
         `test_persistent_uniform_sampling_async.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_persistent_uniform_sampling_async.py>`_
     """  # noqa
+    rng = get_rng(gen_specs, libE_info)
 
-    b, n, lb, ub = _get_user_params(gen_specs["user"])
+    b, n, lb, ub = _get_user_params(gen_specs.get("user", {}), gen_specs)
     ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
 
     # Send batches until manager sends stop tag
     tag = None
     while tag not in [STOP_TAG, PERSIS_STOP]:
         H_o = np.zeros(b, dtype=gen_specs["out"])
-        H_o["x"] = persis_info["rand_stream"].uniform(lb, ub, (b, n))
+        H_o["x"] = rng.uniform(lb, ub, (b, n))
         if "obj_component" in H_o.dtype.fields:
-            H_o["obj_component"] = persis_info["rand_stream"].integers(
-                low=0, high=gen_specs["user"]["num_components"], size=b
-            )
+            H_o["obj_component"] = rng.integers(low=0, high=gen_specs["user"]["num_components"], size=b)
         tag, Work, calc_in = ps.send_recv(H_o)
         if hasattr(calc_in, "__len__"):
             b = len(calc_in)
@@ -73,7 +73,7 @@ def persistent_uniform_final_update(_, persis_info, gen_specs, libE_info):
         `test_persistent_uniform_sampling_running_mean.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_persistent_uniform_sampling_running_mean.py>`_
     """  # noqa
 
-    b, n, lb, ub = _get_user_params(gen_specs["user"])
+    b, n, lb, ub = _get_user_params(gen_specs.get("user", {}), gen_specs)
     ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
 
     def generate_corners(x, y):
@@ -145,7 +145,8 @@ def persistent_request_shutdown(_, persis_info, gen_specs, libE_info):
     .. seealso::
         `test_persistent_uniform_gen_decides_stop.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_persistent_uniform_gen_decides_stop.py>`_
     """  # noqa
-    b, n, lb, ub = _get_user_params(gen_specs["user"])
+    rng = get_rng(gen_specs, libE_info)
+    b, n, lb, ub = _get_user_params(gen_specs.get("user", {}), gen_specs)
     shutdown_limit = gen_specs["user"]["shutdown_limit"]
     f_count = 0
     ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
@@ -154,7 +155,7 @@ def persistent_request_shutdown(_, persis_info, gen_specs, libE_info):
     tag = None
     while tag not in [STOP_TAG, PERSIS_STOP]:
         H_o = np.zeros(b, dtype=gen_specs["out"])
-        H_o["x"] = persis_info["rand_stream"].uniform(lb, ub, (b, n))
+        H_o["x"] = rng.uniform(lb, ub, (b, n))
         tag, Work, calc_in = ps.send_recv(H_o)
         if hasattr(calc_in, "__len__"):
             b = len(calc_in)
@@ -173,14 +174,15 @@ def uniform_nonblocking(_, persis_info, gen_specs, libE_info):
     .. seealso::
         `test_persistent_uniform_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_persistent_uniform_sampling.py>`_
     """  # noqa
-    b, n, lb, ub = _get_user_params(gen_specs["user"])
+    rng = get_rng(gen_specs, libE_info)
+    b, n, lb, ub = _get_user_params(gen_specs.get("user", {}), gen_specs)
     ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
 
     # Send batches until manager sends stop tag
     tag = None
     while tag not in [STOP_TAG, PERSIS_STOP]:
         H_o = np.zeros(b, dtype=gen_specs["out"])
-        H_o["x"] = persis_info["rand_stream"].uniform(lb, ub, (b, n))
+        H_o["x"] = rng.uniform(lb, ub, (b, n))
         ps.send(H_o)
 
         received = False
@@ -220,10 +222,15 @@ def batched_history_matching(_, persis_info, gen_specs, libE_info):
     .. seealso::
         `test_persistent_uniform_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_persistent_uniform_sampling.py>`_
     """  # noqa
+    rng = get_rng(gen_specs, libE_info)
     lb = gen_specs["user"]["lb"]
 
     n = len(lb)
-    b = gen_specs["user"]["initial_batch_size"]
+    b = (
+        gen_specs.get("initial_batch_size")
+        or gen_specs["user"].get("initial_batch_size")
+        or gen_specs.get("init_sample_size")
+    )
     q = gen_specs["user"]["num_best_vals"]
     ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
 
@@ -233,7 +240,7 @@ def batched_history_matching(_, persis_info, gen_specs, libE_info):
 
     while tag not in [STOP_TAG, PERSIS_STOP]:
         H_o = np.zeros(b, dtype=gen_specs["out"])
-        H_o["x"] = persis_info["rand_stream"].multivariate_normal(mu, Sigma, b)
+        H_o["x"] = rng.multivariate_normal(mu, Sigma, b)
 
         # Send data and get next assignment
         tag, Work, calc_in = ps.send_recv(H_o)
@@ -247,10 +254,15 @@ def batched_history_matching(_, persis_info, gen_specs, libE_info):
 
 
 def persistent_uniform_with_cancellations(_, persis_info, gen_specs, libE_info):
+    rng = get_rng(gen_specs, libE_info)
     ub = gen_specs["user"]["ub"]
     lb = gen_specs["user"]["lb"]
     n = len(lb)
-    b = gen_specs["user"]["initial_batch_size"]
+    b = (
+        gen_specs.get("initial_batch_size")
+        or gen_specs["user"].get("initial_batch_size")
+        or gen_specs.get("init_sample_size")
+    )
 
     # Start cancelling points from half initial batch onward
     cancel_from = b // 2  # Should get at least this many points back
@@ -261,7 +273,7 @@ def persistent_uniform_with_cancellations(_, persis_info, gen_specs, libE_info):
     tag = None
     while tag not in [STOP_TAG, PERSIS_STOP]:
         H_o = np.zeros(b, dtype=gen_specs["out"])
-        H_o["x"] = persis_info["rand_stream"].uniform(lb, ub, (b, n))
+        H_o["x"] = rng.uniform(lb, ub, (b, n))
         tag, Work, calc_in = ps.send_recv(H_o)
 
         if hasattr(calc_in, "__len__"):
