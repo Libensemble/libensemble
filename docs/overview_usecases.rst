@@ -89,19 +89,18 @@ Glossary
     which may include executing tasks or submitting external jobs. Workers typically
     run simulators and return results to the manager.
 
-  * **Executor**: The executor provides a simple, portable interface for
+  * **Executor**: A simple, portable interface for
     launching and managing tasks (applications). Multiple executors are
     available, including the base ``Executor`` and ``MPIExecutor``.
 
-  * **Submit**: To enqueue or indicate that one or more jobs or tasks should be
-    launched. When using the libEnsemble Executor, a *submitted* task is either executed
+  * **Submit**: A *submitted* task is either executed
     immediately or queued for execution.
 
   * **Tasks**: Subprocesses or independent units of work. Tasks result from
     launching external programs for execution using the Executor.
 
-  * **Resource Manager**: libEnsemble includes a resource manager that can detect
-    (or be provided with) available resources (e.g., a list of nodes). *Resource sets* are
+  * **Resource Manager**: libEnsemble module that detects
+    (or is provided with) available resources (e.g., a list of nodes). *Resource sets* are
     divided among workers and can be dynamically reassigned.
 
   * **Resource Set**: The smallest unit of resources that can be assigned (and
