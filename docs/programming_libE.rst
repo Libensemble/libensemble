@@ -8,8 +8,6 @@ Constructing Workflows
    libe_module
    data_structures/data_structures
    history_output_logging
-   function_guides/history_array
-   resource_manager/resources_index
 
 .. toctree::
    :caption: Writing User Functions:

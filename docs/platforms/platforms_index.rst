@@ -238,7 +238,6 @@ libEnsemble on specific HPC systems.
     improv
     perlmutter
     polaris
-    summit
     srun
     example_scripts
 

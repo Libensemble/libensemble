@@ -43,6 +43,8 @@
    :maxdepth: 1
    :caption: Additional References:
 
+   function_guides/history_array
+   resource_manager/resources_index
    FAQ
    known_issues
    release_notes
