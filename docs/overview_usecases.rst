@@ -24,15 +24,6 @@ can launch and monitor external applications.
 All simulations and generated values are recorded in a NumPy
 structured array called the :ref:`history array<funcguides-history>`.
 
-Allocator Function
-~~~~~~~~~~~~~~~~~~
-
-* :ref:`allocator<api_alloc_f>`: Decides whether a simulator or generator should be
-  invoked (and with what inputs/resources) as workers become available
-
-The default allocator is appropriate for the majority of use cases but can be customized
-for users interested in more advanced allocation strategies.
-
 Example Use Cases
 ~~~~~~~~~~~~~~~~~
 .. begin_usecases_rst_tag
