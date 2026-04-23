@@ -88,8 +88,8 @@ class SimSpecs(BaseModel):
 
     simulator: object | None = None
     """
-    A pre-initialized simulator object or callable in gest-api format.
-    When provided, sim_f defaults to gest_api_sim wrapper.
+    A callable (function) in gest-api format.
+    When provided, ``sim_f`` defaults to the ``gest_api_sim`` wrapper.
     """
 
     inputs: list[str] | None = Field(default=[], alias="in")

@@ -19,7 +19,7 @@ libEnsemble is primarily customized by setting options within a ``LibeSpecs`` in
         .. tab-item:: General
 
                 **comms** [str] = ``"mpi"``:
-                    Manager/Worker communications mode: ``'mpi'``, ``'local'``, or ``'tcp'``.
+                    Manager/Worker communications mode: ``'mpi'``, ``'local'``, ``'threads'``, or ``'tcp'``.
                     If ``nworkers`` is specified, then ``local`` comms will be used unless a
                     parallel MPI environment is detected.
 
@@ -156,8 +156,8 @@ libEnsemble is primarily customized by setting options within a ``LibeSpecs`` in
                 **profile** [bool] = ``False``:
                     Profile manager and worker logic using ``cProfile``.
 
-                **safe_mode** [bool] = ``True``:
-                    Prevents user functions from overwriting internal fields, but requires moderate overhead.
+                **safe_mode** [bool] = ``False``:
+                    Prevents user functions from overwriting protected History fields, but requires moderate overhead.
 
                 **stats_fmt** [dict]:
                     A dictionary of options for formatting ``"libE_stats.txt"``.
@@ -199,14 +199,14 @@ libEnsemble is primarily customized by setting options within a ``LibeSpecs`` in
                 **save_H_and_persis_on_abort** [bool] = ``True``:
                     Save states of ``H`` and ``persis_info`` to file on aborting after an exception.
 
-                **save_H_on_completion** bool | None = ``False``
+                **save_H_on_completion** [bool] = ``False``:
                     Save state of ``H`` to file upon completing a workflow. Also enabled when either ``save_every_k_sims``
                     or ``save_every_k_gens`` is set.
 
-                **save_H_with_date** bool | None = ``False``
-                    Save ``H`` filename contains date and timestamp.
+                **save_H_with_date** [bool] = ``False``:
+                    ``H`` filename contains date and timestamp.
 
-                **H_file_prefix** str | None = ``"libE_history"``
+                **H_file_prefix** [str] = ``"libE_history"``:
                     Prefix for ``H`` filename.
 
                 **use_persis_return_gen** [bool] = ``False``:
@@ -255,8 +255,8 @@ libEnsemble is primarily customized by setting options within a ``LibeSpecs`` in
                     By default the GPUs on each node are treated as a group.
 
                 **use_tiles_as_gpus** [bool] = ``False``:
-                    If ``True`` then treat a GPU tile as one GPU, assuming
-                    ``tiles_per_GPU`` is provided in ``platform_specs`` or detected.
+                    If ``True`` then treat a GPU tile as one GPU when GPU tiles
+                    are provided in ``platform_specs`` or auto-detected.
 
                 **enforce_worker_core_bounds** [bool] = ``False``:
                     Permit submission of tasks with a
@@ -267,11 +267,6 @@ libEnsemble is primarily customized by setting options within a ``LibeSpecs`` in
                 **dedicated_mode** [bool] = ``False``:
                     Instructs libEnsemble’s MPI executor not to run applications on nodes where
                     libEnsemble processes (manager and workers) are running.
-
-                **zero_resource_workers** [list of ints]:
-                    List of workers (by IDs) that require no resources. For when a fixed mapping of workers
-                    to resources is required. Otherwise, use ``num_resource_sets``.
-                    For use with supported allocation functions.
 
                 **resource_info** [dict]:
                     Provide resource information that will override automatically detected resources.
