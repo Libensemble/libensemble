@@ -3,7 +3,6 @@
 import numpy as np
 
 from libensemble.message_numbers import EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG, PERSIS_STOP, STOP_TAG
-from libensemble.specs import output_data, persistent_input_fields
 from libensemble.tools import get_rng
 from libensemble.tools.persistent_support import PersistentSupport
 
@@ -30,8 +29,6 @@ def _get_user_params(user_specs, gen_specs):
     return b, n, lb, ub
 
 
-@persistent_input_fields(["sim_id"])
-@output_data([("x", float, (2,))])  # The dimension of 2 is  a default and can be overwritten
 def persistent_uniform(_, persis_info, gen_specs, libE_info):
     """
     This generation function always enters into persistent mode and returns

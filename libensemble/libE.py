@@ -122,6 +122,8 @@ import numpy as np
 if TYPE_CHECKING:
     from libensemble.logger import LibensembleLogger
 
+from pydantic import validate_call as libE_wrapper
+
 from libensemble.comms.comms import QCommProcess, QCommThread, Timeout
 from libensemble.comms.logs import manager_logging_config
 from libensemble.comms.tcp_mgr import ClientQCommManager, ServerQCommManager
@@ -136,7 +138,6 @@ from libensemble.tools.alloc_support import AllocSupport
 from libensemble.tools.tools import _USER_SIM_ID_WARNING
 from libensemble.utils import launcher
 from libensemble.utils.misc import specs_dump
-from libensemble.utils.pydantic_bindings import libE_wrapper
 from libensemble.utils.timer import Timer
 from libensemble.version import __version__
 from libensemble.worker import worker_main

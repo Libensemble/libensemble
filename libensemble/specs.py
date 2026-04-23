@@ -3,20 +3,32 @@ import warnings
 from pathlib import Path
 
 import pydantic
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens
+from libensemble.utils.validators import (
+    check_any_workers_and_disable_rm_if_tcp,
+    check_exit_criteria,
+    check_H0,
+    check_input_dir_exists,
+    check_inputs_exist,
+    check_provided_ufuncs,
+    check_set_gen_specs_from_variables,
+    check_valid_comms_type,
+    check_valid_in,
+    check_valid_out,
+    enable_save_H_when_every_K,
+    set_calc_dirs_on_input_dir,
+    set_default_comms,
+    set_platform_specs_to_class,
+    set_workflow_dir,
+)
 
 __all__ = ["SimSpecs", "GenSpecs", "AllocSpecs", "ExitCriteria", "LibeSpecs", "_EnsembleSpecs"]
 
 # Deal with false warning https://github.com/pydantic/pydantic/issues/8677
 if pydantic.__version__ == "2.6.0":
     warnings.filterwarnings("ignore", message="Pydantic serializer warnings:")
-
-
-"""
-Pydantic-version agnostic
-"""
 
 
 def _get_dtype(field, name: str):
@@ -63,6 +75,10 @@ class SimSpecs(BaseModel):
     """
     Specifications for configuring a Simulation Function.
     """
+
+    model_config = ConfigDict(
+        arbitrary_types_allowed=True, populate_by_name=True, extra="forbid", validate_assignment=True
+    )
 
     sim_f: object = None
     """
@@ -122,6 +138,14 @@ class SimSpecs(BaseModel):
     they will be automatically derived from VOCS.
     """
 
+    @field_validator("outputs")
+    def check_valid_out(cls, v):
+        return check_valid_out(cls, v)
+
+    @field_validator("inputs", "persis_in")
+    def check_valid_in(cls, v):
+        return check_valid_in(cls, v)
+
     @model_validator(mode="after")
     def set_fields_from_vocs(self):
         """Set inputs and outputs from VOCS if vocs is provided and fields are not set."""
@@ -159,6 +183,10 @@ class GenSpecs(BaseModel):
     """
     Specifications for configuring a Generator.
     """
+
+    model_config = ConfigDict(
+        arbitrary_types_allowed=True, populate_by_name=True, extra="forbid", validate_assignment=True
+    )
 
     generator: object | None = None
     """
@@ -271,6 +299,14 @@ class GenSpecs(BaseModel):
     Enable specialized allocator behavior for ``only_persistent_gens``.
     """
 
+    @field_validator("outputs")
+    def check_valid_out(cls, v):
+        return check_valid_out(cls, v)
+
+    @field_validator("inputs", "persis_in")
+    def check_valid_in(cls, v):
+        return check_valid_in(cls, v)
+
     @model_validator(mode="after")
     def set_fields_from_vocs(self):
         """Set persis_in and outputs from VOCS if vocs is provided and fields are not set."""
@@ -312,11 +348,19 @@ class GenSpecs(BaseModel):
 
         return self
 
+    @model_validator(mode="after")
+    def check_set_gen_specs_from_variables(self):
+        return check_set_gen_specs_from_variables(self)
+
 
 class AllocSpecs(BaseModel):
     """
     Specifications for configuring an Allocation Function.
     """
+
+    model_config = ConfigDict(
+        arbitrary_types_allowed=True, populate_by_name=True, extra="forbid", validate_assignment=True
+    )
 
     alloc_f: object = only_persistent_gens
     """
@@ -346,6 +390,10 @@ class ExitCriteria(BaseModel):
     Specifications for configuring when libEnsemble should stop a given run.
     """
 
+    model_config = ConfigDict(
+        arbitrary_types_allowed=True, populate_by_name=True, extra="forbid", validate_assignment=True
+    )
+
     sim_max: int | None = None
     """Stop when this many new points have been evaluated by simulation functions."""
 
@@ -363,6 +411,10 @@ class LibeSpecs(BaseModel):
     """
     Specifications for configuring libEnsemble's runtime behavior.
     """
+
+    model_config = ConfigDict(
+        arbitrary_types_allowed=True, populate_by_name=True, extra="forbid", validate_assignment=True
+    )
 
     comms: str | None = "mpi"
     """
@@ -505,6 +557,42 @@ class LibeSpecs(BaseModel):
     The width of the numerical ID component of a calculation directory name. Leading
     zeros are padded to the sim/gen ID.
     """
+
+    @field_validator("comms")
+    def check_valid_comms_type(cls, value):
+        return check_valid_comms_type(cls, value)
+
+    @field_validator("platform_specs")
+    def set_platform_specs_to_class(cls, value):
+        return set_platform_specs_to_class(cls, value)
+
+    @field_validator("sim_input_dir", "gen_input_dir")
+    def check_input_dir_exists(cls, value):
+        return check_input_dir_exists(cls, value)
+
+    @field_validator("sim_dir_copy_files", "sim_dir_symlink_files", "gen_dir_copy_files", "gen_dir_symlink_files")
+    def check_inputs_exist(cls, value):
+        return check_inputs_exist(cls, value)
+
+    @model_validator(mode="before")
+    def set_default_comms(cls, values):
+        return set_default_comms(cls, values)
+
+    @model_validator(mode="after")
+    def check_any_workers_and_disable_rm_if_tcp(self):
+        return check_any_workers_and_disable_rm_if_tcp(self)
+
+    @model_validator(mode="after")
+    def enable_save_H_when_every_K(self):
+        return enable_save_H_when_every_K(self)
+
+    @model_validator(mode="after")
+    def set_workflow_dir(self):
+        return set_workflow_dir(self)
+
+    @model_validator(mode="after")
+    def set_calc_dirs_on_input_dir(self):
+        return set_calc_dirs_on_input_dir(self)
 
     platform: str | None = ""
     """Name of a known platform defined in the platforms module.
@@ -685,6 +773,10 @@ class LibeSpecs(BaseModel):
 class _EnsembleSpecs(BaseModel):
     """An all-encompassing model for a libEnsemble workflow."""
 
+    model_config = ConfigDict(
+        arbitrary_types_allowed=True, populate_by_name=True, extra="forbid", validate_assignment=True
+    )
+
     H0: object | None = None  # np.ndarray - avoids sphinx issue
     """ A previous or preformatted libEnsemble History array to prepend. """
 
@@ -706,96 +798,14 @@ class _EnsembleSpecs(BaseModel):
     alloc_specs: AllocSpecs | None = AllocSpecs()
     """ Specifications for the allocation function. """
 
+    @model_validator(mode="after")
+    def check_exit_criteria(self):
+        return check_exit_criteria(self)
 
-def input_fields(fields: list[str]):
-    """Decorates a user-function with a list of field names to pass in on initialization.
+    @model_validator(mode="after")
+    def check_H0(self):
+        return check_H0(self)
 
-    Decorated functions don't need those fields specified in ``SimSpecs.inputs`` or ``GenSpecs.inputs``.
-
-    .. code-block:: python
-
-        from libensemble.specs import input_fields, output_data
-
-
-        @input_fields(["x"])
-        @output_data([("f", float)])
-        def norm_eval(x, persis_info, sim_specs):
-            H_o = np.zeros(1, dtype=sim_specs["out"])
-            H_o["f"] = np.linalg.norm(x)
-            return H_o, persis_info
-    """
-
-    def decorator(func):
-        setattr(func, "inputs", fields)
-        if not func.__doc__:
-            func.__doc__ = ""
-        func.__doc__ = f"\n    **Input Fields:** ``{func.inputs}``\n" + func.__doc__
-        return func
-
-    return decorator
-
-
-def persistent_input_fields(fields: list[str]):
-    """Decorates a *persistent* user-function with a list of field names to send in throughout runtime.
-
-    Decorated functions don't need those fields specified in ``SimSpecs.persis_in`` or ``GenSpecs.persis_in``.
-
-    .. code-block:: python
-
-        from libensemble.specs import persistent_input_fields, output_data
-
-
-        @persistent_input_fields(["f"])
-        @output_data(["x", float])
-        def persistent_uniform(_, persis_info, gen_specs, libE_info):
-
-            b, n, lb, ub = _get_user_params(gen_specs["user"])
-            ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
-
-            tag = None
-            while tag not in [STOP_TAG, PERSIS_STOP]:
-                H_o = np.zeros(b, dtype=gen_specs["out"])
-                H_o["x"] = persis_info["rand_stream"].uniform(lb, ub, (b, n))
-                tag, Work, calc_in = ps.send_recv(H_o)
-                if hasattr(calc_in, "__len__"):
-                    b = len(calc_in)
-
-            return H_o, persis_info, FINISHED_PERSISTENT_GEN_TAG
-    """
-
-    def decorator(func):
-        setattr(func, "persis_in", fields)
-        if not func.__doc__:
-            func.__doc__ = ""
-        func.__doc__ = f"\n    **Persistent Input Fields:** ``{func.persis_in}``\n" + func.__doc__
-        return func
-
-    return decorator
-
-
-def output_data(fields: list[tuple]):
-    """Decorates a user-function with a list of tuples corresponding to NumPy dtypes for the function's output data.
-
-    Decorated functions don't need those fields specified in ``SimSpecs.outputs`` or ``GenSpecs.outputs``.
-
-    .. code-block:: python
-
-        from libensemble.specs import input_fields, output_data
-
-
-        @input_fields(["x"])
-        @output_data([("f", float)])
-        def norm_eval(x, persis_info, sim_specs):
-            H_o = np.zeros(1, dtype=sim_specs["out"])
-            H_o["f"] = np.linalg.norm(x)
-            return H_o, persis_info
-    """
-
-    def decorator(func):
-        setattr(func, "outputs", fields)
-        if not func.__doc__:
-            func.__doc__ = ""
-        func.__doc__ = f"\n    **Output Datatypes:** ``{func.outputs}``\n" + func.__doc__
-        return func
-
-    return decorator
+    @model_validator(mode="after")
+    def check_provided_ufuncs(self):
+        return check_provided_ufuncs(self)

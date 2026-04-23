@@ -49,8 +49,10 @@ def test_full_workflow():
     # parameterizes and validates everything!
     ens = Ensemble(
         libE_specs=LS,
-        sim_specs=SimSpecs(sim_f=norm_eval),
+        sim_specs=SimSpecs(sim_f=norm_eval, inputs=["x"], outputs=[("f", float)]),
         gen_specs=GenSpecs(
+            inputs=["f"],
+            outputs=[("x", float, (1,))],
             gen_f=latin_hypercube_sample,
             batch_size=100,
             user={
