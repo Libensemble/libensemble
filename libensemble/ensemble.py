@@ -380,14 +380,14 @@ class Ensemble:
     def save_output(self, basename: str, append_attrs: bool = True):
         """
         Writes out History array and persis_info to files.
-        If using a workflow_dir, will place with specified filename in that directory.
+        If using a ``workflow_dir_path`` in ``libE_specs``, will place with specified filename in that directory.
 
         Parameters
         ----------
 
         Format: ``<basename>_results_History_length=<length>_evals=<Completed evals>_ranks=<nworkers>``
 
-        To have the filename be only the basename, set append_attrs=False
+        To have the filename be only the basename, set ``append_attrs=False``
 
         Format: ``<basename>_results_History_length=<length>_evals=<Completed evals>_ranks=<nworkers>``
         """
