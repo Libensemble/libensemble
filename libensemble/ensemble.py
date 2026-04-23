@@ -47,6 +47,7 @@ class Ensemble:
             from libensemble.specs import ExitCriteria, GenSpecs, SimSpecs
 
             sampling = Ensemble(parse_args=True)
+
             sampling.sim_specs = SimSpecs(
                 sim_f=norm_eval,
                 inputs=["x"],
@@ -61,7 +62,7 @@ class Ensemble:
             generator = UniformSample(vocs=vocs)
 
             sampling.gen_specs = GenSpecs(
-                gen_f=generator,
+                generator=generator,
                 batch_size=50,
             )
 
@@ -79,13 +80,14 @@ class Ensemble:
             :linenos:
 
             from libensemble import Ensemble
+            from libensemble.specs import SimSpecs
             from my_simulator import sim_find_energy
 
-            sim_specs = {
-                "sim_f": sim_find_energy,
-                "in": ["x"],
-                "out": [("y", float)],
-            }
+            sim_specs = SimSpecs(
+                sim_f=sim_find_energy,
+                inputs=["x"],
+                outputs=[("y", float)],
+            )
 
             experiment = Ensemble(sim_specs=sim_specs)
 
@@ -94,7 +96,8 @@ class Ensemble:
         .. code-block:: python
             :linenos:
 
-            from libensemble import Ensemble, SimSpecs
+            from libensemble import Ensemble
+            from libensemble.specs import SimSpecs
             from my_simulator import sim_find_energy
 
             sim_specs = SimSpecs(
