@@ -121,7 +121,7 @@ class Ensemble:
 
         Specifications for the generator.
 
-    exit_criteria: class:`ExitCriteria<libensemble.specs.ExitCriteria>`, Optional
+    exit_criteria: class:`ExitCriteria<libensemble.specs.ExitCriteria>`
 
         Tell libEnsemble when to stop a run.
 
@@ -140,7 +140,7 @@ class Ensemble:
 
     executor: :class:`Executor<libensemble.executors.executor.Executor>`, Optional
 
-        libEnsemble Executor instance for use within simulation or generator functions.
+        libEnsemble Executor instance for use within simulator functions or generators.
 
     H0: `NumPy structured array <https://docs.scipy.org/doc/numpy/user/basics.rec.html>`_, Optional
 
@@ -209,9 +209,76 @@ class Ensemble:
 
         return self.nworkers, self.is_manager, self._libE_specs
 
-    def ready(self) -> bool:
-        """Quickly verify that all necessary data has been provided"""
-        return all([i for i in [self.exit_criteria, self._libE_specs, self.sim_specs]])
+    def ready(self) -> tuple[bool, list[str]]:
+        """Verify that all necessary data has been provided before calling :meth:`run`.
+
+        Performs a pre-flight check on the ensemble configuration, covering:
+
+        - A simulation callable (``sim_f`` or ``simulator``) is set on ``sim_specs``.
+        - At least one exit condition is configured on ``exit_criteria``.
+        - Workers are available (``nworkers > 0`` for local/threads/tcp comms,
+          or MPI comms is set, which infers workers from the MPI communicator).
+        - If both ``gen_specs`` and ``sim_specs`` use the classic field-name interface,
+          the generator output field names are a superset of the simulator input field names.
+
+        Returns
+        -------
+        tuple[bool, list[str]]
+            A 2-tuple of ``(is_ready, issues)``.
+            ``is_ready`` is ``True`` when all checks pass.
+            ``issues`` is a list of human-readable strings describing each problem found;
+            it is empty when ``is_ready`` is ``True``.
+
+        Example
+        -------
+        .. code-block:: python
+
+            ok, issues = sampling.ready()
+            if not ok:
+                for issue in issues:
+                    print(f"  - {issue}")
+        """
+        issues: list[str] = []
+
+        # --- sim_specs: a callable must be set ---
+        sim_callable = getattr(self.sim_specs, "sim_f", None) or getattr(self.sim_specs, "simulator", None)
+        if not sim_callable:
+            issues.append(
+                "sim_specs is missing a callable: set 'sim_f' (a function) or 'simulator' (a gest-api object)."
+            )
+
+        # --- exit_criteria: at least one stop condition must be set ---
+        ec = self.exit_criteria
+        if ec is None or not any(
+            getattr(ec, field, None) is not None for field in ("sim_max", "gen_max", "wallclock_max", "stop_val")
+        ):
+            issues.append(
+                "exit_criteria has no stop condition: set at least one of "
+                "'sim_max', 'gen_max', 'wallclock_max', or 'stop_val'."
+            )
+
+        # --- workers: must be determinable ---
+        comms = getattr(self._libE_specs, "comms", "mpi")
+        if comms in ("local", "threads", "tcp"):
+            if not self.nworkers:
+                issues.append(
+                    f"libE_specs.comms is '{comms}' but 'nworkers' is not set. "
+                    "Set 'libE_specs.nworkers' or pass '--nworkers N' on the command line."
+                )
+        # For 'mpi', worker count is derived from the MPI communicator at runtime; no check needed here.
+
+        # --- cross-spec field consistency (classic interface only) ---
+        gen_outputs = [f[0] for f in (getattr(self.gen_specs, "outputs", None) or [])]
+        sim_inputs = getattr(self.sim_specs, "inputs", None) or []
+        if gen_outputs and sim_inputs:
+            missing = [field for field in sim_inputs if field not in gen_outputs]
+            if missing:
+                issues.append(
+                    f"sim_specs.inputs requests field(s) {missing} that are not produced "
+                    f"by gen_specs.outputs {gen_outputs}. Check that field names match."
+                )
+
+        return not issues, issues
 
     @property
     def libE_specs(self) -> LibeSpecs:

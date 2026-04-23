@@ -180,6 +180,94 @@ def test_local_comms_without_nworkers():
     assert not flag, "'local' ensemble without nworkers should not be created"
 
 
+def test_ready_missing_sim_callable():
+    """ready() should flag a missing sim callable."""
+    from libensemble.ensemble import Ensemble
+    from libensemble.specs import ExitCriteria, LibeSpecs, SimSpecs
+
+    e = Ensemble(
+        libE_specs=LibeSpecs(comms="local", nworkers=4),
+        sim_specs=SimSpecs(),  # no sim_f or simulator
+        exit_criteria=ExitCriteria(sim_max=10),
+    )
+    ok, issues = e.ready()
+    assert not ok, "Should not be ready without a sim callable"
+    assert any("sim_f" in msg for msg in issues), f"Expected sim_f mention in issues: {issues}"
+
+
+def test_ready_missing_exit_criteria():
+    """ready() should flag an exit_criteria with no stop condition."""
+    from libensemble.ensemble import Ensemble
+    from libensemble.sim_funcs.simple_sim import norm_eval
+    from libensemble.specs import ExitCriteria, LibeSpecs, SimSpecs
+
+    e = Ensemble(
+        libE_specs=LibeSpecs(comms="local", nworkers=4),
+        sim_specs=SimSpecs(sim_f=norm_eval),
+        exit_criteria=ExitCriteria(),  # nothing set
+    )
+    ok, issues = e.ready()
+    assert not ok, "Should not be ready with no exit condition"
+    assert any("exit_criteria" in msg for msg in issues), f"Expected exit_criteria mention in issues: {issues}"
+
+
+def test_ready_missing_nworkers_local():
+    """ready() should flag local comms without nworkers."""
+    from libensemble.ensemble import Ensemble
+    from libensemble.sim_funcs.simple_sim import norm_eval
+    from libensemble.specs import ExitCriteria, LibeSpecs, SimSpecs
+
+    # Bypass the constructor ValueError by using mpi comms first,
+    # then patch to local after construction.
+    e = Ensemble(
+        libE_specs=LibeSpecs(comms="mpi"),
+        sim_specs=SimSpecs(sim_f=norm_eval),
+        exit_criteria=ExitCriteria(sim_max=10),
+    )
+    # Manually force comms=local and nworkers=0 on the internal specs object
+    e._libE_specs.comms = "local"
+    e._nworkers = 0
+    e._libE_specs.nworkers = 0
+
+    ok, issues = e.ready()
+    assert not ok, "Should not be ready with local comms and no nworkers"
+    assert any("nworkers" in msg for msg in issues), f"Expected nworkers mention in issues: {issues}"
+
+
+def test_ready_field_mismatch():
+    """ready() should flag when sim_specs.inputs requests fields not in gen_specs.outputs."""
+    from libensemble.ensemble import Ensemble
+    from libensemble.sim_funcs.simple_sim import norm_eval
+    from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
+
+    e = Ensemble(
+        libE_specs=LibeSpecs(comms="local", nworkers=4),
+        sim_specs=SimSpecs(sim_f=norm_eval, inputs=["x", "z"]),
+        gen_specs=GenSpecs(outputs=[("x", float, (1,))]),  # missing "z"
+        exit_criteria=ExitCriteria(sim_max=10),
+    )
+    ok, issues = e.ready()
+    assert not ok, "Should not be ready with mismatched gen/sim fields"
+    assert any("z" in msg for msg in issues), f"Expected missing field 'z' in issues: {issues}"
+
+
+def test_ready_happy_path():
+    """ready() should return (True, []) for a fully configured ensemble."""
+    from libensemble.ensemble import Ensemble
+    from libensemble.sim_funcs.simple_sim import norm_eval
+    from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
+
+    e = Ensemble(
+        libE_specs=LibeSpecs(comms="local", nworkers=4),
+        sim_specs=SimSpecs(sim_f=norm_eval, inputs=["x"], outputs=[("f", float)]),
+        gen_specs=GenSpecs(outputs=[("x", float, (1,))]),
+        exit_criteria=ExitCriteria(sim_max=10),
+    )
+    ok, issues = e.ready()
+    assert ok, f"Should be ready but got issues: {issues}"
+    assert issues == [], f"Issues should be empty but got: {issues}"
+
+
 if __name__ == "__main__":
     test_ensemble_init()
     test_ensemble_parse_args_false()
@@ -188,3 +276,8 @@ if __name__ == "__main__":
     test_ensemble_specs_update_libE_specs()
     test_ensemble_prevent_comms_overwrite()
     test_local_comms_without_nworkers()
+    test_ready_missing_sim_callable()
+    test_ready_missing_exit_criteria()
+    test_ready_missing_nworkers_local()
+    test_ready_field_mismatch()
+    test_ready_happy_path()
