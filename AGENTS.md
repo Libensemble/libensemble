@@ -43,10 +43,10 @@ Information about Generators
 Its fields match ``sim_specs/gen_specs["out"]`` or ``vocs`` attributes, plus additional reserved fields for metadata.
 - Prior to libEnsemble v1.6.0, generators were plain functions. They often ran in "persistent" mode, meaning they executed in a
 long-running loop, sending and receiving points to and from the manager until the ensemble was complete.
-- A ``gest-api`` or "standardized" generator is a class that at a minimum implements ``suggest`` and ``ingest`` methods, and is parameterized by a ``vocs``.
-- See ``libensemble/generators.py`` for more information about the ``gest-api`` standard.
+- A ``gest-api`` or "standardized" generator is a class that inherits from ``gest_api.Generator``, implements ``suggest`` and ``ingest`` methods (which process lists of dictionaries, not NumPy arrays), and is parameterized by a ``vocs``.
+- See ``libensemble/gen_classes/external/sampling.py`` for simple examples of the pure ``gest-api`` interface. (Note: ``libensemble.generators.LibensembleGenerator`` exists to wrap legacy NumPy-based workflows, but pure ``gest_api.Generator`` is preferred).
 - Generators are often used for simple sampling, optimization, calibration, uncertainty quantification, and other simulation-based tasks.
-- **Automatic Variable Mapping**: Subclasses of ``LibensembleGenerator`` (like ``UniformSample``) automatically map all ``VOCS`` variables to a single multi-dimensional ``"x"`` field in the History array if no explicit ``variables_mapping`` is provided.
+- **Automatic Variable Mapping**: When using ``LibensembleGenerator`` subclasses, they automatically map all ``VOCS`` variables to a single multi-dimensional ``"x"`` field in the History array if no explicit ``variables_mapping`` is provided. Pure ``gest_api.Generator`` classes handle variables natively.
 - **Mandatory Input Fields**: Even for simple generators that don't ingest data, ``gen_specs["in"]`` or ``gen_specs["persis_in"]`` must be defined if using an allocation function like ``only_persistent_gens`` that attempts to send rows. If these are empty, the manager will raise an ``AssertionError`` stating that no fields were requested to be sent.
 - **Default Allocator**: ``only_persistent_gens`` is the default allocator for standardized ``gest-api`` generators. It treats these generators as persistent entities that communicate throughout the run.
 

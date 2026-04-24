@@ -45,6 +45,7 @@
 
    function_guides/history_array
    resource_manager/resources_index
+   function_guides/allocator
    FAQ
    known_issues
    release_notes

@@ -1,67 +1,129 @@
 .. _funcguides-gen:
 
-Generator Functions
-===================
+Generators
+==========
 
-Generator and :ref:`Simulator functions<funcguides-sim>` have relatively similar interfaces.
+Generators and :ref:`Simulators<funcguides-sim>` have relatively similar interfaces.
 
 Writing a Generator
 -------------------
 
-.. code-block:: python
+.. tab-set::
 
-    def my_generator(Input, persis_info, gen_specs, libE_info):
-        batch_size = gen_specs["user"]["batch_size"]
+    .. tab-item:: Standardized Generator (gest-api)
 
-        Output = np.zeros(batch_size, gen_specs["out"])
-        # ...
-        Output["x"], persis_info = generate_next_simulation_inputs(Input["f"], persis_info)
+        Standardized generators are classes that inherit from ``gest_api.Generator``.
+        They adhere to the ``gest-api`` standard and are parameterized by a ``VOCS``
+        object defining the problem's variables and objectives.
 
-        return Output, persis_info
+        A basic generator implements the ``suggest()`` and ``ingest()`` methods, which
+        operate on lists of dictionaries:
 
-Most ``gen_f`` function definitions written by users resemble::
+        .. code-block:: python
+            :linenos:
 
-    def my_generator(Input, persis_info, gen_specs, libE_info):
+            import numpy as np
+            from gest_api import Generator
+            from gest_api.vocs import VOCS
 
-where:
 
-    * ``Input`` is a selection of the :ref:`History array<funcguides-history>`, a NumPy structured array.
-    * :ref:`persis_info<datastruct-persis-info>` is a dictionary containing state information.
-    * :ref:`gen_specs<datastruct-gen-specs>` is a dictionary of generator parameters.
-    *  ``libE_info`` is a dictionary containing miscellaneous entries.
+            class UniformSample(Generator):
+                """Samples over the domain specified in the VOCS."""
 
-Valid generator functions can accept a subset of the above parameters. So a very simple generator can start::
+                def __init__(self, vocs: VOCS):
+                    self.vocs = vocs
+                    self.rng = np.random.default_rng(1)
+                    super().__init__(vocs)
 
-    def my_generator(Input):
+                def _validate_vocs(self, vocs):
+                    assert len(self.vocs.variable_names), "VOCS must contain variables."
 
-If ``gen_specs`` was initially defined:
+                def suggest(self, n_trials):
+                    output = []
+                    for _ in range(n_trials):
+                        trial = {}
+                        for key in self.vocs.variables:
+                            trial[key] = self.rng.uniform(self.vocs.variables[key].domain[0], self.vocs.variables[key].domain[1])
+                        output.append(trial)
+                    return output
 
-.. code-block:: python
+                def ingest(self, calc_in):
+                    pass  # random sample so nothing to ingest
 
-    gen_specs = GenSpecs(
-        gen_f=my_generator,
-        inputs=["f"],
-        outputs=["x", float, (1,)],
-        user={"batch_size": 128},
-    )
+        libEnsemble's handling of standardized generators is specified using ``GenSpecs``:
 
-Then user parameters and a *local* array of outputs may be obtained/initialized like::
+        .. code-block:: python
 
-    batch_size = gen_specs["user"]["batch_size"]
-    Output = np.zeros(batch_size, dtype=gen_specs["out"])
+            gen_specs = GenSpecs(
+                generator=UniformSample(vocs),
+                inputs=["sim_id"],
+                persis_in=["x", "f"],
+                outputs=[("x", float, 2)],
+                vocs=vocs,
+                user={"batch_size": 128},
+            )
 
-This array should be populated by whatever values are generated within
-the function::
+        .. note::
+            Ensure that ``gen_specs.inputs`` or ``gen_specs.persis_in`` requests at least one field
+            (like ``"sim_id"`` or ``"f"``) to be sent back, even if the generator does not
+            process them.
 
-    Output["x"], persis_info = generate_next_simulation_inputs(Input["f"], persis_info)
+    .. tab-item:: Legacy Generator Function
 
-Then return the array and ``persis_info`` to libEnsemble::
+        .. code-block:: python
 
-    return Output, persis_info
+            def my_generator(Input, persis_info, gen_specs, libE_info):
+                batch_size = gen_specs["user"]["batch_size"]
 
-Between the ``Output`` definition and the ``return``, any computation can be performed.
-Users can try an :doc:`executor<../executor/overview>` to submit applications to parallel
-resources, or plug in components from other libraries to serve their needs.
+                Output = np.zeros(batch_size, gen_specs["out"])
+                # ...
+                Output["x"], persis_info = generate_next_simulation_inputs(Input["f"], persis_info)
+
+                return Output, persis_info
+
+        Most ``gen_f`` function definitions written by users resemble::
+
+            def my_generator(Input, persis_info, gen_specs, libE_info):
+
+        where:
+
+            * ``Input`` is a selection of the :ref:`History array<funcguides-history>`, a NumPy structured array.
+            * :ref:`persis_info<datastruct-persis-info>` is a dictionary containing state information.
+            * :ref:`gen_specs<datastruct-gen-specs>` is a dictionary of generator parameters.
+            *  ``libE_info`` is a dictionary containing miscellaneous entries.
+
+        Valid generator functions can accept a subset of the above parameters. So a very simple generator can start::
+
+            def my_generator(Input):
+
+        If ``gen_specs`` was initially defined:
+
+        .. code-block:: python
+
+            gen_specs = GenSpecs(
+                gen_f=my_generator,
+                inputs=["f"],
+                outputs=["x", float, (1,)],
+                user={"batch_size": 128},
+            )
+
+        Then user parameters and a *local* array of outputs may be obtained/initialized like::
+
+            batch_size = gen_specs["user"]["batch_size"]
+            Output = np.zeros(batch_size, dtype=gen_specs["out"])
+
+        This array should be populated by whatever values are generated within
+        the function::
+
+            Output["x"], persis_info = generate_next_simulation_inputs(Input["f"], persis_info)
+
+        Then return the array and ``persis_info`` to libEnsemble::
+
+            return Output, persis_info
+
+        Between the ``Output`` definition and the ``return``, any computation can be performed.
+        Users can try an :doc:`executor<../executor/overview>` to submit applications to parallel
+        resources, or plug in components from other libraries to serve their needs.
 
 .. note::
 
