@@ -3,28 +3,6 @@
 Running libEnsemble
 ===================
 
-Introduction
-------------
-
-libEnsemble runs with one manager and multiple workers. Each worker may run either
-a generator or simulator function (both are Python scripts). Generators
-determine the parameters/inputs for simulations. Simulator functions run and
-manage simulations, which often involve running a user application (see
-:doc:`Executor<executor/ex_index>`).
-
-To use libEnsemble, you will need a calling script, which in turn will specify
-generator and simulator functions. Many :doc:`examples<examples/examples_index>`
-are available.
-
-There are currently three communication options for libEnsemble (determining how
-the Manager and Workers communicate). These are ``local``, ``mpi``, ``tcp``.
-The default is ``local`` if ``nworkers`` is specified, otherwise ``mpi``.
-
-Note that ``local`` comms can be used on multi-node systems, where
-the :doc:`MPI executor<executor/overview>` is used to distribute MPI applications
-across the nodes. Indeed, this is the most commonly used option, even on large
-supercomputers.
-
 .. note::
     You do not need the ``mpi`` communication mode to use the
     :doc:`MPI Executor<executor/mpi_executor>`. The communication modes described
@@ -35,22 +13,16 @@ supercomputers.
     .. tab-item:: Local Comms
 
         Uses Python's built-in multiprocessing_ module.
-        The ``comms`` type ``local`` and number of workers ``nworkers`` may
-        be provided in :ref:`libE_specs<datastruct-libe-specs>`.
+        The ``comms`` type ``local`` and number of workers ``nworkers`` for running simulators
+        may be provided in :ref:`libE_specs<datastruct-libe-specs>`.
 
-        Then run::
+        Run:
 
             python myscript.py
 
         Or, if the script uses the :meth:`parse_args<tools.parse_args>` function
         or an :class:`Ensemble<libensemble.ensemble.Ensemble>` object with ``Ensemble(parse_args=True)``,
-        you can specify these on the command line::
-
-            python myscript.py --nworkers N
-
-        This will launch one manager and ``N`` workers.
-
-        The following abbreviated line is equivalent to the above::
+        this can be specified on the command line:
 
             python myscript.py -n N
 
@@ -63,8 +35,8 @@ supercomputers.
         system (e.g., Summit), ensuring the whole compute-node allocation is available for
         launching apps. Make sure there are no imports of ``mpi4py`` in your Python scripts.
 
-        Note that on macOS (since Python 3.8) and Windows, the default multiprocessing method
-        is ``"spawn"`` instead of ``"fork"``; to resolve many related issues, we recommend placing
+        Note that on macOS and Windows, the default multiprocessing method is ``"spawn"``
+        instead of ``"fork"``; to resolve many related issues, we recommend placing
         calling script code in an ``if __name__ == "__main__":`` block.
 
         **Limitations of local mode**
@@ -81,7 +53,7 @@ supercomputers.
             mpirun -np N python myscript.py
 
         where ``N`` is the number of processes. This will launch one manager and
-        ``N-1`` workers.
+        ``N-1`` simulator workers.
 
         This option requires ``mpi4py`` to be installed to interface with the MPI on your system.
         It works on a standalone system, and with both
@@ -120,39 +92,13 @@ supercomputers.
 
         **Limitations of TCP mode**
 
-        - There cannot be two calls to ``libE()`` or ``Ensemble.run()`` in the same script.
+        - There cannot be two calls to ``Ensemble.run()`` or ``libE()`` in the same script.
 
 Further Command Line Options
 ----------------------------
 
 See the :meth:`parse_args<tools.parse_args>` function in :doc:`Convenience Tools<utilities>` for
 further command line options.
-
-Persistent Workers
-------------------
-.. _persis_worker:
-
-In a regular (non-persistent) worker, the user's generator or simulation function is called
-whenever the worker receives work. A persistent worker is one that continues to run the
-generator or simulation function between work units, maintaining the local data environment.
-
-A common use-case consists of a persistent generator (such as :doc:`persistent_aposmm<examples/gen_funcs>`)
-that maintains optimization data while generating new simulation inputs. The persistent generator runs
-on a dedicated worker while in persistent mode. This requires an appropriate
-:doc:`allocation function<examples/alloc_funcs>` that will run the generator as persistent.
-
-When running with a persistent generator, it is important to remember that a worker will be dedicated
-to the generator and cannot run simulations. For example, the following run::
-
-    mpirun -np 3 python my_script.py
-
-starts one manager, one worker with a persistent generator, and one worker for running simulations.
-
-If this example was run as::
-
-    mpirun -np 2 python my_script.py
-
-No simulations will be able to run.
 
 Environment Variables
 ---------------------
@@ -166,8 +112,8 @@ set in your simulation script before the Executor *submit* command will export t
 to your run. For running a bash script in a sub environment when using the Executor, see
 the ``env_script`` option to the :doc:`MPI Executor<executor/mpi_executor>`.
 
-Further Run Information
------------------------
+Running on Multi-Node Systems
+-----------------------------
 
 For running on multi-node platforms and supercomputers, there are alternative ways to configure
 libEnsemble to resources. See the :doc:`Running on HPC Systems<platforms/platforms_index>`
@@ -176,4 +122,3 @@ guide for more information, including some examples for specific systems.
 .. _mpi4py: https://mpi4py.readthedocs.io/en/stable/
 .. _MPICH: https://www.mpich.org/
 .. _multiprocessing: https://docs.python.org/3/library/multiprocessing.html
-.. _PSI/J: https://exaworks.org/psij
