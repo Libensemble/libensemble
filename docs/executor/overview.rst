@@ -2,7 +2,7 @@ Executor Overview
 =================
 
 Most computationally expensive libEnsemble workflows involve launching applications
-from a :ref:`sim_f<api_sim_f>` or :ref:`gen_f<api_gen_f>` running on a worker to the
+from a :ref:`sim_f<funcguides-sim>` or :ref:`gen_f<funcguides-gen>` running on a worker to the
 compute nodes of a supercomputer, cluster, or other compute resource.
 
 The **Executor** provides a portable interface for running applications on any system.

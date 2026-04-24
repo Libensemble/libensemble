@@ -66,7 +66,7 @@ need to write a new allocation function.
 
     .. tab-item:: 3. Simulator
 
-        Next, we'll write our simulator function or :ref:`sim_f<api_sim_f>`. Simulator
+        Next, we'll write our simulator function or :ref:`sim_f<funcguides-sim>`. Simulator
         functions perform calculations based on values from the generator.
         :ref:`sim_specs<datastruct-sim-specs>` is a dictionary containing user-defined fields
         and parameters.

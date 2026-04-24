@@ -8,8 +8,8 @@ Manager, Workers, Generators, and Simulators
 libEnsemble's **manager** allocates work from **generators** to **workers**,
 which perform computations via **simulators**:
 
-* :ref:`generator<api_gen_f>`: Generates inputs for the *simulator*
-* :ref:`simulator<api_sim_f>`: Performs an evaluation using parameters from the *generator*
+* :ref:`generator<funcguides-gen>`: Generates inputs for the *simulator*
+* :ref:`simulator<funcguides-sim>`: Performs an evaluation using parameters from the *generator*
 
 .. figure:: images/adaptiveloop.png
   :alt: Adaptive loops

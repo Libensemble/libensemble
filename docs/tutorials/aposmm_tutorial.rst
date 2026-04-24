@@ -5,8 +5,8 @@ Optimization with APOSMM
 This tutorial demonstrates libEnsemble's capability to identify multiple minima
 of simulation output using the built-in :doc:`APOSMM<../examples/aposmm>`
 (Asynchronously Parallel Optimization Solver for finding Multiple Minima)
-:ref:`gen_f<api_gen_f>`. In this tutorial, we'll create a simple
-simulation :ref:`sim_f<api_sim_f>` that defines a function with
+:ref:`gen_f<funcguides-gen>`. In this tutorial, we'll create a simple
+simulation :ref:`sim_f<funcguides-sim>` that defines a function with
 multiple minima, then write a libEnsemble calling script that imports APOSMM and
 parameterizes it to check for minima over a domain of outputs from our ``sim_f``.
 

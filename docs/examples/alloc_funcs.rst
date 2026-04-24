@@ -8,9 +8,7 @@ Below are example allocation functions available in libEnsemble.
 Many users use these unmodified.
 
 .. IMPORTANT::
-  See the API for allocation functions :ref:`here<api_alloc_f>`.
-
-  **The default allocation function changed in libEnsemble v2.0 from `give_sim_work_first` to `start_only_persistent `.**
+  The default allocation function changed in libEnsemble v2.0 from `give_sim_work_first` to `start_only_persistent `.
 
 .. note::
 

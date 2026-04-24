@@ -8,7 +8,7 @@ function launching tasks, see the
 :doc:`Electrostatic Forces tutorial <../tutorials/executor_forces_tutorial>`.
 
 .. IMPORTANT::
-  See the API for simulation functions :ref:`here<api_sim_f>`.
+  See the API for simulation functions :ref:`here<funcguides-sim>`.
 
 .. role:: underline
     :class: underline
