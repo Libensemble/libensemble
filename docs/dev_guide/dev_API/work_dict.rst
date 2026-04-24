@@ -21,7 +21,7 @@ the data given to worker ``i``. Populated in the allocation function. ``Work[i]`
         "persistent" [bool]: True if worker i will enter persistent mode (Default: False)
 
 The work dictionary is typically set using the ``gen_work`` or ``sim_work``
-:doc:`helper functions<../function_guides/allocator>` in the allocation function.
+:doc:`helper functions<../../function_guides/allocator>` in the allocation function.
 ``H_fields``, for example, is usually packed from either ``sim_specs["in"]``, ``gen_specs["in"]``
 or the equivalent "persis_in" variants.
 

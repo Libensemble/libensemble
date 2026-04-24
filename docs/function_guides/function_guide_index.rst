@@ -22,7 +22,5 @@ These guides describe common development patterns and optional components:
    :caption: Useful Data Structures
 
    calc_status
-   work_dict
-   worker_array
 
 .. _NumPy: http://www.numpy.org

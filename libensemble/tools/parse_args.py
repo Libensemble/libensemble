@@ -149,7 +149,7 @@ def _client_parse_args(args):
 
 def parse_args():
     """
-    Parses command-line arguments. Use in calling script.
+    Parses command-line arguments.
 
     .. code-block:: python
 

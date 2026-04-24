@@ -11,9 +11,9 @@ libEnsemble package.
 
 :doc:`See here for more in-depth guides to writing user functions<function_guide_index>`
 
-As of v0.10.0, valid simulator and generator functions
+Valid simulator and generator functions
 can *accept and return a smaller subset of the listed parameters and return values*. For instance,
-a ``def my_simulation(one_Input) -> one_Output`` function is now accepted,
+a ``def my_simulation(one_Input) -> one_Output`` function is accepted,
 as is ``def my_generator(Input, persis_info) -> Output, persis_info``.
 
 sim_f API
@@ -102,7 +102,7 @@ Parameters:
 ***********
 
   **W**: ``numpy structured array``
-  :doc:`(example)<worker_array>`
+  :doc:`(example)<../../dev_guide/dev_API/worker_array>`
 
   **H**: ``numpy structured array``
   :ref:`(example)<funcguides-history>`
