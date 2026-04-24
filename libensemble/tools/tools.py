@@ -1,5 +1,5 @@
 """
-The libEnsemble utilities module assists in writing consistent calling scripts
+The libEnsemble utilities module assists in writing consistent top-level scripts
 and user functions.
 """
 

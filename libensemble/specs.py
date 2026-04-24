@@ -682,7 +682,7 @@ class LibeSpecs(BaseModel):
     worker_cmd: list[str] | None = []
     """
     TCP Only: Split string corresponding to worker/client Python process invocation. Contains
-    a local Python path, calling script, and manager/server format-fields for ``manager_ip``,
+    a local Python path, user script, and manager/server format-fields for ``manager_ip``,
     ``manager_port``, ``authkey``, and ``workerID``. ``nworkers`` is specified normally.
     """
 

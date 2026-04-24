@@ -8,11 +8,9 @@ Below are example allocation functions available in libEnsemble.
 Many users use these unmodified.
 
 .. IMPORTANT::
-  The default allocation function changed in libEnsemble v2.0 from `give_sim_work_first` to `start_only_persistent `.
+  The default allocation function changed in libEnsemble v2.0 from ``give_sim_work_first`` to ``start_only_persistent``.
 
 .. note::
-
-   The default allocation function for persistent generators is :ref:`start_only_persistent<start_only_persistent_label>`.
 
    The most commonly used allocation function for non-persistent generators is :ref:`give_sim_work_first<gswf_label>`.
 

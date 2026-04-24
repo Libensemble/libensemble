@@ -1,14 +1,7 @@
-Calling Scripts
-===============
+Top-Level Scripts
+=================
 
-Below are example calling scripts used to populate specifications for each user
-function and libEnsemble before initiating libEnsemble via the primary ``libE()``
-call. The primary libEnsemble-relevant portions have been highlighted in each
-example. Non-highlighted portions may include setup routines, compilation steps
-for user applications, or output processing. The first two scripts correspond to
-random sampling calculations, while the third corresponds to an optimization routine.
-
-Many other examples of calling scripts can be found in libEnsemble's `regression tests`_.
+Many other examples of top-level scripts can be found in libEnsemble's `regression tests`_.
 
 Local Sine Tutorial
 -------------------
