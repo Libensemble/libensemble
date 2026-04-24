@@ -1,9 +1,9 @@
 """
 This module launches and controls the running of MPI applications.
 
-In order to create an MPI executor, the calling script should contain:
+In order to create an MPI executor, the script should contain::
 
-.. code-block:: python
+    from libensemble.executors.mpi_executor import MPIExecutor
 
     exctr = MPIExecutor()
 
@@ -17,7 +17,7 @@ import os
 import time
 
 import libensemble.utils.launcher as launcher
-from libensemble.executors.executor import Executor, ExecutorException, Task
+from libensemble.executors.executor import Application, Executor, ExecutorException, Task
 from libensemble.executors.mpi_runner import MPIRunner
 from libensemble.resources.mpi_resources import get_MPI_variant
 
@@ -183,7 +183,7 @@ class MPIExecutor(Executor):
             else:
                 break
 
-    def submit(
+    def submit(  # type: ignore[override]
         self,
         calc_type: str | None = None,
         app_name: str | None = None,
@@ -196,18 +196,18 @@ class MPIExecutor(Executor):
         stdout: str | None = None,
         stderr: str | None = None,
         stage_inout: str | None = None,
-        hyperthreads: bool | None = False,
-        dry_run: bool | None = False,
-        wait_on_start: bool | None = False,
+        hyperthreads: bool = False,
+        dry_run: bool = False,
+        wait_on_start: bool = False,
         extra_args: str | None = None,
-        auto_assign_gpus: bool | None = False,
-        match_procs_to_gpus: bool | None = False,
+        auto_assign_gpus: bool = False,
+        match_procs_to_gpus: bool = False,
         env_script: str | None = None,
         mpi_runner_type: str | dict | None = None,
     ) -> Task:
         """Creates a new task, and either executes or schedules execution.
 
-        The created :class:`task<libensemble.executors.executor.Task>` object is returned.
+        Returns :class:`task<libensemble.executors.executor.Task>` object.
 
         The user must supply either the app_name or calc_type arguments (app_name
         is recommended). All other arguments are optional.
@@ -304,12 +304,15 @@ class MPIExecutor(Executor):
         then the available resources will be divided among workers.
         """
 
+        app: Application | None = None
         if app_name is not None:
             app = self.get_app(app_name)
         elif calc_type is not None:
             app = self.default_app(calc_type)
         else:
             raise ExecutorException("Either app_name or calc_type must be set")
+
+        assert app is not None
 
         default_workdir = os.getcwd()
         task = Task(app, app_args, default_workdir, stdout, stderr, self.workerID, dry_run)

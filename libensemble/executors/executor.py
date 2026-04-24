@@ -63,7 +63,7 @@ class ExecutorException(Exception):
 class TimeoutExpired(Exception):
     """Timeout exception raised when Timeout expires"""
 
-    def __init__(self, task: str, timeout: float) -> None:
+    def __init__(self, task: str, timeout: float | None) -> None:
         self.task = task
         self.timeout = timeout
 
@@ -151,9 +151,9 @@ class Task:
         self.stderr = stderr or self.name + ".err"
         self.workdir = workdir
         self.dry_run = dry_run
-        self.runline = None
+        self.runline: str | None = None
         self.run_attempts = 0
-        self.env = {}
+        self.env: dict[str, str] = {}
         self.ngpus_req = 0
 
     def reset(self) -> None:
@@ -239,6 +239,7 @@ class Task:
             self.state = "FINISHED"
         else:
             self.calc_task_timing()
+            assert self.process is not None
             self.errcode = self.process.returncode
             self.success = self.errcode == 0
             self.state = "FINISHED" if self.success else "FAILED"
@@ -254,6 +255,7 @@ class Task:
             return
 
         # Poll the task
+        assert self.process is not None
         poll = self.process.poll()
         if poll is None:
             self.state = "RUNNING"
@@ -330,7 +332,7 @@ class Task:
         self.poll()
         return self.finished
 
-    def kill(self, wait_time: int = 60) -> None:
+    def kill(self, wait_time: int | None = 60) -> None:
         """Kills or cancels the supplied task
 
         Parameters
@@ -426,11 +428,11 @@ class Executor:
         """
 
         self.manager_signal = None
-        self.default_apps = {"sim": None, "gen": None}
-        self.apps = {}
+        self.default_apps: dict[str, Application | None] = {"sim": None, "gen": None}
+        self.apps: dict[str, Application] = {}
 
         self.wait_time = 60
-        self.list_of_tasks = []
+        self.list_of_tasks: list[Task] = []
         self.workerID = None
         self.comm = None
         self.last_task = 0
@@ -448,12 +450,12 @@ class Executor:
         pass  # To be overloaded
 
     @property
-    def sim_default_app(self) -> Application:
+    def sim_default_app(self) -> Application | None:
         """Returns the default simulation app"""
         return self.default_apps["sim"]
 
     @property
-    def gen_default_app(self) -> Application:
+    def gen_default_app(self) -> Application | None:
         """Returns the default generator app"""
         return self.default_apps["gen"]
 
@@ -468,7 +470,7 @@ class Executor:
             )
         return app
 
-    def default_app(self, calc_type: str) -> Application:
+    def default_app(self, calc_type: str) -> Application | None:
         """Gets the default app for a given calc type"""
         app = self.default_apps.get(calc_type)
         jassert(calc_type in ["sim", "gen"], "Unrecognized calculation type", calc_type)
@@ -541,7 +543,7 @@ class Executor:
             jassert(calc_type in self.default_apps, "Unrecognized calculation type", calc_type)
             self.default_apps[calc_type] = self.apps[app_name]
 
-    def manager_poll(self) -> int:
+    def manager_poll(self) -> int | None:
         """
         .. _manager_poll_label:
 
@@ -552,12 +554,13 @@ class Executor:
 
         self.manager_signal = None  # Reset
 
+        assert self.comm is not None
         # Check for messages; disregard anything but a stop signal
         if not self.comm.mail_flag():
-            return
+            return None
         mtag, man_signal = self.comm.recv()
         if mtag != STOP_TAG:
-            return
+            return None
 
         # Process the signal and push back on comm (for now)
         self.manager_signal = man_signal
@@ -580,8 +583,8 @@ class Executor:
     def polling_loop(
         self, task: Task, timeout: int | None = None, delay: float = 0.1, poll_manager: bool = False
     ) -> int:
-        """Optional, blocking, generic task status polling loop. Operates until the task
-        finishes, times out, or is optionally killed via a manager signal. On completion, returns a
+        """Blocking, generic task status polling loop. Operates until the task
+        finishes, times out, or is killed via a manager signal. On completion, returns a
         presumptive :ref:`calc_status<funcguides-calcstatus>` integer. Useful
         for running an application via the Executor until it stops without monitoring
         its intermediate output.
@@ -709,13 +712,13 @@ class Executor:
         app_args: str | None = None,
         stdout: str | None = None,
         stderr: str | None = None,
-        dry_run: bool | None = False,
-        wait_on_start: bool | None = False,
+        dry_run: bool = False,
+        wait_on_start: bool = False,
         env_script: str | None = None,
     ) -> Task:
         """Create a new task and run as a local serial subprocess.
 
-        The created :class:`task<libensemble.executors.executor.Task>` object is returned.
+        Returns :class:`task<libensemble.executors.executor.Task>` object.
 
         Parameters
         ----------
@@ -758,12 +761,15 @@ class Executor:
             The launched task object
         """
 
+        app: Application | None = None
         if app_name is not None:
             app = self.get_app(app_name)
         elif calc_type is not None:
             app = self.default_app(calc_type)
         else:
             raise ExecutorException("Either app_name or calc_type must be set")
+
+        assert app is not None
 
         default_workdir = os.getcwd()
         task = Task(app, app_args, default_workdir, stdout, stderr, self.workerID, dry_run)

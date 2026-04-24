@@ -1,11 +1,8 @@
 Executor Overview
 =================
 
-Most computationally expensive libEnsemble workflows involve launching applications
-from a :ref:`sim_f<funcguides-sim>` or :ref:`gen_f<funcguides-gen>` running on a worker to the
-compute nodes of a supercomputer, cluster, or other compute resource.
-
-The **Executor** provides a portable interface for running applications on any system.
+The **Executor** provides a portable interface for running applications on any system and
+any number of compute resources.
 
 .. dropdown:: Detailed description
 
@@ -40,8 +37,6 @@ The **Executor** provides a portable interface for running applications on any s
 Basic usage
 -----------
 
-**In calling script**
-
 To set up an MPI executor, register an MPI application, and add
 to the ensemble object.
 
@@ -53,10 +48,6 @@ to the ensemble object.
     exctr = MPIExecutor()
     exctr.register_app(full_path="/path/to/my/exe", app_name="sim1")
     ensemble = Ensemble(executor=exctr)
-
-If using the ``libE()`` call, the Executor in the calling script does **not**
-have to be passed to the ``libE()`` function. It is transferred via the
-``Executor.executor`` class variable.
 
 **In user simulation function**::
 
@@ -177,11 +168,5 @@ and mechanisms to poll and kill tasks. It also has access to the resource manage
 which partitions resources among workers, ensuring that runs utilize different
 resources (e.g., nodes). Furthermore, the ``MPIExecutor`` offers resilience via the
 feature of re-launching tasks that fail to start because of system factors.
-
-Various back-end mechanisms may be used by the Executor to best interact
-with each system, including proxy launchers or task management systems.
-Currently, these Executors launch at the application level within
-an existing resource pool. However, submissions to a batch scheduler may be
-supported in future Executors.
 
 .. _concurrent futures: https://docs.python.org/library/concurrent.futures.html

@@ -54,6 +54,22 @@ Further recommendations for selected HPC systems are given in the
 
             uv pip install libensemble
 
+    .. tab-item:: pixi
+
+        Add to your pixi_ environment::
+
+            pixi add libensemble
+
+        libEnsemble is also distributed with locked pixi environments for different versions of Python
+        and various dependency sets, primarily for testing but also useful for guaranteed working environments.
+        See a list with::
+
+            pixi workspace environment list
+
+        and activate with::
+
+            pixi shell -e <environment_name>
+
     .. tab-item:: conda
 
         Install libEnsemble with Conda_ from the conda-forge channel::
@@ -183,6 +199,7 @@ Globus Compute
 .. _NumPy: http://www.numpy.org
 .. _Open MPI: https://www.open-mpi.org/
 .. _psutil: https://pypi.org/project/psutil/
+.. _pixi: https://pixi.prefix.dev/latest/
 .. _pydantic: https://docs.pydantic.dev/1.10/
 .. _PyPI: https://pypi.org
 .. _Python: http://www.python.org
