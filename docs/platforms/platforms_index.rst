@@ -116,13 +116,6 @@ The :ref:`resource manager<resources_index>` detects node lists from
 and partitions these to workers. The :doc:`MPI Executor<../executor/mpi_executor>`
 accesses the resources available to the current worker when launching tasks.
 
-Zero-resource workers
----------------------
-
-Users with persistent ``gen_f`` functions may notice that the persistent workers
-are still automatically assigned system resources. This can be resolved by
-:ref:`fixing the number of resource sets<zero_resource_workers>`.
-
 Assigning GPUs
 --------------
 
