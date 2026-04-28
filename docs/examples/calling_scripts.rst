@@ -38,15 +38,18 @@ One worker runs a persistent generator and the other four run the forces simulat
     :caption: tests/scaling_tests/forces/forces_simple/run_libe_forces.py
     :linenos:
 
-Persistent APOSMM with Gradients
---------------------------------
+APOSMM with a Standardized Generator
+--------------------------------------
 
-This example is also from the regression tests and demonstrates configuring a
-persistent run via a custom allocation function.
+This example from the regression tests demonstrates the v2.0 gest-api interface:
+a standardized ``APOSMM`` generator class parameterized by a ``VOCS`` object,
+paired with a gest-api ``simulator`` callable. The generator runs on the manager
+thread by default, leaving all workers available for simulations.
 
-..  literalinclude:: ../../libensemble/tests/regression_tests/test_persistent_aposmm_with_grad.py
+..  literalinclude:: ../../libensemble/tests/regression_tests/test_asktell_aposmm_nlopt.py
     :language: python
-    :caption: tests/regression_tests/test_persistent_aposmm_with_grad.py
+    :caption: tests/regression_tests/test_asktell_aposmm_nlopt.py
     :linenos:
+    :end-at: workflow.exit_criteria = ExitCriteria(sim_max=2000)
 
 .. _regression tests: https://github.com/Libensemble/libensemble/tree/develop/libensemble/tests/regression_tests
