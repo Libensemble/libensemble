@@ -20,9 +20,9 @@ The manager maintains a global copy. Each row contains:
   3. :ref:`Reserved fields<reserved_fields>` containing metadata
 
 **Simulator functions** (``sim_f``) must return their data as arrays with the same
-:ref:`types<datatypes-dtype>` as ``sim_specs["out"]``. Alternatively, a ``simulator``
+dtype as ``sim_specs["out"]``. Alternatively, a ``simulator``
 callable in gest-api format (accepting and returning a ``dict``) can be provided via
-``SimSpecs.simulator``; libEnsemble wraps it automatically and handles the NumPy
+``SimSpecs.simulator``; libEnsemble wraps it automatically and handles the dtype
 conversion.
 
 **Generators** that adhere to the ``gest_api`` standard implement ``suggest()`` and

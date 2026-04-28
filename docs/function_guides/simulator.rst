@@ -8,59 +8,108 @@ Simulator and :ref:`Generator functions<funcguides-gen>` have relatively similar
 Writing a Simulator
 -------------------
 
-.. code-block:: python
+.. note::
+    The `gest-api` simulator interface is the recommended approach for new libEnsemble projects.
+    The "Legacy Simulator Function" interface is supported for backward compatibility but may be deprecated in a future release.
 
-    def my_simulation(Input, persis_info, sim_specs, libE_info):
-        batch_size = sim_specs["user"]["batch_size"]
+.. tab-set::
 
-        Output = np.zeros(batch_size, sim_specs["out"])
-        # ...
-        Output["f"], persis_info = do_a_simulation(Input["x"], persis_info)
+    .. tab-item:: Standardized Simulator (gest-api)
 
-        return Output, persis_info
+        Standardized simulators are plain callables — no base class required — with the signature::
 
-Most ``sim_f`` function definitions written by users resemble::
+            def my_simulation(input_dict: dict, **kwargs) -> dict:
 
-    def my_simulation(Input, persis_info, sim_specs, libE_info):
+        They receive a single point as a Python dictionary (keyed by VOCS variable and constant
+        names) and return a dictionary of outputs (keyed by VOCS objective, observable, and
+        constraint names).
 
-where:
+        .. code-block:: python
 
-    * ``Input`` is a selection of the :ref:`History array<funcguides-history>`, a NumPy structured array.
-    * :ref:`persis_info<datastruct-persis-info>` is a dictionary containing state information.
-    * :ref:`sim_specs<datastruct-sim-specs>` is a dictionary of simulation parameters.
-    *  ``libE_info`` is a dictionary containing libEnsemble-specific entries.
+            def my_simulation(input_dict: dict, **kwargs) -> dict:
+                x1 = input_dict["x1"]
+                x2 = input_dict["x2"]
+                f = (x1 - 1) ** 2 + (x2 - 2) ** 2
+                return {"f": f}
 
-Valid simulator functions can accept a subset of the above parameters. So a very simple simulator function can start::
+        Configure it with ``SimSpecs`` using a ``VOCS`` object. ``inputs`` and ``outputs``
+        are derived automatically from the VOCS when not set explicitly:
 
-    def my_simulation(Input):
+        .. code-block:: python
 
-If ``sim_specs`` was initially defined:
+            from gest_api.vocs import VOCS
+            from libensemble.specs import SimSpecs
 
-.. code-block:: python
+            vocs = VOCS(
+                variables={"x1": [0, 1.0], "x2": [0, 10.0]},
+                objectives={"f": "MINIMIZE"},
+            )
 
-    sim_specs = SimSpecs(
-        sim_f=my_simulation,
-        inputs=["x"],
-        outputs=["f", float, (1,)],
-        user={"batch_size": 128},
-    )
+            sim_specs = SimSpecs(
+                simulator=my_simulation,
+                vocs=vocs,
+            )
 
-Then user parameters and a *local* array of outputs may be obtained/initialized like::
+        If ``libE_info`` is needed (e.g., to access the :doc:`executor<../executor/overview>`),
+        declare it as a keyword argument and libEnsemble will pass it automatically::
 
-    batch_size = sim_specs["user"]["batch_size"]
-    Output = np.zeros(batch_size, dtype=sim_specs["out"])
+            def my_simulation(input_dict: dict, libE_info=None, **kwargs) -> dict:
 
-This array should be populated with output values from the simulation::
+    .. tab-item:: Legacy Simulator Function
 
-    Output["f"], persis_info = do_a_simulation(Input["x"], persis_info)
+        .. code-block:: python
 
-Then return the array and ``persis_info`` to libEnsemble::
+            def my_simulation(Input, persis_info, sim_specs, libE_info):
+                batch_size = sim_specs["user"]["batch_size"]
 
-    return Output, persis_info
+                Output = np.zeros(batch_size, sim_specs["out"])
+                # ...
+                Output["f"], persis_info = do_a_simulation(Input["x"], persis_info)
 
-Between the ``Output`` definition and the ``return``, any computation can be performed.
-Users can try an :doc:`executor<../executor/overview>` to submit applications to parallel
-resources, or plug in components from other libraries to serve their needs.
+                return Output, persis_info
+
+        Most ``sim_f`` function definitions written by users resemble::
+
+            def my_simulation(Input, persis_info, sim_specs, libE_info):
+
+        where:
+
+            * ``Input`` is a selection of the :ref:`History array<funcguides-history>`, a NumPy structured array.
+            * :ref:`persis_info<datastruct-persis-info>` is a dictionary containing state information.
+            * :ref:`sim_specs<datastruct-sim-specs>` is a dictionary of simulation parameters.
+            *  ``libE_info`` is a dictionary containing libEnsemble-specific entries.
+
+        Valid simulator functions can accept a subset of the above parameters. So a very simple simulator function can start::
+
+            def my_simulation(Input):
+
+        If ``sim_specs`` was initially defined:
+
+        .. code-block:: python
+
+            sim_specs = SimSpecs(
+                sim_f=my_simulation,
+                inputs=["x"],
+                outputs=["f", float, (1,)],
+                user={"batch_size": 128},
+            )
+
+        Then user parameters and a *local* array of outputs may be obtained/initialized like::
+
+            batch_size = sim_specs["user"]["batch_size"]
+            Output = np.zeros(batch_size, dtype=sim_specs["out"])
+
+        This array should be populated with output values from the simulation::
+
+            Output["f"], persis_info = do_a_simulation(Input["x"], persis_info)
+
+        Then return the array and ``persis_info`` to libEnsemble::
+
+            return Output, persis_info
+
+        Between the ``Output`` definition and the ``return``, any computation can be performed.
+        Users can try an :doc:`executor<../executor/overview>` to submit applications to parallel
+        resources, or plug in components from other libraries to serve their needs.
 
 Executor
 --------
