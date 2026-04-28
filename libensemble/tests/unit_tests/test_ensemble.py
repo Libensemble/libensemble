@@ -22,14 +22,14 @@ def test_ensemble_parse_args_false():
     from libensemble.specs import LibeSpecs
 
     # Ensemble(parse_args=False) by default, so these specs won't be overwritten:
-    e = Ensemble(libE_specs={"comms": "local", "nworkers": 4})
+    e = Ensemble(libE_specs=LibeSpecs(comms="local", nworkers=4))
     assert hasattr(e, "nworkers"), "nworkers should've passed from libE_specs to Ensemble class"
-    assert isinstance(e.libE_specs, LibeSpecs), "libE_specs should've been cast to class"
+    assert isinstance(e.libE_specs, LibeSpecs), "libE_specs should be a LibeSpecs instance"
 
-    # test pass attribute as dict
-    e = Ensemble(libE_specs={"comms": "local", "nworkers": 4})
+    # test passing a second instance
+    e = Ensemble(libE_specs=LibeSpecs(comms="local", nworkers=4))
     assert hasattr(e, "nworkers"), "nworkers should've passed from libE_specs to Ensemble class"
-    assert isinstance(e.libE_specs, LibeSpecs), "libE_specs should've been cast to class"
+    assert isinstance(e.libE_specs, LibeSpecs), "libE_specs should be a LibeSpecs instance"
 
     # test that adjusting Ensemble.nworkers also changes libE_specs
     e.nworkers = 8
