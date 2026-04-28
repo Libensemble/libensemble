@@ -27,9 +27,9 @@ Examples:
 
     .. literalinclude:: ../../libensemble/gen_funcs/sampling.py
       :linenos:
-      :start-at: def uniform_random_sample(_, persis_info, gen_specs):
-      :end-before: def uniform_random_sample_with_variable_resources(_, persis_info, gen_specs):
-      :emphasize-lines: 17
+      :start-at: def uniform_random_sample(_, persis_info, gen_specs, libE_info):
+      :end-before: def uniform_random_sample_with_variable_resources(_, persis_info, gen_specs, libE_info):
+      :emphasize-lines: 10
       :caption: libensemble/libensemble/gen_funcs/sampling.py
 
   .. tab-item:: Incrementing indexes or process counts
@@ -44,7 +44,7 @@ Examples:
 
     .. literalinclude:: ../../libensemble/alloc_funcs/start_only_persistent.py
        :linenos:
-       :start-at:        avail_workers = support.avail_worker_ids(persistent=False, zero_resource_workers=True, gen_workers=True)
+       :start-at:         avail_workers = support.avail_worker_ids(persistent=False, gen_workers=True)
        :end-before:    return Work, persis_info, 0
        :emphasize-lines: 18
        :caption: libensemble/alloc_funcs/start_only_persistent.py
