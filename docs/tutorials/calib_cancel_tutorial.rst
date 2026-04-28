@@ -213,8 +213,8 @@ by a user function, otherwise it will be ignored. To demonstrate this, the test 
 captures and processes this signal from the manager.
 
 In order to do this, a compiled version of the borehole function is launched by ``sim_funcs/borehole_kills.py``
-via the :doc:`Executor<../executor/overview>`. As the borehole application used here is serial, we use the
-:doc:`Executor base class<../executor/executor>` rather than the commonly used :doc:`MPIExecutor<../executor/mpi_executor>`
+via the :doc:`Executor<../executor/ex_index>`. As the borehole application used here is serial, we use the
+:doc:`Executor base class<../executor/ex_index>` rather than the commonly used :doc:`MPIExecutor<../executor/ex_index>`
 class. The base Executor submit routine simply sub-processes a serial application in-place. After the initial
 sample batch of evaluations has been processed, an artificial delay is added to the sub-processed borehole to
 allow time to receive the kill signal and terminate the application. Killed simulations will be reported at

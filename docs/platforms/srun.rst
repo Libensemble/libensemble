@@ -11,7 +11,7 @@ Example SLURM submission scripts for various systems are given in the
 :doc:`examples<example_scripts>`. Further examples are given in some of the specific
 platform guides (e.g., :doc:`Perlmutter guide<perlmutter>`)
 
-By default, the :doc:`MPIExecutor<../executor/mpi_executor>` uses ``mpirun``
+By default, the :doc:`MPIExecutor<../executor/ex_index>` uses ``mpirun``
 as a priority over ``srun`` as it works better in some cases. If ``mpirun`` does
 not work well, then try telling the MPIExecutor to use ``srun`` when it is initiated
 in the calling script::
@@ -45,14 +45,14 @@ when assigning more than one worker to any given node.
         #SBATCH --gpus-per-task=1
 
     Instead provide these to sub-tasks via the ``extra_args`` option to the
-    :doc:`MPIExecutor<../executor/mpi_executor>` ``submit`` function.
+    :doc:`MPIExecutor<../executor/ex_index>` ``submit`` function.
 
 .. dropdown:: **GTL_DEBUG: [0] cudaHostRegister: no CUDA-capable device is detected**
 
     If using the environment variable ``MPICH_GPU_SUPPORT_ENABLED``, then ``srun`` commands may
     expect an option for allocating GPUs (e.g., ``--gpus-per-task=1`` would
     allocate one GPU to each MPI task of the MPI run). It is recommended that tasks submitted
-    via the :doc:`MPIExecutor<../executor/mpi_executor>` specify this in the ``extra_args``
+    via the :doc:`MPIExecutor<../executor/ex_index>` specify this in the ``extra_args``
     option to the ``submit`` function (rather than using an ``#SBATCH`` command).
 
     If running the libEnsemble calling script with ``srun``, then it is recommended that

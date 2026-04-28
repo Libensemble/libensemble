@@ -4,7 +4,7 @@ Ensemble with an MPI Application
 
 This tutorial highlights libEnsemble's capability to portably execute
 and monitor external scripts or user applications within simulation or generator
-functions using the :doc:`executor<../executor/overview>`.
+functions using the :doc:`executor<../executor/ex_index>`.
 
 |Open in Colab|
 
@@ -13,7 +13,7 @@ electrostatic forces between a collection of particles. The simulator function
 launches instances of this executable and reads output files to determine
 the result.
 
-This tutorial uses libEnsemble's :doc:`MPI Executor<../executor/mpi_executor>`,
+This tutorial uses libEnsemble's :doc:`MPI Executor<../executor/ex_index>`,
 which automatically detects available MPI runners and resources.
 
 This example also uses a persistent generator. This generator runs on a
@@ -49,7 +49,7 @@ generation functions and call libEnsemble. Create a Python file called
     :linenos:
     :end-at: ensemble = Ensemble
 
-We first instantiate our :doc:`MPI Executor<../executor/mpi_executor>`.
+We first instantiate our :doc:`MPI Executor<../executor/ex_index>`.
 Registering an application is as easy as providing the full file-path and giving
 it a memorable name. This Executor will later be used within our simulation
 function to launch the registered app.

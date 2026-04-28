@@ -18,7 +18,7 @@ which perform computations via **simulators**:
 
 |
 
-An :doc:`executor<executor/overview>` interface is available so generators and simulators
+An :doc:`executor<executor/ex_index>` interface is available so generators and simulators
 can launch and monitor external applications.
 
 All simulations and generated values are recorded in a NumPy

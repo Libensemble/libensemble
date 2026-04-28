@@ -9,7 +9,7 @@ libEnsemble comes with built-in resource management. This entails the
 core counts, and GPUs), and the allocation of resources to workers.
 
 By default, the provisioned resources are divided by the number of workers.
-libEnsemble's :doc:`MPI Executor<../executor/mpi_executor>` is aware of
+libEnsemble's :doc:`MPI Executor<../executor/ex_index>` is aware of
 these supplied resources, and if not given any of ``num_nodes``, ``num_procs``,
 or ``procs_per_node`` in the submit function, it will try to use all nodes and
 CPU cores available to the worker.
@@ -119,7 +119,7 @@ Accessing resources from the simulation function
 
 In the user's simulation function, the resources supplied to the worker can be
 :doc:`interrogated directly via the resources class attribute<worker_resources>`.
-libEnsemble's executors (e.g., the :doc:`MPI Executor<../executor/mpi_executor>`) are
+libEnsemble's executors (e.g., the :doc:`MPI Executor<../executor/ex_index>`) are
 aware of these supplied resources, and if not given any of ``num_nodes``, ``num_procs``,
 or ``procs_per_node`` in the submit function, it will try to use all nodes and CPU
 cores available.

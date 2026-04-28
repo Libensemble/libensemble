@@ -195,7 +195,7 @@ Applications
 
 APOSMM is not limited to evaluating minima from pure Python simulation functions.
 Many common libEnsemble use-cases involve using
-libEnsemble's :doc:`MPI Executor<../executor/overview>` to launch user
+libEnsemble's :doc:`MPI Executor<../executor/ex_index>` to launch user
 applications with parameters requested by APOSMM, then evaluate their output using
 APOSMM, and repeat until minima are identified. A currently supported example
 can be found in libEnsemble's `WarpX Scaling Test`_.

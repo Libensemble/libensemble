@@ -124,7 +124,7 @@ Writing a Generator
             return Output, persis_info
 
         Between the ``Output`` definition and the ``return``, any computation can be performed.
-        Users can try an :doc:`executor<../executor/overview>` to submit applications to parallel
+        Users can try an :doc:`executor<../executor/ex_index>` to submit applications to parallel
         resources, or plug in components from other libraries to serve their needs.
 
         .. note::

@@ -5,7 +5,7 @@ Running libEnsemble
 
 .. note::
     You do not need the ``mpi`` communication mode to use the
-    :doc:`MPI Executor<executor/mpi_executor>`. The communication modes described
+    :doc:`MPI Executor<executor/ex_index>`. The communication modes described
     here only refer to how the libEnsemble manager and workers communicate.
 
 .. tab-set::
@@ -110,7 +110,7 @@ For example::
 
 set in your simulation script before the Executor *submit* command will export the setting
 to your run. For running a bash script in a sub environment when using the Executor, see
-the ``env_script`` option to the :doc:`MPI Executor<executor/mpi_executor>`.
+the ``env_script`` option to the :doc:`MPI Executor<executor/ex_index>`.
 
 Running on Multi-Node Systems
 -----------------------------

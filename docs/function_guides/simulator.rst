@@ -50,7 +50,7 @@ Writing a Simulator
                 vocs=vocs,
             )
 
-        If ``libE_info`` is needed (e.g., to access the :doc:`executor<../executor/overview>`),
+        If ``libE_info`` is needed (e.g., to access the :doc:`executor<../executor/ex_index>`),
         declare it as a keyword argument and libEnsemble will pass it automatically::
 
             def my_simulation(input_dict: dict, libE_info=None, **kwargs) -> dict:
@@ -108,7 +108,7 @@ Writing a Simulator
             return Output, persis_info
 
         Between the ``Output`` definition and the ``return``, any computation can be performed.
-        Users can try an :doc:`executor<../executor/overview>` to submit applications to parallel
+        Users can try an :doc:`executor<../executor/ex_index>` to submit applications to parallel
         resources, or plug in components from other libraries to serve their needs.
 
 Executor
@@ -116,7 +116,7 @@ Executor
 
 libEnsemble's Executors are commonly used within simulator functions to launch
 and monitor applications. An excellent overview is already available
-:doc:`here<../executor/overview>`.
+:doc:`here<../executor/ex_index>`.
 
 See the :doc:`Ensemble with an MPI Application tutorial<../tutorials/executor_forces_tutorial>`
 for an additional example to try out.

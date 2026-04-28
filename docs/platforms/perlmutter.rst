@@ -161,14 +161,14 @@ Some FAQs specific to Perlmutter. See more on the :doc:`FAQ<../FAQ>` page.
        #SBATCH --gpus-per-task=1
 
    Instead provide these to sub-tasks via the ``extra_args`` option to
-   the :doc:`MPIExecutor<../executor/mpi_executor>` ``submit`` function.
+   the :doc:`MPIExecutor<../executor/ex_index>` ``submit`` function.
 
 .. dropdown:: **GTL_DEBUG: [0] cudaHostRegister: no CUDA-capable device is detected**
 
    If using the environment variable ``MPICH_GPU_SUPPORT_ENABLED``, then ``srun`` commands, at
    time of writing, expect an option for allocating GPUs (e.g.~ ``--gpus-per-task=1`` would
    allocate one GPU to each MPI task of the MPI run). It is recommended that tasks submitted
-   via the :doc:`MPIExecutor<../executor/mpi_executor>` specify this in the ``extra_args``
+   via the :doc:`MPIExecutor<../executor/ex_index>` specify this in the ``extra_args``
    option to the ``submit`` function (rather than using an ``#SBATCH`` command). This is needed
    even when using setting ``CUDA_VISIBLE_DEVICES`` or other options.
 
