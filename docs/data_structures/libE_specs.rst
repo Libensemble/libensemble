@@ -209,9 +209,6 @@ libEnsemble is primarily customized by setting options within a ``LibeSpecs`` in
                 **H_file_prefix** str | None = ``"libE_history"``
                     Prefix for ``H`` filename.
 
-                **use_persis_return_gen** [bool] = ``False``:
-                    Adds persistent generator output fields to the History array on return.
-
                 **final_gen_send** [bool] = ``False``:
                     Send final simulation results to persistent generators before shutdown.
                     The results will be sent along with the ``PERSIS_STOP`` tag.
