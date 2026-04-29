@@ -15,7 +15,7 @@ APOSMM
 
       .. literalinclude:: ../../../libensemble/tests/regression_tests/test_asktell_aposmm_nlopt.py
         :linenos:
-        :start-at:        workflow.libE_specs.gen_on_manager = True
+        :start-at:        workflow = Ensemble(parse_args=True)
         :end-before:         # Perform the run
 
     .. tab-item:: APOSMM standalone

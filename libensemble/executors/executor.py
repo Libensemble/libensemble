@@ -545,8 +545,6 @@ class Executor:
 
     def manager_poll(self) -> int | None:
         """
-        .. _manager_poll_label:
-
         Polls for a manager signal
 
         The executor manager_signal attribute will be updated.

@@ -1,12 +1,13 @@
-======================
-Writing User Functions
-======================
+=====================
+Writing Gens and Sims
+=====================
 
-These guides describe common development patterns and optional components:
+These guides describe common development patterns and optional components
+for users writing generators and simulators for libEnsemble.
 
 .. toctree::
    :maxdepth: 2
-   :caption: Writing User Functions
+   :caption: Writing Gens and Sims
 
    generator
    simulator

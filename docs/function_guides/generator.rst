@@ -134,8 +134,7 @@ Writing a Generator
 
         .. _persistent-gens:
 
-        Persistent Generators
-        ---------------------
+        **Persistent Generators**
 
         While non-persistent generators return after completing their calculation, persistent
         generators do the following in a loop:
@@ -216,8 +215,7 @@ Writing a Generator
 
         .. _gen_active_recv:
 
-        Active receive mode
-        -------------------
+        **Active receive mode**
 
         By default, a persistent worker is expected to
         receive and send data in a *ping pong* fashion. Alternatively,
@@ -228,8 +226,7 @@ Writing a Generator
         Ensure there are no communication deadlocks in this mode. In manager-worker message exchanges, only the worker-side
         receive is blocking by default (a non-blocking option is available).
 
-        Cancelling Simulations
-        ----------------------
+        **Cancelling Simulations**
 
         Previously submitted simulations can be cancelled by sending a message to the manager:
 
@@ -243,8 +240,7 @@ Writing a Generator
         The :doc:`Borehole Calibration tutorial<../tutorials/calib_cancel_tutorial>` gives an example
         of the capability to cancel pending simulations.
 
-        Modification of existing points
-        -------------------------------
+        **Modification of existing points**
 
         To change existing fields of the History array, create a NumPy structured array where the ``dtype`` contains
         the ``sim_id`` and the fields to be modified. Send this array with ``keep_state=True`` to the manager.
@@ -261,16 +257,14 @@ Writing a Generator
             H_o["cancel_requested"] = True
             ps.send(H_o, keep_state=True)
 
-        Generator initiated shutdown
-        ----------------------------
+        **Generator initiated shutdown**
 
         If using a supporting allocation function, the generator can prompt the ensemble to shutdown
         by simply exiting the function (e.g., on a test for a converged value). For example, the
         allocation function :ref:`start_only_persistent<start_only_persistent_label>` closes down
         the ensemble as soon as a persistent generator returns. The usual return values should be given.
 
-        Examples
-        --------
+        **Examples**
 
         Examples of non-persistent and persistent generator functions
         can be found :doc:`here<../examples/gen_funcs>`.

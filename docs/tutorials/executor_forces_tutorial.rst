@@ -82,32 +82,15 @@ expect, and also to parameterize user functions:
     :end-at: gen_specs_end_tag
     :lineno-start: 37
 
-Next, configure an allocation function, which starts the one persistent
-generator and farms out the simulations. We also tell it to wait for all
-simulations to return their results, before generating more parameters.
-
-.. literalinclude:: ../../libensemble/tests/functionality_tests/test_executor_forces_tutorial.py
-    :language: python
-    :linenos:
-    :start-at: ensemble.alloc_specs = AllocSpecs
-    :end-at: )
-    :lineno-start: 55
-
-Now we set :ref:`exit_criteria<datastruct-exit-criteria>` to
-exit after running eight simulations.
-
-We also give each worker a seeded random stream, via the
-:ref:`persis_info<datastruct-persis-info>`  option.
-These can be used for random number generation if required.
-
-Finally we :doc:`run<../libe_module>` the ensemble.
+Next, we set :ref:`exit_criteria<datastruct-exit-criteria>` to
+exit after running eight simulations, and finally we :doc:`run<../libe_module>` the ensemble.
 
 .. literalinclude:: ../../libensemble/tests/functionality_tests/test_executor_forces_tutorial.py
     :language: python
     :linenos:
     :start-at: Instruct libEnsemble
     :end-at: ensemble.run()
-    :lineno-start: 62
+    :lineno-start: 55
 
 Exercise
 ^^^^^^^^

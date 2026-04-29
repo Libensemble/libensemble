@@ -43,8 +43,7 @@ portable interface for running and managing user applications.
             ``app_name`` from registration in the calling script alongside other optional
             parameters described in the API.
 
-        Basic usage
-        -----------
+        **Basic usage**
 
         To set up an MPI executor, register an MPI application, and add
         to the ensemble object.
@@ -86,8 +85,7 @@ portable interface for running and managing user applications.
         of how common options such as ``libE_specs["dedicated_mode"]`` affect the
         run configuration on clusters and supercomputers.
 
-        Advanced Features
-        -----------------
+        **Advanced Features**
 
         **Example of polling output and killing application:**
 
@@ -237,8 +235,7 @@ portable interface for running and managing user applications.
             :inherited-members:
             :exclude-members: serial_setup, sim_default_app, gen_default_app, get_app, default_app, set_resources, get_task, set_workerID, set_worker_info, new_tasks_timing, add_platform_info, set_gen_procs_gpus, kill, poll
 
-        Class-specific Attributes
-        -------------------------
+        **Class-specific Attributes**
 
         Class-specific attributes can be set directly to alter the behavior of the MPI
         Executor. However, they should be used with caution, because they may not
