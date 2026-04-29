@@ -27,7 +27,7 @@ from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, Sim
 if __name__ == "__main__":
     sampling = Ensemble(parse_args=True)
     sampling.libE_specs = LibeSpecs(save_every_k_sims=100)
-    sampling.sim_specs = SimSpecs(sim_f=sim_f)
+    sampling.sim_specs = SimSpecs(sim_f=sim_f, inputs=["x"], outputs=[("f", float)])
     sampling.gen_specs = GenSpecs(
         gen_f=gen_f,
         outputs=[("x", float, 2)],

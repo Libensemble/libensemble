@@ -25,9 +25,10 @@ from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
 if __name__ == "__main__":
     sampling = Ensemble(parse_args=True)
     sampling.libE_specs = LibeSpecs(save_every_k_gens=300, safe_mode=False, disable_log_files=True)
-    sampling.sim_specs = SimSpecs(sim_f=sim_f)
+    sampling.sim_specs = SimSpecs(sim_f=sim_f, inputs=["x"], outputs=[("f", float)])
     sampling.gen_specs = GenSpecs(
         gen_f=persistent_uniform,
+        persis_in=["f"],
         outputs=[("x", float, (1,))],
         initial_batch_size=100,
         user={
