@@ -3,6 +3,8 @@
 Simulator Functions
 ===================
 
+**Introduction** \|\| `Standardized Simulator (gest-api) <simulator_standardized.html>`__ \|\| `Legacy Simulator Function <simulator_legacy.html>`__
+
 Simulator and :ref:`Generator functions<funcguides-gen>` have relatively similar interfaces.
 
 Writing a Simulator
@@ -12,104 +14,12 @@ Writing a Simulator
     The `gest-api` simulator interface is the recommended approach for new libEnsemble projects.
     The "Legacy Simulator Function" interface is supported for backward compatibility but may be deprecated in a future release.
 
-.. tab-set::
+Tutorial sections
+-----------------
 
-    .. tab-item:: Standardized Simulator (gest-api)
-
-        Standardized simulators are plain callables — no base class required — with the signature::
-
-            def my_simulation(input_dict: dict, **kwargs) -> dict:
-
-        They receive a single point as a Python dictionary (keyed by VOCS variable and constant
-        names) and return a dictionary of outputs (keyed by VOCS objective, observable, and
-        constraint names).
-
-        .. code-block:: python
-
-            def my_simulation(input_dict: dict, **kwargs) -> dict:
-                x1 = input_dict["x1"]
-                x2 = input_dict["x2"]
-                f = (x1 - 1) ** 2 + (x2 - 2) ** 2
-                return {"f": f}
-
-        Configure it with ``SimSpecs`` using a ``VOCS`` object. ``inputs`` and ``outputs``
-        are derived automatically from the VOCS when not set explicitly:
-
-        .. code-block:: python
-
-            from gest_api.vocs import VOCS
-            from libensemble.specs import SimSpecs
-
-            vocs = VOCS(
-                variables={"x1": [0, 1.0], "x2": [0, 10.0]},
-                objectives={"f": "MINIMIZE"},
-            )
-
-            sim_specs = SimSpecs(
-                simulator=my_simulation,
-                vocs=vocs,
-            )
-
-        If ``libE_info`` is needed (e.g., to access the :doc:`executor<../executor/ex_index>`),
-        declare it as a keyword argument and libEnsemble will pass it automatically::
-
-            def my_simulation(input_dict: dict, libE_info=None, **kwargs) -> dict:
-
-    .. tab-item:: Legacy Simulator Function
-
-        .. code-block:: python
-
-            def my_simulation(Input, persis_info, sim_specs, libE_info):
-                batch_size = sim_specs["user"]["batch_size"]
-
-                Output = np.zeros(batch_size, sim_specs["out"])
-                # ...
-                Output["f"], persis_info = do_a_simulation(Input["x"], persis_info)
-
-                return Output, persis_info
-
-        Most ``sim_f`` function definitions written by users resemble::
-
-            def my_simulation(Input, persis_info, sim_specs, libE_info):
-
-        where:
-
-            * ``Input`` is a selection of the :ref:`History array<funcguides-history>`, a NumPy structured array.
-            * :ref:`persis_info<datastruct-persis-info>` is a dictionary containing state information.
-            * :ref:`sim_specs<datastruct-sim-specs>` is a dictionary of simulation parameters.
-            *  ``libE_info`` is a dictionary containing libEnsemble-specific entries.
-
-        Valid simulator functions can accept a subset of the above parameters. So a very simple simulator function can start::
-
-            def my_simulation(Input):
-
-        If ``sim_specs`` was initially defined:
-
-        .. code-block:: python
-
-            sim_specs = SimSpecs(
-                sim_f=my_simulation,
-                inputs=["x"],
-                outputs=["f", float, (1,)],
-                user={"batch_size": 128},
-            )
-
-        Then user parameters and a *local* array of outputs may be obtained/initialized like::
-
-            batch_size = sim_specs["user"]["batch_size"]
-            Output = np.zeros(batch_size, dtype=sim_specs["out"])
-
-        This array should be populated with output values from the simulation::
-
-            Output["f"], persis_info = do_a_simulation(Input["x"], persis_info)
-
-        Then return the array and ``persis_info`` to libEnsemble::
-
-            return Output, persis_info
-
-        Between the ``Output`` definition and the ``return``, any computation can be performed.
-        Users can try an :doc:`executor<../executor/ex_index>` to submit applications to parallel
-        resources, or plug in components from other libraries to serve their needs.
+1. Introduction (this page)
+2. :doc:`Standardized Simulator (gest-api) <simulator_standardized>`
+3. :doc:`Legacy Simulator Function <simulator_legacy>`
 
 Executor
 --------
@@ -135,3 +45,9 @@ function returns.
   An example routine using a persistent simulator can be found in test_persistent_sim_uniform_sampling_.
 
 .. _test_persistent_sim_uniform_sampling: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_persistent_sim_uniform_sampling.py
+
+.. toctree::
+   :hidden:
+
+   simulator_standardized
+   simulator_legacy
