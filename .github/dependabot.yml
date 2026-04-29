@@ -10,7 +10,7 @@ updates:
   - package-ecosystem: github-actions
     directory: /
     schedule:
-      interval: weekly # Reduced frequency
+      interval: monthly # Reduced frequency
     target-branch: "develop"
     groups:
       actions-updates:
@@ -20,7 +20,7 @@ updates:
   - package-ecosystem: pip
     directory: /
     schedule:
-      interval: weekly # Reduced frequency
+      interval: monthly # Reduced frequency
     target-branch: "develop"
     groups:
       python-updates:
@@ -30,7 +30,7 @@ updates:
   - package-ecosystem: gitsubmodule
     directory: /
     schedule:
-      interval: weekly # Reduced frequency
+      interval: monthly # Reduced frequency
     target-branch: "develop"
     groups:
       submodule-updates:
