@@ -35,7 +35,6 @@
    examples/gest_api
    examples/gen_funcs
    examples/sim_funcs
-   examples/alloc_funcs
    examples/calling_scripts
    Submission Scripts<examples/submission_scripts>
 
