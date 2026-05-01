@@ -222,8 +222,8 @@ class Manager:
         self.persis_pending: list[int] = []
         self.live_data = libE_specs.get("live_data")
         if self.use_cache:
-            self.hist.init_cache(self.libE_specs.get("cache_name"))
-        self.from_cache: Any = []
+            self.hist.init_cache(self.libE_specs.get("cache_name"), self.libE_specs.get("cache_dir"))
+        self.from_cache: Any = None
         self.cache_hit = False
 
         dyn_keys = ("resource_sets", "num_procs", "num_gpus")
@@ -483,7 +483,7 @@ class Manager:
         dtype_with_idx = np.dtype(cache.dtype.descr + np.dtype([("H_row", int), ("worker_id", int)]).descr)
 
         # initialize or grow the local record, then call _cache_scan to fill it
-        if not len(self.from_cache):
+        if self.from_cache is None:
             self.from_cache = np.zeros(len(work_rows), dtype=dtype_with_idx)
         else:
             self.from_cache = np.append(self.from_cache, np.zeros(len(work_rows), dtype=dtype_with_idx))
@@ -578,7 +578,7 @@ class Manager:
             for w in self.from_cache["worker_id"]:
                 if w > 0:  # actual cache entry - not blank. assuming w0 gets no sim work
                     self._handle_msg_from_worker(persis_info, w, process_cache=True)
-            self.from_cache = []
+            self.from_cache = None
 
         # Process messages from workers
         new_stuff = True
@@ -871,6 +871,7 @@ class Manager:
             logger.error(traceback.format_exc())
             raise LoggedException(e.args) from None
         finally:
+            self.hist.save_cache()
             # Return persis_info, exit_flag, elapsed time
             result = self._final_receive_and_kill(persis_info)
             self.wcomms = []

@@ -62,10 +62,13 @@ libEnsemble is primarily customized by setting options within a ``LibeSpecs`` in
                     being sent for evaluation. Instead the corresponding cached results are retrieved and returned
                     to the generator.
 
-                    The cache is saved in ``$HOME/.libE``, and by default is named after the joined command-line arguments.
+                    The cache is saved in ``cache_dir``, and by default is named after the joined command-line arguments.
 
-                **cache_name** [str] = ``"".join(sys.argv)``
-                    The name of the cache file. Stored in ``$HOME/.libE``, and by default is named after the
+                **cache_dir** [str] = ``"~/.cache/libensemble"``
+                    The directory to store the cache file. Defaults to ``~/.cache/libensemble``.
+
+                **cache_name** [str] = ``"_".join(sys.argv)``
+                    The name of the cache file. Stored in ``cache_dir``, and by default is named after the
                     joined command-line arguments.
 
         .. tab-item:: Directories

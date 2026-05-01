@@ -562,12 +562,17 @@ class LibeSpecs(BaseModel):
     being sent for evaluation. Instead the corresponding cached results are retrieved and returned
     to the generator.
 
-    The cache is saved in $HOME/.libE, and by default is named after the joined command-line arguments.
+    The cache is saved in cache_dir, and by default is named after the joined command-line arguments.
     """
 
-    cache_name: str | None = "".join(sys.argv)
+    cache_dir: str | Path | None = str(Path.home() / ".cache" / "libensemble")
     """
-    The name of the cache file. Stored in $HOME/.libE, and by default is named after the
+    The directory to store the cache file. Defaults to `~/.cache/libensemble`.
+    """
+
+    cache_name: str | None = "_".join(sys.argv)
+    """
+    The name of the cache file. Stored in cache_dir, and by default is named after the
     joined command-line arguments.
     """
 

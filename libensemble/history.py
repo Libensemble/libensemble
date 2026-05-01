@@ -124,14 +124,18 @@ class History:
         self.last_started = -1
         self.last_ended = -1
 
-    def init_cache(self, cache_name: str) -> None:
-        self.cache_dir = Path.home() / ".libE"
+    def init_cache(self, cache_name: str, cache_dir: str | Path) -> None:
+        self.cache_dir = Path(cache_dir).expanduser()
         self.cache_dir.mkdir(parents=True, exist_ok=True)
         self.cache = self.cache_dir / Path(cache_name + ".npy")
         if not self.cache.exists():
             self.cache.touch()
         self.use_cache = True
         self.cache_set = False
+        try:
+            self.in_cache = np.load(self.cache, allow_pickle=True)
+        except EOFError:
+            self.in_cache = None
 
     def _append_new_fields(self, H_f: npt.NDArray) -> None:
         import numpy.lib.recfunctions as rfn
@@ -154,19 +158,22 @@ class History:
             self.cache_dtype = sorted(
                 [(name, self.H.dtype.fields[name][0]) for name in self.cache_keys]
             )  # only needed to init cache
-            try:
-                in_cache = np.load(self.cache, allow_pickle=True)
-            except EOFError:
-                in_cache = np.zeros(1, dtype=self.cache_dtype)
+
             entry = self.H[index][self.cache_keys]
-            if entry not in in_cache:
-                in_cache = np.append(in_cache, entry)
-            in_cache = np.unique(in_cache, axis=0)  # attempt to remove duplicates
-            np.save(self.cache, in_cache, allow_pickle=True)
+
+            if self.in_cache is None:
+                self.in_cache = np.array([entry], dtype=self.cache_dtype)
+            else:
+                self.in_cache = np.append(self.in_cache, entry)
+                self.in_cache = np.unique(self.in_cache, axis=0)  # attempt to remove duplicates
             self.cache_set = True
 
+    def save_cache(self) -> None:
+        if self.use_cache and self.cache_set and self.in_cache is not None:
+            np.save(self.cache, self.in_cache, allow_pickle=True)
+
     def get_shelved_sims(self) -> npt.NDArray:
-        return np.load(self.cache, allow_pickle=True)
+        return self.in_cache if self.in_cache is not None else np.load(self.cache, allow_pickle=True)
 
     def update_history_f(self, D: dict, kill_canceled_sims: bool = False) -> None:
         """
