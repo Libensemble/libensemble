@@ -1,7 +1,7 @@
 Advanced Installation
 =====================
 
-libEnsemble can be installed from ``pip``, ``uv``, ``Conda``, or ``Spack``.
+libEnsemble can be installed from ``pip``, ``uv``, ``pixi``, ``Conda``, or ``Spack``.
 
 libEnsemble requires the following dependencies, which are typically
 automatically installed alongside libEnsemble:
@@ -43,10 +43,6 @@ Further recommendations for selected HPC systems are given in the
         You also may wish to avoid existing binary builds; for example,::
 
             MPICC=mpiicc pip install mpi4py --no-binary mpi4py
-
-        On Summit, the following line is recommended (with gcc compilers)::
-
-            CC=mpicc MPICC=mpicc pip install mpi4py --no-binary mpi4py
 
     .. tab-item:: uv
 

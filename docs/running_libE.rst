@@ -32,7 +32,7 @@ Running libEnsemble
         set ``libE_specs["dedicated_mode"] = True``.
 
         This mode can also be used to run on a **launch** node of a three-tier
-        system (e.g., Summit), ensuring the whole compute-node allocation is available for
+        system, ensuring the whole compute-node allocation is available for
         launching apps. Make sure there are no imports of ``mpi4py`` in your Python scripts.
 
         Note that on macOS and Windows, the default multiprocessing method is ``"spawn"``
@@ -69,7 +69,7 @@ Running libEnsemble
         This nesting does work with MPICH_ and its derivative MPI implementations.
 
         It is also unsuitable to use this mode when running on the **launch** nodes of
-        three-tier systems (e.g., Summit). In that case ``local`` mode is recommended.
+        three-tier systems. In that case ``local`` mode is recommended.
 
     .. tab-item:: TCP Comms
 

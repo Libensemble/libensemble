@@ -146,8 +146,7 @@ Systems with Launch/MOM Nodes
 Some large systems have a 3-tier node setup. That is, they have a separate set of launch nodes
 (known as MOM nodes on Cray Systems). User batch jobs or interactive sessions run on a launch node.
 Most such systems supply a special MPI runner that has some application-level scheduling
-capability (e.g., ``aprun``, ``jsrun``). MPI applications can only be submitted from these nodes. Examples
-of these systems include Summit and Sierra.
+capability (e.g., ``aprun``, ``jsrun``). MPI applications can only be submitted from these nodes.
 
 There are two ways of running libEnsemble on these kinds of systems. The first, and simplest,
 is to run libEnsemble on the launch nodes. This is often sufficient if the worker's simulation
