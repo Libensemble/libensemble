@@ -2,8 +2,6 @@ import copy
 
 import numpy as np
 
-from libensemble.specs import input_fields, output_data
-
 branin_vals_and_minima = np.array(
     [
         [-3.14159, 12.275, 0.397887],
@@ -31,8 +29,6 @@ def nan_func(calc_in, persis_info, sim_specs, libE_info):
     return (H, persis_info)
 
 
-@input_fields(["x"])
-@output_data([("f", float, (2,))])
 def write_sim_func(calc_in, persis_info, sim_specs, libE_info):
     out = np.zeros(1, dtype=sim_specs["out"])
     out["f"] = calc_in["x"]
