@@ -49,7 +49,6 @@
    known_issues
    release_notes
    contributing
-   posters
 
 .. toctree::
    :maxdepth: 1
