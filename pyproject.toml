@@ -118,7 +118,6 @@ petsc4py = "==3.24.2"
 pandas = "<3"
 numpy = "<2.4"
 proxystore = ">=0.7.1,<0.9"
-ax-platform = ">=1.2.1,<2"
 
 [tool.pixi.feature.docs.dependencies]
 sphinx = ">=8.2.3,<9"
@@ -156,13 +155,20 @@ python = "3.13.*"
 [tool.pixi.feature.py314.dependencies]
 python = "3.14.*"
 
+[tool.pixi.feature.py311e]
+
 [tool.pixi.feature.py311e.dependencies]
 globus-compute-sdk = ">=4.9.0,<5"
+
+[tool.pixi.feature.py312e]
 
 [tool.pixi.feature.py312e.dependencies]
 globus-compute-sdk = ">=4.9.0,<5"
 
+[tool.pixi.feature.py313e]
+
 [tool.pixi.feature.py314e]
+
 
 # Dependencies for libEnsemble
 [tool.pixi.dependencies]
