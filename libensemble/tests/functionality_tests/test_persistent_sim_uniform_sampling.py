@@ -36,9 +36,6 @@ if __name__ == "__main__":
     nworkers, is_manager, libE_specs, _ = parse_args()
     libE_specs["num_resource_sets"] = nworkers - 1  # Only matters if sims use resources.
 
-    # Only used to test returning/overwriting a point at the end of the persistent sim.
-    libE_specs["use_persis_return_sim"] = True
-
     if nworkers < 2:
         sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
 
