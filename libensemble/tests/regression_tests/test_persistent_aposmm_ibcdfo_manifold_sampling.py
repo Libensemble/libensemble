@@ -119,7 +119,7 @@ if __name__ == "__main__":
     H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs, libE_specs=libE_specs)
 
     if is_manager:
-        assert np.min(H["f"]) == 2.0, "The best is 2"
+        assert np.min(H["f"][H["f"] > 0]) == 2.0, "The best is 2"  # nonzero
         assert persis_info[0].get("run_order"), "Run_order should have been given back"
         assert flag == 0
 

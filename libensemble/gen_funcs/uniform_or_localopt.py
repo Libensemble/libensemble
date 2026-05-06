@@ -25,9 +25,7 @@ def uniform_or_localopt(H, persis_info, gen_specs, libE_info):
         `test_uniform_sampling_then_persistent_localopt_runs.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_uniform_sampling_then_persistent_localopt_runs.py>`_ # noqa
     """
     if libE_info.get("persistent"):
-        x_opt, persis_info_updates, tag_out = try_and_run_nlopt(H, gen_specs, libE_info)
-        H_o = []
-        return H_o, persis_info_updates, tag_out
+        return try_and_run_nlopt(H, gen_specs, libE_info)
     else:
         rng = get_rng(gen_specs, libE_info)
         ub = gen_specs["user"]["ub"]
@@ -109,10 +107,9 @@ def try_and_run_nlopt(H, gen_specs, libE_info):
         if exit_code > 0 and exit_code < 5:
             persis_info_updates["x_opt"] = x_opt
     except Exception:  # Raised when manager sent PERSIS_STOP or STOP_TAG
-        x_opt = []
         persis_info_updates = {}
 
-    return x_opt, persis_info_updates, FINISHED_PERSISTENT_GEN_TAG
+    return None, persis_info_updates, FINISHED_PERSISTENT_GEN_TAG
 
 
 def add_to_Out(H_o, x, i, ub, lb, local=False, active=False):
