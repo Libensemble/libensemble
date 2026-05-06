@@ -68,15 +68,22 @@ class History:
                 H[field][: len(H0)] = H0[field]
 
             if "sim_started" not in fields:
-                logger.manager_warning("Marking entries in H0 as having been 'sim_started' and 'sim_ended'")
+                logger.manager_warning(  # type: ignore[attr-defined]
+                    "Marking entries in H0 as having been " + "'sim_started' and 'sim_ended'"
+                )
+
                 H["sim_started"][: len(H0)] = 1
                 H["sim_ended"][: len(H0)] = 1
             elif "sim_ended" not in fields:
-                logger.manager_warning("Marking entries in H0 as having been 'sim_ended' if 'sim_started'")
+                logger.manager_warning(  # type: ignore[attr-defined]
+                    "Marking entries in H0 as having been " + "'sim_ended' if 'sim_started'"
+                )
+
                 H["sim_ended"][: len(H0)] = H0["sim_started"]
 
             if "sim_id" not in fields:
-                logger.manager_warning("Assigning sim_ids to entries in H0")
+                logger.manager_warning("Assigning sim_ids to entries in H0")  # type: ignore[attr-defined]
+
                 H["sim_id"][: len(H0)] = np.arange(0, len(H0))
         else:
             H = np.zeros(L + len(H0), dtype=specs_dtype_list)
@@ -130,8 +137,11 @@ class History:
 
         for j, ind in enumerate(new_inds):
             for field in fields:
-                if self.safe_mode:
-                    assert field not in protected_libE_fields, "The field '" + field + "' is protected"
+                if field in protected_libE_fields:
+                    if self.safe_mode:
+                        assert False, "The field '" + field + "' is protected"
+                    continue
+
                 if np.isscalar(returned_H[field][j]) or returned_H.dtype[field].hasobject:
                     self.H[field][ind] = returned_H[field][j]
                 else:
@@ -194,9 +204,10 @@ class History:
                     self.H["gen_informed"][ind] = True
 
             if self.using_H0 and not self.given_back_warned:
-                logger.manager_warning(
-                    "Giving entries in H0 back to gen. Marking entries in H0 as 'gen_informed' if 'sim_ended'."
+                logger.manager_warning(  # type: ignore[attr-defined]
+                    "Giving entries in H0 back to gen. Marking entries in " + "H0 as 'gen_informed' if 'sim_ended'."
                 )
+
                 self.given_back_warned = True
 
             self.H["gen_informed_time"][q_inds] = t
@@ -250,8 +261,11 @@ class History:
             update_inds = D["sim_id"]
 
         for field in D.dtype.names:
-            if self.safe_mode:
-                assert field not in protected_libE_fields, "The field '" + field + "' is protected"
+            if field in protected_libE_fields:
+                if self.safe_mode:
+                    assert False, "The field '" + field + "' is protected"
+                continue
+
             self.H[field][update_inds] = D[field]
 
         first_gen_inds = update_inds[self.H["gen_ended_time"][update_inds] == 0]

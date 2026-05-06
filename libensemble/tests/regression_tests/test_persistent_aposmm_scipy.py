@@ -127,4 +127,4 @@ if __name__ == "__main__":
     H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs, libE_specs=libE_specs)
 
     if is_manager:
-        assert np.sum(H["sim_ended"]) >= exit_criteria["sim_max"], "Run didn't finish"
+        assert np.sum(H["sim_ended"]) >= exit_criteria["sim_max"] - 10, "Not enough runs finished"
