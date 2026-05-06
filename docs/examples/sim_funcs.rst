@@ -60,5 +60,6 @@ Special simulation functions
    :maxdepth: 1
 
    sim_funcs/mock_sim
+   sim_funcs/surmise_test_function
 
 .. _build_forces.sh: https://github.com/Libensemble/libensemble/blob/main/libensemble/tests/scaling_tests/forces/forces_app/build_forces.sh

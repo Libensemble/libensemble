@@ -21,42 +21,44 @@ between ensemble invocations, or in the allocation function.
 
 Examples:
 
-.. tab-set::
+RNG or reusable structures
+--------------------------
 
-  .. tab-item:: RNG or reusable structures
+.. literalinclude:: ../../libensemble/gen_funcs/sampling.py
+    :linenos:
+    :start-at: def uniform_random_sample(_, persis_info, gen_specs, libE_info):
+    :end-before: def uniform_random_sample_with_variable_resources(_, persis_info, gen_specs, libE_info):
+    :emphasize-lines: 10
+    :caption: libensemble/libensemble/gen_funcs/sampling.py
 
-    .. literalinclude:: ../../libensemble/gen_funcs/sampling.py
-      :linenos:
-      :start-at: def uniform_random_sample(_, persis_info, gen_specs, libE_info):
-      :end-before: def uniform_random_sample_with_variable_resources(_, persis_info, gen_specs, libE_info):
-      :emphasize-lines: 10
-      :caption: libensemble/libensemble/gen_funcs/sampling.py
+Incrementing indexes or process counts
+--------------------------------------
 
-  .. tab-item:: Incrementing indexes or process counts
+.. literalinclude:: ../../libensemble/alloc_funcs/fast_alloc.py
+    :linenos:
+    :start-at:     for wid in support.avail_worker_ids(gen_workers=False):
+    :end-before:         # Give gen work if possible
+    :caption: libensemble/alloc_funcs/fast_alloc.py
 
-    .. literalinclude:: ../../libensemble/alloc_funcs/fast_alloc.py
-       :linenos:
-       :start-at:     for wid in support.avail_worker_ids(gen_workers=False):
-       :end-before:         # Give gen work if possible
-       :caption: libensemble/alloc_funcs/fast_alloc.py
+Tracking running generators
+---------------------------
 
-  .. tab-item:: Tracking running generators
+.. literalinclude:: ../../libensemble/alloc_funcs/start_only_persistent.py
+    :linenos:
+    :start-at:         avail_workers = support.avail_worker_ids(persistent=False, gen_workers=True)
+    :end-before:    return Work, persis_info, 0
+    :emphasize-lines: 18
+    :caption: libensemble/alloc_funcs/start_only_persistent.py
 
-    .. literalinclude:: ../../libensemble/alloc_funcs/start_only_persistent.py
-       :linenos:
-       :start-at:         avail_workers = support.avail_worker_ids(persistent=False, gen_workers=True)
-       :end-before:    return Work, persis_info, 0
-       :emphasize-lines: 18
-       :caption: libensemble/alloc_funcs/start_only_persistent.py
+Allocation function triggers shutdown
+-------------------------------------
 
-  .. tab-item:: Allocation function triggers shutdown
-
-    .. literalinclude:: ../../libensemble/alloc_funcs/start_only_persistent.py
-       :linenos:
-       :start-at:    if gen_count < persis_info.get("num_gens_started", 0):
-       :end-before:    # Give evaluated results back to a running persistent gen
-       :emphasize-lines: 1
-       :caption: libensemble/alloc_funcs/start_only_persistent.py
+.. literalinclude:: ../../libensemble/alloc_funcs/start_only_persistent.py
+    :linenos:
+    :start-at:    if gen_count < persis_info.get("num_gens_started", 0):
+    :end-before:    # Give evaluated results back to a running persistent gen
+    :emphasize-lines: 1
+    :caption: libensemble/alloc_funcs/start_only_persistent.py
 
 .. - Random number generators or other structures for use on consecutive calls
 .. - Incrementing array row indexes or process counts

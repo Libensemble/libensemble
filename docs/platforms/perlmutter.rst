@@ -50,7 +50,7 @@ by one of the following ways.
     conda config --add channels conda-forge
     conda install -c conda-forge libensemble
 
-See :doc:`advanced installation<../advanced_installation>` for other installation options.
+See :doc:`advanced installation<../advanced_installation/advanced_installation>` for other installation options.
 
 Job Submission
 --------------

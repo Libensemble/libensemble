@@ -10,7 +10,7 @@
    :caption: User Guide:
 
    Quickstart<introduction>
-   advanced_installation
+   advanced_installation/advanced_installation
    overview_usecases
    programming_libE
    running_libE
@@ -20,7 +20,7 @@
    :maxdepth: 1
    :caption: Tutorials:
 
-   tutorials/local_sine_tutorial
+   tutorials/local_sine_tutorial/local_sine_tutorial
    tutorials/executor_forces_tutorial
    tutorials/forces_gpu_tutorial
    tutorials/gpcam_tutorial
@@ -56,3 +56,4 @@
 
    dev_guide/release_management/release_index
    dev_guide/dev_API/developer_API
+   bibliography

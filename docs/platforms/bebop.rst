@@ -46,7 +46,7 @@ To install via ``conda``:
     conda config --add channels conda-forge
     conda install -c conda-forge libensemble
 
-See :doc:`here<../advanced_installation>` for more information on advanced options
+See :doc:`here<../advanced_installation/advanced_installation>` for more information on advanced options
 for installing libEnsemble.
 
 Job Submission

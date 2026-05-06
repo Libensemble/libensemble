@@ -1,7 +1,7 @@
 .. include:: ../README.rst
     :start-after: after_badges_rst_tag
 
-See the :doc:`tutorial<tutorials/local_sine_tutorial>` for a step-by-step beginners guide.
+See the :doc:`tutorial<tutorials/local_sine_tutorial/local_sine_tutorial>` for a step-by-step beginners guide.
 
 See the `user guide`_ for more information.
 

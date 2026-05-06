@@ -5,47 +5,47 @@ Generator Specs
 
 Used to specify the generator, its inputs and outputs, and user data.
 
-.. tab-set::
+Standardized (gest-api)
+-----------------------
 
-    .. tab-item:: Standardized (gest-api)
+.. code-block:: python
+    :linenos:
 
-        .. code-block:: python
-            :linenos:
+    from libensemble import GenSpecs
+    from libensemble.gen_classes import UniformSample
+    from gest_api.vocs import VOCS
 
-            from libensemble import GenSpecs
-            from libensemble.gen_classes import UniformSample
-            from gest_api.vocs import VOCS
+    vocs = VOCS(
+        variables={"x": [-3.0, 3.0]},
+        objectives={"y": "MINIMIZE"},
+    )
 
-            vocs = VOCS(
-                variables={"x": [-3.0, 3.0]},
-                objectives={"y": "MINIMIZE"},
-            )
+    gen_specs = GenSpecs(
+        generator=UniformSample(vocs),
+        vocs=vocs,
+    )
+    ...
 
-            gen_specs = GenSpecs(
-                generator=UniformSample(vocs),
-                vocs=vocs,
-            )
-            ...
+Classic (gen_f)
+---------------
 
-    .. tab-item:: Classic (gen_f)
+.. code-block:: python
+    :linenos:
 
-        .. code-block:: python
-            :linenos:
+    import numpy as np
+    from libensemble import GenSpecs
+    from generator import gen_random_sample
 
-            import numpy as np
-            from libensemble import GenSpecs
-            from generator import gen_random_sample
-
-            gen_specs = GenSpecs(
-                gen_f=gen_random_sample,
-                outputs=[("x", float, (1,))],
-                user={
-                    "lower": np.array([-3]),
-                    "upper": np.array([3]),
-                    "gen_batch_size": 5,
-                },
-            )
-            ...
+    gen_specs = GenSpecs(
+        gen_f=gen_random_sample,
+        outputs=[("x", float, (1,))],
+        user={
+            "lower": np.array([-3]),
+            "upper": np.array([3]),
+            "gen_batch_size": 5,
+        },
+    )
+    ...
 
 .. autopydantic_model:: libensemble.specs.GenSpecs
   :model-show-json: False

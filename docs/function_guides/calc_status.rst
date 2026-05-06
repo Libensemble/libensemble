@@ -19,81 +19,81 @@ user-specified string. They are the third optional return value from a user func
 Built-in codes are available in the ``libensemble.message_numbers`` module, but
 users are also free to return any custom string.
 
-.. tab-set::
+calc_status with Executor
+---------------------------
 
-    .. tab-item:: calc_status with :ref:`Executor<executor_index>`
+.. code-block:: python
+    :linenos:
+    :emphasize-lines: 4,16,19,22,30
 
-        .. code-block:: python
-            :linenos:
-            :emphasize-lines: 4,16,19,22,30
+    from libensemble.message_numbers import WORKER_DONE, WORKER_KILL, TASK_FAILED
 
-            from libensemble.message_numbers import WORKER_DONE, WORKER_KILL, TASK_FAILED
+    task = exctr.submit(calc_type="sim", num_procs=cores, wait_on_start=True)
+    calc_status = UNSET_TAG
+    poll_interval = 1  # secs
+    while not task.finished:
+        if task.runtime > time_limit:
+            task.kill()  # Timeout
+        else:
+            time.sleep(poll_interval)
+            task.poll()
 
-            task = exctr.submit(calc_type="sim", num_procs=cores, wait_on_start=True)
-            calc_status = UNSET_TAG
-            poll_interval = 1  # secs
-            while not task.finished:
-                if task.runtime > time_limit:
-                    task.kill()  # Timeout
-                else:
-                    time.sleep(poll_interval)
-                    task.poll()
+    if task.finished:
+        if task.state == "FINISHED":
+            print("Task {} completed".format(task.name))
+            calc_status = WORKER_DONE
+        elif task.state == "FAILED":
+            print("Warning: Task {} failed: Error code {}".format(task.name, task.errcode))
+            calc_status = TASK_FAILED
+        elif task.state == "USER_KILLED":
+            print("Warning: Task {} has been killed".format(task.name))
+            calc_status = WORKER_KILL
+        else:
+            print("Warning: Task {} in unknown state {}. Error code {}".format(task.name, task.state, task.errcode))
 
-            if task.finished:
-                if task.state == "FINISHED":
-                    print("Task {} completed".format(task.name))
-                    calc_status = WORKER_DONE
-                elif task.state == "FAILED":
-                    print("Warning: Task {} failed: Error code {}".format(task.name, task.errcode))
-                    calc_status = TASK_FAILED
-                elif task.state == "USER_KILLED":
-                    print("Warning: Task {} has been killed".format(task.name))
-                    calc_status = WORKER_KILL
-                else:
-                    print("Warning: Task {} in unknown state {}. Error code {}".format(task.name, task.state, task.errcode))
+    outspecs = sim_specs["out"]
+    output = np.zeros(1, dtype=outspecs)
+    output["energy"][0] = final_energy
 
-            outspecs = sim_specs["out"]
-            output = np.zeros(1, dtype=outspecs)
-            output["energy"][0] = final_energy
+    return output, persis_info, calc_status
 
-            return output, persis_info, calc_status
+Custom calc_status
+------------------
 
-    .. tab-item:: Custom calc_status
+.. code-block:: python
+    :linenos:
 
-        .. code-block:: python
-            :linenos:
+    from libensemble.message_numbers import WORKER_DONE, TASK_FAILED
 
-            from libensemble.message_numbers import WORKER_DONE, TASK_FAILED
+    task = exctr.submit(calc_type="sim", num_procs=cores, wait_on_start=True)
 
-            task = exctr.submit(calc_type="sim", num_procs=cores, wait_on_start=True)
+    task.wait(timeout=60)
 
-            task.wait(timeout=60)
+    file_output = read_task_output(task)
+    if task.errcode == 0:
+        if "fail" in file_output:
+            calc_status = "Task failed successfully?"
+        else:
+            calc_status = WORKER_DONE
+    else:
+        calc_status = TASK_FAILED
 
-            file_output = read_task_output(task)
-            if task.errcode == 0:
-                if "fail" in file_output:
-                    calc_status = "Task failed successfully?"
-                else:
-                    calc_status = WORKER_DONE
-            else:
-                calc_status = TASK_FAILED
+    outspecs = sim_specs["out"]
+    output = np.zeros(1, dtype=outspecs)
+    output["energy"][0] = final_energy
 
-            outspecs = sim_specs["out"]
-            output = np.zeros(1, dtype=outspecs)
-            output["energy"][0] = final_energy
+    return output, persis_info, calc_status
 
-            return output, persis_info, calc_status
+Available values
+----------------
 
-.. tab-set::
+..  literalinclude:: ../../libensemble/message_numbers.py
+    :start-after: first_calc_status_rst_tag
+    :end-before: last_calc_status_rst_tag
 
-    .. tab-item:: Available values
+Corresponding messages
+----------------------
 
-        ..  literalinclude:: ../../libensemble/message_numbers.py
-            :start-after: first_calc_status_rst_tag
-            :end-before: last_calc_status_rst_tag
-
-    .. tab-item:: Corresponding messages
-
-        ..  literalinclude:: ../../libensemble/message_numbers.py
-            :start-at: calc_status_strings
-            :end-before: last_calc_status_string_rst_tag
+..  literalinclude:: ../../libensemble/message_numbers.py
+    :start-at: calc_status_strings
+    :end-before: last_calc_status_string_rst_tag

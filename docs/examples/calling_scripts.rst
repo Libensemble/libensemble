@@ -6,7 +6,7 @@ Many other examples of top-level scripts can be found in libEnsemble's `regressi
 Local Sine Tutorial
 -------------------
 
-This example is from the Local Sine :doc:`Tutorial<../tutorials/local_sine_tutorial>`,
+This example is from the Local Sine :doc:`Tutorial<../tutorials/local_sine_tutorial/local_sine_tutorial>`,
 meant to run with Python's multiprocessing as the primary ``comms`` method.
 
 ..  literalinclude:: ../../examples/tutorials/simple_sine/test_local_sine_tutorial.py

@@ -1,7 +1,7 @@
 Legacy Generator Function
 =========================
 
-**Introduction** \|\| `Standardized Generator (gest-api) <generator_standardized.html>`__ \|\| **Legacy Generator Function**
+`Introduction <generator.html>`__ \|\| `Standardized Generator (gest-api) <generator_standardized.html>`__ \|\| **Legacy Generator Function**
 
 .. code-block:: python
 
@@ -94,52 +94,53 @@ Sending/receiving data is supported by the :ref:`PersistentSupport<p_gen_routine
 
 Implementing functions from the above class is relatively simple:
 
-.. tab-set::
+send
+^^^^
 
-    .. tab-item:: send
+.. currentmodule:: libensemble.tools.persistent_support.PersistentSupport
+.. autofunction:: send
 
-        .. currentmodule:: libensemble.tools.persistent_support.PersistentSupport
-        .. autofunction:: send
+This function call typically resembles::
 
-        This function call typically resembles::
+    my_support.send(local_H_out[selected_IDs])
 
-            my_support.send(local_H_out[selected_IDs])
+Note that this function has no return.
 
-        Note that this function has no return.
+recv
+^^^^
 
-    .. tab-item:: recv
+.. currentmodule:: libensemble.tools.persistent_support.PersistentSupport
+.. autofunction:: recv
 
-        .. currentmodule:: libensemble.tools.persistent_support.PersistentSupport
-        .. autofunction:: recv
+This function call typically resembles::
 
-        This function call typically resembles::
+    tag, Work, calc_in = my_support.recv()
 
-            tag, Work, calc_in = my_support.recv()
+    if tag in [STOP_TAG, PERSIS_STOP]:
+        cleanup()
+        break
 
-            if tag in [STOP_TAG, PERSIS_STOP]:
-                cleanup()
-                break
+The logic following the function call is typically used to break the persistent
+generator's main loop and return.
 
-        The logic following the function call is typically used to break the persistent
-        generator's main loop and return.
+send_recv
+^^^^^^^^^
 
-    .. tab-item:: send_recv
+.. currentmodule:: libensemble.tools.persistent_support.PersistentSupport
+.. autofunction:: send_recv
 
-        .. currentmodule:: libensemble.tools.persistent_support.PersistentSupport
-        .. autofunction:: send_recv
+This function performs both of the previous functions in a single statement. Its
+usage typically resembles::
 
-        This function performs both of the previous functions in a single statement. Its
-        usage typically resembles::
+    tag, Work, calc_in = my_support.send_recv(local_H_out[selected_IDs])
+    if tag in [STOP_TAG, PERSIS_STOP]:
+        cleanup()
+        break
 
-            tag, Work, calc_in = my_support.send_recv(local_H_out[selected_IDs])
-            if tag in [STOP_TAG, PERSIS_STOP]:
-                cleanup()
-                break
+Once the persistent generator's loop has been broken because of
+the tag from the manager, it should return with an additional tag::
 
-        Once the persistent generator's loop has been broken because of
-        the tag from the manager, it should return with an additional tag::
-
-            return local_H_out, persis_info, FINISHED_PERSISTENT_GEN_TAG
+    return local_H_out, persis_info, FINISHED_PERSISTENT_GEN_TAG
 
 See :ref:`calc_status<funcguides-calcstatus>` for more information about
 the message tags.

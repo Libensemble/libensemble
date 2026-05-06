@@ -1,7 +1,7 @@
 Standardized Generator (gest-api)
 =================================
 
-**Introduction** \|\| **Standardized Generator (gest-api)** \|\| `Legacy Generator Function <generator_legacy.html>`__
+`Introduction <generator.html>`__ \|\| **Standardized Generator (gest-api)** \|\| `Legacy Generator Function <generator_legacy.html>`__
 
 Standardized generators are classes that inherit from ``gest_api.Generator``.
 They adhere to the ``gest-api`` standard and are parameterized by a ``VOCS``

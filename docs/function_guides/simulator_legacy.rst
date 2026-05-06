@@ -1,7 +1,7 @@
 Legacy Simulator Function
 =========================
 
-**Introduction** \|\| `Standardized Simulator (gest-api) <simulator_standardized.html>`__ \|\| **Legacy Simulator Function**
+`Introduction <simulator.html>`__ \|\| `Standardized Simulator (gest-api) <simulator_standardized.html>`__ \|\| **Legacy Simulator Function**
 
 .. code-block:: python
 
