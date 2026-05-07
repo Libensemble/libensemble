@@ -100,14 +100,20 @@ is returned as the third value, this instructs the ensemble to stop.
 Information from the manager describing the progress of the current libEnsemble
 routine can be found in ``libE_info``::
 
-    libE_info =  {"exit_criteria": dict,               # Criteria for ending routine
-                  "elapsed_time": float,               # Time elapsed since start of routine
-                  "manager_kill_canceled_sims": bool,  # True if manager is to send kills to cancelled simulations
-                  "sim_started_count": int,            # Total number of points given for simulation function evaluation
-                  "sim_ended_count": int,              # Total number of points returned from simulation function evaluations
-                  "gen_informed_count": int,           # Total number of evaluated points given back to a generator function
-                  "sim_max_given": bool,               # True if `sim_max` simulations have been given out to workers
-                  "use_resource_sets": bool}           # True if num_resource_sets has been explicitly set.
+    libE_info =  {
+            "any_idle_workers": bool,            # True if there are any idle workers
+            "exit_criteria": {...},              # Criteria for ending routine
+            "elapsed_time": float,               # Time elapsed since start of routine
+            "gen_informed_count": int,           # Total number of evaluated points given back to a generator function
+            "manager_kill_canceled_sims": bool,  # True if manager is to send kills to cancelled simulations
+            "scheduler_opts": {...},             # Options passed to the scheduler. "split2fit" and "match_slots"
+            "sim_started_count": int,            # Total number of points given for simulation function evaluation
+            "sim_ended_count": int,              # Total number of points returned from simulation function evaluations
+            "sim_max_given": bool,               # True if `sim_max` simulations have been given out to workers
+            "use_resource_sets": bool,           # True if num_resource_sets has been explicitly set.
+            "gen_num_procs": int,                # Number of processes used for generator function evaluations
+            "gen_num_gpus": int,                 # Number of GPUs used for generator function evaluations
+            "gen_on_worker": bool}               # True if generator function is running on a worker
 
 Most often, the allocation function will just return once ``sim_max_given`` is ``True``,
 but the user could choose to do something different,
