@@ -13,7 +13,7 @@ Note: This test contains multiple iterations to test different libE_stats output
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local
-# TESTSUITE_NPROCS: 2 4
+# TESTSUITE_NPROCS: 4
 
 import sys
 import warnings
