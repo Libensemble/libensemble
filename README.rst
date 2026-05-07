@@ -56,8 +56,8 @@ and an exit condition.
     if __name__ == "__main__":
         # Define problem using VOCS
         vocs = VOCS(
-            variables={"x": [-3, 3], "y": [-2, 2]},
-            objectives={"f": "MINIMIZE"},
+            variables={"x0": [-3, 3], "x1": [-2, 2]},
+            objectives={"f": "EXPLORE"},
         )
 
         # General settings
@@ -70,14 +70,14 @@ and an exit condition.
             outputs=[("f", float)],
         )
 
-        # Generator parameters (standardized generator)
+        generator = UniformSample(vocs)
+
         gen_specs = GenSpecs(
-            generator=UniformSample(vocs),
-            inputs=["sim_id"],
+            generator=generator,
             persis_in=["x", "f"],
             outputs=[("x", float, 2)],
             vocs=vocs,
-            user={"gen_batch_size": 50},
+            batch_size=50,
         )
 
         # Exit criteria
