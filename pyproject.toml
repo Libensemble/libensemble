@@ -95,6 +95,9 @@ scipy = ">=1.15.2,<2"
 mpmath = "<=1.3.0"
 nlopt = ">=2.10.0,<3"
 
+[tool.pixi.feature.basic.pypi-dependencies]
+ibcdfo = { git = "https://github.com/POptUS/IBCDFO.git", subdirectory = "ibcdfo_pypkg" }
+
 # "dev" dependencies needed for basic CI
 flake8 = ">=7.3.0,<8"
 coverage = ">=7.13.0,<8"
@@ -118,9 +121,6 @@ petsc4py = "==3.24.2"
 pandas = "<3"
 numpy = "<2.4"
 proxystore = ">=0.7.1,<0.9"
-
-[tool.pixi.feature.extra.pypi-dependencies]
-ibcdfo = { git = "https://github.com/POptUS/IBCDFO.git", subdirectory = "ibcdfo_pypkg" }
 
 [tool.pixi.feature.docs.dependencies]
 sphinx = ">=8.2.3,<9"
