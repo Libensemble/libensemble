@@ -50,10 +50,24 @@ and an exit condition.
 
     from libensemble import Ensemble
     from libensemble.gen_classes.sampling import UniformSample
-    from libensemble.sim_funcs.six_hump_camel import six_hump_camel
-    from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
+    from libensemble.specs import LibeSpecs, SimSpecs, GenSpecs, ExitCriteria
+
+
+    def six_hump_camel_func(calc_in: dict):
+        """
+        Definition of the six-hump camel test function.
+        """
+        x0 = calc_in["x0"]
+        x1 = calc_in["x1"]
+        term1 = (4 - 2.1 * x0**2 + (x0**4) / 3) * x0**2
+        term2 = x0 * x1
+        term3 = (-4 + 4 * x1**2) * x1**2
+
+        return {"f": term1 + term2 + term3}
+
 
     if __name__ == "__main__":
+
         # Define problem using VOCS
         vocs = VOCS(
             variables={"x0": [-3, 3], "x1": [-2, 2]},
@@ -63,19 +77,18 @@ and an exit condition.
         # General settings
         libE_specs = LibeSpecs(nworkers=4)
 
-        # Simulation parameters
+        # Simulation specification
         sim_specs = SimSpecs(
-            sim_f=six_hump_camel,
-            inputs=["x"],
-            outputs=[("f", float)],
+            simulator=six_hump_camel_func,
+            vocs=vocs,
         )
 
+        # Initialize generator
         generator = UniformSample(vocs)
 
+        # Generator specification
         gen_specs = GenSpecs(
             generator=generator,
-            persis_in=["x", "f"],
-            outputs=[("x", float, 2)],
             vocs=vocs,
             batch_size=50,
         )
@@ -91,11 +104,12 @@ and an exit condition.
             exit_criteria=exit_criteria,
         )
 
+        # Run ensemble
         sampling.run()
 
         if sampling.is_manager:
             sampling.save_output(__file__)
-            print("Some output data:\n", sampling.H[["x", "f"]][:10])
+            print("Some output data:\n", sampling.H[["x0", "x1", "f"]][:10])
 
 |Inline Example|
 

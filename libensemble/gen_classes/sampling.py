@@ -22,7 +22,7 @@ class UniformSample(LibensembleGenerator):
         self.rng = np.random.default_rng(random_seed)
 
         self.n = len(list(self.vocs.variables.keys()))
-        self.np_dtype = [("x", float, (self.n))]
+        self.np_dtype = [(name, float) for name in self.vocs.variables.keys()]
         self.lb = np.array([vocs.variables[i].domain[0] for i in vocs.variables])
         self.ub = np.array([vocs.variables[i].domain[1] for i in vocs.variables])
 
@@ -30,7 +30,9 @@ class UniformSample(LibensembleGenerator):
         out = np.zeros(n_trials, dtype=self.np_dtype)
 
         for i in range(n_trials):
-            out[i]["x"] = self.rng.uniform(self.lb, self.ub, (self.n))
+            vals = self.rng.uniform(self.lb, self.ub, (self.n))
+            for j, name in enumerate(self.vocs.variables.keys()):
+                out[i][name] = vals[j]
 
         return out
 
