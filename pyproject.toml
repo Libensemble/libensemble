@@ -119,6 +119,9 @@ pandas = "<3"
 numpy = "<2.4"
 proxystore = ">=0.7.1,<0.9"
 
+[tool.pixi.feature.extra.pypi-dependencies]
+ibcdfo = { git = "https://github.com/POptUS/IBCDFO.git", subdirectory = "ibcdfo_pypkg" }
+
 [tool.pixi.feature.docs.dependencies]
 sphinx = ">=8.2.3,<9"
 sphinxcontrib-bibtex = ">=2.6.5,<3"
