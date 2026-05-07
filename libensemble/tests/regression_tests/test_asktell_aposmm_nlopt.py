@@ -13,7 +13,7 @@ persistent generator.
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: local mpi tcp
-# TESTSUITE_NPROCS: 3
+# TESTSUITE_NPROCS: 4
 
 from math import gamma, pi, sqrt
 
@@ -88,20 +88,20 @@ if __name__ == "__main__":
 
         if run == 0:
             workflow.sim_specs = SimSpecs(simulator=six_hump_camel_func, vocs=vocs)
-            workflow.exit_criteria = ExitCriteria(sim_max=2000)
+            workflow.exit_criteria = ExitCriteria(sim_max=2000, wallclock_max=600)
         elif run == 1:
             workflow.persis_info["num_gens_started"] = 0
             sim_app2 = six_hump_camel.__file__
             exctr = MPIExecutor()
             exctr.register_app(full_path=sim_app2, app_name="six_hump_camel", calc_type="sim")  # Named app
             workflow.sim_specs = SimSpecs(simulator=six_hump_camel_func, vocs=vocs)
-            workflow.exit_criteria = ExitCriteria(sim_max=200)
+            workflow.exit_criteria = ExitCriteria(sim_max=200, wallclock_max=600)
         elif run == 2:
             workflow.persis_info["num_gens_started"] = 0
             workflow.sim_specs = SimSpecs(
                 sim_f=six_hump_camel_func, vocs=vocs
             )  # wrong parameter, but check we get error message
-            workflow.exit_criteria = ExitCriteria(sim_max=200)
+            workflow.exit_criteria = ExitCriteria(sim_max=200, wallclock_max=600)
             workflow.libE_specs.abort_on_exception = False
 
         try:

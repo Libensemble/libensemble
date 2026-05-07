@@ -31,25 +31,22 @@ Run using five workers with::
 
     python run_libe_forces.py -n 5
 
-One worker runs a persistent generator and the other four run the forces simulations.
-
 ..  literalinclude:: ../../libensemble/tests/scaling_tests/forces/forces_simple/run_libe_forces.py
     :language: python
     :caption: tests/scaling_tests/forces/forces_simple/run_libe_forces.py
     :linenos:
 
-APOSMM with a Standardized Generator
---------------------------------------
+gest-api APOSMM
+---------------
 
-This example from the regression tests demonstrates the v2.0 gest-api interface:
-a standardized ``APOSMM`` generator class parameterized by a ``VOCS`` object,
-paired with a gest-api ``simulator`` callable. The generator runs on the manager
-thread by default, leaving all workers available for simulations.
+This example from the regression tests demonstrates the gest-api interface with a
+standardized ``APOSMM`` generator class parameterized by a ``VOCS`` object, and
+paired with a gest-api ``simulator`` callable.
 
 ..  literalinclude:: ../../libensemble/tests/regression_tests/test_asktell_aposmm_nlopt.py
     :language: python
     :caption: tests/regression_tests/test_asktell_aposmm_nlopt.py
     :linenos:
-    :end-at: workflow.exit_criteria = ExitCriteria(sim_max=2000)
+    :end-at: workflow.exit_criteria = ExitCriteria(sim_max=2000, wallclock_max=600)
 
 .. _regression tests: https://github.com/Libensemble/libensemble/tree/develop/libensemble/tests/regression_tests

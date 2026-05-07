@@ -50,8 +50,7 @@ With these changes in place, our libEnsemble code can be run with MPI by
     mpirun -n 5 python calling.py
 
 where ``-n 5`` tells ``mpirun`` to produce five processes, one of which will be
-the manager process with the libEnsemble manager and the other four will run
-libEnsemble workers.
+the libEnsemble manager process and the others will run libEnsemble workers.
 
 This tutorial is only a tiny demonstration of the parallelism capabilities of
 libEnsemble. libEnsemble has been developed primarily to support research on
