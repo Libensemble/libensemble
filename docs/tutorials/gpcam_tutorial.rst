@@ -5,7 +5,9 @@ This example uses gpCAM_ to construct a global surrogate of ``f`` values using a
 
 In each iteration, a batch of points is produced for concurrent evaluation, maximizing uncertainty reduction.
 
-|Open in Colab|
+.. only:: html
+
+    |Open in Colab|
 
 Ensure that libEnsemble, and gpCAM are installed via: ``pip install libensemble gpcam``
 
