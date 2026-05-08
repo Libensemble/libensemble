@@ -91,7 +91,6 @@ extensions = [
     "sphinx.ext.napoleon",
     # 'sphinx.ext.autosectionlabel',
     "sphinx.ext.intersphinx",
-    "sphinx.ext.imgconverter",
     "sphinx.ext.mathjax",
     "sphinxcontrib.autodoc_pydantic",
     "sphinx_design",
@@ -104,10 +103,6 @@ spelling_ignore_pypi_package_names = True
 spelling_ignore_acronyms = True
 spelling_ignore_python_builtins = True
 spelling_ignore_importable_modules = True
-
-# Use ImageMagick v7's `magick` command instead of deprecated `convert`
-image_converter = "magick"
-# image_converter_args = ["convert", "-background", "white"]
 
 bibtex_bibfiles = ["references.bib"]
 bibtex_default_style = "unsrt"
