@@ -189,8 +189,11 @@ class History:
 
         for j, ind in enumerate(new_inds):
             for field in fields:
-                if self.safe_mode:
-                    assert field not in protected_libE_fields, "The field '" + field + "' is protected"
+                if field in protected_libE_fields:
+                    if self.safe_mode:
+                        assert False, "The field '" + field + "' is protected"
+                    continue
+
                 if np.isscalar(returned_H[field][j]) or returned_H.dtype[field].hasobject:
                     self.H[field][ind] = returned_H[field][j]
                 else:
@@ -258,6 +261,7 @@ class History:
                 logger.manager_warning(  # type: ignore[attr-defined]
                     "Giving entries in H0 back to gen. Marking entries in H0 as 'gen_informed' if 'sim_ended'."
                 )
+
                 self.given_back_warned = True
 
             self.H["gen_informed_time"][q_inds] = t
@@ -311,8 +315,11 @@ class History:
             update_inds = D["sim_id"]
 
         for field in D.dtype.names:
-            if self.safe_mode:
-                assert field not in protected_libE_fields, "The field '" + field + "' is protected"
+            if field in protected_libE_fields:
+                if self.safe_mode:
+                    assert False, "The field '" + field + "' is protected"
+                continue
+
             self.H[field][update_inds] = D[field]
 
         first_gen_inds = update_inds[self.H["gen_ended_time"][update_inds] == 0]
