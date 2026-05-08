@@ -77,7 +77,7 @@ and an exit condition.
         # General settings
         libE_specs = LibeSpecs(nworkers=4)
 
-        # Simulation specification
+        # Specify the simulator function
         sim_specs = SimSpecs(
             simulator=six_hump_camel_func,
             vocs=vocs,
@@ -86,18 +86,17 @@ and an exit condition.
         # Initialize generator
         generator = UniformSample(vocs)
 
-        # Generator specification
+        # Specify the generator and other parameters
         gen_specs = GenSpecs(
             generator=generator,
             vocs=vocs,
             batch_size=50,
         )
 
-        # Exit criteria
         exit_criteria = ExitCriteria(sim_max=100)
 
-        # Create and run ensemble
-        sampling = Ensemble(
+        # Create ensemble
+        ensemble = Ensemble(
             libE_specs=libE_specs,
             sim_specs=sim_specs,
             gen_specs=gen_specs,
@@ -105,11 +104,10 @@ and an exit condition.
         )
 
         # Run ensemble
-        sampling.run()
+        ensemble.run()
 
-        if sampling.is_manager:
-            sampling.save_output(__file__)
-            print("Some output data:\n", sampling.H[["x0", "x1", "f"]][:10])
+        ensemble.save_output(__file__)
+        print("Some output data:\n", ensemble.H[["x0", "x1", "f"]][:10])
 
 |Inline Example|
 
