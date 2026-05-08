@@ -35,6 +35,7 @@ def sim_f(In):
 if __name__ == "__main__":
     nworkers, is_manager, libE_specs, _ = parse_args()
     libE_specs["cache_long_sims"] = True
+    libE_specs["cache_dir"] = "."
 
     sim_specs = {
         "sim_f": sim_f,
@@ -49,6 +50,7 @@ if __name__ == "__main__":
         "user": {
             "lb": np.array([-3]),
             "ub": np.array([3]),
+            "gen_seed": 42,
         },
     }
 
@@ -67,4 +69,5 @@ if __name__ == "__main__":
 
     if is_manager:
         # better way of seeing "long" sims not actually taking so long (because of cache?)
-        assert any(H["sim_ended_time"] - H["sim_started_time"] < 1.1)
+        durations = H["sim_ended_time"] - H["sim_started_time"]
+        assert any((durations < 1.1) & (durations != -np.inf))
