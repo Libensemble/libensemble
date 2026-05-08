@@ -140,7 +140,7 @@ types-pyyaml = ">=6.0.12.20250915,<7"
 furo = ">=2025.12.19,<2026"
 latexcodec = ">=2.0.1,<3"
 latexmk = ">=4.88,<5"
-imagemagick = ">=7.1.2_16,<8"
+fonts-conda-forge = ">=1,<2"
 
 [tool.pixi.tasks.build-docs]
 cmd = "cd docs && make html"

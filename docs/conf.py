@@ -107,7 +107,7 @@ spelling_ignore_importable_modules = True
 
 # Use ImageMagick v7's `magick` command instead of deprecated `convert`
 image_converter = "magick"
-image_converter_args = ["convert", "-background", "white"]
+# image_converter_args = ["convert", "-background", "white"]
 
 bibtex_bibfiles = ["references.bib"]
 bibtex_default_style = "unsrt"
