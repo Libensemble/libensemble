@@ -1,12 +1,20 @@
 import logging
 import time
+from pathlib import Path
+from typing import TYPE_CHECKING
 
 import numpy as np
 import numpy.typing as npt
 
 from libensemble.tools.fields_keys import libE_fields, protected_libE_fields
 
+if TYPE_CHECKING:
+    from libensemble.logger import LibensembleLogger
+
 logger = logging.getLogger(__name__)
+if TYPE_CHECKING:
+    assert isinstance(logger, LibensembleLogger)
+
 
 # For debug messages - uncomment
 # logger.setLevel(logging.DEBUG)
@@ -69,14 +77,14 @@ class History:
 
             if "sim_started" not in fields:
                 logger.manager_warning(  # type: ignore[attr-defined]
-                    "Marking entries in H0 as having been " + "'sim_started' and 'sim_ended'"
+                    "Marking entries in H0 as having been 'sim_started' and 'sim_ended'"
                 )
 
                 H["sim_started"][: len(H0)] = 1
                 H["sim_ended"][: len(H0)] = 1
             elif "sim_ended" not in fields:
                 logger.manager_warning(  # type: ignore[attr-defined]
-                    "Marking entries in H0 as having been " + "'sim_ended' if 'sim_started'"
+                    "Marking entries in H0 as having been 'sim_ended' if 'sim_started'"
                 )
 
                 H["sim_ended"][: len(H0)] = H0["sim_started"]
@@ -102,26 +110,70 @@ class History:
         self.index = len(H0)
         self.grow_count = 0
         self.safe_mode = False
+        self.use_cache = False
 
-        self.sim_started_count = np.sum(H["sim_started"])
-        self.sim_ended_count = np.sum(H["sim_ended"])
-        self.gen_informed_count = np.sum(H["gen_informed"])
+        self.sim_started_count: int = np.sum(H["sim_started"])
+        self.sim_ended_count: int = np.sum(H["sim_ended"])
+        self.gen_informed_count: int = np.sum(H["gen_informed"])
         self.given_back_warned = False
 
-        self.sim_started_offset = self.sim_started_count
-        self.sim_ended_offset = self.sim_ended_count
-        self.gen_informed_offset = self.gen_informed_count
+        self.sim_started_offset: int = self.sim_started_count
+        self.sim_ended_offset: int = self.sim_ended_count
+        self.gen_informed_offset: int = self.gen_informed_count
 
         self.last_started = -1
         self.last_ended = -1
 
+    def init_cache(self, cache_name: str, cache_dir: str | Path) -> None:
+        self.cache_dir = Path(cache_dir).expanduser()
+        self.cache_dir.mkdir(parents=True, exist_ok=True)
+        self.cache = self.cache_dir / Path(cache_name + ".npy")
+        if not self.cache.exists():
+            self.cache.touch()
+        self.use_cache = True
+        self.cache_set = False
+        try:
+            self.in_cache = np.load(self.cache, allow_pickle=True)
+        except EOFError:
+            self.in_cache = None
+
     def _append_new_fields(self, H_f: npt.NDArray) -> None:
-        dtype_new = np.dtype(list(set(self.H.dtype.descr + np.lib.recfunctions.repack_fields(H_f).dtype.descr)))
+        import numpy.lib.recfunctions as rfn
+
+        dtype_new: np.dtype = np.dtype(list(set(self.H.dtype.descr + rfn.repack_fields(H_f).dtype.descr)))
+
         H_new = np.zeros(len(self.H), dtype=dtype_new)
         old_fields = self.H.dtype.names
         for field in old_fields:
             H_new[field][: len(self.H)] = self.H[field]
         self.H = H_new
+
+    def _shelf_longrunning_sims(self, index):
+        """Cache any f values that ran for more than a second."""
+        if self.H[index]["sim_ended_time"] - self.H[index]["sim_started_time"] > 1:
+            # ('f', 'x') and ('x', 'f') are not equivalent dtypes, unfortunately. So maybe sorted helps.
+            self.cache_keys = sorted(
+                [i for i in self.H.dtype.names if i not in [k[0] for k in libE_fields]]
+            )  # ('f', 'x') keys only
+            self.cache_dtype = sorted(
+                [(name, self.H.dtype.fields[name][0]) for name in self.cache_keys]
+            )  # only needed to init cache
+
+            entry = self.H[index][self.cache_keys]
+
+            if self.in_cache is None:
+                self.in_cache = np.array([entry], dtype=self.cache_dtype)
+            else:
+                self.in_cache = np.append(self.in_cache, entry)
+                self.in_cache = np.unique(self.in_cache, axis=0)  # attempt to remove duplicates
+            self.cache_set = True
+
+    def save_cache(self) -> None:
+        if self.use_cache and self.cache_set and self.in_cache is not None:
+            np.save(self.cache, self.in_cache, allow_pickle=True)
+
+    def get_shelved_sims(self) -> npt.NDArray:
+        return self.in_cache if self.in_cache is not None else np.load(self.cache, allow_pickle=True)
 
     def update_history_f(self, D: dict, kill_canceled_sims: bool = False) -> None:
         """
@@ -159,6 +211,8 @@ class History:
             self.H["sim_ended"][ind] = True
             self.H["sim_ended_time"][ind] = time.time()
             self.sim_ended_count += 1
+            if self.use_cache:
+                self._shelf_longrunning_sims(ind)
 
         if kill_canceled_sims:
             for j in range(self.last_ended + 1, np.max(new_inds) + 1):
@@ -205,7 +259,7 @@ class History:
 
             if self.using_H0 and not self.given_back_warned:
                 logger.manager_warning(  # type: ignore[attr-defined]
-                    "Giving entries in H0 back to gen. Marking entries in " + "H0 as 'gen_informed' if 'sim_ended'."
+                    "Giving entries in H0 back to gen. Marking entries in H0 as 'gen_informed' if 'sim_ended'."
                 )
 
                 self.given_back_warned = True

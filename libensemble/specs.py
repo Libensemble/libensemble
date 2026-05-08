@@ -1,4 +1,5 @@
 import random
+import sys
 import warnings
 from pathlib import Path
 
@@ -550,6 +551,29 @@ class LibeSpecs(BaseModel):
     """
     Copy this directory's contents into the working directory upon calling the generator function.
     Forms the base of a generator directory.
+    """
+
+    cache_long_sims: bool | None = False
+    """
+    Cache simulation results with runtimes >1s to disk. Subsequent runs of the same
+    base script with the same command-line arguments will access this cache.
+
+    Upon the generator creating points already in the cache, those points will be skipped from
+    being sent for evaluation. Instead the corresponding cached results are retrieved and returned
+    to the generator.
+
+    The cache is saved in cache_dir, and by default is named after the joined command-line arguments.
+    """
+
+    cache_dir: str | Path | None = str(Path.home() / ".cache" / "libensemble")
+    """
+    The directory to store the cache file. Defaults to `~/.cache/libensemble`.
+    """
+
+    cache_name: str | None = "_".join(sys.argv)
+    """
+    The name of the cache file. Stored in cache_dir, and by default is named after the
+    joined command-line arguments.
     """
 
     calc_dir_id_width: int | None = 4
