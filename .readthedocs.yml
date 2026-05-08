@@ -28,7 +28,7 @@ build:
     - cp -r docs/_build/html/** $READTHEDOCS_OUTPUT/html/
     - pixi run -e docs build-pdf
     - mkdir -p $READTHEDOCS_OUTPUT/pdf/
-    - cp docs/_build/latex/libensemble.pdf $READTHEDOCS_OUTPUT/pdf/
+    - cp docs/_build/latex/libEnsemble.pdf $READTHEDOCS_OUTPUT/pdf/
 
 sphinx:
     configuration: docs/conf.py
