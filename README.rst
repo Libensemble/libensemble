@@ -25,7 +25,7 @@ and inference problems on the world's leading supercomputers such as Frontier, A
 **New:** libEnsemble nows supports the `gest-api`_ generator standard, and can run with
 Optimas and Xopt generators.
 
-The |ScriptCreator| to generate customized scripts for running ensembles with your
+Try the |ScriptCreator| to generate customized scripts for running ensembles with your
 MPI applications.
 
 Installation
@@ -216,6 +216,6 @@ Resources
 .. |Bayesian Optimization with Xopt| image:: https://colab.research.google.com/assets/colab-badge.svg
   :target:  https://colab.research.google.com/github/Libensemble/libensemble/blob/develop/examples/tutorials/xopt_bayesian_gen/xopt_EI_example.ipynb
 
-.. |ScriptCreator| image:: https://img.shields.io/badge/Script_Creator-purple?logo=magic
+.. |ScriptCreator| image:: https://img.shields.io/badge/Script_Creator-purple
    :target: https://libensemble.github.io/script-creator/
    :alt: Script Creator
