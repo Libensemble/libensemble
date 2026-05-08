@@ -33,7 +33,7 @@ libEnsemble can be installed via pip::
 
     pip install libensemble
 
-See :doc:`advanced installation<../advanced_installation>` for other installation options.
+See :doc:`advanced installation<../advanced_installation/advanced_installation>` for other installation options.
 
 Example
 -------

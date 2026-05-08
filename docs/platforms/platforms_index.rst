@@ -19,7 +19,7 @@ Centralized Running
 -------------------
 
 The default communications scheme places the manager and workers on the first node.
-The :doc:`MPI Executor<../executor/mpi_executor>` can then be invoked by each
+The :doc:`MPI Executor<../executor/ex_index>` can then be invoked by each
 simulation worker, and libEnsemble will distribute user applications across the
 node allocation. This is the **most common approach** where each simulation
 runs an MPI application.
@@ -103,7 +103,7 @@ the nodes within that allocation.
 
 *How does libEnsemble know where to run tasks (user applications)?*
 
-The libEnsemble :doc:`MPI Executor<../executor/mpi_executor>` can be initialized from the user calling
+The libEnsemble :doc:`MPI Executor<../executor/ex_index>` can be initialized from the user calling
 script, and then used by workers to run tasks. The Executor will automatically detect the nodes
 available on most systems. Alternatively, the user can provide a file called **node_list** in
 the run directory. By default, the Executor will divide up the nodes evenly to each worker.
@@ -113,15 +113,8 @@ Mapping Tasks to Resources
 
 The :ref:`resource manager<resources_index>` detects node lists from
 :ref:`common batch schedulers<resource_detection>`,
-and partitions these to workers. The :doc:`MPI Executor<../executor/mpi_executor>`
+and partitions these to workers. The :doc:`MPI Executor<../executor/ex_index>`
 accesses the resources available to the current worker when launching tasks.
-
-Zero-resource workers
----------------------
-
-Users with persistent ``gen_f`` functions may notice that the persistent workers
-are still automatically assigned system resources. This can be resolved by
-:ref:`fixing the number of resource sets<zero_resource_workers>`.
 
 Assigning GPUs
 --------------
@@ -145,7 +138,7 @@ System detection for resources can be overridden using the :ref:`resource_info<r
 libE_specs option.
 
 When using the MPI Executor, it is possible to override the detected information using the
-`custom_info` argument. See the :doc:`MPI Executor<../executor/mpi_executor>` for more.
+`custom_info` argument. See the :doc:`MPI Executor<../executor/ex_index>` for more.
 
 Systems with Launch/MOM Nodes
 -----------------------------
@@ -153,8 +146,7 @@ Systems with Launch/MOM Nodes
 Some large systems have a 3-tier node setup. That is, they have a separate set of launch nodes
 (known as MOM nodes on Cray Systems). User batch jobs or interactive sessions run on a launch node.
 Most such systems supply a special MPI runner that has some application-level scheduling
-capability (e.g., ``aprun``, ``jsrun``). MPI applications can only be submitted from these nodes. Examples
-of these systems include Summit and Sierra.
+capability (e.g., ``aprun``, ``jsrun``). MPI applications can only be submitted from these nodes.
 
 There are two ways of running libEnsemble on these kinds of systems. The first, and simplest,
 is to run libEnsemble on the launch nodes. This is often sufficient if the worker's simulation
@@ -238,7 +230,6 @@ libEnsemble on specific HPC systems.
     improv
     perlmutter
     polaris
-    summit
     srun
     example_scripts
 

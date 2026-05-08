@@ -8,10 +8,10 @@ See :ref:`here<libe-module>` for instruction on constructing a complete workflow
    :maxdepth: 2
    :caption: libEnsemble Specifications:
 
-   libE_specs
+   libE_specs/libE_specs
    gen_specs
    sim_specs
+   exit_criteria
    alloc_specs
    platform_specs
    persis_info
-   exit_criteria

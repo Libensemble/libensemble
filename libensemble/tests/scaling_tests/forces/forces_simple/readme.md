@@ -15,9 +15,6 @@ Then return here and run:
 
     python run_libe_forces.py --comms local --nworkers 5
 
-This will run with four workers. One worker will run the persistent generator.
-The other four will run the forces simulations.
-
 ## Detailed instructions
 
 Naive Electrostatics Code Test

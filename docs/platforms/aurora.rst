@@ -27,7 +27,7 @@ To obtain libEnsemble::
 
     pip install libensemble
 
-See :doc:`here<../advanced_installation>` for more information on advanced
+See :doc:`here<../advanced_installation/advanced_installation>` for more information on advanced
 options for installing libEnsemble, including using Spack.
 
 Example

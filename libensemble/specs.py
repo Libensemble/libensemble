@@ -88,8 +88,8 @@ class SimSpecs(BaseModel):
 
     simulator: object | None = None
     """
-    A pre-initialized simulator object or callable in gest-api format.
-    When provided, sim_f defaults to gest_api_sim wrapper.
+    A callable (function) in gest-api format.
+    When provided, ``sim_f`` defaults to the ``gest_api_sim`` wrapper.
     """
 
     inputs: list[str] | None = Field(default=[], alias="in")
@@ -486,7 +486,7 @@ class LibeSpecs(BaseModel):
     ``False`` by default to protect results.
     """
 
-    workflow_dir_path: str | Path | None = "."
+    workflow_dir_path: str | Path = "."
     """
     Optional path to the workflow directory.
     """
@@ -682,7 +682,7 @@ class LibeSpecs(BaseModel):
     worker_cmd: list[str] | None = []
     """
     TCP Only: Split string corresponding to worker/client Python process invocation. Contains
-    a local Python path, calling script, and manager/server format-fields for ``manager_ip``,
+    a local Python path, user script, and manager/server format-fields for ``manager_ip``,
     ``manager_port``, ``authkey``, and ``workerID``. ``nworkers`` is specified normally.
     """
 

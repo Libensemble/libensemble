@@ -15,7 +15,7 @@ To create a conda environment and install libEnsemble::
     conda activate improv_libe_env
     pip install libensemble
 
-See :doc:`here<../advanced_installation>` for more information on advanced
+See :doc:`here<../advanced_installation/advanced_installation>` for more information on advanced
 options for installing libEnsemble, including using Spack.
 
 Job Submission

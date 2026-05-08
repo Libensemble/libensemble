@@ -5,8 +5,8 @@ Optimization with APOSMM
 This tutorial demonstrates libEnsemble's capability to identify multiple minima
 of simulation output using the built-in :doc:`APOSMM<../examples/aposmm>`
 (Asynchronously Parallel Optimization Solver for finding Multiple Minima)
-:ref:`gen_f<api_gen_f>`. In this tutorial, we'll create a simple
-simulation :ref:`sim_f<api_sim_f>` that defines a function with
+:ref:`gen_f<funcguides-gen>`. In this tutorial, we'll create a simple
+simulation :ref:`sim_f<funcguides-sim>` that defines a function with
 multiple minima, then write a libEnsemble calling script that imports APOSMM and
 parameterizes it to check for minima over a domain of outputs from our ``sim_f``.
 
@@ -26,35 +26,20 @@ below:
         :align: center
 
 Create a new Python file named ``six_hump_camel.py``. This will be our
-``sim_f``, incorporating the above function. Write the following:
+simulator callable, incorporating the above function. Write the following:
 
 .. code-block:: python
     :linenos:
 
-    import numpy as np
-
-
-    def six_hump_camel(H, _, sim_specs):
-        """Six-Hump Camel sim_f."""
-
-        batch = len(H["x"])  # Num evaluations each sim_f call.
-        H_o = np.zeros(batch, dtype=sim_specs["out"])  # Define output array H
-
-        for i, x in enumerate(H["x"]):
-            H_o["f"][i] = six_hump_camel_func(x)  # Function evaluations placed into H
-
-        return H_o
-
-
     def six_hump_camel_func(x):
         """Six-Hump Camel function definition"""
-        x1 = x[0]
-        x2 = x[1]
+        x1 = x["x1"]
+        x2 = x["x2"]
         term1 = (4 - 2.1 * x1**2 + (x1**4) / 3) * x1**2
         term2 = x1 * x2
         term3 = (-4 + 4 * x2**2) * x2**2
 
-        return term1 + term2 + term3
+        return {"f": term1 + term2 + term3}
 
 APOSMM Operations
 -----------------
@@ -100,160 +85,83 @@ Throughout, generated and evaluated points are appended to the
 ``"local_pt"`` being ``True`` if the point is part of a local optimization run,
 and ``"local_min"`` being ``True`` if the point has been ruled a local minimum.
 
-APOSMM Persistence
-------------------
-
-APOSMM is implemented as a Persistent generator. A single worker process initiates
-APOSMM so that it "persists" the course of a given libEnsemble run.
-
-APOSMM begins its own concurrent optimization runs, each of which independently
-produces a linear sequence of points trying to find a local minimum. These
-points are given to workers and evaluated by simulation routines.
-
-If there are more workers than optimization runs at any iteration of the
-generator, additional random sample points are generated to keep the workers
-busy.
-
-In practice, since a single worker becomes "persistent" for APOSMM, users
-should initiate one more worker than the number of parallel simulations::
-
-    python my_aposmm_routine.py --nworkers 4
-
-results in three workers running simulations and one running APSOMM.
-
-If running libEnsemble using `mpi4py` communications, enough MPI ranks should be
-given to support libEnsemble's manager, a persistent worker to run APOSMM, and
-simulation routines. The following::
-
-    mpiexec -n 3 python my_aposmm_routine.py
-
-results in only one worker process to perform simulation evaluations.
-
 Calling Script
 --------------
 
-Create a new Python file named ``my_first_aposmm.py``. Start by importing NumPy,
-libEnsemble routines, APOSMM, our ``sim_f``, and a specialized allocation
-function:
+Create a new Python file named ``my_first_aposmm.py``. Start by importing
+libEnsemble classes, APOSMM, and our simulator callable:
 
 .. code-block:: python
     :linenos:
 
-    import numpy as np
-
-    from six_hump_camel import six_hump_camel
-
-    from libensemble.libE import libE
-    from libensemble.gen_funcs.persistent_aposmm import aposmm
-    from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc
-    from libensemble.tools import parse_args
-
-This allocation function starts a single Persistent APOSMM routine and provides
-``sim_f`` output for points requested by APOSMM. Points can be sampled points
-or points from local optimization runs.
-
-APOSMM supports a wide variety of external optimizers. The following statements
-set optimizer settings to ``"scipy"`` to indicate to APOSMM which optimization
-method to use, and help prevent unnecessary imports or package installations:
-
-.. code-block:: python
-    :linenos:
+    from six_hump_camel import six_hump_camel_func
 
     import libensemble.gen_funcs
 
     libensemble.gen_funcs.rc.aposmm_optimizers = "scipy"
 
-Set up :doc:`parse_args()<../utilities>`,
-our :doc:`sim_specs<../data_structures/sim_specs>`,
-:doc:`gen_specs<../data_structures/gen_specs>`,
-and :doc:`alloc_specs<../data_structures/alloc_specs>`:
+    from libensemble import Ensemble
+    from libensemble.gen_classes import APOSMM
+    from gest_api.vocs import VOCS
+    from libensemble.specs import SimSpecs, GenSpecs, ExitCriteria
+
+APOSMM supports a wide variety of external optimizers. The ``rc.aposmm_optimizers``
+statement above indicates to APOSMM which optimization method package to use,
+helping prevent unnecessary imports or package installations.
+
+Next, initialize the ``Ensemble`` and define our variables and objectives using
+a ``VOCS`` object:
 
 .. code-block:: python
     :linenos:
 
-    nworkers, is_manager, libE_specs, _ = parse_args()
+    if __name__ == "__main__":
+        workflow = Ensemble(parse_args=True)
 
-    sim_specs = {
-        "sim_f": six_hump_camel,  # Simulation function
-        "in": ["x"],  # Accepts "x" values
-        "out": [("f", float)],  # Returns f(x) values
-    }
+        vocs = VOCS(
+            variables={"x1": [-2, 2], "x2": [-1, 1], "x1_on_cube": [-2, 2], "x2_on_cube": [-1, 1]},
+            objectives={"f": "MINIMIZE"},
+        )
 
-    gen_out = [
-        ("x", float, 2),  # Produces "x" values
-        ("x_on_cube", float, 2),  # "x" values scaled to unit cube
-        ("sim_id", int),  # Produces sim_id's for History array indexing
-        ("local_min", bool),  # Is a point a local minimum?
-        ("local_pt", bool),  # Is a point from a local opt run?
-    ]
+Notice the addition of ``x1_on_cube`` and ``x2_on_cube``. APOSMM requires variables scaled to the unit cube internally. By defining both sets of variables, APOSMM can translate between our actual domain and its internal domain.
 
-    gen_specs = {
-        "gen_f": aposmm,  # APOSMM generator function
-        "persis_in": ["f"] + [n[0] for n in gen_out],
-        "out": gen_out,  # Output defined like above dict
-        "user": {
-            "initial_sample_size": 100,  # Random sample 100 points to start
-            "localopt_method": "scipy_Nelder-Mead",
-            "opt_return_codes": [0],  # Status integers specific to localopt_method
-            "max_active_runs": 6,  # Occur in parallel
-            "lb": np.array([-2, -1]),  # Lower bound of search domain
-            "ub": np.array([2, 1]),  # Upper bound of search domain
-        },
-    }
-
-    alloc_specs = {"alloc_f": persistent_aposmm_alloc}
-
-``gen_specs["user"]`` fields above that are required for APOSMM are:
-
-    * ``"lb"`` - Search domain lower bound
-    * ``"ub"`` - Search domain upper bound
-    * ``"localopt_method"`` - Chosen local optimization method
-    * ``"initial_sample_size"`` - Number of uniformly sampled points generated
-      before local optimization runs.
-    * ``"opt_return_codes"`` - A list of integers that local optimization
-      methods return when a minimum is detected. SciPy's Nelder-Mead returns 0,
-      but other methods (not used in this tutorial) return 1.
-
-Also note the following:
-
-    * ``gen_specs["in"]`` is empty. For other ``gen_f``'s this defines what
-      fields to give to the ``gen_f`` when called, but here APOSMM's
-      ``alloc_f`` defines those fields.
-    * ``"x_on_cube"`` in ``gen_specs["out"]``. APOSMM works internally on
-      ``"x"`` values scaled to the unit cube. To avoid back-and-forth scaling
-      issues, both types of ``"x"``'s are communicated back, even though the
-      simulation will likely use ``"x"`` values. (APOSMM performs handshake to
-      ensure that the ``x_on_cube`` that was given to be evaluated is the same
-      the one that is given back.)
-    * ``"sim_id"`` in ``gen_specs["out"]``. APOSMM produces points in its
-      local History array that it will need to update later, and can best
-      reference those points (and avoid a search) if APOSMM produces the IDs
-      itself, instead of libEnsemble.
-
-Other options and configurations for APOSMM can be found in the
-APOSMM :doc:`API reference<../examples/aposmm>`.
-
-Set :ref:`exit_criteria<datastruct-exit-criteria>` so libEnsemble knows
-when to complete, and :ref:`persis_info<datastruct-persis-info>` for
-random sampling seeding:
+Now, configure APOSMM. Because APOSMM internally uses variables named ``x``, ``x_on_cube``, and an objective named ``f``, we must map our ``VOCS`` fields to these internal names using ``variables_mapping``:
 
 .. code-block:: python
     :linenos:
 
-    exit_criteria = {"sim_max": 2000}
-    persis_info = {}
+        aposmm = APOSMM(
+            vocs,
+            max_active_runs=workflow.nworkers,
+            variables_mapping={"x": ["x1", "x2"], "x_on_cube": ["x1_on_cube", "x2_on_cube"], "f": ["f"]},
+            initial_sample_size=100,
+            localopt_method="scipy_Nelder-Mead",
+            opt_return_codes=[0],
+        )
 
-Finally, add statements to :doc:`initiate libEnsemble<../libe_module>`, and quickly
-check calculated minima:
+        workflow.gen_specs = GenSpecs(
+            generator=aposmm,
+            vocs=vocs,
+            batch_size=5,
+            initial_batch_size=10,
+        )
+
+APOSMM is instantiated directly as a standardized generator. It handles its own required fields, simplifying our configurations. ``opt_return_codes`` is a list of integers that local optimization methods return when a minimum is detected. SciPy's Nelder-Mead returns 0.
+
+Finally, we configure the simulation function, exit criteria, and run the workflow. We can also print out any points that APOSMM identified as local minima:
 
 .. code-block:: python
     :linenos:
 
-    if __name__ == "__main__":  # required by multiprocessing on macOS and windows
-        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+        workflow.sim_specs = SimSpecs(simulator=six_hump_camel_func, vocs=vocs)
+        workflow.exit_criteria = ExitCriteria(sim_max=2000)
 
-    if is_manager:
-        print("Minima:", H[np.where(H["local_min"])]["x"])
+        H, _, _ = workflow.run()
+
+        if workflow.is_manager:
+            # We can map our variables back to an array for easy printing
+            minima = [[row["x1"], row["x2"]] for row in H if row["local_min"]]
+            print("Minima:", minima)
 
 Final Setup, Run, and Output
 ----------------------------
@@ -272,27 +180,10 @@ the routine.
 
 After a couple seconds, the output should resemble the following::
 
-    [0] libensemble.libE (MANAGER_WARNING):
-    *******************************************************************************
-    User generator script will be creating sim_id.
-    Take care to do this sequentially.
-    Also, any information given back for existing sim_id values will be overwritten!
-    So everything in gen_specs["out"] should be in gen_specs["in"]!
-    *******************************************************************************
-
-    Minima: [[ 0.08993295 -0.71265804]
-     [ 1.70360676 -0.79614982]
-     [-1.70368421  0.79606073]
-     [-0.08988064  0.71270945]
-     [-1.60699361 -0.56859108]
-     [ 1.60713962  0.56869567]]
-
-The first section labeled ``MANAGER_WARNING`` is a default libEnsemble warning
-for generator functions that create ``sim_id``'s, like APOSMM. It does not
-indicate a failure.
+    Minima: [[0.08988580227184285, -0.7126604246830723], [-0.08983226938927827, 0.7126622830878125], [-1.7036480556534283, 0.7960787201083437], [1.7035677028481488, -0.7961234727197022], [1.607106093246473, 0.5686524941018596], [-1.607102046898864, -0.568650772274404]]
 
 The local minima for the Six-Hump Camel simulation function as evaluated by
-APOSMM with libEnsemble should be listed directly below the warning.
+APOSMM with libEnsemble should be listed directly above.
 
 Please see the API reference :doc:`here<../examples/aposmm>` for
 more APOSMM configuration options and other information.
@@ -304,7 +195,7 @@ Applications
 
 APOSMM is not limited to evaluating minima from pure Python simulation functions.
 Many common libEnsemble use-cases involve using
-libEnsemble's :doc:`MPI Executor<../executor/overview>` to launch user
+libEnsemble's :doc:`MPI Executor<../executor/ex_index>` to launch user
 applications with parameters requested by APOSMM, then evaluate their output using
 APOSMM, and repeat until minima are identified. A currently supported example
 can be found in libEnsemble's `WarpX Scaling Test`_.
