@@ -6,7 +6,9 @@ This tutorial highlights libEnsemble's capability to portably execute
 and monitor external scripts or user applications within simulation or generator
 functions using the :doc:`executor<../executor/ex_index>`.
 
-|Open in Colab|
+.. only:: html
+
+    |Open in Colab|
 
 The calling script registers a compiled executable that simulates
 electrostatic forces between a collection of particles. The simulator function

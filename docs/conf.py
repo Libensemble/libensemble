@@ -91,7 +91,6 @@ extensions = [
     "sphinx.ext.napoleon",
     # 'sphinx.ext.autosectionlabel',
     "sphinx.ext.intersphinx",
-    "sphinx.ext.imgconverter",
     "sphinx.ext.mathjax",
     "sphinxcontrib.autodoc_pydantic",
     "sphinx_design",

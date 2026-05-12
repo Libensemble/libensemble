@@ -9,7 +9,10 @@ calculations in parallel using :doc:`libEnsemble<../../introduction>`.
 
 We recommend reading this brief :doc:`Overview<../../overview_usecases>`.
 
-|Open in Colab|
+.. only:: html
+
+    |Open in Colab|
+
 
 For this tutorial, our generator will produce uniform randomly sampled
 values, and our simulator will calculate the sine of each. By default we don't

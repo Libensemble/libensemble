@@ -10,7 +10,9 @@ simulation :ref:`sim_f<funcguides-sim>` that defines a function with
 multiple minima, then write a libEnsemble calling script that imports APOSMM and
 parameterizes it to check for minima over a domain of outputs from our ``sim_f``.
 
-|Open in Colab|
+.. only:: html
+
+    |Open in Colab|
 
 Six-Hump Camel Simulation Function
 ----------------------------------
