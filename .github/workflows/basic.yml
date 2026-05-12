@@ -53,9 +53,9 @@ jobs:
             environments: ${{ matrix.python-version }}
             activate-environment: ${{ matrix.python-version }}
 
-        - name: Install IBCDFO
+        - name: Install minq
           run: |
-            pixi run -e ${{ matrix.python-version }} ./install/install_ibcdfo.sh
+            pixi run -e ${{ matrix.python-version }} ./install/install_minq.sh
 
         - name: Install libEnsemble, test flake8
           run: |
