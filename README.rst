@@ -41,51 +41,73 @@ Basic Usage
 ===========
 
 Create an ``Ensemble``, then customize it with general settings, simulation and generator parameters,
-and an exit condition. Run the following four-worker example via ``python this_file.py``:
+and an exit condition.
 
 .. code-block:: python
 
     import numpy as np
+    from gest_api.vocs import VOCS
 
     from libensemble import Ensemble
-    from libensemble.gen_funcs.sampling import uniform_random_sample
-    from libensemble.sim_funcs.six_hump_camel import six_hump_camel
-    from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
+    from libensemble.gen_classes.sampling import UniformSample
+    from libensemble.specs import LibeSpecs, SimSpecs, GenSpecs, ExitCriteria
+
+
+    def six_hump_camel_func(calc_in: dict):
+        """
+        Definition of the six-hump camel test function.
+        """
+        x0 = calc_in["x0"]
+        x1 = calc_in["x1"]
+        term1 = (4 - 2.1 * x0**2 + (x0**4) / 3) * x0**2
+        term2 = x0 * x1
+        term3 = (-4 + 4 * x1**2) * x1**2
+
+        return {"f": term1 + term2 + term3}
+
 
     if __name__ == "__main__":
 
-        libE_specs = LibeSpecs(nworkers=4)
-
-        sim_specs = SimSpecs(
-            sim_f=six_hump_camel,
-            inputs=["x"],
-            outputs=[("f", float)],
+        # Define problem using VOCS
+        vocs = VOCS(
+            variables={"x0": [-3, 3], "x1": [-2, 2]},
+            objectives={"f": "EXPLORE"},
         )
 
+        # General settings
+        libE_specs = LibeSpecs(nworkers=4)
+
+        # Specify the simulator function
+        sim_specs = SimSpecs(
+            simulator=six_hump_camel_func,
+            vocs=vocs,
+        )
+
+        # Initialize generator
+        generator = UniformSample(vocs)
+
+        # Specify the generator and other parameters
         gen_specs = GenSpecs(
-            gen_f=uniform_random_sample,
-            outputs=[("x", float, 2)],
-            user={
-                "gen_batch_size": 50,
-                "lb": np.array([-3, -2]),
-                "ub": np.array([3, 2]),
-            },
+            generator=generator,
+            vocs=vocs,
+            batch_size=50,
         )
 
         exit_criteria = ExitCriteria(sim_max=100)
 
-        sampling = Ensemble(
+        # Create ensemble
+        ensemble = Ensemble(
             libE_specs=libE_specs,
             sim_specs=sim_specs,
             gen_specs=gen_specs,
             exit_criteria=exit_criteria,
         )
 
-        sampling.run()
+        # Run ensemble
+        ensemble.run()
 
-        if sampling.is_manager:
-            sampling.save_output(__file__)
-            print("Some output data:\n", sampling.H[["x", "f"]][:10])
+        ensemble.save_output(__file__)
+        print("Some output data:\n", ensemble.H[["x0", "x1", "f"]][:10])
 
 |Inline Example|
 

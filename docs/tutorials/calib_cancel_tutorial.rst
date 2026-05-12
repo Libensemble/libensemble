@@ -12,7 +12,7 @@ compute resources may then be more effectively applied toward critical evaluatio
 
 For a somewhat different approach than libEnsemble's :doc:`other tutorials<tutorials>`,
 we'll emphasize the settings, functions, and data fields within the calling script,
-:ref:`persistent generator<persistent-gens>`, manager, and :ref:`sim_f<api_sim_f>`
+:ref:`persistent generator<persistent-gens>`, manager, and :ref:`sim_f<funcguides-sim>`
 that make this capability possible, rather than outlining a step-by-step process.
 
 The libEnsemble regression test ``test_persistent_surmise_calib.py`` demonstrates
@@ -36,7 +36,7 @@ gravitational constant, and the corresponding computer model could be the set of
 differential equations that govern the drop. In a case where the computation of
 the computer model is relatively expensive, we employ a fast surrogate model to
 approximate the model and to inform good parameters to test next.  Here the computer
-model :math:`f(\theta, x)` is accessible only through performing :ref:`sim_f<api_sim_f>`
+model :math:`f(\theta, x)` is accessible only through performing :ref:`sim_f<funcguides-sim>`
 evaluations.
 
 As a convenience for testing, the ``observed`` data values are modelled by calling the ``sim_f``
@@ -213,8 +213,8 @@ by a user function, otherwise it will be ignored. To demonstrate this, the test 
 captures and processes this signal from the manager.
 
 In order to do this, a compiled version of the borehole function is launched by ``sim_funcs/borehole_kills.py``
-via the :doc:`Executor<../executor/overview>`. As the borehole application used here is serial, we use the
-:doc:`Executor base class<../executor/executor>` rather than the commonly used :doc:`MPIExecutor<../executor/mpi_executor>`
+via the :doc:`Executor<../executor/ex_index>`. As the borehole application used here is serial, we use the
+:doc:`Executor base class<../executor/ex_index>` rather than the commonly used :doc:`MPIExecutor<../executor/ex_index>`
 class. The base Executor submit routine simply sub-processes a serial application in-place. After the initial
 sample batch of evaluations has been processed, an artificial delay is added to the sub-processed borehole to
 allow time to receive the kill signal and terminate the application. Killed simulations will be reported at

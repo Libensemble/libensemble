@@ -62,10 +62,6 @@ When using a SciPy method, must also supply `opt_return_codes` — e.g. [0] for 
 | `lhs_divisions` | int | Latin hypercube partitions (0 or 1 = uniform) |
 | `rk_const` | float | Multiplier for r_k value |
 
-## Worker Configuration
-
-With `gen_on_manager=True`, the persistent generator runs on the manager process and all `nworkers` are available for simulations.
-
 ## Local Optimizer Methods
 
 ### SciPy (no extra install)

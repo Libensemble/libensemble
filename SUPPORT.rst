@@ -1,6 +1,10 @@
 Support
 -------
 
+Open issues on Github at:
+
+* https://github.com/Libensemble/libensemble/issues
+
 Join the libEnsemble mailing list at:
 
 * https://lists.mcs.anl.gov/mailman/listinfo/libensemble
