@@ -751,7 +751,19 @@ class Manager:
             self._gc_futures[future] = (sim_id, w)
 
     def _gather_gc_results(self, persis_info: dict) -> dict:
-        """Poll completed GC futures and update history."""
+        """Poll completed GC futures *and* the gen worker comm, then update history."""
+        time.sleep(0.0001)  # Avoid busy-wait (matches _receive_from_workers)
+
+        # Poll the gen worker thread (w=0) so generator output reaches history
+        new_stuff = True
+        while new_stuff:
+            new_stuff = False
+            for w in self.W["worker_id"]:
+                if self.wcomms[w] is not None and self.wcomms[w].mail_flag():
+                    new_stuff = True
+                    self._handle_msg_from_worker(persis_info, w)
+
+        # Drain completed GC futures
         done = [f for f in self._gc_futures if f.done()]
         for future in done:
             sim_id, w = self._gc_futures.pop(future)
@@ -774,6 +786,8 @@ class Manager:
                     "persis_info": {},
                 }
             self._update_state_on_worker_msg(persis_info, D_recv, w)
+
+        self._init_every_k_save()
         return persis_info
 
     def _gc_cancel_futures(self) -> None:
