@@ -33,6 +33,7 @@ from libensemble.message_numbers import (
     PERSIS_STOP,
     STOP_TAG,
     TASK_FAILED,
+    WORKER_DONE,
     calc_type_strings,
 )
 from libensemble.resources.resources import Resources
@@ -750,6 +751,27 @@ class Manager:
             future = self._gc_executor.submit_to_registered_function(self._gc_fid, args)
             self._gc_futures[future] = (sim_id, w)
 
+    @staticmethod
+    def _normalize_gc_result(result):
+        """Normalize a sim_f return value to a 3-tuple ``(out, persis_info, calc_status)``.
+
+        Sim functions may return:
+        - 3-tuple: ``(H_o, persis_info, calc_status)``
+        - 2-tuple: ``(H_o, persis_info)`` — common with gest-api wrappers
+
+        In the 2-tuple case, *calc_status* defaults to ``WORKER_DONE``.
+        """
+        if isinstance(result, (tuple, list)):
+            if len(result) >= 3:
+                return result[0], result[1], result[2]
+            elif len(result) == 2:
+                if isinstance(result[1], (int, str)):
+                    return result[0], {}, result[1]
+                return result[0], result[1], WORKER_DONE
+            else:
+                return result[0], {}, WORKER_DONE
+        return result, {}, WORKER_DONE
+
     def _gather_gc_results(self, persis_info: dict) -> dict:
         """Poll completed GC futures *and* the gen worker comm, then update history."""
         time.sleep(0.0001)  # Avoid busy-wait (matches _receive_from_workers)
@@ -768,7 +790,7 @@ class Manager:
         for future in done:
             sim_id, w = self._gc_futures.pop(future)
             try:
-                out, p_info, calc_status = future.result()
+                out, p_info, calc_status = self._normalize_gc_result(future.result())
                 D_recv = {
                     "calc_type": EVAL_SIM_TAG,
                     "calc_status": calc_status,
@@ -861,7 +883,7 @@ class Manager:
             for future in done:
                 sim_id, w = self._gc_futures.pop(future)
                 try:
-                    out, p_info, calc_status = future.result()
+                    out, p_info, calc_status = self._normalize_gc_result(future.result())
                     D_recv = {
                         "calc_type": EVAL_SIM_TAG,
                         "calc_status": calc_status,
