@@ -1,11 +1,7 @@
-from unittest import mock
-
 import numpy as np
-import pytest
 
 import libensemble.tests.unit_tests.setup as setup
 from libensemble.tools.fields_keys import libE_fields
-from libensemble.utils.globus_compute import GCSession
 from libensemble.utils.runners import Runner
 
 
@@ -70,84 +66,7 @@ def test_persis_info_from_none():
     assert result == (calc_in, {})
 
 
-@pytest.mark.extra
-def test_globus_compute_runner_init():
-    calc_in, sim_specs, gen_specs = get_ufunc_args()
-
-    sim_specs["globus_compute_endpoint"] = "1234"
-
-    with mock.patch.object(GCSession, "_create_executor") as mock_create:
-        mock_exec = mock.MagicMock()
-        mock_exec.register_function.return_value = "fid-123"
-        mock_create.return_value = mock_exec
-
-        runner = Runner.from_specs(sim_specs)
-
-        assert hasattr(
-            runner, "globus_compute_executor"
-        ), "Globus ComputeExecutor should have been instantiated when globus_compute_endpoint found in specs"
-
-
-@pytest.mark.extra
-def test_globus_compute_runner_pass():
-    calc_in, sim_specs, gen_specs = get_ufunc_args()
-
-    sim_specs["globus_compute_endpoint"] = "1234"
-
-    with mock.patch.object(GCSession, "_create_executor") as mock_create:
-        mock_exec = mock.MagicMock()
-        mock_exec.register_function.return_value = "fid-123"
-        mock_create.return_value = mock_exec
-
-        runner = Runner.from_specs(sim_specs)
-
-        #  Creating Mock Globus Compute future object - no exception
-        globus_compute_future = mock.MagicMock()
-        globus_compute_future.exception.return_value = None
-        globus_compute_future.result.return_value = (True, True)
-
-        runner.globus_compute_executor.submit_to_registered_function.return_value = globus_compute_future
-        runners = {1: runner.run}
-
-        libE_info = {"H_rows": np.array([2, 3, 4]), "workerID": 1, "comm": "fakecomm"}
-
-        out, persis_info = runners[1](calc_in, {"libE_info": libE_info, "persis_info": {}, "tag": 1})
-
-        assert all([out, persis_info]), "Globus Compute runner correctly returned results"
-
-
-@pytest.mark.extra
-def test_globus_compute_runner_fail():
-    calc_in, sim_specs, gen_specs = get_ufunc_args()
-
-    GCSession.clear()
-    sim_specs["globus_compute_endpoint"] = "4321"
-
-    with mock.patch.object(GCSession, "_create_executor") as mock_create:
-        mock_exec = mock.MagicMock()
-        mock_exec.register_function.return_value = "fid-432"
-        mock_create.return_value = mock_exec
-
-        runner = Runner.from_specs(sim_specs)
-
-        #  Creating Mock Globus Compute future object - yes exception
-        globus_compute_future = mock.MagicMock()
-        globus_compute_future.exception.return_value = Exception("boom")
-
-        runner.globus_compute_executor.submit_to_registered_function.return_value = globus_compute_future
-        runners = {1: runner.run}
-
-        libE_info = {"H_rows": np.array([2, 3, 4]), "workerID": 1, "comm": "fakecomm"}
-
-        with pytest.raises(Exception):
-            out, persis_info = runners[1](calc_in, {"libE_info": libE_info, "persis_info": {}, "tag": 1})
-            pytest.fail("Expected exception")
-
-
 if __name__ == "__main__":
     test_normal_runners()
     test_thread_runners()
     test_persis_info_from_none()
-    test_globus_compute_runner_init()
-    test_globus_compute_runner_pass()
-    test_globus_compute_runner_fail()

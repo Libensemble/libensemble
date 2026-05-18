@@ -156,4 +156,19 @@ which partitions resources among workers, ensuring that runs utilize different
 resources (e.g., nodes). Furthermore, the ``MPIExecutor`` offers resilience via the
 feature of re-launching tasks that fail to start because of system factors.
 
+Remote Execution with Globus Compute
+-------------------------------------
+
+The :doc:`GlobusComputeExecutor<ex_globus_compute>` submits Python callables
+to remote `Globus Compute`_ endpoints instead of launching local subprocesses.
+It exposes the same ``submit()`` / ``poll()`` / ``kill()`` interface as other
+libEnsemble executors and can be retrieved from ``libE_info["executor"]``
+inside simulator functions.
+
+See :ref:`Globus Compute - Remote User Functions<globus_compute_ref>` for an
+overview of all three GC integration modes and the
+:doc:`GlobusComputeExecutor API reference<ex_globus_compute>` for the full
+interface.
+
 .. _concurrent futures: https://docs.python.org/library/concurrent.futures.html
+.. _Globus Compute: https://www.globus.org/compute

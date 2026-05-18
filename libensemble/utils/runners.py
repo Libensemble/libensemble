@@ -9,7 +9,6 @@ from libensemble.comms.comms import QCommThread
 from libensemble.generators import LibensembleGenerator, PersistentGenInterfacer
 from libensemble.message_numbers import EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG, PERSIS_STOP, STOP_TAG
 from libensemble.tools.persistent_support import PersistentSupport
-from libensemble.utils.globus_compute import GCSession
 from libensemble.utils.misc import list_dicts_to_np, map_numpy_array, np_to_list_dicts, unmap_numpy_array
 
 logger = logging.getLogger(__name__)
@@ -18,8 +17,6 @@ logger = logging.getLogger(__name__)
 class Runner:
     @classmethod
     def from_specs(cls, specs):
-        if len(specs.get("globus_compute_endpoint", "")) > 0:
-            return GlobusComputeRunner(specs)
         if specs.get("threaded"):
             return ThreadRunner(specs)
         if (generator := specs.get("generator")) is not None:
@@ -66,29 +63,6 @@ class Runner:
                 "Perhaps you meant to set `SimSpecs.simulator` instead of `SimSpecs.sim_f`?"
             )
         return out
-
-
-class GlobusComputeRunner(Runner):
-    _session = GCSession()
-
-    def __init__(self, specs):
-        super().__init__(specs)
-        endpoint = specs["globus_compute_endpoint"]
-        self.globus_compute_executor, self.globus_compute_fid = self._session.get_or_create(endpoint, self.f)
-
-    def _result(self, calc_in: npt.NDArray, persis_info: dict, libE_info: dict) -> (npt.NDArray, dict, int | None):
-        from libensemble.worker import Worker
-
-        libE_info["comm"] = None  # 'comm' object not pickle-able
-        Worker._set_executor(0, None)  # ditto for executor
-
-        args = self._truncate_args(calc_in, persis_info, libE_info)
-        task_fut = self.globus_compute_executor.submit_to_registered_function(self.globus_compute_fid, args)
-        return task_fut.result()
-
-    def shutdown(self) -> None:
-        if self.globus_compute_executor is not None:
-            self.globus_compute_executor.shutdown()
 
 
 class ThreadRunner(Runner):

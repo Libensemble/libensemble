@@ -164,55 +164,138 @@ to isolate this work from the workers.
 Globus Compute - Remote User Functions
 --------------------------------------
 
-If libEnsemble is running on some resource with
-internet access (laptops, login nodes, other servers, etc.), workers can be instructed to
-launch generator or simulator user function instances to separate resources from
-themselves via `Globus Compute`_ (formerly funcX), a distributed, high-performance function-as-a-service platform:
+`Globus Compute`_ (formerly funcX) is a distributed, high-performance
+function-as-a-service platform. When libEnsemble is running on a resource with
+internet access (laptops, login nodes, other servers, etc.), it can offload
+simulator calls to remote Globus Compute endpoints:
 
     .. image:: ../images/funcxmodel.png
         :alt: running_with_globus_compute
         :scale: 50
         :align: center
 
-This is useful for running ensembles across machines and heterogeneous resources, but
-comes with several caveats:
+This is useful for running ensembles across machines and heterogeneous resources.
+There are **three approaches**, described below.
 
-    1. User functions registered with Globus Compute must be *non-persistent*, since
-       manager-worker communicators can't be serialized or used by a remote resource.
+The following caveats apply to all Globus Compute modes:
 
-    2. Likewise, the ``Executor.manager_poll()`` capability is disabled. The only
-       available control over remote functions by workers is processing return values
-       or exceptions when they complete.
+    1. Simulator functions submitted to Globus Compute must be *non-persistent*,
+       since manager-worker communicators cannot be serialized or used by a
+       remote resource.
 
-    3. Globus Compute imposes a `handful of task-rate and data limits`_ on submitted functions.
+    2. ``Executor.manager_poll()`` is not available inside remotely executed
+       functions. Control over remote work is limited to inspecting return
+       values and exceptions when tasks complete.
+
+    3. Globus Compute imposes a `handful of task-rate and data limits`_ on
+       submitted functions.
 
     4. Users are responsible for authenticating via Globus_ and maintaining their
        `Globus Compute endpoints`_ on their target systems.
 
-Users can still define Executor instances within their user functions and submit
-MPI applications normally, as long as libEnsemble and the target application are
-accessible on the remote system::
+.. _gc_only_mode:
 
-    # Within remote user function
+Manager-side GC (GC-only mode)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The recommended approach for most use cases. When
+``globus_compute_endpoint`` is set in :class:`SimSpecs<libensemble.specs.SimSpecs>`
+and ``gen_on_worker`` is not set (the default), libEnsemble enters
+**GC-only mode**: no local worker processes are launched. The manager
+submits simulation work directly to Globus Compute and polls futures for
+results. The generator still runs as a local thread on the manager.
+
+``nworkers`` controls the maximum number of simultaneously in-flight
+Globus Compute tasks (virtual concurrency). The default is 1.
+
+This mode supports both the :ref:`gest-api simulator format<datastruct-sim-specs>`
+(``SimSpecs.simulator``) and the legacy ``sim_f`` format.
+
+.. code-block:: python
+
+    from libensemble import Ensemble
+    from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
+
+
+    def my_sim(input_dict: dict, **kwargs) -> dict:
+        """gest-api simulator — runs remotely on the GC endpoint."""
+        return {"f": input_dict["x"] ** 2}
+
+
+    sim_specs = SimSpecs(
+        simulator=my_sim,
+        vocs=vocs,
+        globus_compute_endpoint="3af6dc24-3f27-4c49-8d11-e301ade15353",
+    )
+
+    libE_specs = LibeSpecs(nworkers=4)  # up to 4 concurrent GC tasks
+
+    workflow = Ensemble(
+        sim_specs=sim_specs,
+        gen_specs=gen_specs,
+        libE_specs=libE_specs,
+        exit_criteria=ExitCriteria(sim_max=20),
+    )
+    H, _, _ = workflow.run()
+
+Users can also define ``Executor`` instances within their remote simulator
+functions and submit MPI applications normally, as long as libEnsemble and
+the target application are accessible on the remote system::
+
+    # Within the remote simulator function
     from libensemble.executors import MPIExecutor
     exctr = MPIExecutor()
     exctr.register_app(full_path="/home/user/forces.x", app_name="forces")
     task = exctr.submit(app_name="forces", num_procs=64)
 
-Specify a Globus Compute endpoint in :class:`sim_specs<libensemble.specs.SimSpecs>` via the ``globus_compute_endpoint``
-argument. For example::
+.. note::
 
-    from libensemble.specs import SimSpecs
+    Both the simulator callable and any VOCS object must be **picklable**,
+    as they are serialized and shipped to the remote Globus Compute endpoint.
 
-    sim_specs = SimSpecs(
-        sim_f = sim_f,
-        inputs = ["x"],
-        out = [("f", float)],
-        globus_compute_endpoint = "3af6dc24-3f27-4c49-8d11-e301ade15353",
-    )
+.. _gc_executor_approach:
 
-See the ``libensemble/tests/scaling_tests/globus_compute_forces`` directory for a complete
-remote-simulation example.
+GlobusComputeExecutor (user-facing)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+For workflows where the simulation function itself orchestrates remote
+calls, for example, fanning out to multiple endpoints or mixing local
+and remote work, use the
+:class:`GlobusComputeExecutor<libensemble.executors.GlobusComputeExecutor>`
+directly inside the simulator.
+
+Create and register the executor in the calling script:
+
+.. code-block:: python
+
+    from libensemble.executors import GlobusComputeExecutor
+
+    exctr = GlobusComputeExecutor(endpoint_id="3af6dc24-3f27-4c49-8d11-e301ade15353")
+
+Then use it inside the simulator function:
+
+.. code-block:: python
+
+    import time
+
+
+    def my_sim(H, persis_info, sim_specs, libE_info):
+        exctr = libE_info["executor"]
+
+        task = exctr.submit(func=my_remote_func, app_args=H["x"][0])
+
+        while not task.finished:
+            task.poll()
+            if exctr.manager_kill_received():
+                task.kill()
+                break
+            time.sleep(0.1)
+
+        return H_o, persis_info
+
+See the :doc:`GlobusComputeExecutor API reference<../executor/ex_globus_compute>` for
+the full interface including ``register_app``, ``submit``, and
+:class:`GlobusComputeTask<libensemble.executors.GlobusComputeTask>` methods.
 
 Instructions for Specific Platforms
 -----------------------------------

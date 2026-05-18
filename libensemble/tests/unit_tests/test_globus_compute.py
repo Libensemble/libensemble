@@ -288,51 +288,6 @@ class TestGlobusComputeExecutor:
 
 
 # ──────────────────────────────────────────────
-# Refactored GlobusComputeRunner
-# ──────────────────────────────────────────────
-
-
-class TestGlobusComputeRunnerRefactored:
-    def setup_method(self):
-        GCSession.clear()
-
-    def test_runner_uses_gcsession(self):
-        from libensemble.utils.runners import GlobusComputeRunner
-
-        assert hasattr(GlobusComputeRunner, "_session")
-        assert isinstance(GlobusComputeRunner._session, GCSession)
-
-    def test_runner_from_specs_with_endpoint(self):
-        import libensemble.tests.unit_tests.setup as setup
-
-        sim_specs, _, _ = setup.make_criteria_and_specs_0()
-        sim_specs["globus_compute_endpoint"] = "ep-123"
-
-        with mock.patch.object(GCSession, "_create_executor") as mock_create:
-            mock_exec = mock.MagicMock()
-            mock_exec.register_function.return_value = "fid-runner"
-            mock_create.return_value = mock_exec
-
-            from libensemble.utils.runners import GlobusComputeRunner, Runner
-
-            runner = Runner.from_specs(sim_specs)
-            assert isinstance(runner, GlobusComputeRunner)
-            assert runner.globus_compute_executor is mock_exec
-            assert runner.globus_compute_fid == "fid-runner"
-
-    def test_runner_from_specs_without_endpoint(self):
-        import libensemble.tests.unit_tests.setup as setup
-
-        sim_specs, _, _ = setup.make_criteria_and_specs_0()
-        assert not sim_specs.get("globus_compute_endpoint")
-
-        from libensemble.utils.runners import Runner
-
-        runner = Runner.from_specs(sim_specs)
-        assert not hasattr(runner, "globus_compute_executor") or runner.globus_compute_executor is None
-
-
-# ──────────────────────────────────────────────
 # _normalize_gc_result (Manager static method)
 # ──────────────────────────────────────────────
 

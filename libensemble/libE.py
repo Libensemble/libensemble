@@ -267,10 +267,12 @@ def libE(
         Executor.executor.add_platform_info(platform_info)
 
     # Detect GC-only mode: manager submits directly to Globus Compute.
-    # Requires globus_compute_endpoint set and gen_on_worker not set.
     # nworkers is repurposed as virtual concurrency (max concurrent GC sims).
-    if sim_specs.get("globus_compute_endpoint") and not libE_specs.get("gen_on_worker"):
+    if sim_specs.get("globus_compute_endpoint"):
         libE_specs["_gc_only"] = True
+        if libE_specs.get("gen_on_worker"):
+            logger.info("GC-only mode: gen_on_worker is ignored (generator runs on manager)")
+            libE_specs["gen_on_worker"] = False
         # Force local comms (no MPI workers needed)
         if libE_specs.get("comms", "mpi") != "local":
             libE_specs["comms"] = "local"

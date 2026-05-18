@@ -116,9 +116,11 @@ class SimSpecs(BaseModel):
 
     globus_compute_endpoint: str | None = ""
     """
-    A Globus Compute (https://www.globus.org/compute) ID corresponding to an active endpoint on a remote system.
-    libEnsemble's workers will submit simulator function instances to this endpoint instead of
-    calling them locally.
+    A `Globus Compute <https://www.globus.org/compute>`_ endpoint ID corresponding
+    to an active endpoint on a remote system. When set, libEnsemble enters
+    **GC-only mode**: no local worker processes are launched and the manager
+    submits simulation work directly to the Globus Compute endpoint.
+    ``nworkers`` controls the maximum number of concurrent in-flight tasks.
     """
 
     threaded: bool | None = False

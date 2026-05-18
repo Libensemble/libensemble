@@ -84,8 +84,8 @@ if using an :class:`Ensemble<libensemble.ensemble.Ensemble>` object with
 
 Set ``comms`` to ``ssh`` to launch workers on remote ssh-accessible systems. This
 co-locates workers, functions, and any applications. User
-functions can also be persistent, unlike when launching remote functions via
-:ref:`Globus Compute<globus_compute_ref>`.
+functions can also be persistent, unlike simulator functions submitted to
+:ref:`Globus Compute<globus_compute_ref>`, which must be non-persistent.
 
 The remote working directory and Python need to be specified. This may resemble::
 
