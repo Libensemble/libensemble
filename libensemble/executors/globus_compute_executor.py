@@ -114,12 +114,11 @@ class GlobusComputeExecutor(Executor):
     """An :class:`~libensemble.executors.executor.Executor` that submits
     Python callables to Globus Compute instead of launching local subprocesses.
 
-    Usage in a calling script::
+    Usage in a top-level script::
 
         from libensemble.executors.globus_compute_executor import GlobusComputeExecutor
 
         exctr = GlobusComputeExecutor(endpoint_id="...")
-        Executor.executor = exctr
 
     Inside a simulator function::
 
@@ -213,7 +212,7 @@ class GlobusComputeExecutor(Executor):
             Name of a previously registered application.
         app_args : str, optional
             Arguments passed alongside the function.
-        func : callable, optional
+        func : Callable, optional
             A Python callable to execute remotely. Takes precedence over
             *app_name* / *calc_type*.
         stdout, stderr : str, optional

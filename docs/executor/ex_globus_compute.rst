@@ -3,15 +3,15 @@ Globus Compute Executor
 
 `Overview <ex_overview.html>`__ \|\| `Base Executor <ex_base.html>`__ \|\| `MPI Executor <ex_mpi.html>`__ \|\| **Globus Compute Executor**
 
-The :class:`GlobusComputeExecutor<libensemble.executors.GlobusComputeExecutor>`
+The :class:`GlobusComputeExecutor<libensemble.executors.globus_compute_executor.GlobusComputeExecutor>`
 submits Python callables to a remote `Globus Compute`_ endpoint instead of
 launching local subprocesses. It can be used inside simulator functions in the
 same way as the :doc:`MPI Executor<ex_mpi>`, retrieving it from
 ``libE_info["executor"]``.
 
 See :ref:`Globus Compute - Remote User Functions<globus_compute_ref>` for an
-overview of the three GC integration modes (manager-side GC-only, user-facing
-executor, and legacy drop-in).
+overview of the two GC integration modes (manager-side GC-only and user-facing
+executor).
 
 .. note::
 
