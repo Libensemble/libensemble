@@ -266,6 +266,16 @@ def libE(
     if Executor.executor is not None:
         Executor.executor.add_platform_info(platform_info)
 
+    # Detect GC-only mode: manager submits directly to Globus Compute.
+    # Requires globus_compute_endpoint set and gen_on_worker not set.
+    # nworkers is repurposed as virtual concurrency (max concurrent GC sims).
+    if sim_specs.get("globus_compute_endpoint") and not libE_specs.get("gen_on_worker"):
+        libE_specs["_gc_only"] = True
+        # Force local comms (no MPI workers needed)
+        if libE_specs.get("comms", "mpi") != "local":
+            libE_specs["comms"] = "local"
+            logger.info("GC-only mode: switching to local comms (no workers needed)")
+
     # Reset gen counter.
     AllocSupport.gen_counter = 0
 
@@ -485,6 +495,9 @@ def kill_proc_team(wcomms, timeout):
 def libE_local(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0):
     """Main routine for thread/process launch of libE."""
 
+    if libE_specs.get("_gc_only"):
+        return _libE_local_gc_only(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0)
+
     resources = Resources.resources
     if resources is not None:
         local_host = [socket.gethostname()]
@@ -520,6 +533,25 @@ def libE_local(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, li
     # Run generic manager
     return manager(
         wcomms, sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, hist, on_cleanup=cleanup
+    )
+
+
+def _libE_local_gc_only(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0):
+    """GC-only variant: skip worker processes entirely."""
+    hist = History(alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
+
+    if not libE_specs["disable_log_files"]:
+        exit_logger = manager_logging_config(specs=libE_specs)
+    else:
+        exit_logger = None
+
+    def cleanup():
+        """Handler to clean up GC resources."""
+        if exit_logger is not None:
+            exit_logger()
+
+    return manager(
+        [], sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, hist, on_cleanup=cleanup
     )
 
 
