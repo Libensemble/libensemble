@@ -262,12 +262,10 @@ def libE(
 
     libE_funcs = {"mpi": libE_mpi, "tcp": libE_tcp, "local": libE_local, "threads": libE_local}
 
-    Resources.init_resources(libE_specs, platform_info)
-    if Executor.executor is not None:
-        Executor.executor.add_platform_info(platform_info)
-
     # Detect GC-only mode: manager submits directly to Globus Compute.
     # nworkers is repurposed as virtual concurrency (max concurrent GC sims).
+    # Must run before Resources.init_resources so the resource manager is
+    # skipped (GC-only has no real nodes to partition).
     if sim_specs.get("globus_compute_endpoint"):
         libE_specs["_gc_only"] = True
         if libE_specs.get("gen_on_worker"):
@@ -277,6 +275,14 @@ def libE(
         if libE_specs.get("comms", "mpi") != "local":
             libE_specs["comms"] = "local"
             logger.info("GC-only mode: switching to local comms (no workers needed)")
+        # GC-only has no real nodes; disable resource manager to avoid ZeroDivisionError
+        if not libE_specs.get("disable_resource_manager"):
+            libE_specs["disable_resource_manager"] = True
+            logger.info("GC-only mode: disabling resource manager (no local nodes)")
+
+    Resources.init_resources(libE_specs, platform_info)
+    if Executor.executor is not None:
+        Executor.executor.add_platform_info(platform_info)
 
     # Reset gen counter.
     AllocSupport.gen_counter = 0

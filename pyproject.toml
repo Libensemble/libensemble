@@ -62,7 +62,7 @@ libensemble = { path = ".", editable = true }
 [tool.pixi.environments]
 default = []
 basic = ["basic"]
-extra = ["basic", "extra"]
+extra = ["basic", "extra", "globus"]
 docs = ["docs", "basic"]
 
 dev = ["dev", "basic", "extra", "docs"]
@@ -121,6 +121,14 @@ petsc4py = "==3.24.2"
 pandas = "<3"
 numpy = "<2.4"
 proxystore = ">=0.7.1,<0.9"
+
+# globus-compute-sdk and its conda dependency overrides
+[tool.pixi.feature.globus.dependencies]
+dill = "==0.3.9"
+globus-sdk = ">=4.4.0,<5"
+
+[tool.pixi.feature.globus.pypi-dependencies]
+globus-compute-sdk = ">=4.10.1,<5"
 
 [tool.pixi.feature.docs.dependencies]
 sphinx = ">=8.2.3,<9"

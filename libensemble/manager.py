@@ -833,7 +833,12 @@ class Manager:
                     if self._sim_max_given():
                         break
                     self._check_work_order(Work[w], w)
-                    self._gc_submit(Work[w], w)
+                    if Work[w]["tag"] == EVAL_GEN_TAG:
+                        # Gen work goes to the generator thread via wcomms
+                        self._send_work_order(Work[w], w)
+                    else:
+                        # Sim work is submitted directly to Globus Compute
+                        self._gc_submit(Work[w], w)
                     self._update_state_on_alloc(Work[w], w)
 
                 assert self.term_test() or any(
@@ -894,6 +899,13 @@ class Manager:
                 except Exception:
                     continue
                 self._update_state_on_worker_msg(persis_info, D_recv, w)
+
+        # Drain any pending gen-thread messages (e.g. FINISHED_PERSISTENT_GEN_TAG)
+        # before sending STOP_TAG, otherwise _clean_up_thread deadlocks.
+        if 0 in self.W["worker_id"] and self.wcomms[0] is not None:
+            while self.wcomms[0].mail_flag():
+                self._handle_msg_from_worker(persis_info, 0)
+            self.wcomms[0].send(STOP_TAG, MAN_SIGNAL_FINISH)
 
         self._init_every_k_save(complete=True)
         self._clean_up_thread()
