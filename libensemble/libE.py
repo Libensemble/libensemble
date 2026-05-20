@@ -262,6 +262,24 @@ def libE(
 
     libE_funcs = {"mpi": libE_mpi, "tcp": libE_tcp, "local": libE_local, "threads": libE_local}
 
+    # Detect GC-only mode: manager submits directly to Globus Compute.
+    # nworkers is repurposed as virtual concurrency (max concurrent GC sims).
+    # Must run before Resources.init_resources so the resource manager is
+    # skipped (GC-only has no real nodes to partition).
+    if sim_specs.get("globus_compute_endpoint"):
+        libE_specs["_gc_only"] = True
+        if libE_specs.get("gen_on_worker"):
+            logger.info("GC-only mode: gen_on_worker is ignored (generator runs on manager)")
+            libE_specs["gen_on_worker"] = False
+        # Force local comms (no MPI workers needed)
+        if libE_specs.get("comms", "mpi") != "local":
+            libE_specs["comms"] = "local"
+            logger.info("GC-only mode: switching to local comms (no workers needed)")
+        # GC-only has no real nodes; disable resource manager to avoid ZeroDivisionError
+        if not libE_specs.get("disable_resource_manager"):
+            libE_specs["disable_resource_manager"] = True
+            logger.info("GC-only mode: disabling resource manager (no local nodes)")
+
     Resources.init_resources(libE_specs, platform_info)
     if Executor.executor is not None:
         Executor.executor.add_platform_info(platform_info)
@@ -485,6 +503,9 @@ def kill_proc_team(wcomms, timeout):
 def libE_local(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0):
     """Main routine for thread/process launch of libE."""
 
+    if libE_specs.get("_gc_only"):
+        return _libE_local_gc_only(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0)
+
     resources = Resources.resources
     if resources is not None:
         local_host = [socket.gethostname()]
@@ -520,6 +541,25 @@ def libE_local(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, li
     # Run generic manager
     return manager(
         wcomms, sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, hist, on_cleanup=cleanup
+    )
+
+
+def _libE_local_gc_only(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0):
+    """GC-only variant: skip worker processes entirely."""
+    hist = History(alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
+
+    if not libE_specs["disable_log_files"]:
+        exit_logger = manager_logging_config(specs=libE_specs)
+    else:
+        exit_logger = None
+
+    def cleanup():
+        """Handler to clean up GC resources."""
+        if exit_logger is not None:
+            exit_logger()
+
+    return manager(
+        [], sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, hist, on_cleanup=cleanup
     )
 
 
