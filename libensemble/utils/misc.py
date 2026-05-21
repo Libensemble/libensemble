@@ -2,11 +2,127 @@
 Misc internal functions
 """
 
+import hashlib
+import inspect
+import json
 from itertools import chain, groupby
 from operator import itemgetter
 
 import numpy as np
 import numpy.typing as npt
+
+
+def _get_callable_source(obj) -> str:
+    """Get source code for a function or callable object.
+
+    Tries ``inspect.getsource`` on the object directly, then on its class.
+    Falls back to ``name.module`` when source is unavailable.
+    """
+    if obj is None:
+        return ""
+    for target in (obj, type(obj)):
+        try:
+            return inspect.getsource(target)
+        except (TypeError, OSError):
+            continue
+    name = getattr(obj, "__name__", type(obj).__name__)
+    module = getattr(obj, "__module__", type(obj).__module__)
+    return f"{module}.{name}"
+
+
+def compute_config_hash(
+    sim_specs,
+    gen_specs,
+    alloc_specs=None,
+    libE_specs=None,
+    exit_criteria=None,
+    H0=None,
+) -> str:
+    """Compute a deterministic SHA-256 hash of the full ensemble configuration.
+
+    All Pydantic spec models are dumped to stable dictionaries.  Callables
+    (``sim_f``, ``gen_f``, ``simulator``, ``generator``, ``alloc_f``) are
+    replaced with their source code (or ``module.name`` fallback) so that
+    code changes invalidate the cache.  ``H0`` data is also included.
+
+    Parameters
+    ----------
+    sim_specs : SimSpecs
+    gen_specs : GenSpecs | None
+    alloc_specs : AllocSpecs
+    libE_specs : LibeSpecs
+    exit_criteria : ExitCriteria
+    H0 : numpy.ndarray | None
+
+    Returns
+    -------
+    str
+        64-character hex digest.
+    """
+    spec_dicts: dict = {}
+
+    def _dump(spec, **kwargs):
+        return spec.model_dump(**kwargs)
+
+    def _dump_or_empty(spec, **kwargs):
+        return _dump(spec, **kwargs) if spec is not None else {}
+
+    spec_dicts["sim"] = _dump(sim_specs, by_alias=True, exclude_none=True, exclude_defaults=True)
+    spec_dicts["gen"] = _dump_or_empty(gen_specs, by_alias=True, exclude_none=True, exclude_defaults=True)
+    spec_dicts["alloc"] = _dump_or_empty(alloc_specs, by_alias=True, exclude_none=True, exclude_defaults=True)
+    spec_dicts["exit"] = _dump_or_empty(exit_criteria, by_alias=True, exclude_none=True)
+
+    libE_dict = _dump_or_empty(libE_specs, by_alias=True, exclude_none=True, exclude_defaults=True)
+    for key in ("cache_long_sims", "cache_dir", "cache_name"):
+        libE_dict.pop(key, None)
+    spec_dicts["libE"] = libE_dict
+
+    # Hash callable sources, then strip raw objects so memory addresses
+    # don't leak into the JSON serialization.
+    _strip_raw_objects(spec_dicts)
+    _add_callable_sources(spec_dicts, sim_specs, gen_specs, alloc_specs)
+
+    # Hash H0 data
+    if H0 is not None and len(H0):
+        spec_dicts["H0_hash"] = hashlib.sha256(H0.tobytes()).hexdigest()
+
+    serialized = json.dumps(spec_dicts, sort_keys=True, default=str)
+    return hashlib.sha256(serialized.encode()).hexdigest()
+
+
+_RAW_OBJECT_FIELDS = {
+    "sim": {"sim_f", "simulator", "vocs"},
+    "gen": {"gen_f", "generator", "vocs"},
+    "alloc": {"alloc_f"},
+}
+
+
+def _strip_raw_objects(spec_dicts):
+    """Remove object-typed fields from dumped spec dicts.
+
+    These are handled separately via source extraction to avoid
+    non-deterministic memory-address-based serialization.
+    """
+    for key, fields in _RAW_OBJECT_FIELDS.items():
+        if key in spec_dicts:
+            for field in fields:
+                spec_dicts[key].pop(field, None)
+
+
+def _add_callable_sources(spec_dicts, sim_specs, gen_specs, alloc_specs):
+    """Extract source for callables and store them in spec_dicts."""
+    for spec_name, spec, field in [
+        ("sim", sim_specs, "sim_f"),
+        ("sim", sim_specs, "simulator"),
+        ("gen", gen_specs, "gen_f"),
+        ("gen", gen_specs, "generator"),
+        ("alloc", alloc_specs, "alloc_f"),
+    ]:
+        if spec is None:
+            continue
+        obj = getattr(spec, field, None)
+        if obj is not None:
+            spec_dicts[f"{spec_name}_source_{field}"] = _get_callable_source(obj)
 
 
 def extract_H_ranges(Work: dict) -> str:

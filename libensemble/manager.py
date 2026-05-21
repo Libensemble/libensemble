@@ -222,7 +222,11 @@ class Manager:
         self.persis_pending: list[int] = []
         self.live_data = libE_specs.get("live_data")
         if self.use_cache:
-            self.hist.init_cache(self.libE_specs.get("cache_name"), self.libE_specs.get("cache_dir"))
+            self.hist.init_cache(
+                self.libE_specs.get("cache_name"),
+                self.libE_specs.get("cache_dir"),
+                spec_hash=self.libE_specs.get("_spec_hash"),
+            )
         self.from_cache: Any = None
         self.cache_hit = False
 
@@ -252,7 +256,7 @@ class Manager:
             self.wcomms = [local_worker_comm] + self.wcomms
 
         self.W = _WorkerIndexer(self.W, 1 - gen_on_worker)  # if gen on worker, then no additional worker
-        self.wcomms = _WorkerIndexer(self.wcomms, 1 - gen_on_worker)
+        self.wcomms = _WorkerIndexer(self.wcomms, 1 - gen_on_worker)  # type: ignore[assignment]
 
         temp_EnsembleDirectory = EnsembleDirectory(libE_specs=libE_specs)
         self.resources = Resources.resources
