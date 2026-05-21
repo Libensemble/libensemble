@@ -17,21 +17,23 @@ simulator calls to remote Globus Compute endpoints:
 This is useful for running ensembles across machines and heterogeneous resources.
 There are **two approaches**, described below.
 
-The following caveats apply to all Globus Compute modes:
+.. dropdown:: **Caveats**
 
-    1. Simulator functions submitted to Globus Compute must be *non-persistent*,
-       since manager-worker communicators cannot be serialized or used by a
-       remote resource.
+    The following caveats apply to all Globus Compute modes:
 
-    2. ``Executor.manager_poll()`` is not available inside remotely executed
-       functions. Control over remote work is limited to inspecting return
-       values and exceptions when tasks complete.
+        1. Simulator functions submitted to Globus Compute must be *non-persistent*,
+        since manager-worker communicators cannot be serialized or used by a
+        remote resource.
 
-    3. Globus Compute imposes a `handful of task-rate and data limits`_ on
-       submitted functions.
+        2. ``Executor.manager_poll()`` is not available inside remotely executed
+        functions. Control over remote work is limited to inspecting return
+        values and exceptions when tasks complete.
 
-    4. Users are responsible for authenticating via Globus_ and maintaining their
-       `Globus Compute endpoints`_ on their target systems.
+        3. Globus Compute imposes a `handful of task-rate and data limits`_ on
+        submitted functions.
+
+        4. Users are responsible for authenticating via Globus_ and maintaining their
+        `Globus Compute endpoints`_ on their target systems.
 
 .. _gc_only_mode:
 
@@ -99,12 +101,12 @@ GlobusComputeExecutor (user-facing)
 ------------------------------------
 
 For workflows where the simulation function itself orchestrates remote
-calls, for example, fanning out to multiple endpoints or mixing local
-and remote work, use the
+calls, like fanning out to multiple endpoints or mixing local
+and remote work. Use the
 :class:`GlobusComputeExecutor<libensemble.executors.globus_compute_executor.GlobusComputeExecutor>`
 directly inside the simulator.
 
-Create and register the executor in the calling script:
+Create and register the executor in the top-level script:
 
 .. code-block:: python
 

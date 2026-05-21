@@ -166,7 +166,7 @@ libEnsemble executors and can be retrieved from ``libE_info["executor"]``
 inside simulator functions.
 
 See :ref:`Globus Compute - Remote User Functions<globus_compute_ref>` for an
-overview of all three GC integration modes and the
+overview of all Globus Compute integration modes and the
 :doc:`GlobusComputeExecutor API reference<ex_globus_compute>` for the full
 interface.
 
