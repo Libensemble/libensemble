@@ -73,7 +73,7 @@ if __name__ == "__main__":
             "xtol_abs": 1e-6,
             "ftol_abs": 1e-6,
             "dist_to_bound_multiple": 0.5,
-            "max_active_runs": 6,
+            "max_active_runs": nworkers - 1,
             "lb": np.array([-3, -2]),
             "ub": np.array([3, 2]),
         },
@@ -84,7 +84,13 @@ if __name__ == "__main__":
     exit_criteria = {"sim_max": 2000}
 
     # Perform the run
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs, libE_specs=libE_specs)
+    H, persis_info, flag = libE(
+        sim_specs,
+        gen_specs,
+        exit_criteria,
+        alloc_specs=alloc_specs,
+        libE_specs=libE_specs,
+    )
 
     if is_manager:
         print("[Manager]:", H[np.where(H["local_min"])]["x"])
