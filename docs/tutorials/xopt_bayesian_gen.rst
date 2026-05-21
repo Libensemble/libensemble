@@ -10,7 +10,9 @@ We'll show two approaches:
 1. Using an xopt-style simulator (callable function)
 2. Using a libEnsemble-style simulator function
 
-|Open in Colab|
+.. only:: html
+
+    |Open in Colab|
 
 Imports
 -------

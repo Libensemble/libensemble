@@ -89,8 +89,8 @@ class SimSpecs(BaseModel):
 
     simulator: object | None = None
     """
-    A pre-initialized simulator object or callable in gest-api format.
-    When provided, sim_f defaults to gest_api_sim wrapper.
+    A callable (function) in gest-api format.
+    When provided, ``sim_f`` defaults to the ``gest_api_sim`` wrapper.
     """
 
     inputs: list[str] | None = Field(default=[], alias="in")
@@ -243,14 +243,22 @@ class GenSpecs(BaseModel):
     completed evaluations most recently told to the generator.
     """
 
-    initial_sample_method: str | None = None
+    initial_sample_method: str | object | None = None
     """
     Method for producing initial sample points before starting the generator.
     If None (default), the generator is responsible for producing its own initial
-    sample via ``suggest()``. Set to ``"uniform"`` to have libEnsemble generate
-    uniform random samples from VOCS bounds, evaluate them, and ingest the results
-    into the generator before optimization begins. The number of sample points is
-    determined by ``initial_batch_size``.
+    sample via ``suggest()``. May be set to either:
+
+    - a string naming a built-in sampler — currently ``"uniform"`` or
+      ``"latin_hypercube"`` — which libEnsemble instantiates with the VOCS, or
+    - a pre-constructed sampler instance (any object with a ``suggest()`` method,
+      typically a ``LibensembleGenerator`` subclass from ``gen_classes.sampling``).
+      Use this form when you need to pass extra constructor arguments
+      (``random_seed``, ``max_resource_sets``, ``components``, etc.) or want to
+      use a custom sampler.
+
+    libEnsemble draws ``initial_batch_size`` points from the sampler, evaluates
+    them, and ingests the results into the generator before optimization begins.
     """
 
     threaded: bool | None = False
@@ -487,7 +495,7 @@ class LibeSpecs(BaseModel):
     ``False`` by default to protect results.
     """
 
-    workflow_dir_path: str | Path | None = "."
+    workflow_dir_path: str | Path = "."
     """
     Optional path to the workflow directory.
     """
@@ -706,7 +714,7 @@ class LibeSpecs(BaseModel):
     worker_cmd: list[str] | None = []
     """
     TCP Only: Split string corresponding to worker/client Python process invocation. Contains
-    a local Python path, calling script, and manager/server format-fields for ``manager_ip``,
+    a local Python path, user script, and manager/server format-fields for ``manager_ip``,
     ``manager_port``, ``authkey``, and ``workerID``. ``nworkers`` is specified normally.
     """
 

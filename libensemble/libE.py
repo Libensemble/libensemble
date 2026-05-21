@@ -189,7 +189,7 @@ def libE(
     libE_specs: :obj:`dict` or :class:`LibeSpecs<libensemble.specs.LibeSpecs>`, Optional
 
         Specifications for libEnsemble
-        :doc:`(example)<data_structures/libE_specs>`
+        :doc:`(example)<data_structures/libE_specs/libE_specs>`
 
     H0: `NumPy structured array <https://docs.scipy.org/doc/numpy/user/basics.rec.html>`_, Optional
 

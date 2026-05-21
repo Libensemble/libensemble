@@ -47,7 +47,6 @@ py:class libensemble.resources.platforms.Perlmutter
 py:class libensemble.resources.platforms.PerlmutterCPU
 py:class libensemble.resources.platforms.PerlmutterGPU
 py:class libensemble.resources.platforms.Polaris
-py:class libensemble.resources.platforms.Summit
 py:class libensemble.resources.rset_resources.RSetResources
 py:class libensemble.resources.env_resources.EnvResources
 py:class libensemble.resources.resources.Resources
@@ -57,3 +56,15 @@ py:meth libensemble.tools.save_libE_output
 # Types specifying objects that can dramatically vary
 py:class comm
 py:class communicator
+
+# Additional nitpicky targets from recent Sphinx warnings
+py:class libensemble.resources.platforms.Lumi
+py:class libensemble.resources.platforms.LumiGPU
+py:class numpy._typing._array_like._ScalarT
+py:class Comm
+py:class npt.DTypeLike
+py:class libensemble.generators.PersistentGenInterfacer
+py:class gest_api.vocs.VOCS
+py:class libensemble.generators.LibensembleGenerator
+py:class ~_ScalarT
+py:class numpy.random._generator.Generator

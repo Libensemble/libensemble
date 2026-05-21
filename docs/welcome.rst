@@ -40,7 +40,7 @@ libEnsemble
 A complete toolkit for dynamic ensembles of calculations
 
   - New to libEnsemble? :doc:`Start here<introduction>`.
-  - Try out libEnsemble with a :doc:`tutorial<tutorials/local_sine_tutorial>`.
+  - Try out libEnsemble with a :doc:`tutorial<tutorials/local_sine_tutorial/local_sine_tutorial>`.
   - Go in depth by reading the :doc:`full overview<overview_usecases>`.
   - See the :doc:`FAQ<FAQ>` for common questions and answers, errors, and resolutions.
   - Check us out on `GitHub`_.

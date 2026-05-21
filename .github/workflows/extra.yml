@@ -58,7 +58,7 @@ jobs:
 
         - name: Install other testing dependencies
           run: |
-            pixi run -e ${{ matrix.python-version }} install/install_ibcdfo.sh
+            pixi run -e ${{ matrix.python-version }} install/install_minq.sh
 
         - name: Install libEnsemble, flake8, lock environment
           run: |
@@ -111,4 +111,4 @@ jobs:
         runs-on: ubuntu-latest
         steps:
         - uses: actions/checkout@v6
-        - uses: crate-ci/typos@v1.46.0
+        - uses: crate-ci/typos@v1.46.1

@@ -159,16 +159,32 @@ class StandardGenRunner(Runner):
         return self._loop_over_gen(tag, Work, H_in)
 
     def _create_initial_sample(self, sample_method, num_points):
-        """Create initial sample points using the specified sampling method."""
-        from libensemble.gen_classes.sampling import UniformSample
+        """Create initial sample points using the specified sampling method.
 
-        vocs = self.specs.get("vocs")
-        samplers = {
-            "uniform": UniformSample,
-        }
-        if sample_method not in samplers:
-            raise ValueError(f"Unknown initial_sample_method: {sample_method!r}. Supported: {list(samplers.keys())}")
-        sampler = samplers[sample_method](vocs=vocs)
+        ``sample_method`` may be either a string naming a built-in sampler
+        (instantiated here with the VOCS), or a pre-constructed sampler
+        instance with a ``suggest()`` method (used directly).
+        """
+        from libensemble.gen_classes.sampling import LatinHypercubeSample, UniformSample
+
+        if isinstance(sample_method, str):
+            samplers = {
+                "uniform": UniformSample,
+                "latin_hypercube": LatinHypercubeSample,
+            }
+            if sample_method not in samplers:
+                raise ValueError(
+                    f"Unknown initial_sample_method: {sample_method!r}. "
+                    f"Supported: {list(samplers.keys())}"
+                )
+            sampler = samplers[sample_method](vocs=self.specs.get("vocs"))
+        else:
+            sampler = sample_method
+            if not hasattr(sampler, "suggest"):
+                raise TypeError(
+                    "initial_sample_method must be a string name or an object "
+                    f"with a suggest() method; got {type(sampler).__name__}"
+                )
         return sampler.suggest(num_points)
 
     def _persistent_result(self, calc_in, persis_info, libE_info):

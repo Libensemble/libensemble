@@ -4,16 +4,18 @@ Ensemble with an MPI Application
 
 This tutorial highlights libEnsemble's capability to portably execute
 and monitor external scripts or user applications within simulation or generator
-functions using the :doc:`executor<../executor/overview>`.
+functions using the :doc:`executor<../executor/ex_index>`.
 
-|Open in Colab|
+.. only:: html
+
+    |Open in Colab|
 
 The calling script registers a compiled executable that simulates
 electrostatic forces between a collection of particles. The simulator function
 launches instances of this executable and reads output files to determine
 the result.
 
-This tutorial uses libEnsemble's :doc:`MPI Executor<../executor/mpi_executor>`,
+This tutorial uses libEnsemble's :doc:`MPI Executor<../executor/ex_index>`,
 which automatically detects available MPI runners and resources.
 
 This example also uses a persistent generator. This generator runs on a
@@ -49,7 +51,7 @@ generation functions and call libEnsemble. Create a Python file called
     :linenos:
     :end-at: ensemble = Ensemble
 
-We first instantiate our :doc:`MPI Executor<../executor/mpi_executor>`.
+We first instantiate our :doc:`MPI Executor<../executor/ex_index>`.
 Registering an application is as easy as providing the full file-path and giving
 it a memorable name. This Executor will later be used within our simulation
 function to launch the registered app.
@@ -82,32 +84,15 @@ expect, and also to parameterize user functions:
     :end-at: gen_specs_end_tag
     :lineno-start: 37
 
-Next, configure an allocation function, which starts the one persistent
-generator and farms out the simulations. We also tell it to wait for all
-simulations to return their results, before generating more parameters.
-
-.. literalinclude:: ../../libensemble/tests/functionality_tests/test_executor_forces_tutorial.py
-    :language: python
-    :linenos:
-    :start-at: ensemble.alloc_specs = AllocSpecs
-    :end-at: )
-    :lineno-start: 55
-
-Now we set :ref:`exit_criteria<datastruct-exit-criteria>` to
-exit after running eight simulations.
-
-We also give each worker a seeded random stream, via the
-:ref:`persis_info<datastruct-persis-info>`  option.
-These can be used for random number generation if required.
-
-Finally we :doc:`run<../libe_module>` the ensemble.
+Next, we set :ref:`exit_criteria<datastruct-exit-criteria>` to
+exit after running eight simulations, and finally we :doc:`run<../libe_module>` the ensemble.
 
 .. literalinclude:: ../../libensemble/tests/functionality_tests/test_executor_forces_tutorial.py
     :language: python
     :linenos:
     :start-at: Instruct libEnsemble
     :end-at: ensemble.run()
-    :lineno-start: 62
+    :lineno-start: 55
 
 Exercise
 ^^^^^^^^

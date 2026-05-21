@@ -4,7 +4,7 @@ Resource Detection
 ==================
 
 The resource manager can detect system resources, and partition
-these to workers. The :doc:`MPI Executor<../executor/mpi_executor>`
+these to workers. The :doc:`MPI Executor<../executor/ex_index>`
 accesses the resources available to the current worker when launching tasks.
 
 Node-lists are detected by an environment variable on the following systems:

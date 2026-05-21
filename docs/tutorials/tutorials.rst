@@ -3,7 +3,7 @@ Tutorials
 
 .. toctree::
 
-   local_sine_tutorial
+   local_sine_tutorial/local_sine_tutorial
    executor_forces_tutorial
    forces_gpu_tutorial
    gpcam_tutorial

@@ -101,7 +101,7 @@ ibcdfo = { git = "https://github.com/POptUS/IBCDFO.git", subdirectory = "ibcdfo_
 # "dev" dependencies needed for basic CI
 flake8 = ">=7.3.0,<8"
 coverage = ">=7.13.0,<8"
-pytest = ">=9.0.3,<10"
+pytest = ">=9.0.3, <10"
 
 pytest-cov = ">=7.0.0,<8"
 pytest-timeout = ">=2.4.0,<3"
@@ -137,9 +137,17 @@ ipdb = ">=0.13.13,<0.14"
 mypy = ">=1.19.1,<2"
 types-psutil = ">=6.1.0.20241221,<7"
 types-pyyaml = ">=6.0.12.20250915,<7"
+furo = ">=2025.12.19,<2026"
+latexcodec = ">=2.0.1,<3"
+latexmk = ">=4.88,<5"
+fonts-conda-forge = ">=1,<2"
+imagemagick = ">=7.1.2_16,<8"
 
 [tool.pixi.tasks.build-docs]
 cmd = "cd docs && make html"
+
+[tool.pixi.tasks.build-pdf]
+cmd = "cd docs && make latexpdf"
 
 # Linux dependencies, only for extra tests
 [tool.pixi.feature.extra.target.linux-64.dependencies]
@@ -164,13 +172,13 @@ python = "3.14.*"
 ax-platform = "==0.5.0"
 
 [tool.pixi.feature.py311e.dependencies]
-globus-compute-sdk = ">=4.3.0,<5"
+globus-compute-sdk = ">=4.10.2,<5"
 
 [tool.pixi.feature.py312e.target.linux-64.dependencies]
 ax-platform = "==0.5.0"
 
 [tool.pixi.feature.py312e.dependencies]
-globus-compute-sdk = ">=4.3.0,<5"
+globus-compute-sdk = ">=4.10.2,<5"
 
 [tool.pixi.feature.py313e.target.linux-64.dependencies]
 ax-platform = "==0.5.0"
@@ -202,7 +210,7 @@ extra = [
   "pyenchant>=3.2.2",
   "enchant>=0.0.1,<0.0.2",
   "redis>=7.1.0,<8",
-  "surmise>=0.3.0,<0.5",
+  "surmise>=0.3.0,<0.4",
   "optimas @ git+https://github.com/optimas-org/optimas@multitask_uses_id",
 ]
 dev = ["wat>=0.7.0,<0.8"]
@@ -246,7 +254,7 @@ extend-exclude = ["*.bib", "*.xml", "docs/nitpicky"]
 # Initial, permissive mypy configuration for libensemble.
 # Allows incremental adoption. To be tightened in future releases.
 packages = ["libensemble.utils"]
-exclude = 'libensemble/utils/(launcher|loc_stack|runners|pydantic|output_directory)\.py$|libensemble/tests/(regression_tests|functionality_tests|unit_tests|scaling_tests)/.*'
+exclude = 'docs/conf.py$|libensemble/utils/(launcher|loc_stack|runners|pydantic|output_directory)\.py$|libensemble/tests/(regression_tests|functionality_tests|unit_tests|scaling_tests)/.*'
 disable_error_code = ["import-not-found", "import-untyped"]
 ignore_missing_imports = true
 follow_imports = "skip"
