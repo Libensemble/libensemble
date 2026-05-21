@@ -101,7 +101,7 @@ ibcdfo = { git = "https://github.com/POptUS/IBCDFO.git", subdirectory = "ibcdfo_
 # "dev" dependencies needed for basic CI
 flake8 = ">=7.3.0,<8"
 coverage = ">=7.13.0,<8"
-pytest = ">=9.0.3,<10"
+pytest = ">=9.0.3, <10"
 
 pytest-cov = ">=7.0.0,<8"
 pytest-timeout = ">=2.4.0,<3"
@@ -180,13 +180,13 @@ python = "3.14.*"
 ax-platform = "==0.5.0"
 
 [tool.pixi.feature.py311e.dependencies]
-globus-compute-sdk = ">=4.3.0,<5"
+globus-compute-sdk = ">=4.10.2,<5"
 
 [tool.pixi.feature.py312e.target.linux-64.dependencies]
 ax-platform = "==0.5.0"
 
 [tool.pixi.feature.py312e.dependencies]
-globus-compute-sdk = ">=4.3.0,<5"
+globus-compute-sdk = ">=4.10.2,<5"
 
 [tool.pixi.feature.py313e.target.linux-64.dependencies]
 ax-platform = "==0.5.0"
@@ -218,7 +218,7 @@ extra = [
   "pyenchant>=3.2.2",
   "enchant>=0.0.1,<0.0.2",
   "redis>=7.1.0,<8",
-  "surmise>=0.3.0,<0.5",
+  "surmise>=0.3.0,<0.4",
   "optimas @ git+https://github.com/optimas-org/optimas@multitask_uses_id",
 ]
 dev = ["wat>=0.7.0,<0.8"]

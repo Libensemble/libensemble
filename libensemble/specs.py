@@ -244,14 +244,22 @@ class GenSpecs(BaseModel):
     completed evaluations most recently told to the generator.
     """
 
-    initial_sample_method: str | None = None
+    initial_sample_method: str | object | None = None
     """
     Method for producing initial sample points before starting the generator.
     If None (default), the generator is responsible for producing its own initial
-    sample via ``suggest()``. Set to ``"uniform"`` to have libEnsemble generate
-    uniform random samples from VOCS bounds, evaluate them, and ingest the results
-    into the generator before optimization begins. The number of sample points is
-    determined by ``initial_batch_size``.
+    sample via ``suggest()``. May be set to either:
+
+    - a string naming a built-in sampler — currently ``"uniform"`` or
+      ``"latin_hypercube"`` — which libEnsemble instantiates with the VOCS, or
+    - a pre-constructed sampler instance (any object with a ``suggest()`` method,
+      typically a ``LibensembleGenerator`` subclass from ``gen_classes.sampling``).
+      Use this form when you need to pass extra constructor arguments
+      (``random_seed``, ``max_resource_sets``, ``components``, etc.) or want to
+      use a custom sampler.
+
+    libEnsemble draws ``initial_batch_size`` points from the sampler, evaluates
+    them, and ingests the results into the generator before optimization begins.
     """
 
     threaded: bool | None = False
