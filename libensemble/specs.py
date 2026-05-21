@@ -1,5 +1,4 @@
 import random
-import sys
 import warnings
 from pathlib import Path
 
@@ -563,14 +562,15 @@ class LibeSpecs(BaseModel):
 
     cache_long_sims: bool | None = False
     """
-    Cache simulation results with runtimes >1s to disk. Subsequent runs of the same
-    base script with the same command-line arguments will access this cache.
+    Cache simulation results with runtimes >1s to disk. Subsequent runs with an
+    identical configuration (specs, callables, H0) will access this cache.
 
     Upon the generator creating points already in the cache, those points will be skipped from
     being sent for evaluation. Instead the corresponding cached results are retrieved and returned
     to the generator.
 
-    The cache is saved in cache_dir, and by default is named after the joined command-line arguments.
+    The cache is saved in ``cache_dir``.  When ``cache_name`` is ``None``, the filename is
+    automatically derived from a SHA-256 hash of the full ensemble configuration.
     """
 
     cache_dir: str | Path | None = str(Path.home() / ".cache" / "libensemble")
@@ -578,10 +578,11 @@ class LibeSpecs(BaseModel):
     The directory to store the cache file. Defaults to `~/.cache/libensemble`.
     """
 
-    cache_name: str | None = "_".join(sys.argv)
+    cache_name: str | None = None
     """
-    The name of the cache file. Stored in cache_dir, and by default is named after the
-    joined command-line arguments.
+    The name of the cache file. Stored in cache_dir.
+    When ``None`` and ``cache_long_sims`` is ``True``, a name is automatically
+    derived from a SHA-256 hash of the full ensemble configuration.
     """
 
     calc_dir_id_width: int | None = 4

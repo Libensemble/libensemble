@@ -137,7 +137,7 @@ from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, Sim
 from libensemble.tools.alloc_support import AllocSupport
 from libensemble.tools.tools import _USER_SIM_ID_WARNING
 from libensemble.utils import launcher
-from libensemble.utils.misc import specs_dump
+from libensemble.utils.misc import compute_config_hash, specs_dump
 from libensemble.utils.timer import Timer
 from libensemble.version import __version__
 from libensemble.worker import worker_main
@@ -235,11 +235,26 @@ def libE(
         exit_criteria=exit_criteria,
     )
 
+    # Compute a deterministic hash of the full configuration for cache integrity.
+    spec_hash = compute_config_hash(
+        sim_specs=ensemble.sim_specs,
+        gen_specs=ensemble.gen_specs,
+        alloc_specs=ensemble.alloc_specs,
+        libE_specs=ensemble.libE_specs,
+        exit_criteria=ensemble.exit_criteria,
+        H0=H0,
+    )
+
     (sim_specs, gen_specs, alloc_specs, libE_specs) = [
         specs_dump(spec, by_alias=True)
         for spec in [ensemble.sim_specs, ensemble.gen_specs, ensemble.alloc_specs, ensemble.libE_specs]
     ]
     exit_criteria = specs_dump(ensemble.exit_criteria, by_alias=True, exclude_none=True)
+
+    # Inject spec hash and auto-generate cache name when not explicitly provided.
+    libE_specs["_spec_hash"] = spec_hash
+    if libE_specs.get("cache_long_sims") and not libE_specs.get("cache_name"):
+        libE_specs["cache_name"] = f".libe_cache_{spec_hash[:16]}"
 
     # Restore objects that don't survive serialization via model_dump
     if hasattr(ensemble.sim_specs, "simulator") and ensemble.sim_specs.simulator is not None:

@@ -1,3 +1,4 @@
+import json
 import logging
 import time
 from pathlib import Path
@@ -124,14 +125,41 @@ class History:
         self.last_started = -1
         self.last_ended = -1
 
-    def init_cache(self, cache_name: str, cache_dir: str | Path) -> None:
+    def init_cache(
+        self,
+        cache_name: str,
+        cache_dir: str | Path,
+        spec_hash: str | None = None,
+    ) -> None:
         self.cache_dir = Path(cache_dir).expanduser()
         self.cache_dir.mkdir(parents=True, exist_ok=True)
         self.cache = self.cache_dir / Path(cache_name + ".npy")
-        if not self.cache.exists():
-            self.cache.touch()
+        self.cache_meta = self.cache_dir / Path(cache_name + ".meta.json")
+        self.spec_hash = spec_hash
         self.use_cache = True
         self.cache_set = False
+
+        # Validate any existing cache against the configuration hash.
+        cache_valid = False
+        if self.cache.exists():
+            if self.cache_meta.exists():
+                try:
+                    with open(self.cache_meta) as f:
+                        meta = json.load(f)
+                    if meta.get("spec_hash") == spec_hash:
+                        cache_valid = True
+                except (json.JSONDecodeError, KeyError):
+                    pass
+            if not cache_valid:
+                logger.debug(
+                    "Cache hash mismatch or missing metadata — starting fresh: %s",
+                    self.cache.name,
+                )
+                self.cache.unlink(missing_ok=True)
+
+        if not self.cache.exists():
+            self.cache.touch()
+
         try:
             self.in_cache = np.load(self.cache, allow_pickle=True)
         except EOFError:
@@ -171,6 +199,9 @@ class History:
     def save_cache(self) -> None:
         if self.use_cache and self.cache_set and self.in_cache is not None:
             np.save(self.cache, self.in_cache, allow_pickle=True)
+            if self.spec_hash:
+                with open(self.cache_meta, "w") as f:
+                    json.dump({"spec_hash": self.spec_hash}, f)
 
     def get_shelved_sims(self) -> npt.NDArray:
         return self.in_cache if self.in_cache is not None else np.load(self.cache, allow_pickle=True)
