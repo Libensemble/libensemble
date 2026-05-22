@@ -96,7 +96,16 @@ def check_gpu_setting_type(cls, value):
 
 def check_mpi_runner_type(cls, value):
     if value is not None:
-        assert value in ["mpich", "openmpi", "aprun", "srun", "jsrun", "msmpi", "custom"], "Invalid MPI runner name"
+        assert value in [
+            "mpich",
+            "openmpi",
+            "aprun",
+            "srun",
+            "jsrun",
+            "msmpi",
+            "flux",
+            "custom",
+        ], "Invalid MPI runner name"
     return value
 
 

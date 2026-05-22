@@ -216,6 +216,13 @@ extra = [
 dev = ["wat>=0.7.0,<0.8"]
 docs = ["pyenchant", "enchant>=0.0.1,<0.0.2", "sphinx-lfs-content>=1.1.10,<2"]
 
+# Note: For FluxExecutor (native Flux Python API), the flux-core Python bindings
+# are required. These are typically installed via:
+#   - conda: conda install -c conda-forge flux-core
+#   - spack: spack install flux-core
+#   - system package manager on supported systems
+# The MPIExecutor with mpi_runner="flux" works without Python bindings.
+
 # Various config from here onward
 [tool.black]
 line-length = 120

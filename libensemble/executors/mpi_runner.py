@@ -19,6 +19,7 @@ class MPIRunner:
             "srun": SRUN_MPIRunner,
             "jsrun": JSRUN_MPIRunner,
             "msmpi": MSMPI_MPIRunner,
+            "flux": FLUX_MPIRunner,
             "custom": MPIRunner,
         }
         runner = None
@@ -518,4 +519,40 @@ class JSRUN_MPIRunner(MPIRunner):
 
     def express_spec(self, task, nprocs, nnodes, ppn, machinefile, hyperthreads, extra_args, resources, workerID):
         """Returns None, None as jsrun uses neither hostlist or machinefile"""
+        return None, None
+
+
+class FLUX_MPIRunner(MPIRunner):
+    """MPI Runner for Flux Framework (flux run).
+
+    Flux provides flexible resource management and job scheduling.
+    See https://flux-framework.org/ for details.
+    """
+
+    def __init__(self, run_command="flux", platform_info=None):
+        self.run_command = run_command
+        self.subgroup_launch = False  # Flux manages job lifecycle
+        self.mfile_support = False
+        self.arg_nprocs = ("-n", "--ntasks")
+        self.arg_nnodes = ("-N", "--nodes")
+        self.arg_ppn = ("--tasks-per-node",)
+        self.default_mpi_options = None
+        self.default_gpu_arg_type = "option_gpus_per_task"
+        self.default_gpu_args = {"option_gpus_per_task": "-g", "option_gpus_per_node": "--gpus-per-node"}
+        self.platform_info = platform_info
+        self.rm_rpn = False
+
+        # flux run command template
+        # Note: "run" subcommand is added after the base command
+        self.mpi_command = [
+            self.run_command,
+            "run",
+            "-N {num_nodes}",
+            "-n {num_procs}",
+            "--tasks-per-node {procs_per_node}",
+            "{extra_args}",
+        ]
+
+    def express_spec(self, task, nprocs, nnodes, ppn, machinefile, hyperthreads, extra_args, resources, workerID):
+        """Returns None, None as flux manages resources internally"""
         return None, None
