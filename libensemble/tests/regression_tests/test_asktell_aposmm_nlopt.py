@@ -52,9 +52,7 @@ def six_hump_camel_func(x):
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
-
     for run in range(3):
-
         workflow = Ensemble(parse_args=True)
 
         if workflow.is_manager:
@@ -63,14 +61,23 @@ if __name__ == "__main__":
         n = 2
 
         vocs = VOCS(
-            variables={"core": [-3, 3], "edge": [-2, 2], "core_on_cube": [-3, 3], "edge_on_cube": [-2, 2]},
+            variables={
+                "core": [-3, 3],
+                "edge": [-2, 2],
+                "core_on_cube": [-3, 3],
+                "edge_on_cube": [-2, 2],
+            },
             objectives={"energy": "MINIMIZE"},
         )
 
         aposmm = APOSMM(
             vocs,
-            max_active_runs=workflow.nworkers,  # should this match nworkers always? practically?
-            variables_mapping={"x": ["core", "edge"], "x_on_cube": ["core_on_cube", "edge_on_cube"], "f": ["energy"]},
+            max_active_runs=workflow.nworkers - 1,  # should this match nworkers always?
+            variables_mapping={
+                "x": ["core", "edge"],
+                "x_on_cube": ["core_on_cube", "edge_on_cube"],
+                "f": ["energy"],
+            },
             initial_sample_size=100,
             sample_points=minima,
             localopt_method="LN_BOBYQA",
