@@ -373,6 +373,15 @@ def test_asktell_errors():
         pytest.fail("Should've failed on consecutive setup")
     my_APOSMM.finalize()
 
+    from libensemble.utils.runners import Runner
+
+    def gest_style_sim(_):
+        return {"energy": 0.0}
+
+    runner = Runner({"sim_f": gest_style_sim})
+    with pytest.raises(AttributeError, match="SimSpecs.simulator"):
+        runner.run(np.zeros(1), {"persis_info": {}, "libE_info": {}})
+
 
 @pytest.mark.extra
 def test_asktell_ingest_first():
