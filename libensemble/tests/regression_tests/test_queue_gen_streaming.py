@@ -36,7 +36,8 @@ def doubler_sim(InputArray, _, sim_specs):
 def main():
     vocs = VOCS(variables={"x": [-100.0, 100.0]}, objectives={"y": "MINIMIZE"})
     sim_specs = SimSpecs(sim_f=doubler_sim, inputs=["x"], outputs=[("y", float)])
-    libE_specs = LibeSpecs(nworkers=NWORKERS, service_mode=True, final_gen_send=True)
+    libE_specs = LibeSpecs(nworkers=NWORKERS, service_mode=True,
+                           service_mode_idle_timeout=30, final_gen_send=True)
     exit_criteria = ExitCriteria(sim_max=TOTAL)
 
     service = QueueService(vocs, sim_specs, libE_specs, exit_criteria)
