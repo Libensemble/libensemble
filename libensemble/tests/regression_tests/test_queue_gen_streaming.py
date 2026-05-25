@@ -1,11 +1,11 @@
-"""Test for QueueGenerator / QueueService
+"""Test for QueueGenerator / QueueService — streaming with replacement.
 
-Uses QueueService to spin up libE in a thread with a trivial doubler sim,
-submits N work items, drains results, shuts down, joins.
-
+Submit NWORKERS items so each worker has work, then as each result comes
+back submit a replacement until TOTAL items have been submitted. Drain
+the remaining results and shutdown.
 
 Run with:
-    python test_queue_gen.py
+    python test_queue_gen_streaming.py
 """
 
 # Do not change these lines - they are parsed by run-tests.sh
@@ -22,7 +22,7 @@ from libensemble.gen_classes.queue_gen import QueueService
 from libensemble.specs import ExitCriteria, LibeSpecs, SimSpecs
 
 NWORKERS = 4
-N_SUBMITS = 10
+TOTAL = 16  # total items to submit (>> NWORKERS so the rolling window matters)
 
 
 def doubler_sim(InputArray, _, sim_specs):
@@ -37,28 +37,34 @@ def main():
     vocs = VOCS(variables={"x": [-100.0, 100.0]}, objectives={"y": "MINIMIZE"})
     sim_specs = SimSpecs(sim_f=doubler_sim, inputs=["x"], outputs=[("y", float)])
     libE_specs = LibeSpecs(nworkers=NWORKERS, service_mode=True, final_gen_send=True)
-    exit_criteria = ExitCriteria(sim_max=N_SUBMITS)
+    exit_criteria = ExitCriteria(sim_max=TOTAL)
 
     service = QueueService(vocs, sim_specs, libE_specs, exit_criteria,
                            persis_in=["x", "y"], batch_size=1)
     service.start()
     print(f"libE thread started ({NWORKERS} workers)")
 
-    # Submit work (1, 2, 3....), then  signal shutdown.
-    for i in range(N_SUBMITS):
+    # Submit one item per worker
+    for i in range(NWORKERS):
         service.submit({"x": float(i)})
+    submitted = NWORKERS
+    print(f"submitted initial {NWORKERS} items")
+
+    # As each result arrives, submit a replacement until TOTAL submitted
+    results = []
+    for r in service.stream_results(TOTAL, timeout=60):
+        results.append(r)
+        print(f"  got ({len(results)}/{TOTAL}): {r}")
+        if submitted < TOTAL:
+            service.submit({"x": float(submitted)})
+            submitted += 1
+
     service.shutdown()
-    print(f"submitted {N_SUBMITS} items + shutdown sentinel")
+    print(f"\nsubmitted {submitted}, collected {len(results)}/{TOTAL}")
 
-    # Block-drain until all results collected (or timeout)
-    results = service.collect_results(N_SUBMITS, timeout=60)
-    print(f"\ncollected {len(results)}/{N_SUBMITS}")
-
-    # Verify y == 2*x
     ok = all(math.isclose(r["y"], 2 * r["x"]) for r in results)
     print("PASS" if ok else "FAIL")
 
-    # Wait for libE to wind down
     service.join(timeout=10)
     print("done")
 
