@@ -128,6 +128,11 @@ class QueueService:
         from libensemble import Ensemble
         from libensemble.specs import GenSpecs
 
+        # final_gen_send must be True for QueueGenerator — otherwise the last
+        # batch of completed sims is never ingested and never reaches the
+        # output_queue, so consumers silently miss results.
+        libE_specs.final_gen_send = True
+
         self.input_queue: Queue = Queue()
         self.output_queue: Queue = Queue()
         self._gen = QueueGenerator(
