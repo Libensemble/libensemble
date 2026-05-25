@@ -39,7 +39,7 @@ def main():
     libE_specs = LibeSpecs(nworkers=NWORKERS, service_mode=True, final_gen_send=True)
     exit_criteria = ExitCriteria(sim_max=N_SUBMITS)
 
-    service = QueueService(vocs, sim_specs, libE_specs, exit_criteria, batch_size=1)
+    service = QueueService(vocs, sim_specs, libE_specs, exit_criteria)
     service.start()
     print(f"libE thread started ({NWORKERS} workers)")
 

@@ -122,7 +122,7 @@ class QueueService:
         exit_criteria,
         *,
         persis_in: Optional[List[str]] = None,
-        batch_size: int = 1,
+        batch_size: int = 0,
         poll_timeout: float = 1.0,
     ):
         from libensemble import Ensemble
