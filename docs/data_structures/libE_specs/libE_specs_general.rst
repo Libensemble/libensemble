@@ -38,3 +38,17 @@ General
 **gen_workers** [list of ints]:
     List of workers that should run only generators. All other workers will run
     only simulator functions.
+
+**service_mode** [bool] = ``False``:
+    If ``True``, the manager tolerates idle workers + an alloc returning no work
+    (instead of asserting). Used when libEnsemble is driven by an external
+    producer (e.g. a queue-backed Generator fed by an MCP server) and may
+    legitimately have nothing to dispatch for periods of time. The manager
+    sleeps briefly between checks instead of panicking. Termination is the
+    caller's responsibility (e.g. via ``exit_criteria`` or external stop).
+
+**service_mode_idle_timeout** [float]:
+    In ``service_mode``, exit after this many seconds with no active workers
+    and no work dispatched. Default ``None`` means run forever waiting for
+    new submissions. Useful so an external producer doesn't leave libE running
+    after it goes silent.
