@@ -439,6 +439,24 @@ class LibeSpecs(BaseModel):
     By default, the generator runs on the manager process as a thread (Worker 0).
     """
 
+    service_mode: bool = False
+    """
+    If True, the manager tolerates idle workers + an alloc returning no work
+    (instead of asserting). Used when libEnsemble is driven by an external
+    producer (e.g. a queue-backed Generator fed by an MCP server) and may
+    legitimately have nothing to dispatch for periods of time. The manager
+    sleeps briefly between checks instead of panicking. Termination is the
+    caller's responsibility (e.g. via ``exit_criteria`` or external stop).
+    """
+
+    service_mode_idle_timeout: float | None = None
+    """
+    In ``service_mode``, exit after this many seconds with no active workers
+    and no work dispatched. ``None`` (default) means run forever waiting for
+    new submissions. Useful so an MCP server doesn't leave libE running after
+    the agent goes silent.
+    """
+
     mpi_comm: object | None = None
     """ libEnsemble MPI communicator. Default: ``MPI.COMM_WORLD``"""
 
