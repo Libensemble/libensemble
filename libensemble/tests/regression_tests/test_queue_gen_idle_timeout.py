@@ -36,7 +36,6 @@ def main():
         nworkers=NWORKERS,
         service_mode=True,
         service_mode_idle_timeout=IDLE_TIMEOUT,
-        final_gen_send=True,
     )
     exit_criteria = ExitCriteria(sim_max=1000)  # large so idle_timeout fires first
 
