@@ -270,6 +270,97 @@ def test_ready_happy_path():
     assert issues == [], f"Issues should be empty but got: {issues}"
 
 
+def test_gen_specs_vocs_populates_user_bounds():
+    """GenSpecs should populate user['lb']/['ub'] from VOCS continuous variables."""
+    from gest_api.vocs import VOCS
+
+    from libensemble.specs import GenSpecs
+
+    vocs = VOCS(
+        variables={"x0": [-3, 3], "x1": [-2, 2], "x2": [-1, 1], "x3": [-1, 1]},
+        objectives={"f": "MINIMIZE"},
+    )
+    gs = GenSpecs(vocs=vocs)
+    assert "lb" in gs.user, "lb should be populated in user from VOCS"
+    assert "ub" in gs.user, "ub should be populated in user from VOCS"
+    assert isinstance(gs.user["lb"], np.ndarray), "lb should be a numpy array"
+    assert isinstance(gs.user["ub"], np.ndarray), "ub should be a numpy array"
+    assert np.array_equal(gs.user["lb"], np.array([-3, -2, -1, -1]))
+    assert np.array_equal(gs.user["ub"], np.array([3, 2, 1, 1]))
+
+
+def test_gen_specs_vocs_does_not_overwrite_user_bounds():
+    """GenSpecs should not overwrite user-provided lb/ub when vocs is also given."""
+    from gest_api.vocs import VOCS
+
+    from libensemble.specs import GenSpecs
+
+    vocs = VOCS(variables={"x0": [-3, 3], "x1": [-2, 2]}, objectives={"f": "MINIMIZE"})
+    explicit_lb = np.array([0.0, 0.0])
+    explicit_ub = np.array([1.0, 1.0])
+    gs = GenSpecs(vocs=vocs, user={"lb": explicit_lb, "ub": explicit_ub})
+    assert np.array_equal(gs.user["lb"], explicit_lb), "Explicit lb should be preserved"
+    assert np.array_equal(gs.user["ub"], explicit_ub), "Explicit ub should be preserved"
+
+
+def test_gen_specs_vocs_partial_user_bounds():
+    """GenSpecs should fill in only the missing one of lb/ub if user supplies just one."""
+    from gest_api.vocs import VOCS
+
+    from libensemble.specs import GenSpecs
+
+    vocs = VOCS(variables={"x0": [-3, 3], "x1": [-2, 2]}, objectives={"f": "MINIMIZE"})
+    explicit_lb = np.array([0.0, 0.0])
+    gs = GenSpecs(vocs=vocs, user={"lb": explicit_lb})
+    assert np.array_equal(gs.user["lb"], explicit_lb), "Explicit lb should be preserved"
+    assert "ub" in gs.user, "ub should be populated from VOCS"
+    assert np.array_equal(gs.user["ub"], np.array([3, 2]))
+
+
+def test_gen_specs_no_vocs_leaves_user_empty():
+    """Without VOCS, GenSpecs.user should remain empty by default."""
+    from libensemble.specs import GenSpecs
+
+    gs = GenSpecs(outputs=[("x", float, (1,))])
+    assert "lb" not in gs.user, "lb should not be auto-populated without VOCS"
+    assert "ub" not in gs.user, "ub should not be auto-populated without VOCS"
+
+
+def test_gen_specs_vocs_satisfies_legacy_user_params():
+    """VOCS-populated user bounds should satisfy legacy gen_f consumers like
+    persistent_uniform (which require lb/ub to be numpy arrays and uses len(lb)
+    for dimension)."""
+    from gest_api.vocs import VOCS
+
+    from libensemble.gen_funcs.persistent_sampling import _get_user_params
+    from libensemble.specs import GenSpecs
+
+    vocs = VOCS(variables={"x0": [-3, 3], "x1": [-2, 2]}, objectives={"f": "MINIMIZE"})
+    gs = GenSpecs(vocs=vocs, initial_batch_size=10)
+
+    # Convert to dict shape that _get_user_params expects
+    gs_dict = {"initial_batch_size": gs.initial_batch_size, "user": gs.user}
+    b, n, lb, ub = _get_user_params(gs_dict["user"], gs_dict)
+    assert b == 10
+    assert n == 2
+    assert isinstance(lb, np.ndarray) and lb.dtype == float
+    assert isinstance(ub, np.ndarray) and ub.dtype == float
+    assert np.array_equal(lb, np.array([-3.0, -2.0]))
+    assert np.array_equal(ub, np.array([3.0, 2.0]))
+
+
+def test_gen_specs_vocs_integer_domain_yields_float_array():
+    """Integer-valued VOCS domains should still produce float dtype lb/ub arrays."""
+    from gest_api.vocs import VOCS
+
+    from libensemble.specs import GenSpecs
+
+    vocs = VOCS(variables={"x0": [0, 10], "x1": [-5, 5]}, objectives={"f": "MINIMIZE"})
+    gs = GenSpecs(vocs=vocs)
+    assert gs.user["lb"].dtype == float, "lb should be float dtype even for integer-domain variables"
+    assert gs.user["ub"].dtype == float, "ub should be float dtype even for integer-domain variables"
+
+
 if __name__ == "__main__":
     test_ensemble_init()
     test_ensemble_parse_args_false()
@@ -283,3 +374,9 @@ if __name__ == "__main__":
     test_ready_missing_nworkers_local()
     test_ready_field_mismatch()
     test_ready_happy_path()
+    test_gen_specs_vocs_populates_user_bounds()
+    test_gen_specs_vocs_does_not_overwrite_user_bounds()
+    test_gen_specs_vocs_partial_user_bounds()
+    test_gen_specs_no_vocs_leaves_user_empty()
+    test_gen_specs_vocs_satisfies_legacy_user_params()
+    test_gen_specs_vocs_integer_domain_yields_float_array()
