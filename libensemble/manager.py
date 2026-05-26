@@ -428,12 +428,28 @@ class Manager:
             if "sim_id" not in self.gen_specs["persis_in"]:
                 self.gen_specs["persis_in"].append("sim_id")
 
-    def _check_cache_matches(self, cache_row: npt.NDArray, work_row: int, new_dtype: np.dtype) -> bool:
-        """Checks if a cache row matches the work row for all *outbound* *sim* fields
+    def _find_cache_match(self, work_row: int, cache: npt.NDArray, new_dtype: np.dtype) -> int:
+        """Return the index of the first cache row that matches the work row for all outbound sim fields.
 
-        See _send_work_order for the source of new_dtype - this is the dtype of the outbound sim fields
+        Vectorizes the comparison across the full cache axis per field, short-circuiting as soon
+        as any field eliminates all remaining candidates.  Returns -1 when no match is found.
         """
-        return all(np.allclose(cache_row[f], self.hist.H[f][work_row]) for f in np.dtype(new_dtype).names)
+        mask = np.ones(len(cache), dtype=bool)
+        for f in np.dtype(new_dtype).names:
+            cf = cache[f]
+            hf = self.hist.H[f][work_row]
+            try:
+                if cf.ndim == 1:
+                    mask &= np.isclose(cf, hf)
+                else:
+                    # multi-dim field: reduce over all axes except the cache axis
+                    mask &= np.all(np.isclose(cf, hf), axis=tuple(range(1, cf.ndim)))
+            except (TypeError, ValueError):
+                # object or non-numeric dtype: fall back to element-wise equality
+                mask &= np.array([c == hf for c in cf])
+            if not mask.any():
+                return -1
+        return int(np.argmax(mask)) if mask.any() else -1
 
     def _update_local_entry_from_cache(
         self, cache_row: npt.NDArray, work_row: int, new_dtype: np.dtype, w: int, dtype_with_idx: np.dtype
@@ -451,23 +467,25 @@ class Manager:
         self, cache: npt.NDArray, Work: dict, w: int, dtype_with_idx: np.dtype, new_dtype: np.dtype
     ) -> None:
         """
-        Check if any work rows are in the cache, and if so, call the above, _refresh_from_cache
+        Check if any work rows are in the cache, and if so, call _update_local_entry_from_cache
         to update the local `from_cache` record.
 
-        Each H_row in the work order is checked against the cache, field-wise for closeness.
-        If a match is found, the local `from_cache` record is updated with the cache row.
+        Each H_row in the work order is compared against the full cache array in a vectorized
+        manner (one NumPy operation per field across all cache rows) rather than iterating over
+        cache rows one at a time.  A set tracks already-matched rows for O(1) membership tests.
         """
-
         self.cache_timer = Timer()
+        # worker_id == 0 means an uninitialised (blank) slot; filter those out.
+        # H_row 0 is a valid row index so we cannot use >= 0 as the sentinel.
+        seen_rows: set[int] = set(self.from_cache["H_row"][self.from_cache["worker_id"] > 0])
         with self.cache_timer:
             for work_row in Work["libE_info"]["H_rows"]:  # used to compare H entries against the cache
-                for cache_row in cache:
-                    if (
-                        self._check_cache_matches(cache_row, work_row, new_dtype)
-                        and work_row not in self.from_cache["H_row"]
-                    ):  # we found outbound work in cache, that's not already in the local record
-                        self._update_local_entry_from_cache(cache_row, work_row, new_dtype, w, dtype_with_idx)
-                        break  # we only need to update the local record once
+                if work_row in seen_rows:
+                    continue
+                match_idx = self._find_cache_match(work_row, cache, new_dtype)
+                if match_idx >= 0:
+                    self._update_local_entry_from_cache(cache[match_idx], work_row, new_dtype, w, dtype_with_idx)
+                    seen_rows.add(work_row)
 
     def _update_state_from_cache(self, Work: dict, work_rows: npt.NDArray, w: int, new_dtype: np.dtype) -> None:
         """Retrieve saved cache from history, create local record-array qof matching cache entries.
