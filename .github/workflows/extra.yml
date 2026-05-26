@@ -106,9 +106,9 @@ jobs:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   spellcheck:
-        name: Spellcheck release branch
-        if: contains(github.base_ref, 'develop')
-        runs-on: ubuntu-latest
-        steps:
-        - uses: actions/checkout@v6
-        - uses: crate-ci/typos@v1.46.2
+    name: Spellcheck release branch
+    if: contains(github.base_ref, 'develop')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: crate-ci/typos@v1.46.2
