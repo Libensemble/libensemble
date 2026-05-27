@@ -36,7 +36,7 @@ if __name__ == "__main__":
         "sim_f": sim_f,
         "in": ["x"],
         "out": [("f", float)],
-        "user": {"uniform_random_pause_ub": 10},
+        "user": {"uniform_random_pause_ub": 5},
     }
 
     gen_specs = {
@@ -62,7 +62,13 @@ if __name__ == "__main__":
     exit_criteria = {"sim_max": 10, "wallclock_max": 300}
 
     # Perform the run
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, libE_specs=libE_specs, alloc_specs=alloc_specs)
+    H, persis_info, flag = libE(
+        sim_specs,
+        gen_specs,
+        exit_criteria,
+        libE_specs=libE_specs,
+        alloc_specs=alloc_specs,
+    )
 
     if is_manager:
         test = np.any(H["cancel_requested"]) and np.any(H["kill_sent"])
