@@ -88,5 +88,8 @@ if __name__ == "__main__":
         H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, libE_specs=libE_specs)
 
         if is_manager:
-            print(H[["sim_id", "x", "f"]][:10])
+            # Basic sanity checks that we actually saved generated inputs/outputs.
             assert len(H) >= 201, f"H has length {len(H)}"
+            assert np.any(np.linalg.norm(H["x"], axis=1) > 0.0), "All saved x values are zero"
+            assert np.any(H["f"] > 0.0), "All saved f values are zero"
+            print(H[["sim_id", "x", "f"]][:10])
