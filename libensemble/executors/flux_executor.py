@@ -24,6 +24,7 @@ Requirements:
 
 import logging
 import os
+import shlex
 import time
 
 from libensemble.executors.executor import (
@@ -98,9 +99,9 @@ class FluxTask(Task):
             return
 
         try:
-            # Get job info to check state
-            info = flux.job.job_info(self.flux_handle, self.flux_jobid).get_info()
-            state = info.get("state", "UNKNOWN")
+            info = flux.job.get_job(self.flux_handle, self.flux_jobid)
+            jassert(info is not None, f"Flux job {self.flux_jobid} was not found")
+            state = str(info.get("state", "UNKNOWN")).upper()
 
             # Map Flux states to libEnsemble states
             # Flux states: DEPEND, PRIORITY, SCHED, RUN, CLEANUP, INACTIVE
@@ -127,10 +128,10 @@ class FluxTask(Task):
         self.calc_task_timing()
 
         # Check result/exit status
-        result = info.get("result", "")
-        success = info.get("success", False)
+        result = str(info.get("result", "")).upper()
+        success = result == "COMPLETED" or info.get("returncode", 1) == 0
 
-        if success or result == "COMPLETED":
+        if success:
             self.success = True
             self.state = "FINISHED"
             self.errcode = 0
@@ -373,24 +374,25 @@ class FluxExecutor(Executor):
         if not dry_run:
             self._check_app_exists(task.app)
 
-        # Build the command
-        command = [app.full_path]
-        if app.precedent:
-            command = app.precedent.split() + command
-        if app_args:
-            command.extend(app_args.split())
+        if extra_args:
+            raise ExecutorException("extra_args is not supported by FluxExecutor")
 
-        # Determine resource configuration
-        if num_procs is None:
-            num_procs = 1
+        num_procs = num_procs or 1
         if num_nodes is None:
-            if procs_per_node and num_procs:
-                num_nodes = max(1, num_procs // procs_per_node)
+            if procs_per_node is not None:
+                if num_procs % procs_per_node != 0:
+                    raise ExecutorException("num_procs must be divisible by procs_per_node for FluxExecutor")
+                num_nodes = num_procs // procs_per_node
             else:
                 num_nodes = 1
-        if procs_per_node is None:
-            procs_per_node = max(1, num_procs // num_nodes)
+        elif procs_per_node is not None and num_procs != num_nodes * procs_per_node:
+            raise ExecutorException("num_procs must equal num_nodes * procs_per_node for FluxExecutor")
 
+        command = shlex.split(task.app.app_cmd)
+        if task.app_args:
+            command.extend(shlex.split(task.app_args))
+
+        command = self._set_sim_dir_env(task, command)
         task.runline = " ".join(command)
 
         if dry_run:
@@ -400,33 +402,31 @@ class FluxExecutor(Executor):
         else:
             # Create Flux jobspec
             try:
+                gpus_per_task = None
+                if num_gpus is not None:
+                    if num_gpus < 0:
+                        raise ExecutorException("num_gpus must be non-negative")
+                    if num_gpus and num_gpus % num_procs != 0:
+                        raise ExecutorException("num_gpus must be divisible by num_procs for FluxExecutor")
+                    gpus_per_task = num_gpus // num_procs if num_gpus else 0
+
                 jobspec = JobspecV1.from_command(
                     command,
                     num_tasks=num_procs,
                     num_nodes=num_nodes,
                     cores_per_task=1,
+                    gpus_per_task=gpus_per_task,
+                    cwd=task.workdir,
+                    environment=dict(os.environ),
                 )
 
-                # Set working directory
-                jobspec.cwd = task.workdir
-
-                # Set output files
                 if stdout:
                     jobspec.stdout = os.path.join(task.workdir, stdout)
                 if stderr:
                     jobspec.stderr = os.path.join(task.workdir, stderr)
-
-                # Add GPU resources if requested
-                if num_gpus and num_gpus > 0:
+                if gpus_per_task:
                     jobspec.setattr_shell_option("gpu-affinity", "per-task")
-                    # Note: GPU binding in Flux may vary by version
-                    try:
-                        jobspec.setattr("system.resources.gpus", num_gpus)
-                    except Exception:
-                        # Fallback for older Flux versions
-                        pass
 
-                # Submit the job
                 logger.info(f"Submitting Flux job for task {task.name}: {task.runline}")
                 task.flux_jobid = flux.job.submit(self.flux_handle, jobspec)
                 logger.info(f"Task {task.name} submitted with Flux job ID {task.flux_jobid}")

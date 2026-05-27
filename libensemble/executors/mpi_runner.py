@@ -542,16 +542,52 @@ class FLUX_MPIRunner(MPIRunner):
         self.platform_info = platform_info
         self.rm_rpn = False
 
-        # flux run command template
-        # Note: "run" subcommand is added after the base command
+        # Flux's per-resource options are mutually exclusive with -n/--ntasks,
+        # so express layouts with nodes plus per-task resources.
         self.mpi_command = [
             self.run_command,
             "run",
             "-N {num_nodes}",
             "-n {num_procs}",
-            "--tasks-per-node {procs_per_node}",
             "{extra_args}",
         ]
+
+    def get_mpi_specs(
+        self,
+        task,
+        nprocs,
+        nnodes,
+        ppn,
+        ngpus,
+        machinefile,
+        hyperthreads,
+        extra_args,
+        auto_assign_gpus,
+        match_procs_to_gpus,
+        resources,
+        workerID,
+    ):
+        specs = super().get_mpi_specs(
+            task,
+            nprocs,
+            nnodes,
+            ppn,
+            ngpus,
+            machinefile,
+            hyperthreads,
+            extra_args,
+            auto_assign_gpus,
+            match_procs_to_gpus,
+            resources,
+            workerID,
+        )
+
+        ppn = specs["procs_per_node"]
+        if ppn:
+            extra_args = self._append_to_extra_args(specs["extra_args"], "-c 1")
+            specs["extra_args"] = extra_args
+            specs["procs_per_node"] = None
+        return specs
 
     def express_spec(self, task, nprocs, nnodes, ppn, machinefile, hyperthreads, extra_args, resources, workerID):
         """Returns None, None as flux manages resources internally"""

@@ -11,13 +11,16 @@ Tests cover:
 
 import os
 import subprocess
+from types import SimpleNamespace
 from unittest import mock
 
 import pytest
 
+from libensemble.executors import flux_executor
 from libensemble.executors.mpi_runner import FLUX_MPIRunner, MPIRunner
 from libensemble.resources.env_resources import EnvResources
 from libensemble.resources.platforms import FluxAllocation, Known_platforms
+from libensemble.utils import launcher
 from libensemble.utils.validators import check_mpi_runner_type
 
 # ========================================================================================
@@ -43,8 +46,30 @@ def test_flux_runner_default_command():
 def test_flux_runner_mpi_command_template():
     """Test the MPI command template for flux"""
     runner = FLUX_MPIRunner()
-    expected = ["flux", "run", "-N {num_nodes}", "-n {num_procs}", "--tasks-per-node {procs_per_node}", "{extra_args}"]
+    expected = ["flux", "run", "-N {num_nodes}", "-n {num_procs}", "{extra_args}"]
     assert runner.mpi_command == expected
+
+
+def test_flux_runner_forms_valid_runline_without_tasks_per_node():
+    """Flux run should avoid mixing per-resource and per-task options"""
+    runner = FLUX_MPIRunner()
+    specs = runner.get_mpi_specs(
+        task=SimpleNamespace(env={}, _add_to_env=lambda *args: None, ngpus_req=0),
+        nprocs=4,
+        nnodes=2,
+        ppn=2,
+        ngpus=None,
+        machinefile=None,
+        hyperthreads=False,
+        extra_args=None,
+        auto_assign_gpus=False,
+        match_procs_to_gpus=False,
+        resources=None,
+        workerID=1,
+    )
+
+    runline = launcher.form_command(runner.mpi_command, specs)
+    assert runline == ["flux", "run", "-N", "2", "-n", "4", "-c", "1"]
 
 
 def test_flux_runner_arg_parsing():
@@ -339,6 +364,91 @@ def test_flux_executor_requires_flux_uri():
         pytest.skip("flux_executor module not available")
 
 
+def test_flux_task_poll_uses_get_job():
+    """Test FluxTask polls using Flux's get_job helper"""
+    if not flux_executor.FLUX_AVAILABLE:
+        pytest.skip("Flux Python bindings not available")
+
+    task = flux_executor.FluxTask(
+        app=SimpleNamespace(name="app"),
+        app_args=None,
+        workdir=os.getcwd(),
+        stdout="out.txt",
+        stderr="err.txt",
+        workerid=1,
+        dry_run=False,
+    )
+    task.flux_handle = object()
+    task.flux_jobid = 123
+    task.timer.start()
+    task.submit_time = task.timer.tstart
+
+    with mock.patch.object(flux_executor.flux.job, "get_job", return_value={"state": "RUN"}) as mock_get_job:
+        task.poll()
+
+    mock_get_job.assert_called_once_with(task.flux_handle, task.flux_jobid)
+    assert task.state == "RUNNING"
+
+
+def test_flux_executor_submit_builds_jobspec_with_environment_and_gpus():
+    """Test FluxExecutor submit passes environment and GPU resources via jobspec"""
+    if not flux_executor.FLUX_AVAILABLE:
+        pytest.skip("Flux Python bindings not available")
+
+    executor = object.__new__(flux_executor.FluxExecutor)
+    executor.flux_handle = object()
+    executor.resources = None
+    executor.platform_info = {}
+    executor.workerID = 7
+    executor.list_of_tasks = []
+    executor.apps = {}
+    executor.default_apps = {"sim": None, "gen": None}
+    executor.base_dir = os.getcwd()
+
+    app = SimpleNamespace(
+        name="sim", full_path="/path/to/sim.x", app_cmd="fluxwrap /path/to/sim.x", precedent="fluxwrap"
+    )
+    executor.get_app = lambda app_name: app
+    executor.default_app = lambda calc_type: app
+    executor._check_app_exists = lambda app_obj: None
+
+    old_env = os.environ.get("TEST_FLUX_ENV")
+    os.environ["TEST_FLUX_ENV"] = "present"
+
+    jobspec = SimpleNamespace(stdout=None, stderr=None)
+    submit_calls = []
+
+    def fake_from_command(command, **kwargs):
+        submit_calls.append((command, kwargs))
+        jobspec.cwd = kwargs.get("cwd")
+        jobspec.environment = kwargs.get("environment")
+        jobspec.setattr_shell_option = mock.Mock()
+        return jobspec
+
+    try:
+        with (
+            mock.patch.object(flux_executor.JobspecV1, "from_command", side_effect=fake_from_command),
+            mock.patch.object(flux_executor.flux.job, "submit", return_value=42),
+        ):
+            task = executor.submit(app_name="sim", num_procs=4, num_nodes=2, num_gpus=4, app_args="--flag value")
+    finally:
+        if old_env is None:
+            del os.environ["TEST_FLUX_ENV"]
+        else:
+            os.environ["TEST_FLUX_ENV"] = old_env
+
+    command, kwargs = submit_calls[0]
+    assert command[:2] == ["fluxwrap", "/path/to/sim.x"]
+    assert command[-2:] == ["--flag", "value"]
+    assert kwargs["num_tasks"] == 4
+    assert kwargs["num_nodes"] == 2
+    assert kwargs["gpus_per_task"] == 1
+    assert kwargs["environment"]["TEST_FLUX_ENV"] == "present"
+    assert kwargs["environment"]["LIBENSEMBLE_SIM_DIR"] == "."
+    jobspec.setattr_shell_option.assert_called_once_with("gpu-affinity", "per-task")
+    assert task.flux_jobid == 42
+
+
 # ========================================================================================
 # Test runner standalone execution
 # ========================================================================================
@@ -349,6 +459,7 @@ if __name__ == "__main__":
     test_flux_runner_factory_registration()
     test_flux_runner_default_command()
     test_flux_runner_mpi_command_template()
+    test_flux_runner_forms_valid_runline_without_tasks_per_node()
     test_flux_runner_arg_parsing()
     test_flux_runner_gpu_settings()
     test_flux_runner_express_spec()

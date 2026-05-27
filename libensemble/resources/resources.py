@@ -182,12 +182,14 @@ class GlobalResources:
         nodelist_env_cobalt = resource_info.get("nodelist_env_cobalt", None)
         nodelist_env_lsf = resource_info.get("nodelist_env_lsf", None)
         nodelist_env_lsf_shortform = resource_info.get("nodelist_env_lsf_shortform", None)
+        nodelist_env_flux = resource_info.get("nodelist_env_flux", None)
 
         self.env_resources = EnvResources(
             nodelist_env_slurm=nodelist_env_slurm,
             nodelist_env_cobalt=nodelist_env_cobalt,
             nodelist_env_lsf=nodelist_env_lsf,
             nodelist_env_lsf_shortform=nodelist_env_lsf_shortform,
+            nodelist_env_flux=nodelist_env_flux,
         )
 
         if node_file is None:
