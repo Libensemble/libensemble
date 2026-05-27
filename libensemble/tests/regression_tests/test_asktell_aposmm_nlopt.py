@@ -49,7 +49,6 @@ def six_hump_camel_func(x):
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
-
     workflow = Ensemble(parse_args=True)
 
     if workflow.is_manager:
@@ -58,14 +57,23 @@ if __name__ == "__main__":
     n = 2
 
     vocs = VOCS(
-        variables={"core": [-3, 3], "edge": [-2, 2], "core_on_cube": [0, 1], "edge_on_cube": [0, 1]},
+        variables={
+            "core": [-3, 3],
+            "edge": [-2, 2],
+            "core_on_cube": [0, 1],
+            "edge_on_cube": [0, 1],
+        },
         objectives={"energy": "MINIMIZE"},
     )
 
     aposmm = APOSMM(
         vocs,
-        max_active_runs=max(1, workflow.nworkers - 1),
-        variables_mapping={"x": ["core", "edge"], "x_on_cube": ["core_on_cube", "edge_on_cube"], "f": ["energy"]},
+        max_active_runs=6,
+        variables_mapping={
+            "x": ["core", "edge"],
+            "x_on_cube": ["core_on_cube", "edge_on_cube"],
+            "f": ["energy"],
+        },
         initial_sample_size=100,
         sample_points=np.round(minima, 1),
         localopt_method="LN_BOBYQA",
@@ -82,7 +90,7 @@ if __name__ == "__main__":
     )
 
     workflow.sim_specs = SimSpecs(simulator=six_hump_camel_func, vocs=vocs)
-    workflow.exit_criteria = ExitCriteria(sim_max=2000, wallclock_max=600)
+    workflow.exit_criteria = ExitCriteria(sim_max=3000, wallclock_max=600)
 
     # Perform the run
     H, _, _ = workflow.run()
