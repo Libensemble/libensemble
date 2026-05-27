@@ -49,6 +49,7 @@ if __name__ == "__main__":
 
     sampling.gen_specs = GenSpecs(
         gen_f=gen_f,
+        persis_in=["f"],
         outputs=[("x", float, (2,))],
         batch_size=50,
         vocs=vocs,
