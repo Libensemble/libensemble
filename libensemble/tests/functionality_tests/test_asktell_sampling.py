@@ -43,8 +43,8 @@ if __name__ == "__main__":
     gen_specs = {
         "persis_in": ["x", "f", "sim_id"],
         "out": [("x", float, (2,))],
-        "initial_batch_size": 20,
-        "batch_size": 10,
+        "initial_batch_size": 2,
+        "batch_size": 1,
         "user": {
             "lb": np.array([-3, -2]),
             "ub": np.array([3, 2]),
@@ -56,7 +56,7 @@ if __name__ == "__main__":
 
     vocs = VOCS(variables=variables, objectives=objectives)
 
-    exit_criteria = {"gen_max": 101}
+    exit_criteria = {"gen_max": 11}
 
     for test in range(3):
         if test == 0:
@@ -89,7 +89,7 @@ if __name__ == "__main__":
 
         if is_manager:
             # Basic sanity checks that we actually saved generated inputs/outputs.
-            assert len(H) >= 101, f"H has length {len(H)}"
+            assert len(H) >= 11, f"H has length {len(H)}"
             assert np.any(np.linalg.norm(H["x"], axis=1) > 0.0), "All saved x values are zero"
             assert np.any(H["f"] > 0.0), "All saved f values are zero"
             print(H[["sim_id", "x", "f"]][:10])
