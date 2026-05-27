@@ -1,12 +1,21 @@
+import json
 import logging
 import time
+from pathlib import Path
+from typing import TYPE_CHECKING
 
 import numpy as np
 import numpy.typing as npt
 
 from libensemble.tools.fields_keys import libE_fields, protected_libE_fields
 
+if TYPE_CHECKING:
+    from libensemble.logger import LibensembleLogger
+
 logger = logging.getLogger(__name__)
+if TYPE_CHECKING:
+    assert isinstance(logger, LibensembleLogger)
+
 
 # For debug messages - uncomment
 # logger.setLevel(logging.DEBUG)
@@ -69,14 +78,14 @@ class History:
 
             if "sim_started" not in fields:
                 logger.manager_warning(  # type: ignore[attr-defined]
-                    "Marking entries in H0 as having been " + "'sim_started' and 'sim_ended'"
+                    "Marking entries in H0 as having been 'sim_started' and 'sim_ended'"
                 )
 
                 H["sim_started"][: len(H0)] = 1
                 H["sim_ended"][: len(H0)] = 1
             elif "sim_ended" not in fields:
                 logger.manager_warning(  # type: ignore[attr-defined]
-                    "Marking entries in H0 as having been " + "'sim_ended' if 'sim_started'"
+                    "Marking entries in H0 as having been 'sim_ended' if 'sim_started'"
                 )
 
                 H["sim_ended"][: len(H0)] = H0["sim_started"]
@@ -102,26 +111,164 @@ class History:
         self.index = len(H0)
         self.grow_count = 0
         self.safe_mode = False
+        self.use_cache = False
 
-        self.sim_started_count = np.sum(H["sim_started"])
-        self.sim_ended_count = np.sum(H["sim_ended"])
-        self.gen_informed_count = np.sum(H["gen_informed"])
+        self.sim_started_count: int = np.sum(H["sim_started"])
+        self.sim_ended_count: int = np.sum(H["sim_ended"])
+        self.gen_informed_count: int = np.sum(H["gen_informed"])
         self.given_back_warned = False
 
-        self.sim_started_offset = self.sim_started_count
-        self.sim_ended_offset = self.sim_ended_count
-        self.gen_informed_offset = self.gen_informed_count
+        self.sim_started_offset: int = self.sim_started_count
+        self.sim_ended_offset: int = self.sim_ended_count
+        self.gen_informed_offset: int = self.gen_informed_count
 
         self.last_started = -1
         self.last_ended = -1
 
+    def init_cache(
+        self,
+        cache_name: str,
+        cache_dir: str | Path,
+        spec_hash: str | None = None,
+    ) -> None:
+        self.cache_dir = Path(cache_dir).expanduser()
+        self.cache_dir.mkdir(parents=True, exist_ok=True)
+        self.cache = self.cache_dir / Path(cache_name + ".npy")
+        self.cache_meta = self.cache_dir / Path(cache_name + ".meta.json")
+        self.spec_hash = spec_hash
+        self.use_cache = True
+        self.cache_set = False
+
+        # Precompute the sorted user-field names and their dtypes once, so
+        # _shelf_longrunning_sims doesn't recompute them on every sim return.
+        libE_field_names = {k[0] for k in libE_fields}
+        self.cache_keys = sorted([n for n in self.H.dtype.names if n not in libE_field_names])
+        self.cache_dtype = np.dtype(sorted([(n, self.H.dtype.fields[n][0]) for n in self.cache_keys]))
+
+        # Buffer for new entries collected during this run; deduplicated via bytes key.
+        self._cache_buffer: list = []
+        self._cache_seen: set = set()
+
+        # Validate any existing cache against the configuration hash.
+        cache_valid = False
+        if self.cache.exists():
+            if self.cache_meta.exists():
+                try:
+                    with open(self.cache_meta) as f:
+                        meta = json.load(f)
+                    if meta.get("spec_hash") == spec_hash:
+                        cache_valid = True
+                except (json.JSONDecodeError, KeyError):
+                    pass
+            if not cache_valid:
+                logger.debug(
+                    "Cache hash mismatch or missing metadata — starting fresh: %s",
+                    self.cache.name,
+                )
+                self.cache.unlink(missing_ok=True)
+
+        if not self.cache.exists():
+            self.cache.touch()
+
+        try:
+            self.in_cache = np.load(self.cache, allow_pickle=True)
+        except EOFError:
+            self.in_cache = None
+
+        # Pre-populate the seen-set from any on-disk entries so we don't re-add them.
+        # Also mark cache_set=True immediately when there is existing data — the manager
+        # uses this flag to decide whether to scan the cache when dispatching sim work.
+        if self.in_cache is not None and len(self.in_cache) > 0:
+            for row in self.in_cache:
+                self._cache_seen.add(row.tobytes())
+            self.cache_set = True
+
     def _append_new_fields(self, H_f: npt.NDArray) -> None:
-        dtype_new = np.dtype(list(set(self.H.dtype.descr + np.lib.recfunctions.repack_fields(H_f).dtype.descr)))
+        import numpy.lib.recfunctions as rfn
+
+        dtype_new: np.dtype = np.dtype(list(set(self.H.dtype.descr + rfn.repack_fields(H_f).dtype.descr)))
+
         H_new = np.zeros(len(self.H), dtype=dtype_new)
         old_fields = self.H.dtype.names
         for field in old_fields:
             H_new[field][: len(self.H)] = self.H[field]
         self.H = H_new
+
+    def _shelf_longrunning_sims(self, index):
+        """Cache any f values that ran for more than a second.
+
+        Uses a bytes-keyed set for O(1) deduplication instead of np.unique on
+        every insertion, and accumulates new entries in a plain Python list that
+        is only materialised into a structured array at save_cache() time.
+        """
+        if self.H[index]["sim_ended_time"] - self.H[index]["sim_started_time"] <= 1:
+            return
+        entry = np.array([self.H[index][self.cache_keys]], dtype=self.cache_dtype)
+        key = entry[0].tobytes()
+        if key in self._cache_seen:
+            return
+        self._cache_seen.add(key)
+        self._cache_buffer.append(entry)
+        self.cache_set = True
+
+    def _materialize_cache(self) -> npt.NDArray | None:
+        """Combine the on-disk cache with any buffered new entries into one array."""
+        parts = []
+        if self.in_cache is not None:
+            parts.append(self.in_cache)
+        if self._cache_buffer:
+            parts.append(np.concatenate(self._cache_buffer))
+        if not parts:
+            return None
+        return np.concatenate(parts) if len(parts) > 1 else parts[0]
+
+    def save_cache(self) -> None:
+        if self.use_cache and self.cache_set:
+            combined = self._materialize_cache()
+            if combined is not None:
+                np.save(self.cache, combined, allow_pickle=True)
+                if self.spec_hash:
+                    with open(self.cache_meta, "w") as f:
+                        json.dump({"spec_hash": self.spec_hash}, f)
+
+    def get_shelved_sims(self) -> npt.NDArray:
+        combined = self._materialize_cache()
+        return combined if combined is not None else np.load(self.cache, allow_pickle=True)
+
+    @staticmethod
+    def _classify_fields(fields, returned_H, H):
+        """Partition returned fields into three buckets for update_history_f.
+
+        Returns
+        -------
+        scalar_fields : list[str]
+            Fields whose per-row value is a scalar or object (can be assigned
+            with a single fancy-indexed write across all rows).
+        uniform_fields : list[str]
+            Fixed-shape array fields whose shape exactly matches H's storage
+            shape (can also be assigned in one fancy-indexed write).
+        ragged_fields : list[str]
+            Fixed-shape array fields that are *smaller* than H's storage shape
+            (need per-row slice assignment).
+        """
+        scalar_fields = []
+        uniform_fields = []
+        ragged_fields = []
+        for field in fields:
+            if field in protected_libE_fields:
+                continue
+            dt = returned_H.dtype[field]
+            if dt.shape == () or dt.hasobject:
+                scalar_fields.append(field)
+            else:
+                # Compare element shape: returned vs H's allocated shape
+                h_shape = H.dtype[field].shape
+                r_shape = dt.shape
+                if r_shape == h_shape:
+                    uniform_fields.append(field)
+                else:
+                    ragged_fields.append(field)
+        return scalar_fields, uniform_fields, ragged_fields
 
     def update_history_f(self, D: dict, kill_canceled_sims: bool = False) -> None:
         """
@@ -135,30 +282,42 @@ class History:
         if returned_H is not None and any([field not in self.H.dtype.names for field in returned_H.dtype.names]):
             self._append_new_fields(returned_H)
 
-        for j, ind in enumerate(new_inds):
+        if self.safe_mode:
             for field in fields:
-                if field in protected_libE_fields:
-                    if self.safe_mode:
-                        assert False, "The field '" + field + "' is protected"
-                    continue
+                assert field not in protected_libE_fields, "The field '" + field + "' is protected"
 
-                if np.isscalar(returned_H[field][j]) or returned_H.dtype[field].hasobject:
-                    self.H[field][ind] = returned_H[field][j]
-                else:
-                    # len or np.size
+        new_inds = np.asarray(new_inds)
+
+        if fields and returned_H is not None:
+            scalar_fields, uniform_fields, ragged_fields = self._classify_fields(fields, returned_H, self.H)
+
+            # Vectorized assignment for scalar and object fields (one op per field)
+            for field in scalar_fields:
+                self.H[field][new_inds] = returned_H[field]
+
+            # Vectorized assignment for fixed-shape array fields that exactly match H's shape
+            for field in uniform_fields:
+                self.H[field][new_inds] = returned_H[field]
+
+            # Per-row loop only for ragged (partial-fill) array fields
+            for j, ind in enumerate(new_inds):
+                for field in ragged_fields:
                     H0_size = len(returned_H[field][j])
                     assert H0_size <= len(self.H[field][ind]), (
                         "History update Error: Too many values received for " + field
                     )
                     assert H0_size, "History update Error: No values in this field " + field
-                    if H0_size == len(self.H[field][ind]):
-                        self.H[field][ind] = returned_H[field][j]  # ref
-                    else:
-                        self.H[field][ind][:H0_size] = returned_H[field][j]  # Slice View
+                    self.H[field][ind][:H0_size] = returned_H[field][j]
 
-            self.H["sim_ended"][ind] = True
-            self.H["sim_ended_time"][ind] = time.time()
-            self.sim_ended_count += 1
+        # Batch-update bookkeeping fields for all returned rows at once
+        t = time.time()
+        self.H["sim_ended"][new_inds] = True
+        self.H["sim_ended_time"][new_inds] = t
+        self.sim_ended_count += len(new_inds)
+
+        if self.use_cache:
+            for ind in new_inds:
+                self._shelf_longrunning_sims(ind)
 
         if kill_canceled_sims:
             for j in range(self.last_ended + 1, np.max(new_inds) + 1):
@@ -205,7 +364,7 @@ class History:
 
             if self.using_H0 and not self.given_back_warned:
                 logger.manager_warning(  # type: ignore[attr-defined]
-                    "Giving entries in H0 back to gen. Marking entries in " + "H0 as 'gen_informed' if 'sim_ended'."
+                    "Giving entries in H0 back to gen. Marking entries in H0 as 'gen_informed' if 'sim_ended'."
                 )
 
                 self.given_back_warned = True

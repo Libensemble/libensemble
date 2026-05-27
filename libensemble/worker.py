@@ -229,7 +229,8 @@ class Worker:
             logger.debug(f"No resources set on worker {workerID}")
             return False
 
-    def _extract_debug_data(self, calc_type, Work):
+    @staticmethod
+    def _extract_debug_data(calc_type, Work):
         if calc_type == EVAL_SIM_TAG:
             enum_desc = "sim_id"
             calc_id = extract_H_ranges(Work)
@@ -260,7 +261,7 @@ class Worker:
         calc_type = Work["tag"]
         self.calc_iter[calc_type] += 1
 
-        enum_desc, calc_id = self._extract_debug_data(calc_type, Work)
+        enum_desc, calc_id = Worker._extract_debug_data(calc_type, Work)
 
         timer = Timer()
 

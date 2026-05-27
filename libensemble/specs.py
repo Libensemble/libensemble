@@ -560,6 +560,31 @@ class LibeSpecs(BaseModel):
     Forms the base of a generator directory.
     """
 
+    cache_long_sims: bool | None = False
+    """
+    Cache simulation results with runtimes >1s to disk. Subsequent runs with an
+    identical configuration (specs, callables, H0) will access this cache.
+
+    Upon the generator creating points already in the cache, those points will be skipped from
+    being sent for evaluation. Instead the corresponding cached results are retrieved and returned
+    to the generator.
+
+    The cache is saved in ``cache_dir``.  When ``cache_name`` is ``None``, the filename is
+    automatically derived from a SHA-256 hash of the full ensemble configuration.
+    """
+
+    cache_dir: str | Path | None = str(Path.home() / ".cache" / "libensemble")
+    """
+    The directory to store the cache file. Defaults to `~/.cache/libensemble`.
+    """
+
+    cache_name: str | None = None
+    """
+    The name of the cache file. Stored in cache_dir.
+    When ``None`` and ``cache_long_sims`` is ``True``, a name is automatically
+    derived from a SHA-256 hash of the full ensemble configuration.
+    """
+
     calc_dir_id_width: int | None = 4
     """
     The width of the numerical ID component of a calculation directory name. Leading
