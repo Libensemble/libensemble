@@ -19,6 +19,7 @@ persistent generator.
 import sys
 
 import numpy as np
+from gest_api.vocs import VOCS
 
 from libensemble.gen_funcs.persistent_sampling import persistent_uniform as gen_f
 
@@ -44,16 +45,15 @@ if __name__ == "__main__":
         "user": {"uniform_random_pause_ub": 0.5},
     }
 
+    vocs = VOCS(variables={"x0": [-3, 3], "x1": [-2, 2]}, objectives={"f": "MINIMIZE"})
+
     gen_specs = {
         "gen_f": gen_f,
         "persis_in": ["f", "x", "sim_id"],
         "out": [("x", float, (n,))],
         "initial_batch_size": nworkers,
         "async_return": True,
-        "user": {
-            "lb": np.array([-3, -2]),
-            "ub": np.array([3, 2]),
-        },
+        "vocs": vocs,
     }
 
     exit_criteria = {"gen_max": 100, "wallclock_max": 300}

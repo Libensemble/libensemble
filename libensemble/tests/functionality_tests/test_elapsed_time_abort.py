@@ -13,7 +13,7 @@ The number of concurrent evaluations of the objective function will be 4-1=3.
 # TESTSUITE_COMMS: mpi local tcp
 # TESTSUITE_NPROCS: 2 4
 
-import numpy as np
+from gest_api.vocs import VOCS
 
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
@@ -34,16 +34,15 @@ if __name__ == "__main__":
         "user": {"pause_time": 2},
     }
 
+    vocs = VOCS(variables={"x0": [-3, 3], "x1": [-2, 2]}, objectives={"f": "MINIMIZE"})
+
     gen_specs = {
         "gen_f": gen_f,
         "in": ["sim_id"],
         "out": [("x", float, (2,))],
         "batch_size": 5,
         "num_active_gens": 2,
-        "user": {
-            "lb": np.array([-3, -2]),
-            "ub": np.array([3, 2]),
-        },
+        "vocs": vocs,
     }
 
     alloc_specs = {
