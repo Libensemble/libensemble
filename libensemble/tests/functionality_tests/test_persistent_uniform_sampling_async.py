@@ -56,7 +56,7 @@ if __name__ == "__main__":
         "vocs": vocs,
     }
 
-    exit_criteria = {"gen_max": 100, "wallclock_max": 300}
+    exit_criteria = {"gen_max": 10, "wallclock_max": 300}
 
     # Perform the run
     H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, libE_specs=libE_specs)

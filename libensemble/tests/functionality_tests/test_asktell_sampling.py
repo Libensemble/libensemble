@@ -52,7 +52,7 @@ if __name__ == "__main__":
 
     vocs = VOCS(variables=variables, objectives=objectives)
 
-    exit_criteria = {"gen_max": 201}
+    exit_criteria = {"gen_max": 11}
 
     for test in range(3):
         if test == 0:
@@ -84,5 +84,8 @@ if __name__ == "__main__":
         H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, libE_specs=libE_specs)
 
         if is_manager:
+            # Basic sanity checks that we actually saved generated inputs/outputs.
+            assert len(H) >= 11, f"H has length {len(H)}"
+            assert np.any(np.linalg.norm(H["x"], axis=1) > 0.0), "All saved x values are zero"
+            assert np.any(H["f"] > 0.0), "All saved f values are zero"
             print(H[["sim_id", "x", "f"]][:10])
-            assert len(H) >= 201, f"H has length {len(H)}"

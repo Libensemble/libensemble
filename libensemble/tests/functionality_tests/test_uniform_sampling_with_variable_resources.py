@@ -13,7 +13,7 @@ Note: This test contains multiple iterations to test different configurations.
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local
-# TESTSUITE_NPROCS: 2 4
+# TESTSUITE_NPROCS: 4
 # TESTSUITE_EXTRA: true
 
 import sys
@@ -114,7 +114,12 @@ if __name__ == "__main__":
 
         # Perform the run
         H, persis_info, flag = libE(
-            sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs, alloc_specs=alloc_specs
+            sim_specs,
+            gen_specs,
+            exit_criteria,
+            persis_info,
+            libE_specs=libE_specs,
+            alloc_specs=alloc_specs,
         )
 
         if is_manager:

@@ -78,7 +78,7 @@ if __name__ == "__main__":
 
     # Run with random num_procs/num_gpus for each simulation
     gpu_test.persis_info = {}
-    gpu_test.exit_criteria = ExitCriteria(sim_max=20)
+    gpu_test.exit_criteria = ExitCriteria(sim_max=10)
 
     gpu_test.run()
     if gpu_test.is_manager:

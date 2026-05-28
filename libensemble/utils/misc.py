@@ -187,11 +187,15 @@ def unmap_numpy_array(array: npt.NDArray, mapping: dict = {}) -> npt.NDArray:
     """
     if not mapping or array is None:
         return array
-    # Create new dtype with unmapped fields
+
+    active_mapping = {field: mapping[field] for field in array.dtype.names if field in mapping}
+    if not active_mapping:
+        return array
+
     new_fields = []
     for field in array.dtype.names:
-        if field in mapping:
-            for var_name in mapping[field]:
+        if field in active_mapping:
+            for var_name in active_mapping[field]:
                 new_fields.append((var_name, array[field].dtype.type))
         else:
             # Preserve the original field structure including per-row shape
@@ -199,14 +203,14 @@ def unmap_numpy_array(array: npt.NDArray, mapping: dict = {}) -> npt.NDArray:
             new_fields.append((field, field_dtype))
     unmapped_array = np.zeros(len(array), dtype=new_fields)
     for field in array.dtype.names:
-        if field in mapping:
+        if field in active_mapping:
             # Unmap array fields
             if len(array[field].shape) == 1:
                 # Scalar field mapped to single variable
-                unmapped_array[mapping[field][0]] = array[field]
+                unmapped_array[active_mapping[field][0]] = array[field]
             else:
                 # Multi-dimensional field
-                for i, var_name in enumerate(mapping[field]):
+                for i, var_name in enumerate(active_mapping[field]):
                     unmapped_array[var_name] = array[field][:, i]
         else:
             # Copy non-mapped fields
@@ -230,16 +234,25 @@ def map_numpy_array(array: npt.NDArray, mapping: dict = {}) -> npt.NDArray:
     if not mapping or array is None:
         return array
 
-    # Create new dtype with mapped fields
+    # Some mappings may apply only on ingest. For example, generator suggestions
+    # usually contain variables but not objective values.
+    active_mapping = {
+        mapped_name: val_list
+        for mapped_name, val_list in mapping.items()
+        if all(val in array.dtype.names for val in val_list)
+    }
+    if not active_mapping:
+        return array
+
     new_fields: list[tuple] = []
 
     # Track fields processed by mapping to avoid duplication
     mapped_source_fields = set()
-    for key, val_list in mapping.items():
+    for val_list in active_mapping.values():
         mapped_source_fields.update(val_list)
 
     # First add mapped fields from the mapping definition
-    for mapped_name, val_list in mapping.items():
+    for mapped_name, val_list in active_mapping.items():
         first_var = val_list[0]
         # We assume all components have the same type, take from first
         base_type = array.dtype[first_var]
@@ -257,20 +270,17 @@ def map_numpy_array(array: npt.NDArray, mapping: dict = {}) -> npt.NDArray:
     # remove duplicates from new_fields
     new_fields = list(dict.fromkeys(new_fields))
 
-    # Create the new array
     mapped_array = np.zeros(len(array), dtype=new_fields)
 
-    # Fill the new array
     for field in mapped_array.dtype.names:
-        # Mapped field: stack the source columns
-        val_list = mapping[field]
-        if len(val_list) == 1:
-            mapped_array[field] = array[val_list[0]]
+        if field in active_mapping:
+            val_list = active_mapping[field]
+            if len(val_list) == 1:
+                mapped_array[field] = array[val_list[0]]
+            else:
+                mapped_array[field] = np.stack([array[val] for val in val_list], axis=1)
         else:
-            # Stack columns horizontally for each row
-            # We need to extract each column, then stack them along axis 1
-            cols = [array[val] for val in val_list]
-            mapped_array[field] = np.stack(cols, axis=1)
+            mapped_array[field] = array[field]
 
     return mapped_array
 
