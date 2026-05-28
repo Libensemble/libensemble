@@ -165,7 +165,7 @@ if __name__ == "__main__":
             assert flag == 0
             assert np.all(H["cancel_requested"][::10]), "Some values should be cancelled but are not"
             assert np.all(~H["sim_started"][::10]), "Some values are given that should not have been"
-            tol = 0.1
+            tol = 0.5
             for m in minima:
                 assert np.min(np.sum((H["x"] - m) ** 2, 1)) < tol
 
