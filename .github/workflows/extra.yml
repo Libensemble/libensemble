@@ -50,7 +50,7 @@ jobs:
 
       - uses: prefix-dev/setup-pixi@v0.9.6
         with:
-          pixi-version: v0.68.1
+          pixi-version: v0.69.0
           cache: true
           frozen: true
           environments: ${{ matrix.python-version }}
@@ -111,4 +111,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: crate-ci/typos@v1.46.2
+      - uses: crate-ci/typos@v1.46.3

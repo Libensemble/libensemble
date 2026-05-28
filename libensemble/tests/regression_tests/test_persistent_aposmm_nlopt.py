@@ -81,7 +81,7 @@ if __name__ == "__main__":
 
     alloc_specs = {"alloc_f": alloc_f}
 
-    exit_criteria = {"sim_max": 2000}
+    exit_criteria = {"sim_max": 3000}
 
     # Perform the run
     H, persis_info, flag = libE(
