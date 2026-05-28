@@ -74,7 +74,7 @@ if __name__ == "__main__":
             "x_on_cube": ["core_on_cube", "edge_on_cube"],
             "f": ["energy"],
         },
-        initial_sample_size=100,
+        initial_sample_size=200,
         sample_points=np.round(minima, 1),
         localopt_method="LN_BOBYQA",
         rk_const=0.5 * ((gamma(1 + (n / 2)) * 5) ** (1 / n)) / sqrt(pi),
