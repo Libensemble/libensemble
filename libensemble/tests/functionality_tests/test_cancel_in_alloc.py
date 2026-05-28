@@ -43,7 +43,7 @@ if __name__ == "__main__":
         "gen_f": gen_f,
         "in": ["sim_id"],
         "out": [("x", float, (2,))],
-        "batch_size": nworkers,
+        "batch_size": nworkers * 2,
         "num_active_gens": 1,
         "user": {
             "lb": np.array([-3, -2]),
@@ -59,7 +59,7 @@ if __name__ == "__main__":
         },
     }
 
-    exit_criteria = {"sim_max": nworkers, "wallclock_max": 300}
+    exit_criteria = {"sim_max": nworkers * 2, "wallclock_max": 300}
 
     # Perform the run
     H, persis_info, flag = libE(
