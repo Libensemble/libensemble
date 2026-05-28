@@ -36,14 +36,14 @@ if __name__ == "__main__":
         "sim_f": sim_f,
         "in": ["x"],
         "out": [("f", float)],
-        "user": {"uniform_random_pause_ub": 5},
+        "user": {"uniform_random_pause_ub": 10},
     }
 
     gen_specs = {
         "gen_f": gen_f,
         "in": ["sim_id"],
         "out": [("x", float, (2,))],
-        "batch_size": 5,
+        "batch_size": nworkers,
         "num_active_gens": 1,
         "user": {
             "lb": np.array([-3, -2]),
@@ -59,7 +59,7 @@ if __name__ == "__main__":
         },
     }
 
-    exit_criteria = {"sim_max": 10, "wallclock_max": 300}
+    exit_criteria = {"sim_max": nworkers, "wallclock_max": 300}
 
     # Perform the run
     H, persis_info, flag = libE(
