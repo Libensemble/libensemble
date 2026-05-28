@@ -183,7 +183,7 @@ class APOSMM(PersistentGenInterfacer):
         opt_return_codes: list[int] = [0],
         mu: float = 1e-8,
         nu: float = 1e-8,
-        dist_to_bound_multiple: float = 0.5,
+        dist_to_bound_multiple: float = 0.05,
         random_seed: int = 1,
         **kwargs,
     ) -> None:
