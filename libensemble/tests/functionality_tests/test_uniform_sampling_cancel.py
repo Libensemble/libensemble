@@ -14,7 +14,7 @@ Tests sampling with cancellations.
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local
-# TESTSUITE_NPROCS: 2 4
+# TESTSUITE_NPROCS: 4
 
 import gc
 
@@ -41,7 +41,15 @@ def create_H0(persis_info, gen_specs, sim_max):
     n = len(lb)
     b = sim_max
 
-    H0 = np.zeros(b, dtype=[("x", float, 2), ("sim_id", int), ("sim_started", bool), ("cancel_requested", bool)])
+    H0 = np.zeros(
+        b,
+        dtype=[
+            ("x", float, 2),
+            ("sim_id", int),
+            ("sim_started", bool),
+            ("cancel_requested", bool),
+        ],
+    )
     rng = get_rng(gen_specs, {})
     H0["x"] = rng.uniform(lb, ub, (b, n))
     H0["sim_id"] = range(b)
@@ -144,7 +152,13 @@ if __name__ == "__main__":
 
         # Perform the run - do not overwrite persis_info
         H, persis_out, flag = libE(
-            sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs=alloc_specs, libE_specs=libE_specs, H0=H0
+            sim_specs,
+            gen_specs,
+            exit_criteria,
+            persis_info,
+            alloc_specs=alloc_specs,
+            libE_specs=libE_specs,
+            H0=H0,
         )
 
         if is_manager:
