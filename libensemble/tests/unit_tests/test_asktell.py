@@ -1,6 +1,6 @@
 import numpy as np
 
-from libensemble.utils.misc import unmap_numpy_array
+from libensemble.utils.misc import map_numpy_array, unmap_numpy_array
 
 
 def _check_conversion(H, npp, mapping={}):
@@ -94,6 +94,22 @@ def test_awkward_H():
     _check_conversion(H, npp)
 
 
+def test_map_numpy_array_skips_missing_mapping_sources():
+    """Test mapping only uses entries represented in the source array."""
+
+    dtype = [("x0", float), ("x1", float), ("priority", float)]
+    H = np.zeros(2, dtype=dtype)
+    H[0] = (1.1, 2.2, 0.5)
+    H[1] = (3.3, 4.4, 0.25)
+
+    mapping = {"x": ["x0", "x1"], "f": ["energy"]}
+    H_mapped = map_numpy_array(H, mapping)
+
+    assert H_mapped.dtype.names == ("x", "priority")
+    assert np.array_equal(H_mapped["x"], [[1.1, 2.2], [3.3, 4.4]])
+    assert np.array_equal(H_mapped["priority"], H["priority"])
+
+
 def test_unmap_numpy_array_basic():
     """Test basic unmapping of x and x_on_cube arrays"""
 
@@ -147,6 +163,10 @@ def test_unmap_numpy_array_edge_cases():
     # None array
     H_none = unmap_numpy_array(None, {"x": ["x0", "x1"]})
     assert H_none is None
+
+    # Mapping entries for absent fields are ignored
+    H_unmapped = unmap_numpy_array(H, {"missing": ["y"], "x": ["x0", "x1"]})
+    assert H_unmapped.dtype.names == ("sim_id", "x0", "x1", "f")
 
 
 if __name__ == "__main__":
