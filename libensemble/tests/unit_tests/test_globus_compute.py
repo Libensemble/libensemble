@@ -507,5 +507,261 @@ class TestGatherGcResultsGestApi:
         assert f in mgr._gc_futures
 
 
+# ──────────────────────────────────────────────
+# Manager GC-only path
+# ──────────────────────────────────────────────
+
+
+class TestManagerKillCancelledSimsGCOnly:
+    """Test _kill_cancelled_sims in _gc_only mode (covers lines 596-601)."""
+
+    def _make_hist(self):
+        dt = np.dtype(
+            [
+                ("sim_id", int),
+                ("sim_started", bool),
+                ("sim_ended", bool),
+                ("cancel_requested", bool),
+                ("kill_sent", bool),
+                ("sim_worker", int),
+            ]
+        )
+        H = np.zeros(3, dtype=dt)
+        H["sim_id"] = [0, 1, 2]
+        H["sim_started"] = [True, True, True]
+        H["sim_ended"] = [False, False, False]
+        H["cancel_requested"] = [True, False, True]
+        H["kill_sent"] = [False, False, False]
+        H["sim_worker"] = [1, 1, 1]
+        return H, dt
+
+    def test_gc_only_cancels_futures(self):
+        H, dt = self._make_hist()
+        hist = mock.MagicMock()
+        hist.H = H
+        hist.last_ended = -1
+        hist.last_started = 2
+
+        future1 = mock.MagicMock()
+        future2 = mock.MagicMock()
+
+        mgr = mock.MagicMock(spec=Manager)
+        mgr.kill_canceled_sims = True
+        mgr.hist = hist
+        mgr.libE_specs = {"_gc_only": True}
+        mgr._gc_futures = {future1: (0, 1), future2: (1, 1)}
+
+        Manager._kill_cancelled_sims(mgr)
+
+        # sim_id 0 and 2 are cancel_requested
+        future1.cancel.assert_called_once()
+        assert future1 not in mgr._gc_futures
+        # future2 (sim_id=1) not cancelled
+        assert future2 in mgr._gc_futures
+
+
+class TestGcCancelFutures:
+    """Test _gc_cancel_futures (covers lines 815-819)."""
+
+    def test_clears_all_futures(self):
+        f1 = mock.MagicMock()
+        f2 = mock.MagicMock()
+        mgr = mock.MagicMock(spec=Manager)
+        mgr._gc_futures = {f1: (0, 1), f2: (1, 1)}
+
+        Manager._gc_cancel_futures(mgr)
+
+        f1.cancel.assert_called_once()
+        f2.cancel.assert_called_once()
+        assert mgr._gc_futures == {}
+
+
+class TestRunGcOnlyExceptionHandling:
+    """Test exception paths in _run_gc_only (covers lines 847-852)."""
+
+    def _make_mock_gc_manager(self):
+        mgr = mock.MagicMock(spec=Manager)
+        mgr.term_test = mock.MagicMock(return_value=True)
+        mgr._init_gc = mock.MagicMock()
+        mgr._kill_cancelled_sims = mock.MagicMock()
+        mgr._gather_gc_results = mock.MagicMock(side_effect=lambda pi: pi)
+        mgr._alloc_work = mock.MagicMock(return_value=({}, {}, 0))
+        mgr._gc_futures = {}
+        mgr._gc_final_receive_and_kill = mock.MagicMock(return_value=({}, 0, 0))
+        mgr.wcomms = []
+        return mgr
+
+    def test_worker_exception_propagates(self):
+        from libensemble.manager import LoggedException, WorkerException
+
+        mgr = self._make_mock_gc_manager()
+        mgr.term_test.side_effect = WorkerException("worker err", "msg", "exc")
+
+        with pytest.raises(LoggedException):
+            Manager._run_gc_only(mgr, {})
+
+        mgr._gc_final_receive_and_kill.assert_called_once()
+
+    def test_general_exception_propagates(self):
+        from libensemble.manager import LoggedException
+
+        mgr = self._make_mock_gc_manager()
+        mgr.term_test.side_effect = RuntimeError("something broke")
+
+        with pytest.raises(LoggedException):
+            Manager._run_gc_only(mgr, {})
+
+
+class TestGcFinalReceiveAndKill:
+    """Test _gc_final_receive_and_kill (covers lines 860-917)."""
+
+    def _make_hist(self):
+        dt = np.dtype(
+            [
+                ("sim_id", int),
+                ("sim_ended", bool),
+                ("gen_informed", bool),
+            ]
+        )
+        H = np.zeros(2, dtype=dt)
+        H["sim_id"] = [0, 1]
+        H["sim_ended"] = [True, True]
+        H["gen_informed"] = [False, False]
+        return H, dt
+
+    def test_final_gen_send_branch(self, tmp_path):
+        """Covers lines 865-875: final_gen_send=True with persistent gen."""
+        H, dt = self._make_hist()
+        hist = mock.MagicMock()
+        hist.H = H
+
+        mgr = mock.MagicMock(spec=Manager)
+        mgr.W = np.zeros(2, dtype=[("worker_id", int), ("active", int), ("persis_state", int)])
+        mgr.W["worker_id"] = [0, 1]
+        mgr.W["persis_state"] = [1, 0]
+        mgr.libE_specs = {"final_gen_send": True, "save_H_on_completion": False}
+        mgr.gen_specs = {"persis_in": ["x"]}
+        mgr.hist = hist
+        mgr.persis_pending = []
+        mgr._gc_futures = {}
+        mgr.elapsed = mock.MagicMock(return_value=0.0)
+        mgr._check_work_order = mock.MagicMock()
+        mgr._send_work_order = mock.MagicMock()
+        mgr._handle_msg_from_worker = mock.MagicMock()
+        mgr._init_every_k_save = mock.MagicMock()
+        mgr._clean_up_thread = mock.MagicMock()
+        mgr.live_data = None
+
+        wcomms = {0: mock.MagicMock(), 1: None}
+        mgr.wcomms = wcomms
+        wcomms[0].mail_flag.return_value = False
+
+        result = Manager._gc_final_receive_and_kill(mgr, {0: {"p": 1}})
+
+        mgr._check_work_order.assert_called_once()
+        mgr._send_work_order.assert_called_once()
+        assert result[1] == 0
+
+    def test_drain_futures_success_and_exception(self):
+        """Covers lines 883-901: draining loop with success + exception."""
+        mgr = mock.MagicMock(spec=Manager)
+        mgr.W = np.zeros(2, dtype=[("worker_id", int), ("active", int), ("persis_state", int)])
+        mgr.W["worker_id"] = [0, 1]
+        mgr.W["persis_state"] = [0, 0]
+        mgr.libE_specs = {"save_H_on_completion": False}
+        mgr.hist = mock.MagicMock()
+        mgr.persis_pending = []
+        mgr.elapsed = mock.MagicMock(return_value=0.0)
+        mgr._init_every_k_save = mock.MagicMock()
+        mgr._clean_up_thread = mock.MagicMock()
+        mgr.live_data = None
+
+        wcomms = {0: mock.MagicMock(), 1: None}
+        mgr.wcomms = wcomms
+        wcomms[0].mail_flag.return_value = False
+
+        # Two futures: one succeeds, one raises
+        f_ok = mock.MagicMock()
+        f_ok.done.return_value = True
+        H_o = np.zeros(1, dtype=[("y", float)])
+        f_ok.result.return_value = (H_o, {"p": 1}, WORKER_DONE)
+
+        f_fail = mock.MagicMock()
+        f_fail.done.return_value = True
+        f_fail.result.side_effect = RuntimeError("remote boom")
+
+        mgr._gc_futures = {f_ok: (0, 1), f_fail: (1, 1)}
+        mgr._normalize_gc_result = Manager._normalize_gc_result
+        mgr._update_state_on_worker_msg = mock.MagicMock()
+
+        result = Manager._gc_final_receive_and_kill(mgr, {})
+
+        # Only the successful future should have called _update_state_on_worker_msg
+        mgr._update_state_on_worker_msg.assert_called_once()
+        assert mgr._gc_futures == {}
+        assert result[1] == 0
+
+    def test_drain_futures_polls_before_done(self):
+        """Covers lines 885-887: futures not done on first poll, then done."""
+        mgr = mock.MagicMock(spec=Manager)
+        mgr.W = np.zeros(2, dtype=[("worker_id", int), ("active", int), ("persis_state", int)])
+        mgr.W["worker_id"] = [0, 1]
+        mgr.W["persis_state"] = [0, 0]
+        mgr.libE_specs = {"save_H_on_completion": False}
+        mgr.hist = mock.MagicMock()
+        mgr.persis_pending = []
+        mgr.elapsed = mock.MagicMock(return_value=0.0)
+        mgr._init_every_k_save = mock.MagicMock()
+        mgr._clean_up_thread = mock.MagicMock()
+        mgr.live_data = None
+
+        wcomms = {0: mock.MagicMock(), 1: None}
+        mgr.wcomms = wcomms
+        wcomms[0].mail_flag.return_value = False
+
+        f = mock.MagicMock()
+        # Not done on first call, done on second
+        f.done.side_effect = [False, True]
+        H_o = np.zeros(1, dtype=[("y", float)])
+        f.result.return_value = (H_o, {}, WORKER_DONE)
+
+        mgr._gc_futures = {f: (0, 1)}
+        mgr._normalize_gc_result = Manager._normalize_gc_result
+        mgr._update_state_on_worker_msg = mock.MagicMock()
+
+        with mock.patch("time.sleep"):
+            Manager._gc_final_receive_and_kill(mgr, {})
+
+        mgr._update_state_on_worker_msg.assert_called_once()
+        assert mgr._gc_futures == {}
+
+    def test_no_persis_state_skips_persis_stop(self):
+        """When no workers have persis_state, skip the PERSIS_STOP block."""
+        mgr = mock.MagicMock(spec=Manager)
+        mgr.W = np.zeros(2, dtype=[("worker_id", int), ("active", int), ("persis_state", int)])
+        mgr.W["worker_id"] = [0, 1]
+        mgr.W["persis_state"] = [0, 0]
+        mgr.libE_specs = {"save_H_on_completion": False}
+        mgr.hist = mock.MagicMock()
+        mgr.persis_pending = []
+        mgr._gc_futures = {}
+        mgr.elapsed = mock.MagicMock(return_value=0.0)
+        mgr._init_every_k_save = mock.MagicMock()
+        mgr._clean_up_thread = mock.MagicMock()
+        mgr.live_data = None
+
+        wcomms = {0: mock.MagicMock(), 1: None}
+        mgr.wcomms = wcomms
+        wcomms[0].mail_flag.return_value = False
+
+        Manager._gc_final_receive_and_kill(mgr, {})
+
+        # No PERSIS_STOP sent; only STOP_TAG to gen worker (w=0) at shutdown
+        from libensemble.message_numbers import MAN_SIGNAL_FINISH, STOP_TAG
+
+        wcomms[0].send.assert_called_once_with(STOP_TAG, MAN_SIGNAL_FINISH)
+        assert mgr.persis_pending == []
+
+
 if __name__ == "__main__":
     pytest.main([__file__])
