@@ -82,7 +82,7 @@ if __name__ == "__main__":
         "out": [("f", float)],
     }
 
-    vocs = VOCS(variables={"x0": [-3, 3], "x1": [-2, 2]}, objectives={"f": "MINIMIZE"})
+    vocs = VOCS(variables={"x0": [-3, 3], "x1": [-2, 2]}, objectives={"f": "EXPLORE"})
 
     gen_specs = {
         "gen_f": gen_f,

@@ -33,7 +33,7 @@ if __name__ == "__main__":
 
     vocs = VOCS(
         variables={"x0": [-3.0, 3.0], "x1": [-2.0, 2.0]},
-        objectives={"f": "MINIMIZE"},
+        objectives={"f": "EXPLORE"},
     )
     generator = LatinHypercubeSample(vocs, random_seed=1)
 
@@ -53,6 +53,6 @@ if __name__ == "__main__":
         x0 = sampling.H["x0"]
         x1 = sampling.H["x1"]
         f = sampling.H["f"]
-        assert np.all(np.isclose(f, np.sqrt(x0 ** 2 + x1 ** 2)))
+        assert np.all(np.isclose(f, np.sqrt(x0**2 + x1**2)))
         print("\nlibEnsemble has calculated the 2D vector norm of all points")
     sampling.save_output(__file__)

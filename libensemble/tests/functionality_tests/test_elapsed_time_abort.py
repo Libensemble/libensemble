@@ -34,7 +34,7 @@ if __name__ == "__main__":
         "user": {"pause_time": 2},
     }
 
-    vocs = VOCS(variables={"x0": [-3, 3], "x1": [-2, 2]}, objectives={"f": "MINIMIZE"})
+    vocs = VOCS(variables={"x0": [-3, 3], "x1": [-2, 2]}, objectives={"f": "EXPLORE"})
 
     gen_specs = {
         "gen_f": gen_f,
@@ -55,7 +55,13 @@ if __name__ == "__main__":
     exit_criteria = {"wallclock_max": 1}
 
     # Perform the run
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, libE_specs=libE_specs, alloc_specs=alloc_specs)
+    H, persis_info, flag = libE(
+        sim_specs,
+        gen_specs,
+        exit_criteria,
+        libE_specs=libE_specs,
+        alloc_specs=alloc_specs,
+    )
 
     if is_manager:
         eprint(flag)

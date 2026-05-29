@@ -40,7 +40,7 @@ if __name__ == "__main__":
         "user": {"uniform_random_pause_ub": 10},  # long sleep ensures sims are still running when cancel fires
     }
 
-    vocs = VOCS(variables={"x0": [-3, 3], "x1": [-2, 2]}, objectives={"f": "MINIMIZE"})
+    vocs = VOCS(variables={"x0": [-3, 3], "x1": [-2, 2]}, objectives={"f": "EXPLORE"})
 
     gen_specs = {
         "gen_f": gen_f,

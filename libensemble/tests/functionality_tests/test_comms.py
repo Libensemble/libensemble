@@ -42,7 +42,7 @@ if __name__ == "__main__":
         "out": [("arr_vals", float, array_size), ("scal_val", float)],
     }
 
-    vocs = VOCS(variables={"x0": [-3, 3], "x1": [-2, 2]}, objectives={"f": "MINIMIZE"})
+    vocs = VOCS(variables={"x0": [-3, 3], "x1": [-2, 2]}, objectives={"f": "EXPLORE"})
 
     gen_specs = {
         "gen_f": gen_f,
@@ -59,7 +59,13 @@ if __name__ == "__main__":
     }
 
     # Perform the run
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs, libE_specs=libE_specs)
+    H, persis_info, flag = libE(
+        sim_specs,
+        gen_specs,
+        exit_criteria,
+        alloc_specs=alloc_specs,
+        libE_specs=libE_specs,
+    )
 
     if is_manager:
         assert flag == 0

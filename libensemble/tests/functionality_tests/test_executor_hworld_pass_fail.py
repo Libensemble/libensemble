@@ -22,7 +22,12 @@ from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
 from libensemble.libE import libE
 
 # Import libEnsemble items for this test
-from libensemble.message_numbers import TASK_FAILED, WORKER_DONE, WORKER_KILL_ON_ERR, WORKER_KILL_ON_TIMEOUT
+from libensemble.message_numbers import (
+    TASK_FAILED,
+    WORKER_DONE,
+    WORKER_KILL_ON_ERR,
+    WORKER_KILL_ON_TIMEOUT,
+)
 from libensemble.sim_funcs.executor_hworld import executor_hworld as sim_f
 from libensemble.tests.regression_tests.common import build_simfunc
 from libensemble.tools import parse_args
@@ -74,7 +79,7 @@ if __name__ == "__main__":
         "user": {"cores": cores_per_task},
     }
 
-    vocs = VOCS(variables={"x0": [-3, 3], "x1": [-2, 2]}, objectives={"f": "MINIMIZE"})
+    vocs = VOCS(variables={"x0": [-3, 3], "x1": [-2, 2]}, objectives={"f": "EXPLORE"})
 
     gen_specs = {
         "gen_f": gen_f,
@@ -92,13 +97,25 @@ if __name__ == "__main__":
     }
 
     # Perform the run
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs, libE_specs=libE_specs)
+    H, persis_info, flag = libE(
+        sim_specs,
+        gen_specs,
+        exit_criteria,
+        alloc_specs=alloc_specs,
+        libE_specs=libE_specs,
+    )
 
     if is_manager:
         print("\nChecking expected task status against Workers ...\n")
 
         calc_status_list_in = np.asarray(
-            [WORKER_DONE, WORKER_KILL_ON_ERR, WORKER_DONE, WORKER_KILL_ON_TIMEOUT, TASK_FAILED]
+            [
+                WORKER_DONE,
+                WORKER_KILL_ON_ERR,
+                WORKER_DONE,
+                WORKER_KILL_ON_TIMEOUT,
+                TASK_FAILED,
+            ]
         )
         calc_status_list = np.repeat(calc_status_list_in, nworkers)
 

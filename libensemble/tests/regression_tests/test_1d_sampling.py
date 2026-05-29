@@ -26,7 +26,7 @@ if __name__ == "__main__":
     sampling = Ensemble(parse_args=True)
     sampling.libE_specs = LibeSpecs(save_every_k_gens=300, safe_mode=False, disable_log_files=True)
     sampling.sim_specs = SimSpecs(sim_f=sim_f, inputs=["x"], outputs=[("f", float)])
-    vocs = VOCS(variables={"x0": [-3, 3]}, objectives={"f": "MINIMIZE"})
+    vocs = VOCS(variables={"x0": [-3, 3]}, objectives={"f": "EXPLORE"})
 
     sampling.gen_specs = GenSpecs(
         gen_f=persistent_uniform,

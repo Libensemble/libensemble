@@ -42,7 +42,13 @@ def test_full_workflow():
     from libensemble.ensemble import Ensemble
     from libensemble.gen_funcs.sampling import latin_hypercube_sample
     from libensemble.sim_funcs.simple_sim import norm_eval
-    from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
+    from libensemble.specs import (
+        AllocSpecs,
+        ExitCriteria,
+        GenSpecs,
+        LibeSpecs,
+        SimSpecs,
+    )
 
     LS = LibeSpecs(comms="local", nworkers=4)
 
@@ -278,7 +284,7 @@ def test_gen_specs_vocs_populates_user_bounds():
 
     vocs = VOCS(
         variables={"x0": [-3, 3], "x1": [-2, 2], "x2": [-1, 1], "x3": [-1, 1]},
-        objectives={"f": "MINIMIZE"},
+        objectives={"f": "EXPLORE"},
     )
     gs = GenSpecs(vocs=vocs)
     assert "lb" in gs.user, "lb should be populated in user from VOCS"
@@ -295,7 +301,7 @@ def test_gen_specs_vocs_does_not_overwrite_user_bounds():
 
     from libensemble.specs import GenSpecs
 
-    vocs = VOCS(variables={"x0": [-3, 3], "x1": [-2, 2]}, objectives={"f": "MINIMIZE"})
+    vocs = VOCS(variables={"x0": [-3, 3], "x1": [-2, 2]}, objectives={"f": "EXPLORE"})
     explicit_lb = np.array([0.0, 0.0])
     explicit_ub = np.array([1.0, 1.0])
     gs = GenSpecs(vocs=vocs, user={"lb": explicit_lb, "ub": explicit_ub})
@@ -309,7 +315,7 @@ def test_gen_specs_vocs_partial_user_bounds():
 
     from libensemble.specs import GenSpecs
 
-    vocs = VOCS(variables={"x0": [-3, 3], "x1": [-2, 2]}, objectives={"f": "MINIMIZE"})
+    vocs = VOCS(variables={"x0": [-3, 3], "x1": [-2, 2]}, objectives={"f": "EXPLORE"})
     explicit_lb = np.array([0.0, 0.0])
     gs = GenSpecs(vocs=vocs, user={"lb": explicit_lb})
     assert np.array_equal(gs.user["lb"], explicit_lb), "Explicit lb should be preserved"
@@ -335,7 +341,7 @@ def test_gen_specs_vocs_satisfies_legacy_user_params():
     from libensemble.gen_funcs.persistent_sampling import _get_user_params
     from libensemble.specs import GenSpecs
 
-    vocs = VOCS(variables={"x0": [-3, 3], "x1": [-2, 2]}, objectives={"f": "MINIMIZE"})
+    vocs = VOCS(variables={"x0": [-3, 3], "x1": [-2, 2]}, objectives={"f": "EXPLORE"})
     gs = GenSpecs(vocs=vocs, initial_batch_size=10)
 
     # Convert to dict shape that _get_user_params expects
@@ -355,7 +361,7 @@ def test_gen_specs_vocs_integer_domain_yields_float_array():
 
     from libensemble.specs import GenSpecs
 
-    vocs = VOCS(variables={"x0": [0, 10], "x1": [-5, 5]}, objectives={"f": "MINIMIZE"})
+    vocs = VOCS(variables={"x0": [0, 10], "x1": [-5, 5]}, objectives={"f": "EXPLORE"})
     gs = GenSpecs(vocs=vocs)
     assert gs.user["lb"].dtype == float, "lb should be float dtype even for integer-domain variables"
     assert gs.user["ub"].dtype == float, "ub should be float dtype even for integer-domain variables"

@@ -39,11 +39,10 @@ def create_H0(lb, ub, H0_size):
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
-
     sampling = Ensemble(parse_args=True)
     sampling.sim_specs = SimSpecs(sim_f=sim_f, inputs=["x"], out=[("f", float)])
 
-    vocs = VOCS(variables={"x0": [-3, 3], "x1": [-3, 3]}, objectives={"f": "MINIMIZE"})
+    vocs = VOCS(variables={"x0": [-3, 3], "x1": [-3, 3]}, objectives={"f": "EXPLORE"})
     lb = np.array([-3, -3])
     ub = np.array([3, 3])
 
