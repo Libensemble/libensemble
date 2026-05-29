@@ -361,11 +361,7 @@ def test_gen_specs_vocs_integer_domain_yields_float_array():
 
     from libensemble.specs import GenSpecs
 
-<<<<<<< HEAD
     vocs = VOCS(variables={"x0": [0, 10], "x1": [-5, 5]}, objectives={"f": "EXPLORE"})
-=======
-    vocs = VOCS(variables={"x0": [0, 10], "x1": [-5, 5]}, objectives={"f": "MINIMIZE"})
->>>>>>> 1b1cecdfd (set gen_specs.user.lb and ub from vocs variables bounds)
     gs = GenSpecs(vocs=vocs)
     assert gs.user["lb"].dtype == float, "lb should be float dtype even for integer-domain variables"
     assert gs.user["ub"].dtype == float, "ub should be float dtype even for integer-domain variables"
