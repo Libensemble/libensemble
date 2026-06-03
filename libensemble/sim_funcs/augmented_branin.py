@@ -4,9 +4,10 @@ This module evaluates the augmented Branin function for multi-fidelity optimizat
 Augmented Branin is a modified version of the Branin function with a fidelity parameter.
 """
 
-__all__ = ["augmented_branin", "augmented_branin_func"]
+__all__ = ["augmented_branin", "augmented_branin_callable", "augmented_branin_func"]
 
 import math
+
 import numpy as np
 
 
@@ -26,12 +27,30 @@ def augmented_branin(H, persis_info, sim_specs, libE_info):
     return H_o, persis_info
 
 
+def augmented_branin_callable(input_dict: dict) -> dict:
+    """
+    gest-api style simulator for the augmented Branin function.
+
+    Args:
+        input_dict: Dictionary with keys ``"x0"``, ``"x1"``, and ``"fidelity"``.
+
+    Returns:
+        Dictionary with key ``"f"`` containing the (negated) objective value.
+    """
+    x = np.array([[input_dict["x0"], input_dict["x1"]]])
+    fidelity = input_dict["fidelity"]
+    f = augmented_branin_func(x, fidelity)[0]
+    return {"f": f}
+
+
 def augmented_branin_func(x, fidelity):
     """Augmented Branin function for multi-fidelity optimization."""
     x0 = x[:, 0]
     x1 = x[:, 1]
 
-    t1 = 15 * x1 - (5.1 / (4 * math.pi**2) - 0.1 * (1 - fidelity)) * (15 * x0 - 5) ** 2 + 5 / math.pi * (15 * x0 - 5) - 6
+    t1 = (
+        15 * x1 - (5.1 / (4 * math.pi**2) - 0.1 * (1 - fidelity)) * (15 * x0 - 5) ** 2 + 5 / math.pi * (15 * x0 - 5) - 6
+    )
     t2 = 10 * (1 - 1 / (8 * math.pi)) * np.cos(15 * x0 - 5)
     result = t1**2 + t2 + 10
 
