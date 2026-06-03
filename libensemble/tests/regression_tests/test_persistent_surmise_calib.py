@@ -1,5 +1,5 @@
 """
-Runs libEnsemble with Surmise calibration test.
+Runs libEnsemble with Surmise calibration test using the gest-api generator.
 
 Execute via one of the following commands (e.g. 3 workers):
    mpiexec -np 4 python test_persistent_surmise_calib.py
@@ -25,7 +25,6 @@ in the libEnsemble documentation.
 # TESTSUITE_COMMS: mpi local tcp
 # TESTSUITE_NPROCS: 4
 # TESTSUITE_EXTRA: true
-# TESTSUITE_OS_SKIP: OSX
 
 # Requires:
 #   Install Surmise package
@@ -33,11 +32,10 @@ in the libEnsemble documentation.
 import sys
 
 import numpy as np
+from gest_api.vocs import VOCS
 
 from libensemble import Ensemble
-from libensemble.gen_funcs.persistent_surmise_calib import surmise_calib as gen_f
-
-# Import libEnsemble items for this test
+from libensemble.gen_classes.surmise_calib import SurmiseCalibrator
 from libensemble.sim_funcs.surmise_test_function import borehole as sim_f
 from libensemble.sim_funcs.surmise_test_function import tstd2theta
 from libensemble.specs import ExitCriteria, GenSpecs, SimSpecs
@@ -62,15 +60,39 @@ def run_surmise_calib():
     # Batch mode until after init_sample_size (add one theta to batch for observations)
     init_sample_size = (n_init_thetas + 1) * n_x
 
-    # Stop after max_emul_runs runs of the emulator
+    # Stop after max_evals evaluations
     max_evals = init_sample_size + max_add_thetas * n_x
+
+    # Define the problem via VOCS
+    vocs = VOCS(
+        variables={
+            "x0": [0, 1.0],
+            "x1": [0, 1.0],
+            "x2": [0, 1.0],
+            "theta0": [0, 1.0],
+            "theta1": [0, 1.0],
+            "theta2": [0, 1.0],
+            "theta3": [0, 1.0],
+        },
+        objectives={"f": "EXPLORE"},
+    )
+
+    # Initialize the standardized generator
+    generator = SurmiseCalibrator(
+        vocs,
+        n_init_thetas=n_init_thetas,
+        num_x_vals=n_x,
+        step_add_theta=step_add_theta,
+        n_explore_theta=n_explore_theta,
+        obsvar=obsvar,
+        priorloc=1,
+        priorscale=0.5,
+    )
 
     gen_out = [
         ("x", float, ndims),
         ("thetas", float, nparams),
         ("priority", int),
-        ("obs", float, n_x),
-        ("obsvar", float, n_x),
     ]
 
     test = Ensemble(
@@ -82,18 +104,9 @@ def run_surmise_calib():
             user={"num_obs": n_x},
         ),
         gen_specs=GenSpecs(
-            gen_f=gen_f,
-            persis_in=[o[0] for o in gen_out] + ["f", "sim_ended", "sim_id"],
+            generator=generator,
+            persis_in=["f", "sim_id"],
             out=gen_out,
-            user={
-                "n_init_thetas": n_init_thetas,  # No. of thetas in initial batch
-                "num_x_vals": n_x,  # No. of x points to create
-                "step_add_theta": step_add_theta,  # No. of thetas to generate per step
-                "n_explore_theta": n_explore_theta,  # No. of thetas to explore each step
-                "obsvar": obsvar,  # Variance for generating noise in obs
-                "priorloc": 1,  # Prior location in the unit cube
-                "priorscale": 0.5,  # Standard deviation of prior
-            },
             initial_batch_size=init_sample_size,
             async_return=True,
             active_recv_gen=True,

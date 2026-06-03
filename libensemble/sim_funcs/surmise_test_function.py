@@ -1,7 +1,9 @@
 """
-Created on Tue Feb  9 10:27:23 2021
+Borehole test simulation functions for the Surmise calibration example.
 
-@author: mosesyhc
+Provides both the legacy ``sim_f`` interface (``borehole``) and a
+gest-api simulator (``borehole_sim``) for use with the standardized
+``SimSpecs.simulator`` interface.
 """
 
 import numpy as np
@@ -9,7 +11,7 @@ import numpy as np
 
 def borehole(H, persis_info, sim_specs, libE_info):
     """
-    Wraps the borehole function
+    Wraps the borehole function (legacy sim_f interface).
     """
 
     H_o = np.zeros(H["x"].shape[0], dtype=sim_specs["out"])
@@ -21,6 +23,36 @@ def borehole(H, persis_info, sim_specs, libE_info):
     else:
         H_o["f"] = borehole_model(H["x"], H["thetas"])
     return H_o, persis_info
+
+
+def borehole_sim(input_dict, libE_info=None, num_obs=0, **kwargs):
+    """Gest-api borehole simulator.
+
+    Parameters
+    ----------
+    input_dict : dict
+        Contains ``x0, x1, x2`` (coordinates) and ``theta0, ..., theta3`` (parameters).
+    libE_info : dict, optional
+        LibEnsemble info dictionary, used to determine the ``sim_id``.
+    num_obs : int
+        Number of observation evaluations (uses plain model for these).
+
+    Returns
+    -------
+    dict
+        Dictionary with ``f`` (scalar borehole output).
+    """
+    x = np.atleast_2d([input_dict["x0"], input_dict["x1"], input_dict["x2"]])
+    theta = np.atleast_2d([input_dict["theta0"], input_dict["theta1"], input_dict["theta2"], input_dict["theta3"]])
+
+    sim_id = libE_info["H_rows"][0] if libE_info is not None else 0
+
+    if sim_id > num_obs:
+        f = borehole_failmodel(x, theta)
+    else:
+        f = borehole_model(x, theta)
+
+    return {"f": float(np.squeeze(f))}
 
 
 def borehole_failmodel(x, theta):

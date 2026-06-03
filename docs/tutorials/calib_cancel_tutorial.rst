@@ -23,10 +23,10 @@ have been marked as cancelled.
 Overview of the Calibration Problem
 -----------------------------------
 
-The generator function featured in this tutorial can be found in
-``gen_funcs/persistent_surmise_calib.py`` and uses the `surmise`_ library for its
-calibration surrogate model interface. The surmise library uses the  "PCGPwM"
-emulation method in this example.
+The generator class featured in this tutorial can be found in
+``gen_classes/surmise_calib.py`` as ``SurmiseCalibrator``, a standardized ``gest-api``
+generator that uses the `surmise`_ library for its calibration surrogate model interface.
+The surmise library uses the "PCGPwM" emulation method in this example.
 
 Say there is a computer model :math:`f(\theta, x)` to be calibrated.  To calibrate
 is to find some parameter :math:`\theta_0` such that :math:`f(\theta_0, x)` closely
@@ -44,7 +44,7 @@ for the known true theta, which in this case is the center of a unit hypercube. 
 are therefore stored at the start of libEnsemble's
 main :doc:`History array<../history_output_logging>` array, and have associated ``sim_id``'s.
 
-The generator function ``gen_f`` then samples an initial batch of parameters
+The generator then samples an initial batch of parameters
 :math:`(\theta_1, \ldots, \theta_n)` and constructs a surrogate model.
 
 For illustration, the initial batch of evaluations are arranged in the following sense:
@@ -58,83 +58,96 @@ For illustration, the initial batch of evaluations are arranged in the following
 
 The surrogate then generates (suggests) new parameters for ``sim_f`` evaluations,
 so the number of parameters :math:`n` grows as more evaluations are scheduled and performed.
-As more evaluations are performed and received by ``gen_f``, the surrogate evolves and
+As more evaluations are performed and ingested by the generator, the surrogate evolves and
 suggests parameters closer to :math:`\theta_0` with uncertainty estimates.
-The calibration can be terminated when either ``gen_f`` determines it has found
-:math:`\theta_0` with some tolerance in the surrounding uncertainty, or computational
-resource runs out.  At termination, the generator exits and returns, initiating the
-shutdown of the libEnsemble routine.
+The calibration can be terminated when exit criteria are met or the generator
+determines it has found :math:`\theta_0` with some tolerance in the surrounding
+uncertainty. At termination, the generator's ``finalize()`` method is called,
+initiating the shutdown of the libEnsemble routine.
 
-The following is a pseudocode overview of the generator. Functions directly from
-the calibration library used within the generator function have the ``calib:`` prefix.
-Helper functions defined to improve the data received by the calibration library by
-interfacing with libEnsemble have the ``libE:`` prefix. All other statements are
-workflow logic or persistent generator helper functions like ``send`` or ``receive``::
+The ``SurmiseCalibrator`` class implements the standard ``suggest``/``ingest``
+interface. The generator progresses through three phases:
 
-    1    libE: calculate observation values and first batch
-    2    while STOP_signal not received:
-    3        receive: evaluated points
-    4        unpack points into 2D Theta x Point structures
-    5        if new model condition:
-    6            calib: construct new model
-    7        else:
-    8            wait to receive more points
-    9        if some condition:
-    10           calib: generate new thetas from model
-    11           calib: if error threshold reached:
-    12               exit loop - done
-    13           send: new points to be evaluated
-    14       if any sent points must be obviated:
-    15           libE: mark points with cancel request
-    16               send: points with cancel request
+1. **Observation phase**: ``suggest_numpy()`` returns points for the true theta to
+   generate observation data. ``ingest_numpy()`` stores the results as observations.
+2. **Initial batch phase**: ``suggest_numpy()`` returns a batch of initial theta
+   samples. ``ingest_numpy()`` builds the emulator and calibrator from the results.
+3. **Main loop phase**: ``ingest_numpy()`` updates tracking arrays and
+   conditionally rebuilds the model. ``suggest_numpy()`` generates new thetas
+   when sufficient results have arrived, and queues cancellation requests for
+   obviated simulations via ``suggest_updates()``.
+
+The following is pseudocode for the generator's ``suggest``/``ingest`` loop::
+
+    phase 1 - suggest: generate observation points (true theta)
+              ingest:  store observation results, build obs/obsvar
+    phase 2 - suggest: generate initial theta batch
+              ingest:  build emulator and calibrator
+    phase 3 - repeat:
+              ingest:  update tracking arrays from results
+                       if rebuild condition met: update emulator, recalibrate
+              suggest: if select condition met:
+                           calib: generate new thetas from model
+                           if any pending points must be obviated:
+                               queue cancel requests via suggest_updates()
+                           return new points
+                       else: return empty (wait for more results)
 
 Point Cancellation Requests and Dedicated Fields
 ------------------------------------------------
 
-While the generator loops and updates the model based on returned
-points from simulations, it detects conditionally if any new Thetas should be generated
-from the model, simultaneously evaluating if any *pending* simulations ought to be
-cancelled ("obviated"). If so, the generator then calls ``cancel_columns()``::
-
-    if select_condition(pending):
-        new_theta, info = select_next_theta(step_add_theta, cal, emu, pending, n_explore_theta)
-        ...
-        c_obviate = info["obviatesugg"]  # suggested
-        if len(c_obviate) > 0:
-            cancel_columns(obs_offset, c_obviate, n_x, pending, ps)
-
-``obs_offset`` is an offset that excludes the observations when mapping points in surmise
-data structures to ``sim_id``'s, ``c_obviate`` is a selection
-of columns to cancel, ``n_x`` is the number of ``x`` values, and ``pending`` is used
-to check that points marked for cancellation have not already returned. ``ps`` is the
-instantiation of the *PersistentSupport* class that is set up for persistent generators, and
-provides an interface for communication with the manager.
-
-Within ``cancel_columns()``, each column in ``c_obviate`` is iterated over, and if a
-point is ``pending`` and thus has not yet been evaluated by a simulation,
-its ``sim_id`` is appended to a list to be sent to the Manager for cancellation.
-Cancellation is requested using the helper function ``request_cancel_sim_ids`` provided
-by the *PersistentSupport* class.  Each of these helper functions is described
-:ref:`here<p_gen_routines>`. The entire ``cancel_columns()`` routine is listed below:
+While the generator's ``suggest_numpy()`` generates new thetas from the model, it
+simultaneously evaluates if any *pending* simulations ought to be cancelled
+("obviated"). If so, the generator calls its internal ``_cancel_columns()``
+method, which constructs cancellation arrays and queues them for the runner:
 
 .. code-block:: python
 
-    def cancel_columns(obs_offset, c, n_x, pending, ps):
-        """Cancel columns"""
-        sim_ids_to_cancel = []
-        columns = np.unique(c)
-        for c in columns:
-            col_offset = c * n_x
-            for i in range(n_x):
-                sim_id_cancel = obs_offset + col_offset + i
-                if pending[i, c]:
-                    sim_ids_to_cancel.append(sim_id_cancel)
-                    pending[i, c] = 0
+    # Inside SurmiseCalibrator._suggest_main_loop():
+    if _select_condition(self.pending):
+        new_theta, info = select_next_theta(...)
+        ...
+        c_obviate = info["obviatesugg"]  # suggested columns to cancel
+        if len(c_obviate) > 0:
+            self._cancel_columns(c_obviate)
 
-        ps.request_cancel_sim_ids(sim_ids_to_cancel)
+``_cancel_columns()`` iterates over the columns to cancel, and for each pending
+point, appends its ``sim_id`` to a cancellation array. These arrays are returned
+by ``suggest_updates()`` and sent to the manager with ``keep_state=True``:
+
+.. code-block:: python
+
+    def _cancel_columns(self, c_obviate):
+        """Mark columns for cancellation and queue cancellation updates."""
+        sim_ids_to_cancel = []
+        columns = np.unique(c_obviate)
+        for c in columns:
+            col_offset = c * self.n_x
+            for i in range(self.n_x):
+                sim_id_cancel = self._obs_offset + col_offset + i
+                if self.pending[i, c]:
+                    sim_ids_to_cancel.append(sim_id_cancel)
+                    self.pending[i, c] = 0
+
+        if sim_ids_to_cancel:
+            cancel_array = np.zeros(len(sim_ids_to_cancel), dtype=[("sim_id", int), ("cancel_requested", bool)])
+            cancel_array["sim_id"] = sim_ids_to_cancel
+            cancel_array["cancel_requested"] = True
+            self._pending_cancellations.append(cancel_array)
+
+
+    def suggest_updates(self):
+        """Return pending cancellation updates."""
+        updates = self._pending_cancellations
+        self._pending_cancellations = []
+        return updates
+
+The ``LibensembleGenRunner`` sends these updates to the manager with
+``keep_state=True``, which updates existing History rows (setting
+``cancel_requested=True``) without changing the generator's active state.
 
 In future calls to the allocation function by the manager, points that would have
-been distributed for simulation work but are now marked with "cancel_requested" will not
+been distributed for simulation work but are now marked with ``cancel_requested`` will not
 be processed. The manager will send kill signals to workers that are already processing
 cancelled points. These signals can be caught and acted on by the user ``sim_f``; otherwise
 they will be ignored.
@@ -142,24 +155,30 @@ they will be ignored.
 Allocation Function and Cancellation Configuration
 --------------------------------------------------
 
-The allocation function used in this example is the *only_persistent_gens* function in the
-*start_only_persistent* module. The calling script passes the following specifications:
+The default allocation function ``only_persistent_gens`` is used automatically
+with standardized generators. The relevant settings are passed via ``GenSpecs``:
+
+.. code-block:: python
+
+    gen_specs = GenSpecs(
+        generator=generator,
+        persis_in=["f", "sim_id"],
+        out=gen_out,
+        initial_batch_size=init_sample_size,
+        async_return=True,
+        active_recv_gen=True,
+    )
+
+For the kill-sims test, ``kill_canceled_sims`` is also enabled:
 
 .. code-block:: python
 
     libE_specs["kill_canceled_sims"] = True
 
-    alloc_specs = {
-        "alloc_f": alloc_f,
-        "initial_batch_size": init_sample_size,
-        "async_return": True,
-        "active_recv_gen": True,
-    }
-
 **async_return** tells the allocation function to return results to the generator as soon
 as they come back from evaluation (once the initial sample is complete).
 
-**init_sample_size** gives the size of the initial sample that is batch returned to the gen.
+**initial_batch_size** gives the size of the initial sample that is batch returned to the gen.
 This is calculated from other parameters in the calling script.
 
 **active_recv_gen** allows the persistent generator to handle irregular communications (see below).
@@ -174,18 +193,14 @@ this case) must be prepared for irregular sending/receiving of data.
 Calling Script - Reading Results
 --------------------------------
 
-Within the libEnsemble calling script, once the main :doc:`libE()<../libe_module>`
-function call has returned, it's a simple enough process to view the History rows
+Within the libEnsemble calling script, once the ``Ensemble.run()`` method
+has returned, it's a simple enough process to view the History rows
 that were marked as cancelled::
 
-    if __name__ == "__main__":  # required by multiprocessing on macOS and windows
-        H, persis_info, flag = libE(sim_specs, gen_specs,
-                                    exit_criteria, persis_info,
-                                    alloc_specs=alloc_specs,
-                                    libE_specs=libE_specs)
+    H, _, _ = test.run()
 
-    if is_manager:
-        print("Cancelled sims", H["cancel_requested"])
+    if test.is_manager:
+        print("Cancelled sims", H["sim_id"][H["cancel_requested"]])
 
 Here's an example graph showing the relationship between scheduled, cancelled (obviated),
 failed, and completed simulations requested by the ``gen_f``. Notice that for each
@@ -198,9 +213,9 @@ successfully obviated:
       :align: center
 
 Please see the ``test_persistent_surmise_calib.py`` regression test for an example
-routine using the surmise calibration generator.
-The associated simulation function and allocation function are included in
-``sim_funcs/surmise_test_function.py`` and ``alloc_funcs/start_only_persistent.py`` respectively.
+routine using the ``SurmiseCalibrator`` generator class.
+The associated simulation function is in ``sim_funcs/surmise_test_function.py``,
+and the default ``only_persistent_gens`` allocation function is used automatically.
 
 Using cancellations to kill running simulations
 ------------------------------------------------

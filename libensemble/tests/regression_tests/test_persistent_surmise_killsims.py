@@ -1,5 +1,6 @@
 """
-Tests libEnsemble's capability to kill/cancel  simulations that are in progress.
+Tests libEnsemble's capability to kill/cancel simulations that are in progress,
+using the gest-api generator interface.
 
 Execute via one of the following commands (e.g. 3 workers):
    mpiexec -np 4 python test_persistent_surmise_killsims.py
@@ -14,7 +15,7 @@ This test is a smaller variant of test_persistent_surmise_calib.py, but which
 subprocesses a compiled version of the borehole simulation. A delay is
 added to simulations after the initial batch, so that the killing of running
 simulations can be tested. This will only affect simulations that have already
-been issued to a worker when the cancel request is registesred by the manager.
+been issued to a worker when the cancel request is registered by the manager.
 
 See more information, see tutorial:
 "Borehole Calibration with Selective Simulation Cancellation"
@@ -25,7 +26,6 @@ in the libEnsemble documentation.
 # TESTSUITE_COMMS: mpi local tcp
 # TESTSUITE_NPROCS: 3 4
 # TESTSUITE_EXTRA: true
-# TESTSUITE_OS_SKIP: OSX
 
 # Requires:
 #   Install Surmise package
@@ -33,14 +33,16 @@ in the libEnsemble documentation.
 import os
 
 import numpy as np
+from gest_api.vocs import VOCS
 
 from libensemble.executors.executor import Executor
-from libensemble.gen_funcs.persistent_surmise_calib import surmise_calib as gen_f
+from libensemble.gen_classes.surmise_calib import SurmiseCalibrator
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
 from libensemble.sim_funcs.borehole_kills import borehole as sim_f
-from libensemble.tests.regression_tests.common import build_borehole  # current location
+from libensemble.specs import GenSpecs, SimSpecs
+from libensemble.tests.regression_tests.common import build_borehole
 from libensemble.tools import parse_args, save_libE_output
 
 # from libensemble import logger
@@ -61,7 +63,7 @@ if __name__ == "__main__":
     # Batch mode until after init_sample_size (add one theta to batch for observations)
     init_sample_size = (n_init_thetas + 1) * n_x
 
-    # Stop after max_emul_runs runs of the emulator
+    # Stop after max_evals evaluations
     max_evals = init_sample_size + max_add_thetas * n_x
 
     sim_app = os.path.join(os.getcwd(), "borehole.x")
@@ -79,50 +81,64 @@ if __name__ == "__main__":
     en_suffix = str(nworkers) + "_" + libE_specs.get("comms")
     libE_specs["ensemble_dir_path"] = "ensemble_calib_kills_w" + en_suffix
 
-    sim_specs = {
-        "sim_f": sim_f,
-        "in": ["x", "thetas"],
-        "out": [
-            ("f", float),
-            ("sim_killed", bool),  # "sim_killed" is used only for display at the end of this test
-        ],
-        "user": {
-            "num_obs": n_x,
-            "init_sample_size": init_sample_size,
+    # Define the problem via VOCS
+    vocs = VOCS(
+        variables={
+            "x0": [0, 1.0],
+            "x1": [0, 1.0],
+            "x2": [0, 1.0],
+            "theta0": [0, 1.0],
+            "theta1": [0, 1.0],
+            "theta2": [0, 1.0],
+            "theta3": [0, 1.0],
         },
-    }
+        objectives={"f": "EXPLORE"},
+    )
+
+    # Initialize the standardized generator
+    generator = SurmiseCalibrator(
+        vocs,
+        n_init_thetas=n_init_thetas,
+        num_x_vals=n_x,
+        step_add_theta=step_add_theta,
+        n_explore_theta=n_explore_theta,
+        obsvar=obsvar,
+        priorloc=1,
+        priorscale=0.2,
+    )
 
     gen_out = [
         ("x", float, ndims),
         ("thetas", float, nparams),
         ("priority", int),
-        ("obs", float, n_x),
-        ("obsvar", float, n_x),
     ]
 
-    gen_specs = {
-        "gen_f": gen_f,
-        "persis_in": [o[0] for o in gen_out] + ["f", "sim_ended", "sim_id"],
-        "out": gen_out,
-        "initial_batch_size": init_sample_size,
-        "async_return": True,
-        "active_recv_gen": True,
-        "user": {
-            "n_init_thetas": n_init_thetas,  # Num thetas in initial batch
-            "num_x_vals": n_x,  # Num x points to create
-            "step_add_theta": step_add_theta,  # No. of thetas to generate per step
-            "n_explore_theta": n_explore_theta,  # No. of thetas to explore each step
-            "obsvar": obsvar,  # Variance for generating noise in obs
-            "priorloc": 1,  # Prior location in the unit cube.
-            "priorscale": 0.2,  # Standard deviation of prior
+    sim_specs = SimSpecs(
+        sim_f=sim_f,
+        inputs=["x", "thetas"],
+        out=[
+            ("f", float),
+            ("sim_killed", bool),
+        ],
+        user={
+            "num_obs": n_x,
+            "init_sample_size": init_sample_size,
         },
-    }
+    )
 
-    persis_info = {}
+    gen_specs = GenSpecs(
+        generator=generator,
+        persis_in=["f", "sim_id"],
+        out=gen_out,
+        initial_batch_size=init_sample_size,
+        async_return=True,
+        active_recv_gen=True,
+    )
+
     exit_criteria = {"sim_max": max_evals}
 
     # Perform the run
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, {}, libE_specs=libE_specs)
 
     if is_manager:
         print("Cancelled sims", H["sim_id"][H["cancel_requested"]])

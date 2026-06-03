@@ -252,6 +252,22 @@ class LibensembleGenRunner(StandardGenRunner):
             updates = None
         return numpy_out, updates
 
+    def _loop_over_gen(self, tag, Work, H_in):
+        """Interact with suggest/ingest generator, sending any updates (e.g. cancellations) via keep_state"""
+        while tag not in [PERSIS_STOP, STOP_TAG]:
+            batch_size = self.specs.get("batch_size") or len(H_in)
+            H_out, updates = self._get_points_updates(batch_size)
+            if updates is not None and len(updates):
+                self.ps.send(H_out)
+                for update in updates:
+                    self.ps.send(update, keep_state=True)
+                tag, Work, H_in = self.ps.recv()
+            else:
+                tag, Work, H_in = self.ps.send_recv(H_out)
+            if H_in is not None:
+                self._convert_ingest(H_in)
+        return H_in
+
     def _convert_ingest(self, x: npt.NDArray) -> list:
         self.gen.ingest_numpy(unmap_numpy_array(x, mapping=getattr(self.gen, "variables_mapping", {})))
 
