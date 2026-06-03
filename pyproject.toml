@@ -209,7 +209,7 @@ gxx_linux-64 = ">=15.2.0,<16"
 extra = [
   "pyenchant>=3.2.2",
   "enchant>=0.0.1,<0.0.2",
-  "redis>=7.1.0,<8",
+  "redis>=7.1.0,<9",
   "surmise>=0.3.0,<0.4",
   "optimas @ git+https://github.com/optimas-org/optimas@multitask_uses_id",
 ]
