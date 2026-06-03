@@ -257,10 +257,8 @@ class BoTorchMFKG(Generator):
             options={"batch_limit": 10, "maxiter": 10},
         )
 
-        n_vars = len(self._var_names)
-
         def _project(X):
-            return project_to_target_fidelity(X=X, target_fidelities=self._target_fidelities, d=n_vars)
+            return project_to_target_fidelity(X=X, target_fidelities=self._target_fidelities)
 
         return qMultiFidelityKnowledgeGradient(
             model=model,
