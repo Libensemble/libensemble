@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 outfiles = ["err.txt", "forces.stat", "out.txt"]
 
@@ -18,6 +19,7 @@ def test_libe_stats(status):
 
 
 def test_ensemble_dir(libE_specs, dir, nworkers, sim_max):
+    dir = Path(dir)
     if not os.path.isdir(dir):
         print(f"Specified ensemble directory {dir} not found.")
         return
@@ -36,11 +38,11 @@ def test_ensemble_dir(libE_specs, dir, nworkers, sim_max):
 
         worker_dirs = [i for i in os.listdir(dir) if i.startswith("worker")]
         for worker_dir in worker_dirs:
-            sim_dirs = [i for i in os.listdir(os.path.join(dir, worker_dir)) if i.startswith("sim")]
+            sim_dirs = [i for i in os.listdir(dir / worker_dir) if i.startswith("sim")]
             num_sim_dirs += len(sim_dirs)
 
             for sim_dir in sim_dirs:
-                files_found.append(all([i in os.listdir(os.path.join(dir, worker_dir, sim_dir)) for i in outfiles]))
+                files_found.append(all([i in os.listdir(dir / worker_dir / sim_dir) for i in outfiles]))
 
         assert (
             num_sim_dirs == sim_max
@@ -62,7 +64,7 @@ def test_ensemble_dir(libE_specs, dir, nworkers, sim_max):
 
         files_found = []
         for sim_dir in sim_dirs:
-            files_found.append(all([i in os.listdir(os.path.join(dir, sim_dir)) for i in outfiles]))
+            files_found.append(all([i in os.listdir(dir / sim_dir) for i in outfiles]))
 
         assert all(
             files_found

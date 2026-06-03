@@ -1,6 +1,9 @@
 persistent_sampling
 -------------------
 
+.. role:: underline
+    :class: underline
+
 .. automodule:: persistent_sampling
   :members:
   :undoc-members:

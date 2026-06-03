@@ -6,11 +6,7 @@ __all__ = ["norm_eval"]
 
 import numpy as np
 
-from libensemble.specs import input_fields, output_data
 
-
-@input_fields(["x"])
-@output_data([("f", float)])
 def norm_eval(H, persis_info, sim_specs, _):
     """
     Evaluates the vector norm for a single point ``x``.

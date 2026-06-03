@@ -19,40 +19,26 @@ Centralized Running
 -------------------
 
 The default communications scheme places the manager and workers on the first node.
-The :doc:`MPI Executor<../executor/mpi_executor>` can then be invoked by each
+The :doc:`MPI Executor<../executor/ex_index>` can then be invoked by each
 simulation worker, and libEnsemble will distribute user applications across the
 node allocation. This is the **most common approach** where each simulation
 runs an MPI application.
 
-The generator will run on a worker by default, but if running a single generator,
-the :ref:`libE_specs<datastruct-libe-specs>` option **gen_on_manager** is recommended,
-which runs the generator on the manager (using a thread) as below.
+.. image:: ../images/centralized_gen_on_manager.png
+        :alt: centralized
+        :scale: 55
 
-.. list-table::
-   :widths: 60 40
+A SLURM batch script may include:
 
-   * - .. image:: ../images/centralized_gen_on_manager.png
-          :alt: centralized
-          :scale: 55
+.. code-block:: bash
 
-     - In calling script:
+    #SBATCH --nodes 3
 
-       .. code-block:: python
-          :linenos:
+    python run_libe_forces.py --nworkers 3
 
-          ensemble.libE_specs = LibeSpecs(
-              gen_on_manager=True,
-          )
-
-       A SLURM batch script may include:
-
-       .. code-block:: bash
-
-          #SBATCH --nodes 3
-
-          python run_libe_forces.py --nworkers 3
-
-When using **gen_on_manager**, set ``nworkers`` to the number of workers desired for running simulations.
+If running multiple generator processes instead, then set the
+:ref:`libE_specs<datastruct-libe-specs>` option **gen_on_worker** so that multiple
+worker processes can run multiple generator instances.
 
 Dedicated Mode
 ^^^^^^^^^^^^^^
@@ -62,32 +48,29 @@ True, the MPI executor will not launch applications on nodes where libEnsemble P
 processes (manager and workers) are running. Workers launch applications onto the
 remaining nodes in the allocation.
 
-.. list-table::
-   :widths: 60 40
 
-   * - .. image:: ../images/centralized_dedicated.png
-          :alt: centralized dedicated mode
-          :scale: 30
+.. image:: ../images/centralized_dedicated.png
+    :alt: centralized dedicated mode
+    :scale: 30
 
-     - In calling script:
+In calling script:
 
-       .. code-block:: python
-          :linenos:
+.. code-block:: python
+    :linenos:
 
-          ensemble.libE_specs = LibeSpecs(
-              num_resource_sets=2,
-              dedicated_mode=True,
-          )
+    ensemble.libE_specs = LibeSpecs(
+        gen_on_worker=True,
+        num_resource_sets=2,
+        dedicated_mode=True,
+    )
 
-       A SLURM batch script may include:
+A SLURM batch script may include:
 
-       .. code-block:: bash
+.. code-block:: bash
 
-          #SBATCH --nodes 3
+    #SBATCH --nodes 3
 
-          python run_libe_forces.py --nworkers 3
-
-Note that **gen_on_manager** is not set in the above example.
+    python run_libe_forces.py --nworkers 3
 
 Distributed Running
 -------------------
@@ -120,7 +103,7 @@ the nodes within that allocation.
 
 *How does libEnsemble know where to run tasks (user applications)?*
 
-The libEnsemble :doc:`MPI Executor<../executor/mpi_executor>` can be initialized from the user calling
+The libEnsemble :doc:`MPI Executor<../executor/ex_index>` can be initialized from the user calling
 script, and then used by workers to run tasks. The Executor will automatically detect the nodes
 available on most systems. Alternatively, the user can provide a file called **node_list** in
 the run directory. By default, the Executor will divide up the nodes evenly to each worker.
@@ -130,16 +113,8 @@ Mapping Tasks to Resources
 
 The :ref:`resource manager<resources_index>` detects node lists from
 :ref:`common batch schedulers<resource_detection>`,
-and partitions these to workers. The :doc:`MPI Executor<../executor/mpi_executor>`
+and partitions these to workers. The :doc:`MPI Executor<../executor/ex_index>`
 accesses the resources available to the current worker when launching tasks.
-
-Zero-resource workers
----------------------
-
-Users with persistent ``gen_f`` functions may notice that the persistent workers
-are still automatically assigned system resources. This can be resolved by using
-the ``gen_on_manager`` option or by
-:ref:`fixing the number of resource sets<zero_resource_workers>`.
 
 Assigning GPUs
 --------------
@@ -163,7 +138,7 @@ System detection for resources can be overridden using the :ref:`resource_info<r
 libE_specs option.
 
 When using the MPI Executor, it is possible to override the detected information using the
-`custom_info` argument. See the :doc:`MPI Executor<../executor/mpi_executor>` for more.
+`custom_info` argument. See the :doc:`MPI Executor<../executor/ex_index>` for more.
 
 Systems with Launch/MOM Nodes
 -----------------------------
@@ -171,8 +146,7 @@ Systems with Launch/MOM Nodes
 Some large systems have a 3-tier node setup. That is, they have a separate set of launch nodes
 (known as MOM nodes on Cray Systems). User batch jobs or interactive sessions run on a launch node.
 Most such systems supply a special MPI runner that has some application-level scheduling
-capability (e.g., ``aprun``, ``jsrun``). MPI applications can only be submitted from these nodes. Examples
-of these systems include Summit and Sierra.
+capability (e.g., ``aprun``, ``jsrun``). MPI applications can only be submitted from these nodes.
 
 There are two ways of running libEnsemble on these kinds of systems. The first, and simplest,
 is to run libEnsemble on the launch nodes. This is often sufficient if the worker's simulation
@@ -225,7 +199,7 @@ accessible on the remote system::
     exctr.register_app(full_path="/home/user/forces.x", app_name="forces")
     task = exctr.submit(app_name="forces", num_procs=64)
 
-Specify a Globus Compute endpoint in either :class:`sim_specs<libensemble.specs.SimSpecs>` or :class:`gen_specs<libensemble.specs.GenSpecs>` via the ``globus_compute_endpoint``
+Specify a Globus Compute endpoint in :class:`sim_specs<libensemble.specs.SimSpecs>` via the ``globus_compute_endpoint``
 argument. For example::
 
     from libensemble.specs import SimSpecs
@@ -256,7 +230,6 @@ libEnsemble on specific HPC systems.
     improv
     perlmutter
     polaris
-    summit
     srun
     example_scripts
 

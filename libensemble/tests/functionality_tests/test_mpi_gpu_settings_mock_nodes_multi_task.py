@@ -28,7 +28,6 @@ import sys
 
 import numpy as np
 
-from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.executors.mpi_executor import MPIExecutor
 from libensemble.gen_funcs.persistent_sampling_var_resources import uniform_sample_diff_simulations as gen_f
 
@@ -37,7 +36,7 @@ from libensemble.libE import libE
 from libensemble.sim_funcs import six_hump_camel
 from libensemble.sim_funcs.var_resources import gpu_variable_resources_from_gen as sim_f
 from libensemble.tests.regression_tests.common import create_node_file
-from libensemble.tools import add_unique_random_streams, parse_args
+from libensemble.tools import parse_args
 
 # from libensemble import logger
 # logger.set_level("DEBUG")  # For testing the test
@@ -68,8 +67,10 @@ if __name__ == "__main__":
         "gen_f": gen_f,
         "persis_in": ["f", "x", "sim_id"],
         "out": [("priority", float), ("num_procs", int), ("num_gpus", int), ("x", float, n)],
+        "initial_batch_size": nsim_workers,
+        "batch_evaluate_same_priority": False,
+        "async_return": False,
         "user": {
-            "initial_batch_size": nsim_workers,
             "max_procs": max(nsim_workers // 2, 1),  # Any sim created can req. 1 worker up to max
             "lb": np.array([-3, -2]),
             "ub": np.array([3, 2]),
@@ -77,15 +78,7 @@ if __name__ == "__main__":
         },
     }
 
-    alloc_specs = {
-        "alloc_f": alloc_f,
-        "user": {
-            "give_all_with_same_priority": False,
-            "async_return": False,  # False batch returns
-        },
-    }
-
-    persis_info = add_unique_random_streams({}, nworkers + 1)
+    persis_info = {}
     exit_criteria = {"sim_max": nsim_workers * 2}
 
     # Ensure LIBE_PLATFORM environment variable is not set.
@@ -106,12 +99,10 @@ if __name__ == "__main__":
         exctr.register_app(full_path=six_hump_camel_app, app_name="six_hump_camel")
 
         # Reset persis_info. If has num_gens_started > 0 from alloc, will not runs any sims.
-        persis_info = add_unique_random_streams({}, nworkers + 1)
+        persis_info = {}
 
         # Perform the run
-        H, _, flag = libE(
-            sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs, alloc_specs=alloc_specs
-        )
+        H, _, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
 
     # Oversubscribe procs
     if nsim_workers >= 4:
@@ -131,12 +122,10 @@ if __name__ == "__main__":
         exctr.register_app(full_path=six_hump_camel_app, app_name="six_hump_camel")
 
         # Reset persis_info. If has num_gens_started > 0 from alloc, will not runs any sims.
-        persis_info = add_unique_random_streams({}, nworkers + 1)
+        persis_info = {}
 
         # Perform the run
-        H, _, flag = libE(
-            sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs, alloc_specs=alloc_specs
-        )
+        H, _, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
 
     del libE_specs["resource_info"]
 

@@ -24,7 +24,7 @@ Do ONCE in your local checkout:
 
 To set upstream repo::
 
-    git remote add upstream https://github.com/spack/spack.git
+    git remote add upstream https://github.com/spack/spack-packages.git
     git remote -v # check added
 
 (Optional) To prevent accidental pushes to upstream::
@@ -80,12 +80,15 @@ See the Spack packaging_ and contribution_ guides for more info.
 Quick example to update libEnsemble
 -----------------------------------
 
+The libEnsemble ``package.py`` file can be viewed online at:
+https://github.com/spack/spack-packages/blob/develop/repos/spack_repo/builtin/packages/py_libensemble/package.py
+
 This will open the libEnsemble ``package.py`` file in your editor (given by
 environment variable ``EDITOR``)::
 
     spack edit py-libensemble  # SPACK_ROOT must be set (see above) (Python packages use "py-" prefix)
 
-Or just open it manually: ``var/spack/repos/builtin/packages/py-libensemble/package.py``.
+Or just open it manually: ``repos/spack_repo/builtin/packages/py_libensemble/package.py``.
 
 Now get the checksum for new lines:
 
@@ -119,7 +122,7 @@ Express Summary: Make Fork Identical to Upstream
 Quick summary for bringing the develop branch on a forked repo up to speed with upstream
 (YOU WILL LOSE ANY CHANGES)::
 
-    git remote add upstream https://github.com/spack/spack.git
+    git remote add upstream https://github.com/spack/spack-packages.git
     git fetch upstream
     git checkout develop
     git reset --hard upstream/develop

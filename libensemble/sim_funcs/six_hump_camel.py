@@ -18,12 +18,9 @@ import time
 import numpy as np
 
 from libensemble.message_numbers import EVAL_SIM_TAG, FINISHED_PERSISTENT_SIM_TAG, PERSIS_STOP, STOP_TAG
-from libensemble.specs import input_fields, output_data
 from libensemble.tools.persistent_support import PersistentSupport
 
 
-@input_fields(["x"])
-@output_data([("f", float)])
 def six_hump_camel(H, persis_info, sim_specs, libE_info):
     """
     Evaluates the six hump camel function for a collection of points given in ``H["x"]``.
@@ -50,8 +47,6 @@ def six_hump_camel(H, persis_info, sim_specs, libE_info):
     return H_o, persis_info
 
 
-@input_fields(["x"])
-@output_data([("f", float)])
 def six_hump_camel_simple(x, _, sim_specs):
     """
     Evaluates the six hump camel function for a single point ``x``.
@@ -99,15 +94,13 @@ def persistent_six_hump_camel(H, persis_info, sim_specs, libE_info):
 
         tag, Work, calc_in = ps.send_recv(H_o)
 
-    final_return = None
-
     # Overwrite final point - for testing only
     if sim_specs["user"].get("replace_final_fields", 0):
         calc_in = np.ones(1, dtype=[("x", float, (2,))])
         H_o, persis_info = six_hump_camel(calc_in, persis_info, sim_specs, libE_info)
-        final_return = H_o
+        return H_o, persis_info, FINISHED_PERSISTENT_SIM_TAG
 
-    return final_return, persis_info, FINISHED_PERSISTENT_SIM_TAG
+    return None, persis_info, FINISHED_PERSISTENT_SIM_TAG
 
 
 def six_hump_camel_func(x):

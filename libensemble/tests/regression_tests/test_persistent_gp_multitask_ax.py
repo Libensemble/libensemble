@@ -2,8 +2,6 @@
 Example of multi-fidelity optimization using a persistent GP gen_func (calling
 Ax).
 
-This test uses the gen_on_manager option (persistent generator runs on
-a thread). Therefore nworkers is the number of simulation workers.
 
 Execute via one of the following commands:
    mpiexec -np 4 python test_persistent_gp_multitask_ax.py
@@ -26,10 +24,9 @@ import warnings
 import numpy as np
 
 from libensemble import logger
-from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens
 from libensemble.libE import libE
 from libensemble.message_numbers import WORKER_DONE
-from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
+from libensemble.tools import parse_args, save_libE_output
 
 # Ax uses a deprecated warn command.
 warnings.filterwarnings("ignore", category=UserWarning)
@@ -64,7 +61,6 @@ def run_simulation(H, persis_info, sim_specs, libE_info):
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
     nworkers, is_manager, libE_specs, _ = parse_args()
-    libE_specs["gen_on_manager"] = True
 
     mt_params = {
         "name_hifi": "expensive_model",
@@ -90,13 +86,13 @@ if __name__ == "__main__":
         "out": [
             # parameters to input into the simulation.
             ("x", float, (2,)),
-            ("task", str, max([len(mt_params["name_hifi"]), len(mt_params["name_lofi"])])),
+            ("task", str, max(len(str(mt_params["name_hifi"])), len(str(mt_params["name_lofi"])))),
             ("resource_sets", int),
         ],
+        "async_return": False,
+        "batch_size": nworkers - 1,
         "user": {
             "range": [1, 8],
-            # Total max number of sims running concurrently.
-            "gen_batch_size": nworkers - 1,
             # Lower bound for the n parameters.
             "lb": np.array([0, 0]),
             # Upper bound for the n parameters.
@@ -105,22 +101,14 @@ if __name__ == "__main__":
     }
     gen_specs["user"] = {**gen_specs["user"], **mt_params}
 
-    alloc_specs = {
-        "alloc_f": only_persistent_gens,
-        "user": {"async_return": False},
-    }
-
     # libE logger
     logger.set_level("INFO")
 
     # Exit criteria
     exit_criteria = {"sim_max": 20}  # Exit after running sim_max simulations
 
-    # Create a different random number stream for each worker and the manager
-    persis_info = add_unique_random_streams({}, nworkers + 1)
-
     # Run LibEnsemble, and store results in history array H
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, libE_specs=libE_specs)
 
     # Save results to numpy file
     if is_manager:

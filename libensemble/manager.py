@@ -12,6 +12,7 @@ import socket
 import sys
 import time
 import traceback
+from pathlib import Path
 from typing import Any
 
 import numpy as np
@@ -33,7 +34,7 @@ from libensemble.message_numbers import (
 )
 from libensemble.resources.resources import Resources
 from libensemble.tools.fields_keys import protected_libE_fields
-from libensemble.tools.tools import _PERSIS_RETURN_WARNING, _USER_CALC_DIR_WARNING
+from libensemble.tools.tools import _USER_CALC_DIR_WARNING
 from libensemble.utils.misc import _WorkerIndexer, extract_H_ranges
 from libensemble.utils.output_directory import EnsembleDirectory
 from libensemble.utils.timer import Timer
@@ -56,7 +57,7 @@ class LoggedException(Exception):
     """Raise exception for handling without re-logging"""
 
 
-def report_worker_exc(wrk_exc: Exception = None) -> None:
+def report_worker_exc(wrk_exc: Exception | None = None) -> None:
     """Write worker exception to log"""
     if wrk_exc is not None:
         from_line, msg, exc = wrk_exc.args
@@ -74,7 +75,7 @@ def manager_main(
     exit_criteria: dict,
     persis_info: dict,
     wcomms: list = [],
-) -> (dict, int, int):
+) -> tuple[dict, int, int]:
     """Manager routine to coordinate the generation and simulation evaluations
 
     Parameters
@@ -164,7 +165,6 @@ class Manager:
         ("persis_state", int),
         ("active_recv", bool),
         ("gen_started_time", float),
-        ("zero_resource_worker", bool),
     ]
 
     def _run_additional_worker(self, hist, sim_specs, gen_specs, libE_specs):
@@ -215,7 +215,7 @@ class Manager:
         self.elapsed = lambda: timer.elapsed
         self.wcomms = wcomms
         self.WorkerExc = False
-        self.persis_pending = []
+        self.persis_pending: list[int] = []
         self.live_data = libE_specs.get("live_data")
 
         dyn_keys = ("resource_sets", "num_procs", "num_gpus")
@@ -231,19 +231,20 @@ class Manager:
             (1, "stop_val", self.term_test_stop_val),
         ]
 
-        gen_on_manager = self.libE_specs.get("gen_on_manager", False)
+        gen_on_worker = self.libE_specs.get("gen_on_worker", False)
+        len_W = len(self.wcomms) + 1 - gen_on_worker  # if gen_on_worker, len_W = len(self.wcomms)
 
-        self.W = np.zeros(len(self.wcomms) + gen_on_manager, dtype=Manager.worker_dtype)
-        if gen_on_manager:
+        self.W = np.zeros(len_W, dtype=Manager.worker_dtype)
+        if gen_on_worker:
+            self.W["worker_id"] = np.arange(len(self.wcomms)) + 1  # [1, 2, 3, ...]
+        else:
             self.W["worker_id"] = np.arange(len(self.wcomms) + 1)  # [0, 1, 2, ...]
             self.W[0]["gen_worker"] = True
             local_worker_comm = self._run_additional_worker(hist, sim_specs, gen_specs, libE_specs)
             self.wcomms = [local_worker_comm] + self.wcomms
-        else:
-            self.W["worker_id"] = np.arange(len(self.wcomms)) + 1  # [1, 2, 3, ...]
 
-        self.W = _WorkerIndexer(self.W, gen_on_manager)
-        self.wcomms = _WorkerIndexer(self.wcomms, gen_on_manager)
+        self.W = _WorkerIndexer(self.W, 1 - gen_on_worker)  # if gen on worker, then no additional worker
+        self.wcomms = _WorkerIndexer(self.wcomms, 1 - gen_on_worker)
 
         temp_EnsembleDirectory = EnsembleDirectory(libE_specs=libE_specs)
         self.resources = Resources.resources
@@ -251,9 +252,6 @@ class Manager:
         if self.resources is not None:
             gresource = self.resources.glob_resources
             self.scheduler_opts = gresource.update_scheduler_opts(self.scheduler_opts)
-            for wrk in self.W:
-                if wrk["worker_id"] in gresource.zero_resource_workers:
-                    wrk["zero_resource_worker"] = True
 
         for wrk in self.W:
             if wrk["worker_id"] in self.libE_specs.get("gen_workers", []):
@@ -262,7 +260,7 @@ class Manager:
         try:
             temp_EnsembleDirectory.make_copyback()
         except AssertionError as e:  # Ensemble dir exists and isn't empty.
-            logger.manager_warning(_USER_CALC_DIR_WARNING.format(temp_EnsembleDirectory.ensemble_dir))
+            logger.manager_warning(_USER_CALC_DIR_WARNING.format(temp_EnsembleDirectory.ensemble_dir))  # type: ignore
             self._kill_workers()
             raise ManagerException(
                 "Manager errored on initialization",
@@ -338,7 +336,7 @@ class Manager:
     def _save_every_k_sims(self, complete: bool) -> None:
         """Saves history every kth sim step"""
         self._save_every_k(
-            os.path.join(self.libE_specs["workflow_dir_path"], "{}_{}after_sim_{}.npy"),
+            str(Path(self.libE_specs["workflow_dir_path"]) / "{}_{}after_sim_{}.npy"),
             self.hist.sim_ended_count,
             self.libE_specs["save_every_k_sims"],
             complete,
@@ -347,7 +345,7 @@ class Manager:
     def _save_every_k_gens(self, complete: bool) -> None:
         """Saves history every kth gen step"""
         self._save_every_k(
-            os.path.join(self.libE_specs["workflow_dir_path"], "{}_{}after_gen_{}.npy"),
+            str(Path(self.libE_specs["workflow_dir_path"]) / "{}_{}after_gen_{}.npy"),
             self.hist.index,
             self.libE_specs["save_every_k_gens"],
             complete,
@@ -393,22 +391,30 @@ class Manager:
 
         If rsets are not assigned, then assign using default mapping
         """
-        resource_manager = self.resources.resource_manager
+        resource_manager = self.resources.resource_manager  # type: ignore
         rset_req = Work["libE_info"].get("rset_team")
 
         if rset_req is None:
             rset_team = []
-            default_rset = resource_manager.index_list[w - 1]
+            default_rset = resource_manager.index_list[w]  # type: ignore
             if default_rset is not None:
                 rset_team.append(default_rset)
             Work["libE_info"]["rset_team"] = rset_team
 
-        resource_manager.assign_rsets(Work["libE_info"]["rset_team"], w)
+        resource_manager.assign_rsets(Work["libE_info"]["rset_team"], w)  # type: ignore
 
     def _freeup_resources(self, w: int) -> None:
         """Free up resources assigned to the worker"""
         if self.resources:
-            self.resources.resource_manager.free_rsets(w)
+            self.resources.resource_manager.free_rsets(w)  # type: ignore
+
+    def _ensure_sim_id_in_persis_in(self, D: npt.NDArray) -> None:
+        """Add sim_id to gen_specs persis_in if generator output contains sim_id (gest-api style generators only)"""
+        if self.gen_specs.get("generator") and len(D) > 0 and "sim_id" in D.dtype.names:
+            if "persis_in" not in self.gen_specs:
+                self.gen_specs["persis_in"] = []
+            if "sim_id" not in self.gen_specs["persis_in"]:
+                self.gen_specs["persis_in"].append("sim_id")
 
     def _send_work_order(self, Work: dict, w: int) -> None:
         """Sends an allocation function order to a worker"""
@@ -476,18 +482,17 @@ class Manager:
         calc_status = D_recv["calc_status"]
 
         keep_state = D_recv["libE_info"].get("keep_state", False)
-        if w not in self.persis_pending and not self.W[w]["active_recv"] and not keep_state:
+        if (w not in self.persis_pending and not self.W[w]["active_recv"] and not keep_state) or self.WorkerExc:
             self.W[w]["active"] = 0
 
         if calc_status in [FINISHED_PERSISTENT_SIM_TAG, FINISHED_PERSISTENT_GEN_TAG]:
             final_data = D_recv.get("calc_out", None)
             if isinstance(final_data, np.ndarray):
-                if calc_status is FINISHED_PERSISTENT_GEN_TAG and self.libE_specs.get("use_persis_return_gen", False):
+                if calc_status is FINISHED_PERSISTENT_GEN_TAG:
+                    self._ensure_sim_id_in_persis_in(final_data)
                     self.hist.update_history_x_in(w, final_data, self.W[w]["gen_started_time"])
-                elif calc_status is FINISHED_PERSISTENT_SIM_TAG and self.libE_specs.get("use_persis_return_sim", False):
+                elif calc_status is FINISHED_PERSISTENT_SIM_TAG:
                     self.hist.update_history_f(D_recv, self.kill_canceled_sims)
-                else:
-                    logger.info(_PERSIS_RETURN_WARNING)
             self.W[w]["persis_state"] = 0
             if self.W[w]["active_recv"]:
                 self.W[w]["active"] = 0
@@ -498,9 +503,21 @@ class Manager:
             self._freeup_resources(w)
         else:
             if calc_type == EVAL_SIM_TAG:
-                self.hist.update_history_f(D_recv, self.kill_canceled_sims)
+                try:
+                    self.hist.update_history_f(D_recv, self.kill_canceled_sims)
+                except AttributeError as e:
+                    if self.WorkerExc:
+                        logger.debug(f"Manager ignoring secondary data error from worker {w} during shutdown: {e}")
+                    else:
+                        self.WorkerExc = True
+                        self._kill_workers()
+                        raise WorkerException(
+                            f"Error in data from worker {w}", str(e), traceback.format_exc()
+                        ) from None
             if calc_type == EVAL_GEN_TAG:
-                self.hist.update_history_x_in(w, D_recv["calc_out"], self.W[w]["gen_started_time"])
+                D = D_recv["calc_out"]
+                self._ensure_sim_id_in_persis_in(D)
+                self.hist.update_history_x_in(w, D, self.W[w]["gen_started_time"])
                 assert (
                     len(D_recv["calc_out"]) or np.any(self.W["active"]) or self.W[w]["persis_state"]
                 ), "Gen must return work when is is the only thing active and not persistent."
@@ -532,7 +549,7 @@ class Manager:
                 self._kill_workers()
                 raise WorkerException(f"Received error message from worker {w}", D_recv.msg, D_recv.exc)
         elif isinstance(D_recv, logging.LogRecord):
-            logger.vdebug(f"Manager received a log message from worker {w}")
+            logger.vdebug(f"Manager received a log message from worker {w}")  # type: ignore[attr-defined]
             logging.getLogger(D_recv.name).handle(D_recv)
         else:
             logger.debug(f"Manager received data message from worker {w}")
@@ -563,7 +580,7 @@ class Manager:
 
     # --- Handle termination
 
-    def _final_receive_and_kill(self, persis_info: dict) -> (dict, int, int):
+    def _final_receive_and_kill(self, persis_info: dict) -> tuple[dict, int, int]:
         """
         Tries to receive from any active workers.
 
@@ -601,9 +618,9 @@ class Manager:
                 # Elapsed Wallclock has expired
                 if not any(self.W["persis_state"]):
                     if any(self.W["active"]):
-                        logger.manager_warning(_WALLCLOCK_MSG_ACTIVE)
+                        logger.manager_warning(_WALLCLOCK_MSG_ACTIVE)  # type: ignore
                     else:
-                        logger.manager_warning(_WALLCLOCK_MSG_ALL_RETURNED)
+                        logger.manager_warning(_WALLCLOCK_MSG_ALL_RETURNED)  # type: ignore
                     exit_flag = 2
             if self.WorkerExc:
                 exit_flag = 1
@@ -615,6 +632,7 @@ class Manager:
         if self.live_data is not None:
             self.live_data.finalize(self.hist)
 
+        persis_info["num_gens_started"] = 0
         return persis_info, exit_flag, self.elapsed()
 
     def _sim_max_given(self) -> bool:
@@ -639,7 +657,7 @@ class Manager:
             "use_resource_sets": self.use_resource_sets,
             "gen_num_procs": self.gen_num_procs,
             "gen_num_gpus": self.gen_num_gpus,
-            "gen_on_manager": self.libE_specs.get("gen_on_manager", False),
+            "gen_on_worker": self.libE_specs.get("gen_on_worker", False),
         }
 
     def _alloc_work(self, H: npt.NDArray, persis_info: dict) -> dict:
@@ -676,7 +694,7 @@ class Manager:
 
     # --- Main loop
 
-    def run(self, persis_info: dict) -> (dict, int, int):
+    def run(self, persis_info: dict) -> tuple[dict, int, int]:
         """Runs the manager"""
         logger.debug(f"Manager initiated on node {socket.gethostname()}")
         logger.info(f"Manager exit_criteria: {self.exit_criteria}")
@@ -708,7 +726,7 @@ class Manager:
         finally:
             # Return persis_info, exit_flag, elapsed time
             result = self._final_receive_and_kill(persis_info)
-            self.wcomms = None
+            self.wcomms = []
             sys.stdout.flush()
             sys.stderr.flush()
         return result

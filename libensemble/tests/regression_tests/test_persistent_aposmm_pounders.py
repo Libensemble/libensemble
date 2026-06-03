@@ -34,7 +34,7 @@ libensemble.gen_funcs.rc.aposmm_optimizers = "petsc"
 from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc as alloc_f
 from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
 from libensemble.gen_funcs.sampling import lhs_sample
-from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
+from libensemble.tools import parse_args, save_libE_output
 
 
 def combine_component(x):
@@ -92,11 +92,10 @@ if __name__ == "__main__":
             "lb": lb,
             "ub": ub,
         },
+        "num_active_gens": 1,
     }
 
-    alloc_specs = {"alloc_f": alloc_f, "user": {"batch_mode": True, "num_active_gens": 1}}
-
-    persis_info = add_unique_random_streams({}, nworkers + 1)
+    alloc_specs = {"alloc_f": alloc_f}
 
     exit_criteria = {"sim_max": 500}
 
@@ -108,7 +107,7 @@ if __name__ == "__main__":
     gen_specs["user"]["sample_points"] = sample_points * (ub - lb) + lb
 
     # Perform the run
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs, libE_specs=libE_specs)
 
     if is_manager:
         assert flag == 0

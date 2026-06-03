@@ -2,7 +2,6 @@ import sys
 
 import numpy as np
 
-import libensemble.tests.unit_tests.setup as setup
 from libensemble.utils.misc import specs_dump
 
 
@@ -23,94 +22,48 @@ def test_ensemble_parse_args_false():
     from libensemble.specs import LibeSpecs
 
     # Ensemble(parse_args=False) by default, so these specs won't be overwritten:
-    e = Ensemble(libE_specs={"comms": "local", "nworkers": 4})
+    e = Ensemble(libE_specs=LibeSpecs(comms="local", nworkers=4))
     assert hasattr(e, "nworkers"), "nworkers should've passed from libE_specs to Ensemble class"
-    assert isinstance(e.libE_specs, LibeSpecs), "libE_specs should've been cast to class"
+    assert isinstance(e.libE_specs, LibeSpecs), "libE_specs should be a LibeSpecs instance"
 
-    # test pass attribute as dict
-    e = Ensemble(libE_specs={"comms": "local", "nworkers": 4})
+    # test passing a second instance
+    e = Ensemble(libE_specs=LibeSpecs(comms="local", nworkers=4))
     assert hasattr(e, "nworkers"), "nworkers should've passed from libE_specs to Ensemble class"
-    assert isinstance(e.libE_specs, LibeSpecs), "libE_specs should've been cast to class"
+    assert isinstance(e.libE_specs, LibeSpecs), "libE_specs should be a LibeSpecs instance"
 
     # test that adjusting Ensemble.nworkers also changes libE_specs
     e.nworkers = 8
     assert e.libE_specs.nworkers == 8, "libE_specs nworkers not adjusted"
 
 
-def test_from_files():
-    """Test that Ensemble() specs dicts resemble setup dicts"""
-    from libensemble.ensemble import Ensemble
-
-    for ft in ["yaml", "json", "toml"]:
-        e = Ensemble(libE_specs={"comms": "local", "nworkers": 4})
-        file_path = f"./simdir/test_example.{ft}"
-        if ft == "yaml":
-            e.from_yaml(file_path)
-        elif ft == "json":
-            e.from_json(file_path)
-        else:
-            e.from_toml(file_path)
-
-        sim_specs, gen_specs, exit_criteria = setup.make_criteria_and_specs_0()
-
-        e.gen_specs.user["ub"] = np.ones(1)
-        e.gen_specs.user["lb"] = np.zeros(1)
-
-        sim_specs["inputs"] = sim_specs["in"]
-        sim_specs["outputs"] = sim_specs["out"]
-        gen_specs["outputs"] = gen_specs["out"]
-        sim_specs.pop("in")
-        sim_specs.pop("out")
-        gen_specs.pop("out")
-        assert all([i in specs_dump(e.sim_specs).items() for i in sim_specs.items()])
-        assert all([i in specs_dump(e.gen_specs).items() for i in gen_specs.items()])
-        assert all([i in specs_dump(e.exit_criteria).items() for i in exit_criteria.items()])
-
-
-def test_bad_func_loads():
-    """Test that Ensemble() raises expected errors (with warnings) on incorrect imports"""
-    from libensemble.ensemble import Ensemble
-
-    yaml_errors = {
-        "./simdir/test_example_badfuncs_attribute.yaml": AttributeError,
-        "./simdir/test_example_badfuncs_notfound.yaml": ModuleNotFoundError,
-    }
-
-    for f in yaml_errors:
-        e = Ensemble(libE_specs={"comms": "local", "nworkers": 4})
-        flag = 1
-        try:
-            e.from_yaml(f)
-        except yaml_errors[f]:
-            flag = 0
-        assert flag == 0
-
-
 def test_full_workflow():
     """Test initializing a workflow via Specs and Ensemble.run()"""
+    from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
     from libensemble.ensemble import Ensemble
     from libensemble.gen_funcs.sampling import latin_hypercube_sample
     from libensemble.sim_funcs.simple_sim import norm_eval
-    from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
+    from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
 
     LS = LibeSpecs(comms="local", nworkers=4)
 
     # parameterizes and validates everything!
     ens = Ensemble(
         libE_specs=LS,
-        sim_specs=SimSpecs(sim_f=norm_eval),
+        sim_specs=SimSpecs(sim_f=norm_eval, inputs=["x"], outputs=[("f", float)]),
         gen_specs=GenSpecs(
+            inputs=["f"],
+            outputs=[("x", float, (1,))],
             gen_f=latin_hypercube_sample,
+            batch_size=100,
             user={
-                "gen_batch_size": 100,
                 "lb": np.array([-3]),
                 "ub": np.array([3]),
             },
         ),
         exit_criteria=ExitCriteria(gen_max=101),
+        alloc_specs=AllocSpecs(alloc_f=give_sim_work_first),
     )
 
-    ens.add_random_streams()
     ens.run()
     if ens.is_manager:
         assert len(ens.H) >= 101
@@ -143,8 +96,8 @@ def test_flakey_workflow():
             sim_specs=SimSpecs(sim_f=norm_eval),
             gen_specs=GenSpecs(
                 gen_f=latin_hypercube_sample,
+                batch_size=100,
                 user={
-                    "gen_batch_size": 100,
                     "lb": np.array([-3]),
                     "ub": np.array([3]),
                 },
@@ -152,7 +105,6 @@ def test_flakey_workflow():
             exit_criteria=ExitCriteria(gen_max=101),
         )
         ens.sim_specs.inputs = (["x"],)  # note trailing comma
-        ens.add_random_streams()
         ens.run()
     except ValidationError:
         flag = 0
@@ -230,13 +182,104 @@ def test_local_comms_without_nworkers():
     assert not flag, "'local' ensemble without nworkers should not be created"
 
 
+def test_ready_missing_sim_callable():
+    """ready() should flag a missing sim callable."""
+    from libensemble.ensemble import Ensemble
+    from libensemble.specs import ExitCriteria, LibeSpecs, SimSpecs
+
+    e = Ensemble(
+        libE_specs=LibeSpecs(comms="local", nworkers=4),
+        sim_specs=SimSpecs(),  # no sim_f or simulator
+        exit_criteria=ExitCriteria(sim_max=10),
+    )
+    ok, issues = e.ready()
+    assert not ok, "Should not be ready without a sim callable"
+    assert any("sim_f" in msg for msg in issues), f"Expected sim_f mention in issues: {issues}"
+
+
+def test_ready_missing_exit_criteria():
+    """ready() should flag an exit_criteria with no stop condition."""
+    from libensemble.ensemble import Ensemble
+    from libensemble.sim_funcs.simple_sim import norm_eval
+    from libensemble.specs import ExitCriteria, LibeSpecs, SimSpecs
+
+    e = Ensemble(
+        libE_specs=LibeSpecs(comms="local", nworkers=4),
+        sim_specs=SimSpecs(sim_f=norm_eval),
+        exit_criteria=ExitCriteria(),  # nothing set
+    )
+    ok, issues = e.ready()
+    assert not ok, "Should not be ready with no exit condition"
+    assert any("exit_criteria" in msg for msg in issues), f"Expected exit_criteria mention in issues: {issues}"
+
+
+def test_ready_missing_nworkers_local():
+    """ready() should flag local comms without nworkers."""
+    from libensemble.ensemble import Ensemble
+    from libensemble.sim_funcs.simple_sim import norm_eval
+    from libensemble.specs import ExitCriteria, LibeSpecs, SimSpecs
+
+    # Bypass the constructor ValueError by using mpi comms first,
+    # then patch to local after construction.
+    e = Ensemble(
+        libE_specs=LibeSpecs(comms="mpi"),
+        sim_specs=SimSpecs(sim_f=norm_eval),
+        exit_criteria=ExitCriteria(sim_max=10),
+    )
+    # Manually force comms=local and nworkers=0 on the internal specs object
+    e._libE_specs.comms = "local"
+    e._nworkers = 0
+    e._libE_specs.nworkers = 0
+
+    ok, issues = e.ready()
+    assert not ok, "Should not be ready with local comms and no nworkers"
+    assert any("nworkers" in msg for msg in issues), f"Expected nworkers mention in issues: {issues}"
+
+
+def test_ready_field_mismatch():
+    """ready() should flag when sim_specs.inputs requests fields not in gen_specs.outputs."""
+    from libensemble.ensemble import Ensemble
+    from libensemble.sim_funcs.simple_sim import norm_eval
+    from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
+
+    e = Ensemble(
+        libE_specs=LibeSpecs(comms="local", nworkers=4),
+        sim_specs=SimSpecs(sim_f=norm_eval, inputs=["x", "z"]),
+        gen_specs=GenSpecs(outputs=[("x", float, (1,))]),  # missing "z"
+        exit_criteria=ExitCriteria(sim_max=10),
+    )
+    ok, issues = e.ready()
+    assert not ok, "Should not be ready with mismatched gen/sim fields"
+    assert any("z" in msg for msg in issues), f"Expected missing field 'z' in issues: {issues}"
+
+
+def test_ready_happy_path():
+    """ready() should return (True, []) for a fully configured ensemble."""
+    from libensemble.ensemble import Ensemble
+    from libensemble.sim_funcs.simple_sim import norm_eval
+    from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
+
+    e = Ensemble(
+        libE_specs=LibeSpecs(comms="local", nworkers=4),
+        sim_specs=SimSpecs(sim_f=norm_eval, inputs=["x"], outputs=[("f", float)]),
+        gen_specs=GenSpecs(outputs=[("x", float, (1,))]),
+        exit_criteria=ExitCriteria(sim_max=10),
+    )
+    ok, issues = e.ready()
+    assert ok, f"Should be ready but got issues: {issues}"
+    assert issues == [], f"Issues should be empty but got: {issues}"
+
+
 if __name__ == "__main__":
     test_ensemble_init()
     test_ensemble_parse_args_false()
-    test_from_files()
-    test_bad_func_loads()
     test_full_workflow()
     test_flakey_workflow()
     test_ensemble_specs_update_libE_specs()
     test_ensemble_prevent_comms_overwrite()
     test_local_comms_without_nworkers()
+    test_ready_missing_sim_callable()
+    test_ready_missing_exit_criteria()
+    test_ready_missing_nworkers_local()
+    test_ready_field_mismatch()
+    test_ready_happy_path()

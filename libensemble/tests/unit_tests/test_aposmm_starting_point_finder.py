@@ -1,8 +1,9 @@
 import numpy as np
+
 from libensemble.gen_funcs.persistent_aposmm import (
+    decide_where_to_start_localopt,
     initialize_APOSMM,
     update_history_dist,
-    decide_where_to_start_localopt,
 )
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel_func
 from libensemble.tests.regression_tests.support import six_hump_camel_minima as known_minima

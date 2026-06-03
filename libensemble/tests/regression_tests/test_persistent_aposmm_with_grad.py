@@ -36,7 +36,7 @@ from time import time
 from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc as alloc_f
 from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
 from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
-from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
+from libensemble.tools import parse_args, save_libE_output
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
@@ -72,6 +72,7 @@ if __name__ == "__main__":
         "in": gen_in,
         "persis_in": gen_in,
         "out": gen_out,
+        "initial_batch_size": 0,
         "user": {
             "initial_sample_size": 0,  # Don't need to do evaluations because the sampling already done below
             "localopt_method": "LD_MMA",
@@ -87,7 +88,7 @@ if __name__ == "__main__":
 
     alloc_specs = {"alloc_f": alloc_f}
 
-    persis_info = add_unique_random_streams({}, nworkers + 1)
+    persis_info = {}
 
     exit_criteria = {"sim_max": 1000}
 
@@ -121,9 +122,9 @@ if __name__ == "__main__":
     H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0=H0)
 
     if is_manager:
-        assert persis_info[1].get("run_order"), "Run_order should have been given back"
+        assert persis_info[0].get("run_order"), "Run_order should have been given back"
         assert (
-            len(persis_info[1]["run_order"]) >= gen_specs["user"]["stop_after_k_minima"]
+            len(persis_info[0]["run_order"]) >= gen_specs["user"]["stop_after_k_minima"]
         ), "This test should have many runs started."
         assert len(H) < exit_criteria["sim_max"], "Test should have stopped early due to 'stop_after_k_minima'"
 

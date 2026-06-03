@@ -37,7 +37,6 @@ to resource all works units. More generally:
 import numpy as np
 
 from libensemble import Ensemble
-from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.executors.mpi_executor import MPIExecutor
 
 # Using num_procs / num_gpus in gen
@@ -46,10 +45,8 @@ from libensemble.gen_funcs.persistent_sampling_var_resources import uniform_samp
 # Import libEnsemble items for this test
 from libensemble.sim_funcs import six_hump_camel
 from libensemble.sim_funcs.var_resources import gpu_variable_resources_from_gen as sim_f
-from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
-from libensemble.tools import add_unique_random_streams
+from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
 
-# from libensemble import logger
 # logger.set_level("DEBUG")  # For testing the test
 
 
@@ -79,8 +76,10 @@ if __name__ == "__main__":
         gen_f=gen_f,
         persis_in=["f", "x", "sim_id"],
         out=[("num_procs", int), ("num_gpus", int), ("x", float, 2)],
+        initial_batch_size=nworkers - 1,
+        batch_evaluate_same_priority=False,
+        async_return=False,
         user={
-            "initial_batch_size": nworkers - 1,
             "max_procs": (nworkers - 1) // 2,  # Any sim created can req. 1 worker up to max
             "lb": np.array([-3, -2]),
             "ub": np.array([3, 2]),
@@ -88,16 +87,7 @@ if __name__ == "__main__":
         },
     )
 
-    gpu_test.alloc_specs = AllocSpecs(
-        alloc_f=alloc_f,
-        user={
-            "give_all_with_same_priority": False,
-            "async_return": False,  # False causes batch returns
-        },
-    )
-
-    gpu_test.persis_info = add_unique_random_streams({}, gpu_test.nworkers + 1)
-    gpu_test.exit_criteria = ExitCriteria(sim_max=40, wallclock_max=300)
+    gpu_test.exit_criteria = ExitCriteria(sim_max=10, wallclock_max=300)
 
     if gpu_test.ready():
         gpu_test.run()

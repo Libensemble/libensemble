@@ -1,8 +1,8 @@
 """
 Runs libEnsemble in order to test the ability of an allocation function to
 cancel long-running simulations. In this case, the simulation has a run-time
-in seconds that is drawn uniformly from [0,10] and any time the allocation
-function is called and a sim_id has been evaluated for more than 5 seconds,
+in seconds that is drawn uniformly from [0,60] and any time the allocation
+function is called and a sim_id has been evaluated for more than 0.1 seconds,
 it is cancelled.
 
 Execute via one of the following commands (e.g. 3 workers):
@@ -15,7 +15,7 @@ The number of concurrent evaluations of the objective function will be 4-1=3.
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local tcp
-# TESTSUITE_NPROCS: 2 4
+# TESTSUITE_NPROCS: 4
 
 import numpy as np
 
@@ -25,7 +25,7 @@ from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
 # Import libEnsemble items for this test
 from libensemble.libE import libE
 from libensemble.sim_funcs.branin.branin_obj import call_branin as sim_f
-from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
+from libensemble.tools import parse_args, save_libE_output
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
@@ -36,15 +36,16 @@ if __name__ == "__main__":
         "sim_f": sim_f,
         "in": ["x"],
         "out": [("f", float)],
-        "user": {"uniform_random_pause_ub": 10},
+        "user": {"uniform_random_pause_ub": 10},  # long sleep ensures sims are still running when cancel fires
     }
 
     gen_specs = {
         "gen_f": gen_f,
         "in": ["sim_id"],
         "out": [("x", float, (2,))],
+        "batch_size": nworkers,
+        "num_active_gens": 1,
         "user": {
-            "gen_batch_size": 5,
             "lb": np.array([-3, -2]),
             "ub": np.array([3, 2]),
         },
@@ -53,19 +54,20 @@ if __name__ == "__main__":
     alloc_specs = {
         "alloc_f": give_sim_work_first,
         "user": {
-            "cancel_sims_time": 3,
+            "cancel_sims_time": 0.1,  # fires on first alloc call after dispatch, before any sim can return
             "batch_mode": False,
-            "num_active_gens": 1,
         },
     }
 
-    persis_info = add_unique_random_streams({}, nworkers + 1)
-
-    exit_criteria = {"sim_max": 10, "wallclock_max": 300}
+    exit_criteria = {"sim_max": nworkers * 2, "wallclock_max": 30}
 
     # Perform the run
     H, persis_info, flag = libE(
-        sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs, alloc_specs=alloc_specs
+        sim_specs,
+        gen_specs,
+        exit_criteria,
+        libE_specs=libE_specs,
+        alloc_specs=alloc_specs,
     )
 
     if is_manager:

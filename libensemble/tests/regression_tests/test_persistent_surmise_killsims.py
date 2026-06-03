@@ -34,7 +34,6 @@ import os
 
 import numpy as np
 
-from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.executors.executor import Executor
 from libensemble.gen_funcs.persistent_surmise_calib import surmise_calib as gen_f
 
@@ -42,7 +41,7 @@ from libensemble.gen_funcs.persistent_surmise_calib import surmise_calib as gen_
 from libensemble.libE import libE
 from libensemble.sim_funcs.borehole_kills import borehole as sim_f
 from libensemble.tests.regression_tests.common import build_borehole  # current location
-from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
+from libensemble.tools import parse_args, save_libE_output
 
 # from libensemble import logger
 # logger.set_level("DEBUG")  # To get debug logging in ensemble.log
@@ -105,34 +104,25 @@ if __name__ == "__main__":
         "gen_f": gen_f,
         "persis_in": [o[0] for o in gen_out] + ["f", "sim_ended", "sim_id"],
         "out": gen_out,
+        "initial_batch_size": init_sample_size,
+        "async_return": True,
+        "active_recv_gen": True,
         "user": {
             "n_init_thetas": n_init_thetas,  # Num thetas in initial batch
             "num_x_vals": n_x,  # Num x points to create
             "step_add_theta": step_add_theta,  # No. of thetas to generate per step
             "n_explore_theta": n_explore_theta,  # No. of thetas to explore each step
             "obsvar": obsvar,  # Variance for generating noise in obs
-            "init_sample_size": init_sample_size,  # Initial batch size inc. observations
             "priorloc": 1,  # Prior location in the unit cube.
             "priorscale": 0.2,  # Standard deviation of prior
         },
     }
 
-    alloc_specs = {
-        "alloc_f": alloc_f,
-        "user": {
-            "init_sample_size": init_sample_size,
-            "async_return": True,  # True = Return results to gen as they come in (after sample)
-            "active_recv_gen": True,  # Persistent gen can handle irregular communications
-        },
-    }
-
-    persis_info = add_unique_random_streams({}, nworkers + 1)
+    persis_info = {}
     exit_criteria = {"sim_max": max_evals}
 
     # Perform the run
-    H, persis_info, flag = libE(
-        sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs=alloc_specs, libE_specs=libE_specs
-    )
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
 
     if is_manager:
         print("Cancelled sims", H["sim_id"][H["cancel_requested"]])

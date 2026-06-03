@@ -20,17 +20,14 @@ import sys
 
 import numpy as np
 
-from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.gen_funcs.persistent_sampling import persistent_uniform_final_update as gen_f
 from libensemble.libE import libE
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel_simple as sim_f
-from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
+from libensemble.tools import parse_args, save_libE_output
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
     nworkers, is_manager, libE_specs, _ = parse_args()
-
-    libE_specs["use_persis_return_gen"] = True
 
     if nworkers < 2:
         sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
@@ -57,8 +54,6 @@ if __name__ == "__main__":
         },
     }
 
-    alloc_specs = {"alloc_f": alloc_f}
-
     sim_max = 120
     exit_criteria = {"sim_max": sim_max}
     libE_specs["final_gen_send"] = True
@@ -71,8 +66,8 @@ if __name__ == "__main__":
                 "pause_time": 1e-4,
             }
 
-        persis_info = add_unique_random_streams({}, nworkers + 1)
-        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+        persis_info = {}
+        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
 
         if is_manager:
             # Check that last saved history agrees with returned history.

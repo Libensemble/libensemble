@@ -18,19 +18,20 @@ import os
 
 import numpy as np
 
+from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
 from libensemble.libE import libE
 from libensemble.tests.regression_tests.support import write_sim_func as sim_f
-from libensemble.tools import add_unique_random_streams, parse_args
+from libensemble.tools import parse_args
 
-nworkers, is_manager, libE_specs, _ = parse_args()
+n_simworkers, is_manager, libE_specs, _ = parse_args()
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
     sim_input_dir = "./sim_input_dir"
     dir_to_copy = sim_input_dir + "/copy_this"
     dir_to_symlink = sim_input_dir + "/symlink_this"
-    w_ensemble = "./ensemble_workdirs_w" + str(nworkers) + "_" + libE_specs.get("comms")
+    w_ensemble = "./ensemble_workdirs_w" + str(n_simworkers) + "_" + libE_specs.get("comms")
     print("creating ensemble dir: ", w_ensemble, flush=True)
 
     for dir in [sim_input_dir, dir_to_copy, dir_to_symlink]:
@@ -53,25 +54,25 @@ if __name__ == "__main__":
     gen_specs = {
         "gen_f": gen_f,
         "out": [("x", float, (1,))],
+        "batch_size": 20,
         "user": {
-            "gen_batch_size": 20,
             "lb": np.array([-3]),
             "ub": np.array([3]),
         },
     }
 
-    persis_info = add_unique_random_streams({}, nworkers + 1)
+    alloc_specs = {"alloc_f": give_sim_work_first}
 
     exit_criteria = {"sim_max": 21}
 
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
+    H, _, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs, libE_specs=libE_specs)
 
     if is_manager:
         assert os.path.isdir(w_ensemble), f"Ensemble directory {w_ensemble} not created."
         worker_dir_sum = sum(["worker" in i for i in os.listdir(w_ensemble)])
-        assert worker_dir_sum == nworkers, "Number of worker dirs ({}) does not match nworkers ({}).".format(
-            worker_dir_sum, nworkers
-        )
+        assert (
+            worker_dir_sum == n_simworkers + 1
+        ), "Number of worker dirs ({}) does not match n_simworkers ({}).".format(worker_dir_sum, n_simworkers)
 
         input_copied = []
         sim_dir_sum = 0

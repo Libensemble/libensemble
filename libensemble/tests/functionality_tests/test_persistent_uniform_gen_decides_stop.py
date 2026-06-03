@@ -13,20 +13,19 @@ The number of concurrent evaluations of the objective function with 2 gens will 
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local
-# TESTSUITE_NPROCS: 5 7
+# TESTSUITE_NPROCS: 4 6
 # TESTSUITE_OS_SKIP: WIN
 
 import sys
 
 import numpy as np
 
-from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.gen_funcs.persistent_sampling import persistent_request_shutdown as gen_f
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
 from libensemble.sim_funcs.branin.branin_obj import call_branin as sim_f
-from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
+from libensemble.tools import parse_args, save_libE_output
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
@@ -35,6 +34,8 @@ if __name__ == "__main__":
     for ngens in range(1, 3):
         n = 2
         init_batch_size = nworkers - ngens
+
+        libE_specs["gen_on_worker"] = True
 
         if ngens >= nworkers:
             sys.exit("The number of generators must be less than the number of workers -- aborting...")
@@ -50,28 +51,20 @@ if __name__ == "__main__":
             "gen_f": gen_f,
             "persis_in": ["f", "x", "sim_id"],
             "out": [("x", float, (n,))],
+            "initial_batch_size": init_batch_size,
+            "async_return": True,
+            "num_active_gens": ngens,
             "user": {
-                "initial_batch_size": init_batch_size,
                 "shutdown_limit": 10,  # Iterations on a gen before it triggers a shutdown.
                 "lb": np.array([-3, -2]),
                 "ub": np.array([3, 2]),
             },
         }
 
-        alloc_specs = {
-            "alloc_f": alloc_f,
-            "user": {
-                "async_return": True,
-                "num_active_gens": ngens,
-            },
-        }
-
-        persis_info = add_unique_random_streams({}, nworkers + 1)
-
         exit_criteria = {"gen_max": 50, "wallclock_max": 300}
 
         # Perform the run
-        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, libE_specs=libE_specs)
 
         if is_manager:
             [ended_times, counts] = np.unique(H["gen_ended_time"], return_counts=True)
@@ -82,9 +75,7 @@ if __name__ == "__main__":
             assert (
                 sum(counts == init_batch_size) >= ngens
             ), "The initial batch of each gen should be common among initial_batch_size number of points"
-            assert (
-                len(counts) > 1
-            ), "All gen_ended_times are the same; they should be different for the async case"
+            assert len(counts) > 1, "All gen_ended_times are the same; they should be different for the async case"
 
             gen_workers = np.unique(H["gen_worker"])
             print("Generators that issued points", gen_workers)

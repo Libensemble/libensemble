@@ -14,18 +14,18 @@ def give_sim_work_first(
     alloc_specs: dict,
     persis_info: dict,
     libE_info: dict,
-) -> tuple[dict]:
+) -> tuple[dict, dict]:
     """
     Decide what should be given to workers. This allocation function gives any
     available simulation work first, and only when all simulations are
-    completed or running does it start (at most ``alloc_specs["user"]["num_active_gens"]``)
+    completed or running does it start (at most ``gen_specs["num_active_gens"]`` or ``alloc_specs["user"]["num_active_gens"]``)
     generator instances.
 
-    Allows for a ``alloc_specs["user"]["batch_mode"]`` where no generation
+    Allows for a ``gen_specs["batch_mode"]`` or ``alloc_specs["user"]["batch_mode"]`` where no generation
     work is given out unless all entries in ``H`` are returned.
 
     Can give points in highest priority, if ``"priority"`` is a field in ``H``.
-    If ``alloc_specs["user"]["give_all_with_same_priority"]`` is set to True, then
+    If ``gen_specs["batch_evaluate_same_priority"]`` or ``alloc_specs["user"]["batch_evaluate_same_priority"]`` is set to True, then
     all points with the same priority value are given as a batch to the sim.
 
     Workers performing sims will be assigned resources given in H["resource_sets"]
@@ -40,7 +40,7 @@ def give_sim_work_first(
         `test_uniform_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_uniform_sampling.py>`_ # noqa
     """
 
-    user = alloc_specs.get("user", {})
+    user = {**gen_specs, **alloc_specs.get("user", {})}
 
     if "cancel_sims_time" in user:
         # Cancel simulations that are taking too long
@@ -54,7 +54,7 @@ def give_sim_work_first(
         return {}, persis_info
 
     # Initialize alloc_specs["user"] as user.
-    batch_give = user.get("give_all_with_same_priority", False)
+    batch_give = user.get("batch_evaluate_same_priority", False)
     gen_in = gen_specs.get("in", [])
 
     manage_resources = libE_info["use_resource_sets"]

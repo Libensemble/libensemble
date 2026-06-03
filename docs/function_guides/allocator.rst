@@ -4,23 +4,21 @@ Allocation Functions
 ====================
 
 Although the included allocation functions are sufficient for
-most users, those who want to fine-tune how data or resources are allocated to their generator or simulator can write their own.
+most users, those who want to fine-tune how data or resources
+may be allocated to their generator or simulator can write their own.
 
-The ``alloc_f`` is unique since it is called by libEnsemble's manager instead of a worker.
+We encourage experimenting with:
 
-For allocation functions, as with the other user functions, the level of complexity can
-vary widely. We encourage experimenting with:
-
-    1.  Prioritization of simulations
-    2.  Sending results immediately or in batch
-    3.  Assigning varying resources to evaluations
+1. Prioritization of simulations
+2. Sending results immediately or in batch
+3. Assigning varying resources to evaluations
 
 .. dropdown:: Example
 
     ..  literalinclude:: ../../libensemble/alloc_funcs/fast_alloc.py
         :caption: libensemble.alloc_funcs.fast_alloc.give_sim_work_first
 
-Most ``alloc_f`` function definitions written by users resemble::
+The ``alloc_f`` function definition resembles::
 
     def my_allocator(W, H, sim_specs, gen_specs, alloc_specs, persis_info, libE_info):
 
@@ -35,14 +33,14 @@ Most users first check that it is appropriate to allocate work::
         if libE_info["sim_max_given"] or not libE_info["any_idle_workers"]:
             return {}, persis_info
 
-If the allocation is to continue, a support class is instantiated and a
-:ref:`Work dictionary<funcguides-workdict>` is initialized::
+If the allocation is to continue, instantiate a support class to assist with the
+:ref:`Work dictionary<funcguides-workdict>` construction::
 
         manage_resources = "resource_sets" in H.dtype.names or libE_info["use_resource_sets"]
         support = AllocSupport(W, manage_resources, persis_info, libE_info)
         Work = {}
 
-This Work dictionary is populated with integer keys ``wid`` for each worker and
+The Work dictionary is populated with integer keys ``wid`` for each worker and
 dictionary values to give to those workers:
 
 .. dropdown:: Example ``Work``
@@ -102,14 +100,20 @@ is returned as the third value, this instructs the ensemble to stop.
 Information from the manager describing the progress of the current libEnsemble
 routine can be found in ``libE_info``::
 
-    libE_info =  {"exit_criteria": dict,               # Criteria for ending routine
-                  "elapsed_time": float,               # Time elapsed since start of routine
-                  "manager_kill_canceled_sims": bool,  # True if manager is to send kills to cancelled simulations
-                  "sim_started_count": int,            # Total number of points given for simulation function evaluation
-                  "sim_ended_count": int,              # Total number of points returned from simulation function evaluations
-                  "gen_informed_count": int,           # Total number of evaluated points given back to a generator function
-                  "sim_max_given": bool,               # True if `sim_max` simulations have been given out to workers
-                  "use_resource_sets": bool}           # True if num_resource_sets has been explicitly set.
+    libE_info =  {
+            "any_idle_workers": bool,            # True if there are any idle workers
+            "exit_criteria": {...},              # Criteria for ending routine
+            "elapsed_time": float,               # Time elapsed since start of routine
+            "gen_informed_count": int,           # Total number of evaluated points given back to a generator function
+            "manager_kill_canceled_sims": bool,  # True if manager is to send kills to cancelled simulations
+            "scheduler_opts": {...},             # Options passed to the scheduler. "split2fit" and "match_slots"
+            "sim_started_count": int,            # Total number of points given for simulation function evaluation
+            "sim_ended_count": int,              # Total number of points returned from simulation function evaluations
+            "sim_max_given": bool,               # True if `sim_max` simulations have been given out to workers
+            "use_resource_sets": bool,           # True if num_resource_sets has been explicitly set.
+            "gen_num_procs": int,                # Number of processes used for generator function evaluations
+            "gen_num_gpus": int,                 # Number of GPUs used for generator function evaluations
+            "gen_on_worker": bool}               # True if generator function is running on a worker
 
 Most often, the allocation function will just return once ``sim_max_given`` is ``True``,
 but the user could choose to do something different,
@@ -126,10 +130,110 @@ or mark points for cancellation.
 The remaining values above are useful for efficient filtering of H values
 (e.g., ``sim_ended_count`` saves filtering by an entire column of H.)
 
-Descriptions of included allocation functions can be found :doc:`here<../examples/alloc_funcs>`.
 The default allocation function is
-``give_sim_work_first``. During its worker ID loop, it checks if there's unallocated
+``start_only_persistent``. During its worker ID loop, it checks if there's unallocated
 work and assigns simulations for that work. Otherwise, it initializes
 generators for up to ``"num_active_gens"`` instances. Other settings like
 ``batch_mode`` are also supported. See
-:ref:`here<gswf_label>` for more information about ``give_sim_work_first``.
+:ref:`here<start_only_persistent_label>` for more information.
+
+.. _examples-alloc:
+
+Examples
+========
+
+Below are example allocation functions available in libEnsemble.
+
+Many users use these unmodified.
+
+.. IMPORTANT::
+  The default allocation function changed in libEnsemble v2.0 from ``give_sim_work_first`` to ``start_only_persistent``.
+
+.. note::
+
+   The most commonly used allocation function for non-persistent generators is :ref:`give_sim_work_first<gswf_label>`.
+
+.. role:: underline
+    :class: underline
+
+.. _start_only_persistent_label:
+
+start_only_persistent
+---------------------
+.. automodule:: start_only_persistent
+  :members:
+  :undoc-members:
+
+.. dropdown:: :underline:`start_only_persistent.py`
+
+   .. literalinclude:: ../../libensemble/alloc_funcs/start_only_persistent.py
+      :language: python
+      :linenos:
+
+.. _gswf_label:
+
+give_sim_work_first
+-------------------
+.. automodule:: give_sim_work_first
+  :members:
+  :undoc-members:
+
+.. dropdown:: :underline:`give_sim_work_first.py`
+
+   .. literalinclude:: ../../libensemble/alloc_funcs/give_sim_work_first.py
+      :language: python
+      :linenos:
+
+fast_alloc
+----------
+.. automodule:: fast_alloc
+  :members:
+  :undoc-members:
+
+.. dropdown:: :underline:`fast_alloc.py`
+
+   .. literalinclude:: ../../libensemble/alloc_funcs/fast_alloc.py
+      :language: python
+      :linenos:
+
+start_persistent_local_opt_gens
+-------------------------------
+.. automodule:: start_persistent_local_opt_gens
+  :members:
+  :undoc-members:
+
+fast_alloc_and_pausing
+----------------------
+.. automodule:: fast_alloc_and_pausing
+   :members:
+   :undoc-members:
+
+only_one_gen_alloc
+------------------
+.. automodule:: only_one_gen_alloc
+   :members:
+   :undoc-members:
+
+start_fd_persistent
+-------------------
+.. automodule:: start_fd_persistent
+   :members:
+   :undoc-members:
+
+persistent_aposmm_alloc
+-----------------------
+.. automodule:: persistent_aposmm_alloc
+   :members:
+   :undoc-members:
+
+give_pregenerated_work
+----------------------
+.. automodule:: give_pregenerated_work
+   :members:
+   :undoc-members:
+
+inverse_bayes_allocf
+--------------------
+.. automodule:: inverse_bayes_allocf
+   :members:
+   :undoc-members:

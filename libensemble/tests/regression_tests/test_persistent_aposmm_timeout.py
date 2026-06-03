@@ -32,7 +32,7 @@ from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
 # Import libEnsemble items for this test
 from libensemble.libE import libE
 from libensemble.sim_funcs.periodic_func import func_wrapper as sim_f
-from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
+from libensemble.tools import parse_args, save_libE_output
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
@@ -62,6 +62,7 @@ if __name__ == "__main__":
         "gen_f": gen_f,
         "persis_in": ["f"] + [n[0] for n in gen_out],
         "out": gen_out,
+        "initial_batch_size": 100,
         "user": {
             "initial_sample_size": 100,
             "localopt_method": "LN_BOBYQA",
@@ -80,13 +81,11 @@ if __name__ == "__main__":
     # Setting a very high sim_max value and a short wallclock_max so timeout will occur
     exit_criteria = {"sim_max": 50000, "wallclock_max": 5}
 
-    persis_info = add_unique_random_streams({}, nworkers + 1)
-
     # Perform the run
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs, libE_specs=libE_specs)
 
     if is_manager:
         assert flag == 2, "Test should have timed out"
-        assert persis_info[1].get("run_order"), "Run_order should have been given back"
+        assert persis_info[0].get("run_order"), "Run_order should have been given back"
         min_ids = np.where(H["local_min"])
         save_libE_output(H, persis_info, __file__, nworkers)

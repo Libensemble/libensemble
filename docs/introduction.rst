@@ -1,7 +1,15 @@
 .. include:: ../README.rst
     :start-after: after_badges_rst_tag
+    :end-before: before_script_creator_tag
 
-See the :doc:`tutorial<tutorials/local_sine_tutorial>` for a step-by-step beginners guide.
+.. include:: ../README.rst
+    :start-after: after_script_creator_tag
+    :end-before: before_colab_tag
+
+.. include:: ../README.rst
+    :start-after: after_colab_tag
+
+See the :doc:`tutorial<tutorials/local_sine_tutorial/local_sine_tutorial>` for a step-by-step beginners guide.
 
 See the `user guide`_ for more information.
 

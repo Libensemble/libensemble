@@ -37,11 +37,10 @@ libensemble.gen_funcs.rc.aposmm_optimizers = "ibcdfo_pounders"
 
 from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc as alloc_f
 from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
-from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
+from libensemble.tools import parse_args, save_libE_output
 
 try:
-    from ibcdfo.pounders import pounders  # noqa: F401
-    from ibcdfo.pounders.general_h_funs import emittance_combine, emittance_h
+    import ibcdfo  # noqa: F401
 except ModuleNotFoundError:
     sys.exit("Please 'pip install ibcdfo'")
 
@@ -50,10 +49,6 @@ try:
 
 except ModuleNotFoundError:
     sys.exit("Ensure https://github.com/POptUS/minq has been cloned and that minq/py/minq5/ is on the PYTHONPATH")
-
-
-def sum_squared(x):
-    return np.sum(np.power(x, 2))
 
 
 def synthetic_beamline_mapping(H, _, sim_specs):
@@ -76,7 +71,7 @@ if __name__ == "__main__":
 
     nworkers, is_manager, libE_specs, _ = parse_args()
 
-    assert nworkers == 2, "This test is just for two workers"
+    assert nworkers == 2, "This test is just for two workers, as only one localopt run is being performed"
 
     for inst in range(2):
         if inst == 0:
@@ -109,9 +104,9 @@ if __name__ == "__main__":
             "persis_in": ["f", "fvec"] + [n[0] for n in gen_out],
             "out": gen_out,
             "user": {
-                "initial_sample_size": 1,
-                "stop_after_k_runs": 1,
-                "max_active_runs": 1,
+                "initial_sample_size": 1,  # The initial sampled point will be the starting point
+                "stop_after_k_runs": 1,  # Only one local optimization run will be performed
+                "max_active_runs": 1,  # Only one local optimization run will be performed,
                 "sample_points": np.atleast_2d(0.1 * (np.arange(n) + 1)),
                 "localopt_method": "ibcdfo_pounders",
                 "run_max_eval": 100 * (n + 1),
@@ -122,20 +117,18 @@ if __name__ == "__main__":
         }
 
         if inst == 1:
-            gen_specs["user"]["hfun"] = emittance_h
-            gen_specs["user"]["combinemodels"] = emittance_combine
+            gen_specs["user"]["hfun"] = ibcdfo.pounders.h_emittance
+            gen_specs["user"]["combinemodels"] = ibcdfo.pounders.combine_emittance
 
         alloc_specs = {"alloc_f": alloc_f}
-
-        persis_info = add_unique_random_streams({}, nworkers + 1)
 
         exit_criteria = {"sim_max": 500}
 
         # Perform the run
-        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs, libE_specs=libE_specs)
 
         if is_manager:
-            assert persis_info[1].get("run_order"), "Run_order should have been given back"
+            assert persis_info[0].get("run_order"), "Run_order should have been given back"
             assert flag == 0
 
             save_libE_output(H, persis_info, __file__, nworkers)

@@ -66,7 +66,7 @@ init
 instantiation
 intercommunications
 interoperable
-intitializing
+initializing
 intranode
 ints
 invocable

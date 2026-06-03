@@ -11,12 +11,13 @@ Execute via one of the following commands (e.g. 5 workers):
 import numpy as np
 
 from libensemble import logger
+from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 from libensemble.executors.mpi_executor import MPIExecutor
 from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
 from libensemble.libE import libE
 from libensemble.sim_funcs.run_line_check import runline_check_by_worker as sim_f
 from libensemble.tests.regression_tests.common import create_node_file
-from libensemble.tools import add_unique_random_streams, parse_args
+from libensemble.tools import parse_args
 
 # logger.set_level("DEBUG")  # For testing the test
 logger.set_level("INFO")
@@ -75,14 +76,13 @@ if __name__ == "__main__":
         "gen_f": gen_f,
         "in": [],
         "out": [("x", float, (n,))],
+        "batch_size": 20,
         "user": {
-            "gen_batch_size": 20,
             "lb": np.array([-3, -2]),
             "ub": np.array([3, 2]),
         },
     }
 
-    persis_info = add_unique_random_streams({}, nworkers + 1)
     exit_criteria = {"sim_max": (nsim_workers) * rounds}
 
     # Each worker has either 3 or 2 nodes. Basic test list for portable options
@@ -131,7 +131,9 @@ if __name__ == "__main__":
         "expect": exp_list,
     }
 
+    alloc_specs = {"alloc_f": give_sim_work_first}
+
     # Perform the run
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
+    H, _, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs, libE_specs=libE_specs)
 
     # All asserts are in sim func

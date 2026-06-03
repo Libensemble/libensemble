@@ -2,7 +2,7 @@
 Runs libEnsemble run-lines for adaptive workers with persistent gen.
 
 Default setup is designed to run on 4*N + 1 workers - to modify, change total_nodes.
-where one worker is a zero-resource persistent gen.
+where one worker is a persistent gen without assigned resources.
 
 Execute via one of the following commands (e.g. 9 workers):
    mpiexec -np 10 python test_runlines_adaptive_workers_persistent.py
@@ -17,7 +17,6 @@ requires running a fixed, rather than random number of resource sets for a given
 
 import numpy as np
 
-from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.executors.mpi_executor import MPIExecutor
 from libensemble.gen_funcs.persistent_sampling_var_resources import uniform_sample_with_var_priorities as gen_f
 
@@ -26,7 +25,7 @@ from libensemble.libE import libE
 from libensemble.sim_funcs import helloworld
 from libensemble.sim_funcs.var_resources import multi_points_with_variable_resources as sim_f
 from libensemble.tests.regression_tests.common import create_node_file
-from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
+from libensemble.tools import parse_args, save_libE_output
 
 # from libensemble.gen_funcs.persistent_sampling import persistent_uniform as gen_f
 
@@ -61,17 +60,13 @@ if __name__ == "__main__":
         "gen_f": gen_f,
         "persis_in": ["x", "f", "sim_id"],
         "out": [("priority", float), ("resource_sets", int), ("x", float, n), ("x_on_cube", float, n)],
+        "initial_batch_size": nworkers - 1,
+        "batch_evaluate_same_priority": False,
         "user": {
-            "initial_batch_size": nworkers - 1,
             "max_resource_sets": max_rsets,
             "lb": np.array([-3, -2]),
             "ub": np.array([3, 2]),
         },
-    }
-
-    alloc_specs = {
-        "alloc_f": alloc_f,
-        "user": {"give_all_with_same_priority": False},
     }
 
     comms = libE_specs["comms"]
@@ -87,13 +82,10 @@ if __name__ == "__main__":
         "node_file": node_file,
     }  # Name of file containing a node-list
 
-    persis_info = add_unique_random_streams({}, nworkers + 1)
     exit_criteria = {"sim_max": 40, "wallclock_max": 300}
 
     # Perform the run
-    H, persis_info, flag = libE(
-        sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs, alloc_specs=alloc_specs
-    )
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, libE_specs=libE_specs)
 
     if is_manager:
         assert flag == 0

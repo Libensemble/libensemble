@@ -24,7 +24,7 @@ import numpy as np
 from libensemble import Ensemble
 from libensemble.alloc_funcs.give_pregenerated_work import give_pregenerated_sim_work as alloc_f
 from libensemble.sim_funcs.borehole import gen_borehole_input
-from libensemble.specs import AllocSpecs, ExitCriteria, SimSpecs, input_fields, output_data
+from libensemble.specs import AllocSpecs, ExitCriteria, SimSpecs
 
 
 def insert_proxy(H0):
@@ -50,8 +50,6 @@ def check_H(H):
     assert all([isinstance(H[i]["proxy"], Proxy) for i in range(len(H))])
 
 
-@input_fields(["x", "proxy"])
-@output_data([("f", float)])
 def one_d_example(x, persis_info, sim_specs, info):
 
     H_o = np.zeros(1, dtype=sim_specs["out"])
@@ -79,7 +77,7 @@ if __name__ == "__main__":
 
     sampling = Ensemble(parse_args=True)
     sampling.H0 = H0
-    sampling.sim_specs = SimSpecs(sim_f=one_d_example)
+    sampling.sim_specs = SimSpecs(sim_f=one_d_example, inputs=["x", "proxy"], outputs=[("f", float)])
     sampling.alloc_specs = AllocSpecs(alloc_f=alloc_f)
     sampling.exit_criteria = ExitCriteria(sim_max=len(H0))
     sampling.run()

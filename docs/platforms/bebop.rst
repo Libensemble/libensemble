@@ -46,7 +46,7 @@ To install via ``conda``:
     conda config --add channels conda-forge
     conda install -c conda-forge libensemble
 
-See :doc:`here<../advanced_installation>` for more information on advanced options
+See :doc:`here<../advanced_installation/advanced_installation>` for more information on advanced options
 for installing libEnsemble.
 
 Job Submission
@@ -75,7 +75,7 @@ Now run your script with four workers (one for generator and three for simulatio
 **three** workers to one allocated compute node, with three nodes available for
 the workers to launch calculations with the Executor or a launch command.
 This is an example of running in :doc:`centralized<platforms_index>` mode, and,
-if using the :doc:`Executor<../executor/mpi_executor>`, libEnsemble should
+if using the :doc:`Executor<../executor/ex_index>`, libEnsemble should
 be initiated with ``libE_specs["dedicated_mode"]=True``
 
 .. note::
