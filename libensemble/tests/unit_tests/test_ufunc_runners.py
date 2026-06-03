@@ -133,6 +133,94 @@ def test_globus_compute_runner_fail():
             pytest.fail("Expected exception")
 
 
+def test_libensemble_gen_runner_loop_with_updates():
+    """Test that LibensembleGenRunner._loop_over_gen sends updates with keep_state=True."""
+    from libensemble.message_numbers import EVAL_GEN_TAG, PERSIS_STOP
+    from libensemble.utils.runners import LibensembleGenRunner
+
+    # Create mock generator with suggest_numpy, suggest_updates, ingest_numpy
+    mock_gen = mock.Mock()
+    mock_gen.variables_mapping = {}
+
+    H_out = np.zeros(2, dtype=[("x", float)])
+    H_out["x"] = [1.0, 2.0]
+    mock_gen.suggest_numpy.return_value = H_out
+
+    cancel_update = np.zeros(1, dtype=[("sim_id", int), ("cancel_requested", bool)])
+    cancel_update["sim_id"] = [5]
+    cancel_update["cancel_requested"] = True
+    mock_gen.suggest_updates.return_value = [cancel_update]
+
+    mock_gen.ingest_numpy.return_value = None
+
+    specs = {"generator": mock_gen, "batch_size": 2}
+    runner = LibensembleGenRunner(specs)
+
+    # Mock PersistentSupport
+    mock_ps = mock.Mock()
+    H_in = np.zeros(2, dtype=[("f", float), ("sim_id", int)])
+    H_in["f"] = [0.5, 0.6]
+    H_in["sim_id"] = [0, 1]
+
+    # First recv returns EVAL_GEN_TAG (continue), second returns PERSIS_STOP (exit)
+    mock_ps.recv.side_effect = [
+        (EVAL_GEN_TAG, {}, H_in),
+        (PERSIS_STOP, {}, None),
+    ]
+    runner.ps = mock_ps
+
+    # Start the loop with a non-STOP tag
+    runner._loop_over_gen(EVAL_GEN_TAG, {}, H_in)
+
+    # Verify: send was called with H_out, then with cancel_update using keep_state=True
+    assert mock_ps.send.call_count >= 2, "send should be called at least twice (H_out + update)"
+
+    # First send call: H_out (no keep_state)
+    first_send_args, first_send_kwargs = mock_ps.send.call_args_list[0]
+    np.testing.assert_array_equal(first_send_args[0], H_out)
+    assert first_send_kwargs.get("keep_state", False) is False or "keep_state" not in first_send_kwargs
+
+    # Second send call: cancel_update with keep_state=True
+    second_send_args, second_send_kwargs = mock_ps.send.call_args_list[1]
+    np.testing.assert_array_equal(second_send_args[0], cancel_update)
+    assert second_send_kwargs.get("keep_state") is True, "Updates should be sent with keep_state=True"
+
+    # recv was used (not send_recv) when updates were present
+    assert mock_ps.recv.call_count >= 1
+    # send_recv should NOT have been called on the iteration with updates
+    mock_ps.send_recv.assert_not_called()
+
+
+def test_libensemble_gen_runner_loop_without_updates():
+    """Test that LibensembleGenRunner._loop_over_gen uses send_recv when no updates."""
+    from libensemble.message_numbers import EVAL_GEN_TAG, PERSIS_STOP
+    from libensemble.utils.runners import LibensembleGenRunner
+
+    mock_gen = mock.Mock()
+    mock_gen.variables_mapping = {}
+
+    H_out = np.zeros(2, dtype=[("x", float)])
+    mock_gen.suggest_numpy.return_value = H_out
+    mock_gen.suggest_updates.return_value = []  # Empty updates
+    mock_gen.ingest_numpy.return_value = None
+
+    specs = {"generator": mock_gen, "batch_size": 2}
+    runner = LibensembleGenRunner(specs)
+
+    mock_ps = mock.Mock()
+    H_in = np.zeros(2, dtype=[("f", float), ("sim_id", int)])
+
+    mock_ps.send_recv.return_value = (PERSIS_STOP, {}, None)
+    runner.ps = mock_ps
+
+    runner._loop_over_gen(EVAL_GEN_TAG, {}, H_in)
+
+    # send_recv should be used when there are no updates
+    mock_ps.send_recv.assert_called_once()
+    # send should NOT have been called separately
+    mock_ps.send.assert_not_called()
+
+
 if __name__ == "__main__":
     test_normal_runners()
     test_thread_runners()
@@ -140,3 +228,5 @@ if __name__ == "__main__":
     test_globus_compute_runner_init()
     test_globus_compute_runner_pass()
     test_globus_compute_runner_fail()
+    test_libensemble_gen_runner_loop_with_updates()
+    test_libensemble_gen_runner_loop_without_updates()
