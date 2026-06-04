@@ -1,8 +1,20 @@
+from libensemble._deprecation import warn_deprecated
 from libensemble.tools.alloc_support import AllocSupport, InsufficientFreeResources
+
+warn_deprecated(
+    name="libensemble.alloc_funcs.fast_alloc",
+    replacement="libensemble.alloc_funcs.give_sim_work_first.give_sim_work_first "
+    "or the default only_persistent_gens with a persistent generator",
+)
 
 
 def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info, libE_info):
     """
+    .. deprecated:: 2.0
+        ``fast_alloc.give_sim_work_first`` is deprecated and will be removed in libEnsemble 2.1.
+        Use :func:`libensemble.alloc_funcs.give_sim_work_first.give_sim_work_first` or the
+        default ``only_persistent_gens`` (with a persistent generator) instead.
+
     This allocation function gives (in order) entries in ``H`` to idle workers
     to evaluate in the simulation function. The fields in ``sim_specs["in"]``
     are given. If all entries in `H` have been given a be evaluated, a worker
