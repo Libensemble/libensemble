@@ -209,6 +209,13 @@ dev = ["wat>=0.7.0,<0.8"]
 docs = ["pyenchant", "enchant>=0.0.1,<0.0.2", "sphinx-lfs-content>=1.1.10,<2"]
 
 # Various config from here onward
+[tool.pytest.ini_options]
+filterwarnings = [
+    # Suppress deprecation warnings from alloc modules being removed in 2.1.
+    # Their tests are deleted in 2.1; until then, silence the import-time noise.
+    "ignore::libensemble._deprecation.LibEnsembleDeprecationWarning",
+]
+
 [tool.black]
 line-length = 120
 target-version = ["py311", "py312", "py313", "py314"]

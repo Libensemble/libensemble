@@ -15,8 +15,8 @@ We encourage experimenting with:
 
 .. dropdown:: Example
 
-    ..  literalinclude:: ../../libensemble/alloc_funcs/fast_alloc.py
-        :caption: libensemble.alloc_funcs.fast_alloc.give_sim_work_first
+    ..  literalinclude:: ../../libensemble/alloc_funcs/give_sim_work_first.py
+        :caption: libensemble.alloc_funcs.give_sim_work_first.give_sim_work_first
 
 The ``alloc_f`` function definition resembles::
 
@@ -184,42 +184,6 @@ give_sim_work_first
       :language: python
       :linenos:
 
-fast_alloc
-----------
-.. automodule:: fast_alloc
-  :members:
-  :undoc-members:
-
-.. dropdown:: :underline:`fast_alloc.py`
-
-   .. literalinclude:: ../../libensemble/alloc_funcs/fast_alloc.py
-      :language: python
-      :linenos:
-
-start_persistent_local_opt_gens
--------------------------------
-.. automodule:: start_persistent_local_opt_gens
-  :members:
-  :undoc-members:
-
-fast_alloc_and_pausing
-----------------------
-.. automodule:: fast_alloc_and_pausing
-   :members:
-   :undoc-members:
-
-only_one_gen_alloc
-------------------
-.. automodule:: only_one_gen_alloc
-   :members:
-   :undoc-members:
-
-start_fd_persistent
--------------------
-.. automodule:: start_fd_persistent
-   :members:
-   :undoc-members:
-
 persistent_aposmm_alloc
 -----------------------
 .. automodule:: persistent_aposmm_alloc
@@ -232,8 +196,89 @@ give_pregenerated_work
    :members:
    :undoc-members:
 
+.. _deprecated-alloc-label:
+
+Deprecated Allocation Functions
+================================
+
+.. warning::
+
+   The following allocation functions are **deprecated as of libEnsemble 2.0** and will be
+   **removed in libEnsemble 2.1**. They emit a :class:`~libensemble._deprecation.LibEnsembleDeprecationWarning`
+   on import.
+
+   **Migration guidance:**
+
+   - Functions that managed non-persistent generators (``fast_alloc``, ``fast_alloc_and_pausing``,
+     ``only_one_gen_alloc``) should be replaced with
+     :func:`~libensemble.alloc_funcs.give_sim_work_first.give_sim_work_first` or the default
+     :func:`~libensemble.alloc_funcs.start_only_persistent.only_persistent_gens` with a
+     persistent generator.
+   - APOSMM-adjacent functions (``start_persistent_local_opt_gens``, ``start_fd_persistent``)
+     should migrate to
+     :func:`~libensemble.alloc_funcs.persistent_aposmm_alloc.persistent_aposmm_alloc`.
+   - ``inverse_bayes_allocf`` should be replaced with the default ``only_persistent_gens``
+     combined with a persistent generator that implements the required batch/subbatch logic.
+
+fast_alloc
+----------
+.. deprecated:: 2.0
+   Use :func:`~libensemble.alloc_funcs.give_sim_work_first.give_sim_work_first` or the default
+   :func:`~libensemble.alloc_funcs.start_only_persistent.only_persistent_gens` instead.
+   Will be removed in libEnsemble 2.1.
+
+.. automodule:: fast_alloc
+  :members:
+  :undoc-members:
+
+fast_alloc_and_pausing
+----------------------
+.. deprecated:: 2.0
+   Use the default :func:`~libensemble.alloc_funcs.start_only_persistent.only_persistent_gens`
+   with a persistent generator instead. Will be removed in libEnsemble 2.1.
+
+.. automodule:: fast_alloc_and_pausing
+   :members:
+   :undoc-members:
+
+only_one_gen_alloc
+------------------
+.. deprecated:: 2.0
+   Use :func:`~libensemble.alloc_funcs.give_sim_work_first.give_sim_work_first` with
+   ``num_active_gens=1``, or the default
+   :func:`~libensemble.alloc_funcs.start_only_persistent.only_persistent_gens` instead.
+   Will be removed in libEnsemble 2.1.
+
+.. automodule:: only_one_gen_alloc
+   :members:
+   :undoc-members:
+
+start_fd_persistent
+-------------------
+.. deprecated:: 2.0
+   Use the default :func:`~libensemble.alloc_funcs.start_only_persistent.only_persistent_gens`
+   with a persistent generator instead. Will be removed in libEnsemble 2.1.
+
+.. automodule:: start_fd_persistent
+   :members:
+   :undoc-members:
+
+start_persistent_local_opt_gens
+-------------------------------
+.. deprecated:: 2.0
+   Use :func:`~libensemble.alloc_funcs.persistent_aposmm_alloc.persistent_aposmm_alloc`
+   instead. Will be removed in libEnsemble 2.1.
+
+.. automodule:: start_persistent_local_opt_gens
+  :members:
+  :undoc-members:
+
 inverse_bayes_allocf
 --------------------
+.. deprecated:: 2.0
+   Use the default :func:`~libensemble.alloc_funcs.start_only_persistent.only_persistent_gens`
+   with a persistent generator instead. Will be removed in libEnsemble 2.1.
+
 .. automodule:: inverse_bayes_allocf
    :members:
    :undoc-members:
