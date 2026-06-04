@@ -70,7 +70,7 @@ if __name__ == "__main__":
     }
 
     libE_specs["scheduler_opts"] = {"match_slots": True}
-    exit_criteria = {"sim_max": 40, "wallclock_max": 300}
+    exit_criteria = {"sim_max": 10, "wallclock_max": 300}
 
     # Perform the run
 

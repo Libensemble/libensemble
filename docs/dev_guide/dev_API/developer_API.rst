@@ -17,3 +17,5 @@ This section documents the internal modules of libEnsemble.
    node_resources_module
    mpi_resources_module
    scheduler_module
+   work_dict
+   worker_array

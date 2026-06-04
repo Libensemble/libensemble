@@ -2,7 +2,7 @@ Overview of Examples
 ====================
 
 Here we give example generation, simulation, and allocation functions for
-libEnsemble, as well as example calling scripts.
+libEnsemble, as well as example top-level scripts.
 
 The examples come from the libEnsemble repository and the `libEnsemble Community Repository`_.
 
@@ -12,7 +12,6 @@ The examples come from the libEnsemble repository and the `libEnsemble Community
 
    gen_funcs
    sim_funcs
-   alloc_funcs
    calling_scripts
 
 .. _libEnsemble Community Repository: https://github.com/Libensemble/libe-community-examples

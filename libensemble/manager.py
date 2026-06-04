@@ -34,7 +34,7 @@ from libensemble.message_numbers import (
 )
 from libensemble.resources.resources import Resources
 from libensemble.tools.fields_keys import protected_libE_fields
-from libensemble.tools.tools import _PERSIS_RETURN_WARNING, _USER_CALC_DIR_WARNING
+from libensemble.tools.tools import _USER_CALC_DIR_WARNING
 from libensemble.utils.misc import _WorkerIndexer, extract_H_ranges
 from libensemble.utils.output_directory import EnsembleDirectory
 from libensemble.utils.timer import Timer
@@ -488,13 +488,11 @@ class Manager:
         if calc_status in [FINISHED_PERSISTENT_SIM_TAG, FINISHED_PERSISTENT_GEN_TAG]:
             final_data = D_recv.get("calc_out", None)
             if isinstance(final_data, np.ndarray):
-                if calc_status is FINISHED_PERSISTENT_GEN_TAG and self.libE_specs.get("use_persis_return_gen", False):
+                if calc_status is FINISHED_PERSISTENT_GEN_TAG:
                     self._ensure_sim_id_in_persis_in(final_data)
                     self.hist.update_history_x_in(w, final_data, self.W[w]["gen_started_time"])
-                elif calc_status is FINISHED_PERSISTENT_SIM_TAG and self.libE_specs.get("use_persis_return_sim", False):
+                elif calc_status is FINISHED_PERSISTENT_SIM_TAG:
                     self.hist.update_history_f(D_recv, self.kill_canceled_sims)
-                else:
-                    logger.info(_PERSIS_RETURN_WARNING)
             self.W[w]["persis_state"] = 0
             if self.W[w]["active_recv"]:
                 self.W[w]["active"] = 0

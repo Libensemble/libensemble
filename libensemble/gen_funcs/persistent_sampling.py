@@ -121,7 +121,6 @@ def persistent_uniform_final_update(_, persis_info, gen_specs, libE_info):
                     running_total[row["corner_id"]] += row["f"]
 
     # Having received a PERSIS_STOP, update f_est field for all points and return
-    # For manager to honor final H_o return, must have set libE_specs["use_persis_return_gen"] = True
     f_est = running_total / number_of_samples
     H_o = np.zeros(len(sent), dtype=[("sim_id", int), ("corner_id", int), ("f_est", float)])
     for count, i in enumerate(sent):

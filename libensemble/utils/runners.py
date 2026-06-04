@@ -159,16 +159,31 @@ class StandardGenRunner(Runner):
         return self._loop_over_gen(tag, Work, H_in)
 
     def _create_initial_sample(self, sample_method, num_points):
-        """Create initial sample points using the specified sampling method."""
-        from libensemble.gen_classes.sampling import UniformSample
+        """Create initial sample points using the specified sampling method.
 
-        vocs = self.specs.get("vocs")
-        samplers = {
-            "uniform": UniformSample,
-        }
-        if sample_method not in samplers:
-            raise ValueError(f"Unknown initial_sample_method: {sample_method!r}. Supported: {list(samplers.keys())}")
-        sampler = samplers[sample_method](vocs=vocs)
+        ``sample_method`` may be either a string naming a built-in sampler
+        (instantiated here with the VOCS), or a pre-constructed sampler
+        instance with a ``suggest()`` method (used directly).
+        """
+        from libensemble.gen_classes.sampling import LatinHypercubeSample, UniformSample
+
+        if isinstance(sample_method, str):
+            samplers = {
+                "uniform": UniformSample,
+                "latin_hypercube": LatinHypercubeSample,
+            }
+            if sample_method not in samplers:
+                raise ValueError(
+                    f"Unknown initial_sample_method: {sample_method!r}. " f"Supported: {list(samplers.keys())}"
+                )
+            sampler = samplers[sample_method](vocs=self.specs.get("vocs"))
+        else:
+            sampler = sample_method
+            if not hasattr(sampler, "suggest"):
+                raise TypeError(
+                    "initial_sample_method must be a string name or an object "
+                    f"with a suggest() method; got {type(sampler).__name__}"
+                )
         return sampler.suggest(num_points)
 
     def _persistent_result(self, calc_in, persis_info, libE_info):
@@ -218,13 +233,19 @@ class StandardGenRunner(Runner):
 
 class LibensembleGenRunner(StandardGenRunner):
     def _get_initial_suggest(self, libE_info) -> npt.NDArray:
-        """Get initial batch from generator based on generator type"""
+        """Get initial batch from a LibensembleGenerator.
+
+        LibensembleGenerator.suggest_numpy emits VOCS-field-named structured arrays
+        (e.g. x0/x1, energy). The manager-side history expects mapped fields (x, f)
+        unless the user explicitly requested otherwise.
+        """
         initial_batch = self.specs.get("initial_batch_size") or self.specs.get("batch_size") or libE_info["batch_size"]
         H_out = self.gen.suggest_numpy(initial_batch)
-        return H_out
+        return map_numpy_array(H_out, mapping=getattr(self.gen, "variables_mapping", {}))
 
     def _get_points_updates(self, batch_size: int) -> (npt.NDArray, list):
         numpy_out = self.gen.suggest_numpy(batch_size)
+        numpy_out = map_numpy_array(numpy_out, mapping=getattr(self.gen, "variables_mapping", {}))
         if callable(getattr(self.gen, "suggest_updates", None)):
             updates = self.gen.suggest_updates()
         else:
@@ -232,10 +253,10 @@ class LibensembleGenRunner(StandardGenRunner):
         return numpy_out, updates
 
     def _convert_ingest(self, x: npt.NDArray) -> list:
-        self.gen.ingest_numpy(x)
+        self.gen.ingest_numpy(unmap_numpy_array(x, mapping=getattr(self.gen, "variables_mapping", {})))
 
     def _convert_initial_ingest(self, x: npt.NDArray) -> list:
-        self.gen.ingest_numpy(x)
+        self.gen.ingest_numpy(unmap_numpy_array(x, mapping=getattr(self.gen, "variables_mapping", {})))
 
 
 class LibensembleGenThreadRunner(StandardGenRunner):

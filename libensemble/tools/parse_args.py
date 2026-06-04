@@ -149,7 +149,7 @@ def _client_parse_args(args):
 
 def parse_args():
     """
-    Parses command-line arguments. Use in calling script.
+    Parses command-line arguments.
 
     .. code-block:: python
 
@@ -226,7 +226,7 @@ def parse_args():
 
     libE_specs: :obj:`dict`
         Settings and specifications for libEnsemble
-        :doc:`(example)<data_structures/libE_specs>`
+        :doc:`(example)<data_structures/libE_specs/libE_specs>`
 
     """
     args, misc_args = parser.parse_known_args(sys.argv[1:])

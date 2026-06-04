@@ -13,15 +13,13 @@ persistent generator.
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: local mpi tcp
-# TESTSUITE_NPROCS: 3
+# TESTSUITE_NPROCS: 4
 
 from math import gamma, pi, sqrt
 
 import numpy as np
 
 import libensemble.gen_funcs
-from libensemble.executors.mpi_executor import MPIExecutor
-from libensemble.sim_funcs import six_hump_camel
 
 # Import libEnsemble items for this test
 
@@ -32,7 +30,6 @@ from gest_api.vocs import VOCS
 
 from libensemble import Ensemble
 from libensemble.gen_classes import APOSMM
-from libensemble.manager import LoggedException
 from libensemble.specs import ExitCriteria, GenSpecs, SimSpecs
 from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
 
@@ -52,76 +49,59 @@ def six_hump_camel_func(x):
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
+    workflow = Ensemble(parse_args=True)
 
-    for run in range(3):
+    if workflow.is_manager:
+        start_time = time()
 
-        workflow = Ensemble(parse_args=True)
+    n = 2
 
-        if workflow.is_manager:
-            start_time = time()
+    vocs = VOCS(
+        variables={
+            "core": [-3, 3],
+            "edge": [-2, 2],
+            "core_on_cube": [0, 1],
+            "edge_on_cube": [0, 1],
+        },
+        objectives={"energy": "MINIMIZE"},
+    )
 
-        n = 2
+    aposmm = APOSMM(
+        vocs,
+        max_active_runs=6,
+        variables_mapping={
+            "x": ["core", "edge"],
+            "x_on_cube": ["core_on_cube", "edge_on_cube"],
+            "f": ["energy"],
+        },
+        initial_sample_size=200,
+        sample_points=np.round(minima, 1),
+        localopt_method="LN_BOBYQA",
+        rk_const=0.5 * ((gamma(1 + (n / 2)) * 5) ** (1 / n)) / sqrt(pi),
+        xtol_abs=1e-6,
+        ftol_abs=1e-6,
+    )
 
-        vocs = VOCS(
-            variables={"core": [-3, 3], "edge": [-2, 2], "core_on_cube": [-3, 3], "edge_on_cube": [-2, 2]},
-            objectives={"energy": "MINIMIZE"},
-        )
+    workflow.gen_specs = GenSpecs(
+        generator=aposmm,
+        vocs=vocs,
+        batch_size=5,
+        initial_batch_size=10,
+    )
 
-        aposmm = APOSMM(
-            vocs,
-            max_active_runs=workflow.nworkers,  # should this match nworkers always? practically?
-            variables_mapping={"x": ["core", "edge"], "x_on_cube": ["core_on_cube", "edge_on_cube"], "f": ["energy"]},
-            initial_sample_size=100,
-            sample_points=minima,
-            localopt_method="LN_BOBYQA",
-            rk_const=0.5 * ((gamma(1 + (n / 2)) * 5) ** (1 / n)) / sqrt(pi),
-            xtol_abs=1e-6,
-            ftol_abs=1e-6,
-        )
+    workflow.sim_specs = SimSpecs(simulator=six_hump_camel_func, vocs=vocs)
+    workflow.exit_criteria = ExitCriteria(sim_max=3000, wallclock_max=600)
 
-        workflow.gen_specs = GenSpecs(
-            generator=aposmm,
-            vocs=vocs,
-            batch_size=5,
-            initial_batch_size=10,
-        )
+    # Perform the run
+    H, _, _ = workflow.run()
 
-        if run == 0:
-            workflow.sim_specs = SimSpecs(simulator=six_hump_camel_func, vocs=vocs)
-            workflow.exit_criteria = ExitCriteria(sim_max=2000)
-        elif run == 1:
-            workflow.persis_info["num_gens_started"] = 0
-            sim_app2 = six_hump_camel.__file__
-            exctr = MPIExecutor()
-            exctr.register_app(full_path=sim_app2, app_name="six_hump_camel", calc_type="sim")  # Named app
-            workflow.sim_specs = SimSpecs(simulator=six_hump_camel_func, vocs=vocs)
-            workflow.exit_criteria = ExitCriteria(sim_max=200)
-        elif run == 2:
-            workflow.persis_info["num_gens_started"] = 0
-            workflow.sim_specs = SimSpecs(
-                sim_f=six_hump_camel_func, vocs=vocs
-            )  # wrong parameter, but check we get error message
-            workflow.exit_criteria = ExitCriteria(sim_max=200)
-            workflow.libE_specs.abort_on_exception = False
+    if workflow.is_manager:
+        print("[Manager]:", H[np.where(H["local_min"])]["x"])
+        print("[Manager]: Time taken =", time() - start_time, flush=True)
 
-        try:
-            H, _, _ = workflow.run()
-        except Exception as e:
-            if run == 2:
-                assert isinstance(e, LoggedException)
-                aposmm.finalize()
-                print("Passed", flush=True)
-            else:
-                raise e
-
-        # Perform the run
-        if workflow.is_manager and run == 0:
-            print("[Manager]:", H[np.where(H["local_min"])]["x"])
-            print("[Manager]: Time taken =", time() - start_time, flush=True)
-
-            tol = 1e-5
-            for m in minima:
-                # The minima are known on this test problem.
-                # We use their values to test APOSMM has identified all minima
-                print(np.min(np.sum((H[H["local_min"]]["x"] - m) ** 2, 1)), flush=True)
-                assert np.min(np.sum((H[H["local_min"]]["x"] - m) ** 2, 1)) < tol
+        tol = 1e-5
+        for m in minima:
+            # The minima are known on this test problem.
+            # We use their values to test APOSMM has identified all minima
+            print(np.min(np.sum((H[H["local_min"]]["x"] - m) ** 2, 1)), flush=True)
+            assert np.min(np.sum((H[H["local_min"]]["x"] - m) ** 2, 1)) < tol

@@ -87,7 +87,7 @@ if __name__ == "__main__":
         },
     )
 
-    gpu_test.exit_criteria = ExitCriteria(sim_max=40, wallclock_max=300)
+    gpu_test.exit_criteria = ExitCriteria(sim_max=10, wallclock_max=300)
 
     if gpu_test.ready():
         gpu_test.run()

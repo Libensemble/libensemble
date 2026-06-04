@@ -5,15 +5,36 @@ Generator Specs
 
 Used to specify the generator, its inputs and outputs, and user data.
 
+Standardized (gest-api)
+-----------------------
+
 .. code-block:: python
     :linenos:
 
+    from libensemble import GenSpecs
+    from libensemble.gen_classes import UniformSample
+    from gest_api.vocs import VOCS
+
+    vocs = VOCS(
+        variables={"x": [-3.0, 3.0]},
+        objectives={"y": "MINIMIZE"},
+    )
+
+    gen_specs = GenSpecs(
+        generator=UniformSample(vocs),
+        vocs=vocs,
+    )
     ...
+
+Classic (gen_f)
+---------------
+
+.. code-block:: python
+    :linenos:
+
     import numpy as np
     from libensemble import GenSpecs
     from generator import gen_random_sample
-
-    ...
 
     gen_specs = GenSpecs(
         gen_f=gen_random_sample,

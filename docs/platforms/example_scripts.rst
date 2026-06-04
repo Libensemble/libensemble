@@ -95,10 +95,3 @@ SLURM - MPI / Distributed Mode (co-locate workers & MPI applications)
 ..  literalinclude:: ../../examples/libE_submission_scripts/submit_distrib_mpi4py.sh
     :caption: /examples/libE_submission_scripts/submit_distrib_mpi4py.sh
     :language: bash
-
-Summit (Decommissioned) - On Launch Nodes with Multiprocessing
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-..  literalinclude:: ../../examples/libE_submission_scripts/summit_submit_mproc.sh
-    :caption: /examples/libE_submission_scripts/summit_submit_mproc.sh
-    :language: bash
