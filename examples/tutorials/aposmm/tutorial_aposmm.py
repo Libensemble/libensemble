@@ -1,48 +1,58 @@
+import multiprocessing
+
 import numpy as np
-from tutorial_six_hump_camel import six_hump_camel
+from gest_api.vocs import VOCS
 
 import libensemble.gen_funcs
-from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc
-from libensemble.gen_funcs.persistent_aposmm import aposmm
-from libensemble.libE import libE
-from libensemble.tools import parse_args
+from libensemble import Ensemble
+from libensemble.specs import ExitCriteria, GenSpecs, SimSpecs
 
 libensemble.gen_funcs.rc.aposmm_optimizers = "scipy"
 
-nworkers, is_manager, libE_specs, _ = parse_args()
+from libensemble.gen_classes import APOSMM  # noqa
 
-sim_specs = {
-    "sim_f": six_hump_camel,  # Simulation function
-    "in": ["x"],  # Accepts 'x' values
-    "out": [("f", float)],  # Returns f(x) values
-}
+multiprocessing.set_start_method("fork", force=True)
 
-gen_out = [
-    ("x", float, 2),  # Produces 'x' values
-    ("x_on_cube", float, 2),  # 'x' values scaled to unit cube
-    ("sim_id", int),  # Produces IDs for sim order
-    ("local_min", bool),  # Is a point a local minimum?
-    ("local_pt", bool),  # Is a point from a local opt run?
-]
 
-gen_specs = {
-    "gen_f": aposmm,  # APOSMM generator function
-    "persis_in": ["x", "f", "x_on_cube", "sim_id", "local_min", "local_pt"],
-    "out": gen_out,  # Output defined like above dict
-    "user": {
-        "initial_sample_size": 100,  # Random sample 100 points to start
-        "localopt_method": "scipy_Nelder-Mead",
-        "opt_return_codes": [0],  # Return code specific to localopt_method
-        "max_active_runs": 6,  # Occur in parallel
-        "lb": np.array([-2, -1]),  # Lower bound of search domain
-        "ub": np.array([2, 1]),  # Upper bound of search domain
+def six_hump_camel(x):
+    """Six-hump camel function, gest-api style (dict in, dict out)."""
+    x1 = x["x0"]
+    x2 = x["x1"]
+    term1 = (4 - 2.1 * x1**2 + (x1**4) / 3) * x1**2
+    term2 = x1 * x2
+    term3 = (-4 + 4 * x2**2) * x2**2
+    return {"f": term1 + term2 + term3}
+
+
+vocs = VOCS(
+    variables={
+        "x0": [-2, 2],
+        "x1": [-1, 1],
+        "x0_cube": [0, 1],
+        "x1_cube": [0, 1],
     },
-}
+    objectives={"f": "MINIMIZE"},
+)
 
-alloc_specs = {"alloc_f": persistent_aposmm_alloc}
+aposmm = APOSMM(
+    vocs,
+    max_active_runs=6,
+    initial_sample_size=100,
+    variables_mapping={
+        "x": ["x0", "x1"],
+        "x_on_cube": ["x0_cube", "x1_cube"],
+        "f": ["f"],
+    },
+    localopt_method="scipy_Nelder-Mead",
+    opt_return_codes=[0],
+)
 
-exit_criteria = {"sim_max": 2000}
+workflow = Ensemble(parse_args=True)
+workflow.gen_specs = GenSpecs(generator=aposmm, vocs=vocs, batch_size=6, initial_batch_size=100)
+workflow.sim_specs = SimSpecs(simulator=six_hump_camel, vocs=vocs)
+workflow.exit_criteria = ExitCriteria(sim_max=2000)
 
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs, libE_specs=libE_specs)
-if is_manager:
+H, _, _ = workflow.run()
+
+if workflow.is_manager:
     print("Minima:", H[np.where(H["local_min"])]["x"])

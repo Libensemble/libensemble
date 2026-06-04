@@ -11,8 +11,12 @@ from libensemble.generators import PersistentGenInterfacer
 from libensemble.message_numbers import EVAL_GEN_TAG, PERSIS_STOP
 
 
-class APOSMM(PersistentGenInterfacer):
+class APOSMMLegacy(PersistentGenInterfacer):
     """
+    Legacy APOSMM generator that wraps the persistent ``aposmm`` generator function
+    via a ``QCommProcess`` subprocess. Prefer ``APOSMM`` (the direct implementation)
+    for new code.
+
     APOSMM coordinates multiple local optimization runs, dramatically reducing time for
     discovering multiple minima on parallel systems.
 

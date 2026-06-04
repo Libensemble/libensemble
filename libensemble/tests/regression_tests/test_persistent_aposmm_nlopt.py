@@ -1,5 +1,7 @@
 """
-Runs libEnsemble with APOSMM with the NLopt local optimizer.
+Runs libEnsemble with APOSMM (direct implementation) with the NLopt local optimizer.
+
+Uses the Ensemble/GenSpecs/SimSpecs dataclass interface with VOCS parameterization.
 
 Execute via one of the following commands (e.g. 3 workers):
    mpiexec -np 4 python test_persistent_aposmm_nlopt.py
@@ -7,8 +9,7 @@ Execute via one of the following commands (e.g. 3 workers):
    python test_persistent_aposmm_nlopt.py --nworkers 3 --comms tcp
 
 When running with the above commands, the number of concurrent evaluations of
-the objective function will be 2, as one of the three workers will be the
-persistent generator.
+the objective function will be 3, as the generator runs on the manager thread.
 """
 
 # Do not change these lines - they are parsed by run-tests.sh
@@ -16,83 +17,83 @@ persistent generator.
 # TESTSUITE_NPROCS: 3
 # TESTSUITE_EXTRA: true
 
-import sys
 from math import gamma, pi, sqrt
 
 import numpy as np
 
 import libensemble.gen_funcs
 
-# Import libEnsemble items for this test
-from libensemble.libE import libE
-from libensemble.sim_funcs.six_hump_camel import six_hump_camel as sim_f
-
 libensemble.gen_funcs.rc.aposmm_optimizers = "nlopt"
 from time import time
 
-from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc as alloc_f
-from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
+from gest_api.vocs import VOCS
+
+from libensemble import Ensemble
+from libensemble.gen_classes import APOSMM
+from libensemble.specs import ExitCriteria, GenSpecs, SimSpecs
 from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
-from libensemble.tools import parse_args, save_libE_output
+
+
+def six_hump_camel_func(x):
+    """Six-hump camel objective, gest-api style (dict in, dict out)."""
+    x1 = x["core"]
+    x2 = x["edge"]
+    term1 = (4 - 2.1 * x1**2 + (x1**4) / 3) * x1**2
+    term2 = x1 * x2
+    term3 = (-4 + 4 * x2**2) * x2**2
+    return {"energy": term1 + term2 + term3}
+
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
-    nworkers, is_manager, libE_specs, _ = parse_args()
+    workflow = Ensemble(parse_args=True)
 
-    if is_manager:
+    if workflow.is_manager:
         start_time = time()
 
-    if nworkers < 2:
-        sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
-
     n = 2
-    sim_specs = {
-        "sim_f": sim_f,
-        "in": ["x"],
-        "out": [("f", float)],
-    }
 
-    gen_out = [
-        ("x", float, n),
-        ("x_on_cube", float, n),
-        ("sim_id", int),
-        ("local_min", bool),
-        ("local_pt", bool),
-    ]
-
-    gen_specs = {
-        "gen_f": gen_f,
-        "persis_in": ["f"] + [n[0] for n in gen_out],
-        "out": gen_out,
-        "initial_batch_size": 100,
-        "user": {
-            "initial_sample_size": 100,
-            "sample_points": np.round(minima, 1),
-            "localopt_method": "LN_BOBYQA",
-            "rk_const": 0.5 * ((gamma(1 + (n / 2)) * 5) ** (1 / n)) / sqrt(pi),
-            "xtol_abs": 1e-6,
-            "ftol_abs": 1e-6,
-            "dist_to_bound_multiple": 0.5,
-            "max_active_runs": 6,
-            "lb": np.array([-3, -2]),
-            "ub": np.array([3, 2]),
+    vocs = VOCS(
+        variables={
+            "core": [-3, 3],
+            "edge": [-2, 2],
+            "core_on_cube": [0, 1],
+            "edge_on_cube": [0, 1],
         },
-    }
-
-    alloc_specs = {"alloc_f": alloc_f}
-
-    exit_criteria = {"sim_max": 3000}
-
-    # Perform the run
-    H, persis_info, flag = libE(
-        sim_specs,
-        gen_specs,
-        exit_criteria,
-        alloc_specs=alloc_specs,
-        libE_specs=libE_specs,
+        objectives={"energy": "MINIMIZE"},
     )
 
-    if is_manager:
+    aposmm = APOSMM(
+        vocs,
+        max_active_runs=6,
+        variables_mapping={
+            "x": ["core", "edge"],
+            "x_on_cube": ["core_on_cube", "edge_on_cube"],
+            "f": ["energy"],
+        },
+        initial_sample_size=100,
+        sample_points=np.round(minima, 1),
+        localopt_method="LN_BOBYQA",
+        rk_const=0.5 * ((gamma(1 + (n / 2)) * 5) ** (1 / n)) / sqrt(pi),
+        xtol_abs=1e-6,
+        ftol_abs=1e-6,
+        dist_to_bound_multiple=0.5,
+    )
+
+    workflow.gen_specs = GenSpecs(
+        generator=aposmm,
+        vocs=vocs,
+        batch_size=5,
+        initial_batch_size=100,
+    )
+
+    workflow.sim_specs = SimSpecs(simulator=six_hump_camel_func, vocs=vocs)
+    workflow.exit_criteria = ExitCriteria(sim_max=3000)
+
+    # Perform the run
+    H, persis_info, flag = workflow.run()
+
+    if workflow.is_manager:
         print("[Manager]:", H[np.where(H["local_min"])]["x"])
         print("[Manager]: Time taken =", time() - start_time, flush=True)
 
@@ -102,5 +103,3 @@ if __name__ == "__main__":
             # We use their values to test APOSMM has identified all minima
             print(np.min(np.sum((H[H["local_min"]]["x"] - m) ** 2, 1)), flush=True)
             assert np.min(np.sum((H[H["local_min"]]["x"] - m) ** 2, 1)) < tol
-
-        save_libE_output(H, persis_info, __file__, nworkers)

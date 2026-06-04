@@ -1,23 +1,12 @@
 """
-Runs libEnsemble with APOSMM+IBCDFO on two test problems. Only a single
-optimization run is being performed for the below setup.
+Runs libEnsemble with APOSMM (direct implementation) + IBCDFO manifold sampling
+on the synthetic beamline problem using a piecewise-maximum h-function.
 
-The first case uses POUNDERS to solve the chwirut least-squares problem. For
-this case, all chwirut 214 residual calculations for a given point are
-performed as a single simulation evaluation.
-
-The second case uses the generalized POUNDERS to minimize normalized beamline
-emittance. The "beamline simulation" is a synthetic polynomial test function
-that takes in 4 variables and returning 3 outputs. These outputs represent
-position <x>, momentum <p_x>, and the correlation between them <x p_x>.
-
-These values are then mapped to the normalized emittance <x> <p_x> - <x p_x>.
+Uses GenSpecs(generator=APOSMM(...)) with the legacy sim_f interface.
 
 Execute via one of the following commands:
-   mpiexec -np 3 python test_persistent_aposmm_ibcdfo_pounders.py
-   python test_persistent_aposmm_ibcdfo_pounders.py --nworkers 2
-Both will run with 1 manager, 1 worker running APOSMM+IBCDFO, and 1 worker
-doing the simulation evaluations.
+   mpiexec -np 3 python test_persistent_aposmm_ibcdfo_manifold_sampling.py
+   python test_persistent_aposmm_ibcdfo_manifold_sampling.py --nworkers 2
 """
 
 # Do not change these lines - they are parsed by run-tests.sh
@@ -30,23 +19,22 @@ import sys
 import numpy as np
 
 import libensemble.gen_funcs
-from libensemble.libE import libE
 
 libensemble.gen_funcs.rc.aposmm_optimizers = "ibcdfo_manifold_sampling"
 
-from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc as alloc_f
-from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
-from libensemble.tools import parse_args, save_libE_output
+from gest_api.vocs import VOCS
+
+from libensemble import Ensemble
+from libensemble.gen_classes import APOSMM
+from libensemble.specs import ExitCriteria, GenSpecs, SimSpecs
 
 try:
     import ibcdfo  # noqa: F401
-
 except ModuleNotFoundError:
     sys.exit("Please 'pip install ibcdfo'")
 
 try:
     from minqsw import minqsw  # noqa: F401
-
 except ModuleNotFoundError:
     sys.exit("Ensure https://github.com/POptUS/minq has been cloned and that minq/py/minq5/ is on the PYTHONPATH")
 
@@ -54,7 +42,7 @@ except ModuleNotFoundError:
 def synthetic_beamline_mapping(H, _, sim_specs):
     x = H["x"][0]
     assert len(x) == 4, "Assuming 4 inputs to this function"
-    y = np.zeros(3)  # Synthetic beamline outputs
+    y = np.zeros(3)
     y[0] = x[0] ** 2 + 1.0
     y[1] = x[1] ** 2 + 2.0
     y[2] = x[2] * x[3] + 0.5
@@ -69,58 +57,54 @@ def synthetic_beamline_mapping(H, _, sim_specs):
 if __name__ == "__main__":
     multiprocessing.set_start_method("fork", force=True)
 
-    nworkers, is_manager, libE_specs, _ = parse_args()
+    workflow = Ensemble(parse_args=True)
 
-    assert nworkers == 2, "This test is just for two workers"
+    assert workflow.nworkers == 2, "This test is just for two workers"
 
-    m = 3
-    n = 4
-    sim_f = synthetic_beamline_mapping
+    m, n = 3, 4
+    lb = -1 * np.ones(n)
+    ub = np.ones(n)
 
-    sim_specs = {
-        "sim_f": sim_f,
-        "in": ["x"],
-        "out": [("f", float), ("fvec", float, m)],
+    vocs = VOCS(
+        variables={**{f"x{i}": [lb[i], ub[i]] for i in range(n)}, **{f"x{i}_cube": [0, 1] for i in range(n)}},
+        objectives={"f": "MINIMIZE"},
+    )
+
+    variables_mapping = {
+        "x": [f"x{i}" for i in range(n)],
+        "x_on_cube": [f"x{i}_cube" for i in range(n)],
+        "f": ["f"],
+        "fvec": ["fvec"],
     }
 
-    gen_out = [
-        ("x", float, n),
-        ("x_on_cube", float, n),
-        ("sim_id", int),
-        ("local_min", bool),
-        ("local_pt", bool),
-        ("started_run", bool),
-    ]
+    aposmm = APOSMM(
+        vocs,
+        max_active_runs=1,
+        initial_sample_size=1,
+        variables_mapping=variables_mapping,
+        localopt_method="ibcdfo_manifold_sampling",
+        run_max_eval=100 * (n + 1),
+        components=m,
+        stop_after_k_runs=1,
+        sample_points=np.atleast_2d(0.1 * (np.arange(n) + 1)),
+        hfun=ibcdfo.manifold_sampling.h_pw_maximum,
+    )
 
-    gen_specs = {
-        "gen_f": gen_f,
-        "persis_in": ["f", "fvec"] + [n[0] for n in gen_out],
-        "out": gen_out,
-        "user": {
-            "initial_sample_size": 1,
-            "stop_after_k_runs": 1,
-            "max_active_runs": 1,
-            "sample_points": np.atleast_2d(0.1 * (np.arange(n) + 1)),
-            "localopt_method": "ibcdfo_manifold_sampling",
-            "run_max_eval": 100 * (n + 1),
-            "components": m,
-            "lb": -1 * np.ones(n),
-            "ub": np.ones(n),
-        },
-    }
+    workflow.gen_specs = GenSpecs(
+        generator=aposmm,
+        vocs=vocs,
+        batch_size=1,
+        initial_batch_size=1,
+    )
+    workflow.sim_specs = SimSpecs(
+        sim_f=synthetic_beamline_mapping,
+        inputs=["x"],
+        outputs=[("f", float), ("fvec", float, m)],
+    )
+    workflow.exit_criteria = ExitCriteria(sim_max=500)
 
-    gen_specs["user"]["hfun"] = ibcdfo.manifold_sampling.h_pw_maximum
+    H, persis_info, flag = workflow.run()
 
-    alloc_specs = {"alloc_f": alloc_f}
-
-    exit_criteria = {"sim_max": 500}
-
-    # Perform the run
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs, libE_specs=libE_specs)
-
-    if is_manager:
-        assert np.min(H["f"][H["f"] > 0]) == 2.0, "The best is 2"  # nonzero
-        assert persis_info[0].get("run_order"), "Run_order should have been given back"
+    if workflow.is_manager:
+        assert np.min(H["f"][H["f"] > 0]) == 2.0, "The best is 2"
         assert flag == 0
-
-        save_libE_output(H, persis_info, __file__, nworkers)

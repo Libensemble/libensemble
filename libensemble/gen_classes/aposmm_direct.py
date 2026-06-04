@@ -31,7 +31,7 @@ from libensemble.generators import LibensembleGenerator
 from libensemble.utils.misc import unmap_numpy_array
 
 
-class APOSMMDirect(LibensembleGenerator):
+class APOSMM(LibensembleGenerator):
     """
     APOSMM coordinates multiple local optimization runs, dramatically reducing time for
     discovering multiple minima on parallel systems.
@@ -60,7 +60,45 @@ class APOSMMDirect(LibensembleGenerator):
             "x": ["var1", "var2"],
             "x_on_cube": ["var1_on_cube", "var2_on_cube"],
         }
-        gen = APOSMMDirect(vocs, 3, 3, variables_mapping=variables_mapping, ...)
+        gen = APOSMM(vocs, 3, 3, variables_mapping=variables_mapping, ...)
+
+    Getting started
+    ---------------
+
+    APOSMM requires a minimal sample before starting optimization. A random sample across the domain
+    can either be retrieved via a ``suggest()`` call right after initialization, or the user can ingest
+    a set of sample points via ``ingest()``. The minimal sample size is specified via the ``initial_sample_size``
+    parameter. This many evaluated sample points *must* be provided to APOSMM before it will provide any
+    local optimization points.
+
+    .. code-block:: python
+
+        # Approach 1: Retrieve sample points via suggest()
+        gen = APOSMM(vocs, max_active_runs=2, initial_sample_size=10)
+
+        # ask APOSMM for some sample points
+        initial_sample = gen.suggest(10)
+        for point in initial_sample:
+            point["f"] = func(point["x"])
+        gen.ingest(initial_sample)
+
+        # APOSMM will now provide local-optimization points.
+        points = gen.suggest(10)
+
+        # ----------------
+
+        # Approach 2: Ingest pre-computed sample points via ingest()
+        gen = APOSMM(vocs, max_active_runs=2, initial_sample_size=10)
+
+        initial_sample = create_initial_sample()
+        for point in initial_sample:
+            point["f"] = func(point["x"])
+
+        # provide APOSMM with sample points
+        gen.ingest(initial_sample)
+
+        # APOSMM will now provide local-optimization points.
+        points = gen.suggest(10)
 
     Parameters
     ----------
@@ -74,13 +112,23 @@ class APOSMMDirect(LibensembleGenerator):
         Minimal sample points required before starting optimization.
 
     History: ``npt.NDArray`` = ``[]``
-        An optional history of previously evaluated points.
+        An optional history of previously evaluated points (H0).
 
     sample_points: ``npt.NDArray`` = ``None``
-        Points to be sampled (original domain).
+        Points to be sampled (original domain). If more sample points are needed
+        by APOSMM during the course of the optimization, points will be drawn
+        uniformly over the domain.
 
-    localopt_method: ``str`` = "scipy_Nelder-Mead"
-        The local optimization method to use.
+    localopt_method: ``str`` = ``"scipy_Nelder-Mead"``
+        The local optimization method to use. Supported values:
+
+        - NLopt: ``"LN_SBPLX"``, ``"LN_BOBYQA"``, ``"LN_COBYLA"``, ``"LN_NEWUOA"``,
+          ``"LN_NELDERMEAD"``, ``"LD_MMA"``
+        - PETSc/TAO: ``"pounders"``, ``"blmvm"``, ``"nm"``
+        - SciPy: ``"scipy_Nelder-Mead"``, ``"scipy_COBYLA"``, ``"scipy_BFGS"``
+        - DFO-LS: ``"dfols"``
+        - IBCDFO: ``"ibcdfo_pounders"``, ``"ibcdfo_manifold_sampling"``
+        - External: ``"external_localopt"``
 
     mu: ``float`` = ``1e-8``
         Distance from the boundary that all localopt starting points must satisfy.
@@ -89,16 +137,30 @@ class APOSMMDirect(LibensembleGenerator):
         Distance from identified minima that all starting points must satisfy.
 
     rk_const: ``float`` = ``None``
-        Multiplier in front of the ``r_k`` value.
+        Multiplier in front of the ``r_k`` value. If not provided, defaults to
+        ``0.5 * ((gamma(1 + (n / 2)) * 5) ** (1 / n)) / sqrt(pi)``.
 
     xtol_abs: ``float`` = ``1e-6``
-        Localopt method's convergence tolerance.
+        Absolute x tolerance for NLopt local optimizer convergence.
 
     ftol_abs: ``float`` = ``1e-6``
-        Localopt method's convergence tolerance.
+        Absolute f tolerance for NLopt local optimizer convergence.
+
+    xtol_rel: ``float`` = ``None``
+        Relative x tolerance for NLopt local optimizer convergence.
+
+    ftol_rel: ``float`` = ``None``
+        Relative f tolerance for NLopt local optimizer convergence.
+
+    grtol: ``float`` = ``None``
+        Gradient tolerance for PETSc/TAO local optimizer convergence.
+
+    gatol: ``float`` = ``None``
+        Absolute gradient tolerance for PETSc/TAO local optimizer convergence.
 
     opt_return_codes: ``list[int]`` = ``[0]``
-        scipy only: List of return codes that determine if a point should be ruled a local minimum.
+        SciPy only: List of return codes that determine if a point should be ruled
+        a local minimum. E.g., Nelder-Mead and BFGS use ``[0]``, COBYLA uses ``[1]``.
 
     dist_to_bound_multiple: ``float`` = ``0.5``
         What fraction of the distance to the nearest boundary should the initial
@@ -112,6 +174,28 @@ class APOSMMDirect(LibensembleGenerator):
 
     stop_after_k_runs: ``int`` = ``None``
         Stop after this many local optimization runs have ended.
+
+    periodic: ``bool`` = ``False``
+        If ``True``, treat the domain as periodic. Points wrapping past the boundary
+        are reflected back into the unit cube.
+
+    run_max_eval: ``int`` = ``None``
+        Maximum number of function evaluations per local optimization run.
+        Defaults to ``1000 * n`` for NLopt/TAO and ``100 * (n + 1)`` for IBCDFO.
+
+    lhs_divisions: ``int`` = ``0``
+        Number of Latin hypercube sampling divisions for the sample points.
+        0 or 1 results in uniform random sampling.
+
+    scipy_kwargs: ``dict`` = ``None``
+        Additional keyword arguments to pass to the SciPy local optimizer.
+
+    dfols_kwargs: ``dict`` = ``None``
+        Additional keyword arguments to pass to the DFO-LS local optimizer.
+
+    components: ``int`` = ``None``
+        Number of objective components for least-squares problems (pounders, dfols,
+        ibcdfo). When set, an ``fvec`` field is added to the internal history.
     """
 
     returns_id = True
@@ -131,8 +215,12 @@ class APOSMMDirect(LibensembleGenerator):
         sample_points: Optional[npt.NDArray] = None,
         localopt_method: str = "scipy_Nelder-Mead",
         rk_const: Optional[float] = None,
-        xtol_abs: float = 1e-6,
-        ftol_abs: float = 1e-6,
+        xtol_abs: Optional[float] = None,
+        ftol_abs: Optional[float] = None,
+        xtol_rel: Optional[float] = None,
+        ftol_rel: Optional[float] = None,
+        grtol: Optional[float] = None,
+        gatol: Optional[float] = None,
         opt_return_codes: list[int] = [0],
         mu: float = 1e-8,
         nu: float = 1e-8,
@@ -140,6 +228,12 @@ class APOSMMDirect(LibensembleGenerator):
         random_seed: int = 1,
         stop_after_k_minima: Optional[int] = None,
         stop_after_k_runs: Optional[int] = None,
+        periodic: bool = False,
+        run_max_eval: Optional[int] = None,
+        lhs_divisions: int = 0,
+        scipy_kwargs: Optional[dict] = None,
+        dfols_kwargs: Optional[dict] = None,
+        components: Optional[int] = None,
         **kwargs,
     ) -> None:
 
@@ -160,6 +254,10 @@ class APOSMMDirect(LibensembleGenerator):
             "rk_const",
             "xtol_abs",
             "ftol_abs",
+            "xtol_rel",
+            "ftol_rel",
+            "grtol",
+            "gatol",
             "mu",
             "nu",
             "opt_return_codes",
@@ -168,12 +266,20 @@ class APOSMMDirect(LibensembleGenerator):
             "random_seed",
             "stop_after_k_minima",
             "stop_after_k_runs",
+            "run_max_eval",
+            "lhs_divisions",
+            "scipy_kwargs",
+            "dfols_kwargs",
+            "components",
         ]
 
         for k in FIELDS:
             val = locals().get(k)
             if val is not None:
                 gen_specs["user"][k] = val
+
+        if periodic:
+            gen_specs["user"]["periodic"] = True
 
         super().__init__(vocs, History, {}, gen_specs, {}, **kwargs)
 
@@ -221,8 +327,10 @@ class APOSMMDirect(LibensembleGenerator):
         ]
 
         gen_specs["persis_in"] = ["sim_id", "x", "x_on_cube", "f", "sim_ended"]
-        if "components" in kwargs or "components" in gen_specs.get("user", {}):
+        if components is not None or "components" in gen_specs.get("user", {}):
             gen_specs["persis_in"].append("fvec")
+        if localopt_method in ["LD_MMA", "blmvm", "scipy_BFGS"]:
+            gen_specs["persis_in"].append("grad")
 
         # ---- Initialize APOSMM state using the canonical functions ----
         user_specs = gen_specs["user"]
@@ -265,7 +373,7 @@ class APOSMMDirect(LibensembleGenerator):
         self._stopped = False
 
     def _map_to_internal(self, results: npt.NDArray) -> npt.NDArray:
-        """Map VOCS-named structured array to internal APOSMM field names (x, x_on_cube, f, sim_id)."""
+        """Map VOCS-named structured array to internal APOSMM field names (x, x_on_cube, f, sim_id, grad, fvec)."""
         if results is None or len(results) == 0:
             return results
         # If already has internal names, return as-is
@@ -586,3 +694,7 @@ class APOSMMDirect(LibensembleGenerator):
         minima = copy.deepcopy(self.all_local_minima)
         self.all_local_minima = []
         return minima
+
+
+# Backward-compatible alias
+APOSMMDirect = APOSMM

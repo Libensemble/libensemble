@@ -1,7 +1,7 @@
 APOSMM
 ------
 
-.. autoclass:: gen_classes.aposmm.APOSMM
+.. autoclass:: gen_classes.aposmm_direct.APOSMM
   :members: suggest, ingest, export, suggest_updates, finalize
   :undoc-members:
   :show-inheritance:
@@ -18,7 +18,7 @@ APOSMM with libEnsemble
 APOSMM standalone
 ^^^^^^^^^^^^^^^^^
 
-.. literalinclude:: ../../../libensemble/tests/unit_tests/test_persistent_aposmm.py
+.. literalinclude:: ../../../libensemble/tests/unit_tests/test_aposmm.py
     :linenos:
-    :start-at: def test_asktell_ingest_first():
-    :end-before:    assert persis_info.get("run_order"), "Standalone persistent_aposmm didn't do any localopt runs"
+    :start-at: def test_aposmm_ingest_first():
+    :end-before:    assert exit_code == FINISHED_PERSISTENT_GEN_TAG
