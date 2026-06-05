@@ -1,7 +1,9 @@
 import logging
+import warnings
 
 import numpy.typing as npt
 
+from libensemble._deprecation import LibEnsembleDeprecationWarning
 from libensemble.executors import Executor
 from libensemble.libE import libE
 from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
@@ -18,6 +20,13 @@ NOTFOUND_ERR_MSG = "\n" + 10 * "*" + NOTFOUND_ERR_MSG + 10 * "*" + "\n"
 
 OVERWRITE_COMMS_WARN = "Cannot reset 'comms' if 'ensemble.libE_specs.comms' is already set."
 CHANGED_COMMS_WARN = "New 'comms' method detected following initialization of Ensemble. Exiting."
+
+EXIT_CRITERIA_DEPRECATION = (
+    "ExitCriteria as a standalone parameter is deprecated as of libEnsemble 2.0 "
+    "and will be removed in 2.1. Pass exit criteria directly to run() instead: "
+    "ensemble.run(sim_max=100) or ensemble.run(sim_max=100, wallclock_max=3600). "
+    "See https://libensemble.readthedocs.io/... for migration guidance."
+)
 
 CORRESPONDING_CLASSES = {
     "sim_specs": SimSpecs,
@@ -159,7 +168,7 @@ class Ensemble:
         self,
         sim_specs: SimSpecs = SimSpecs(),
         gen_specs: GenSpecs = GenSpecs(),
-        exit_criteria: ExitCriteria = ExitCriteria(),
+        exit_criteria: ExitCriteria | None = None,
         libE_specs: LibeSpecs = LibeSpecs(),
         alloc_specs: AllocSpecs = AllocSpecs(),
         persis_info: dict = {},
@@ -169,7 +178,11 @@ class Ensemble:
     ):
         self.sim_specs = sim_specs
         self.gen_specs = gen_specs
-        self.exit_criteria = exit_criteria
+        self._exit_criteria = ExitCriteria()
+        if exit_criteria is not None:
+            if isinstance(exit_criteria, ExitCriteria):
+                warnings.warn(EXIT_CRITERIA_DEPRECATION, LibEnsembleDeprecationWarning, stacklevel=2)
+            self._exit_criteria = exit_criteria
         self._libE_specs: LibeSpecs = libE_specs
         self.alloc_specs = alloc_specs
         self.persis_info = persis_info
@@ -180,6 +193,7 @@ class Ensemble:
         self.is_manager = False
         self.parsed = False
         self._known_comms: str = ""
+        self._has_run_n_evals = False
 
         if parse_args:
             self._parse_args()
@@ -254,7 +268,9 @@ class Ensemble:
         ):
             issues.append(
                 "exit_criteria has no stop condition: set at least one of "
-                "'sim_max', 'gen_max', 'wallclock_max', or 'stop_val'."
+                "'sim_max', 'gen_max', 'wallclock_max', or 'stop_val' "
+                "either on an ExitCriteria object or directly via "
+                "ensemble.run(sim_max=..., gen_max=..., ...)."
             )
 
         # --- workers: must be determinable ---
@@ -308,12 +324,43 @@ class Ensemble:
 
         self._libE_specs.__dict__.update(**new_specs)
 
+    @property
+    def exit_criteria(self) -> ExitCriteria:
+        return self._exit_criteria
+
+    @exit_criteria.setter
+    def exit_criteria(self, value: ExitCriteria | None):
+        if isinstance(value, ExitCriteria):
+            warnings.warn(EXIT_CRITERIA_DEPRECATION, LibEnsembleDeprecationWarning, stacklevel=2)
+        self._exit_criteria = value or ExitCriteria()
+
     def _refresh_executor(self):
         Executor.executor = self.executor or Executor.executor
 
-    def run(self) -> tuple[npt.NDArray, dict, int]:
+    def run(
+        self,
+        sim_max: int | None = None,
+        gen_max: int | None = None,
+        wallclock_max: float | None = None,
+        stop_val: tuple[str, float] | None = None,
+    ) -> tuple[npt.NDArray, dict, int]:
         """
         Initializes libEnsemble.
+
+        Parameters
+        ----------
+        sim_max: int, Optional
+            Maximum number of new simulation evaluations for this run.
+            Overrides ``exit_criteria.sim_max`` for this call only.
+        gen_max: int, Optional
+            Maximum number of new generator calls for this run.
+            Overrides ``exit_criteria.gen_max`` for this call only.
+        wallclock_max: float, Optional
+            Wallclock timeout in seconds for this run.
+            Overrides ``exit_criteria.wallclock_max`` for this call only.
+        stop_val: tuple[str, float], Optional
+            Stop criterion ``(field, value)`` for this run.
+            Overrides ``exit_criteria.stop_val`` for this call only.
 
         .. dropdown:: MPI/comms Notes
 
@@ -324,6 +371,25 @@ class Ensemble:
             If a MPI communicator was provided in ``libE_specs``, then each ``.run()`` call
             will initiate on a **duplicate** of that communicator.
             Otherwise, a duplicate of ``COMM_WORLD`` will be used.
+
+        .. dropdown:: Substeps / multi-step usage
+
+            Pass exit-criteria kwargs to run a subset of an ensemble at a time.
+            The ensemble history (``H0``) is automatically chained across calls::
+
+                sampling = Ensemble(...)
+                sampling.sim_specs = SimSpecs(...)
+                sampling.gen_specs = GenSpecs(...)
+
+                # Run in three substeps
+                sampling.run(sim_max=30)
+                # ... adjust generator hyperparameters ...
+                sampling.run(sim_max=30)
+                sampling.run(sim_max=40)
+
+            When ``sim_max`` is used (from kwargs or ``exit_criteria``),
+            ``libE_specs.final_gen_send`` and ``libE_specs.reuse_output_dir`` are
+            automatically set to ``True`` to support persistent generators across runs.
 
         Returns
         -------
@@ -355,15 +421,40 @@ class Ensemble:
             raise ValueError(CHANGED_COMMS_WARN)
 
         assert self._libE_specs is not None
+
+        # Merge kwargs into effective exit criteria for this run
+        run_kwargs = {
+            k: v
+            for k, v in {
+                "sim_max": sim_max,
+                "gen_max": gen_max,
+                "wallclock_max": wallclock_max,
+                "stop_val": stop_val,
+            }.items()
+            if v is not None
+        }
+        if run_kwargs:
+            effective_exit = self._exit_criteria.model_copy(update=run_kwargs)
+            self._has_run_n_evals = True
+        else:
+            effective_exit = self._exit_criteria
+
+        if sim_max is not None or getattr(self._exit_criteria, "sim_max", None) is not None:
+            self._libE_specs.final_gen_send = True
+            self._libE_specs.reuse_output_dir = True
+
         self.H, self.persis_info, self.flag = libE(
             self.sim_specs,
             self.gen_specs,
-            self.exit_criteria,
+            effective_exit,
             persis_info=self.persis_info,
             alloc_specs=self.alloc_specs,
             libE_specs=self._libE_specs,
             H0=self.H0,
         )
+
+        # Chain history for next call
+        self.H0 = self.H
 
         return self.H, self.persis_info, self.flag
 

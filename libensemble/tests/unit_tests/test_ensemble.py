@@ -270,6 +270,178 @@ def test_ready_happy_path():
     assert issues == [], f"Issues should be empty but got: {issues}"
 
 
+# --- run() kwargs / substep tests ---
+
+
+# --- run() kwargs / substep tests ---
+
+
+def test_run_sim_max_kwarg():
+    """run(sim_max=10) should evaluate exactly 10 simulations."""
+    from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
+    from libensemble.ensemble import Ensemble
+    from libensemble.gen_funcs.sampling import latin_hypercube_sample
+    from libensemble.sim_funcs.simple_sim import norm_eval
+    from libensemble.specs import AllocSpecs, GenSpecs, LibeSpecs, SimSpecs
+
+    ens = Ensemble(
+        libE_specs=LibeSpecs(comms="local", nworkers=4),
+        sim_specs=SimSpecs(sim_f=norm_eval, inputs=["x"], outputs=[("f", float)]),
+        gen_specs=GenSpecs(
+            gen_f=latin_hypercube_sample,
+            outputs=[("x", float, (1,))],
+            persis_in=["f"],
+            batch_size=5,
+            user={"lb": np.array([-3]), "ub": np.array([3])},
+        ),
+        alloc_specs=AllocSpecs(alloc_f=give_sim_work_first),
+    )
+    ens.run(sim_max=10)
+    if ens.is_manager:
+        sim_count = int(np.sum(ens.H["sim_ended"]))
+        assert sim_count == 10, f"Expected 10 sims but got {sim_count}"
+
+
+def test_run_chaining():
+    """Two run(sim_max=N) calls should chain H0, doubling total."""
+    from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
+    from libensemble.ensemble import Ensemble
+    from libensemble.gen_funcs.sampling import latin_hypercube_sample
+    from libensemble.sim_funcs.simple_sim import norm_eval
+    from libensemble.specs import AllocSpecs, GenSpecs, LibeSpecs, SimSpecs
+
+    ens = Ensemble(
+        libE_specs=LibeSpecs(comms="local", nworkers=4),
+        sim_specs=SimSpecs(sim_f=norm_eval, inputs=["x"], outputs=[("f", float)]),
+        gen_specs=GenSpecs(
+            gen_f=latin_hypercube_sample,
+            outputs=[("x", float, (1,))],
+            persis_in=["f"],
+            batch_size=5,
+            user={"lb": np.array([-3]), "ub": np.array([3])},
+        ),
+        alloc_specs=AllocSpecs(alloc_f=give_sim_work_first),
+    )
+    ens.run(sim_max=10)
+    h1_ended = int(np.sum(ens.H["sim_ended"])) if ens.is_manager else 0
+    ens.run(sim_max=10)
+    if ens.is_manager:
+        total_ended = int(np.sum(ens.H["sim_ended"]))
+        assert total_ended == h1_ended + 10, f"Expected {h1_ended + 10} sims ended but got {total_ended}"
+        assert ens.H0 is ens.H, "H0 should reference the latest H"
+
+
+def test_run_sim_max_merge():
+    """run() kwargs should merge with existing exit_criteria, not replace."""
+    from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
+    from libensemble.ensemble import Ensemble
+    from libensemble.gen_funcs.sampling import latin_hypercube_sample
+    from libensemble.sim_funcs.simple_sim import norm_eval
+    from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
+
+    # Must have full sim/gen specs so run() actually works
+    ens = Ensemble(
+        libE_specs=LibeSpecs(comms="local", nworkers=4),
+        sim_specs=SimSpecs(sim_f=norm_eval, inputs=["x"], outputs=[("f", float)]),
+        gen_specs=GenSpecs(
+            gen_f=latin_hypercube_sample,
+            outputs=[("x", float, (1,))],
+            persis_in=["f"],
+            batch_size=5,
+            user={"lb": np.array([-3]), "ub": np.array([3])},
+        ),
+        exit_criteria=ExitCriteria(sim_max=100),
+        alloc_specs=AllocSpecs(alloc_f=give_sim_work_first),
+    )
+    ens.run(sim_max=10)
+    # stored exit_criteria should still have sim_max=100
+    assert ens.exit_criteria.sim_max == 100, f"Expected sim_max=100 but got {ens.exit_criteria.sim_max}"
+
+
+def test_exit_criteria_deprecation_init():
+    """Passing ExitCriteria to Ensemble() should emit a deprecation warning."""
+    import warnings
+
+    from libensemble._deprecation import LibEnsembleDeprecationWarning
+    from libensemble.ensemble import Ensemble
+    from libensemble.specs import ExitCriteria
+
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        Ensemble(exit_criteria=ExitCriteria(sim_max=10))
+    deprecations = [x for x in w if issubclass(x.category, LibEnsembleDeprecationWarning)]
+    assert len(deprecations) >= 1, "Expected at least one LibEnsembleDeprecationWarning"
+
+
+def test_exit_criteria_deprecation_setter():
+    """Setting ensemble.exit_criteria = ExitCriteria(...) should emit a deprecation warning."""
+    import warnings
+
+    from libensemble._deprecation import LibEnsembleDeprecationWarning
+    from libensemble.ensemble import Ensemble
+    from libensemble.specs import ExitCriteria, LibeSpecs
+
+    ens = Ensemble(libE_specs=LibeSpecs(comms="local", nworkers=4))
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        ens.exit_criteria = ExitCriteria(sim_max=10)
+    deprecations = [x for x in w if issubclass(x.category, LibEnsembleDeprecationWarning)]
+    assert len(deprecations) >= 1, "Expected at least one LibEnsembleDeprecationWarning"
+
+
+def test_run_auto_settings():
+    """run(sim_max=...) should auto-set final_gen_send and reuse_output_dir."""
+    from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
+    from libensemble.ensemble import Ensemble
+    from libensemble.gen_funcs.sampling import latin_hypercube_sample
+    from libensemble.sim_funcs.simple_sim import norm_eval
+    from libensemble.specs import AllocSpecs, GenSpecs, LibeSpecs, SimSpecs
+
+    ens = Ensemble(
+        libE_specs=LibeSpecs(comms="local", nworkers=4),
+        sim_specs=SimSpecs(sim_f=norm_eval, inputs=["x"], outputs=[("f", float)]),
+        gen_specs=GenSpecs(
+            gen_f=latin_hypercube_sample,
+            outputs=[("x", float, (1,))],
+            persis_in=["f"],
+            batch_size=5,
+            user={"lb": np.array([-3]), "ub": np.array([3])},
+        ),
+        alloc_specs=AllocSpecs(alloc_f=give_sim_work_first),
+    )
+    ens.run(sim_max=10)
+    assert ens.libE_specs.final_gen_send is True
+    assert ens.libE_specs.reuse_output_dir is True
+
+
+def test_h0_chaining_plain_run():
+    """H0 should be updated to H after a plain run() call."""
+    from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
+    from libensemble.ensemble import Ensemble
+    from libensemble.gen_funcs.sampling import latin_hypercube_sample
+    from libensemble.sim_funcs.simple_sim import norm_eval
+    from libensemble.specs import AllocSpecs, GenSpecs, LibeSpecs, SimSpecs
+
+    ens = Ensemble(
+        libE_specs=LibeSpecs(comms="local", nworkers=4),
+        sim_specs=SimSpecs(sim_f=norm_eval, inputs=["x"], outputs=[("f", float)]),
+        gen_specs=GenSpecs(
+            gen_f=latin_hypercube_sample,
+            outputs=[("x", float, (1,))],
+            persis_in=["f"],
+            batch_size=5,
+            user={"lb": np.array([-3]), "ub": np.array([3])},
+        ),
+        alloc_specs=AllocSpecs(alloc_f=give_sim_work_first),
+    )
+    assert ens.H0 is None, "H0 should be None before first run"
+    ens.run(sim_max=5)
+    if ens.is_manager:
+        assert ens.H0 is not None, "H0 should be set after run"
+        sim_count = int(np.sum(ens.H0["sim_ended"]))
+        assert sim_count == 5, f"Expected H0 sim_ended count 5 but got {sim_count}"
+
+
 if __name__ == "__main__":
     test_ensemble_init()
     test_ensemble_parse_args_false()
@@ -283,3 +455,10 @@ if __name__ == "__main__":
     test_ready_missing_nworkers_local()
     test_ready_field_mismatch()
     test_ready_happy_path()
+    test_run_sim_max_kwarg()
+    test_run_chaining()
+    test_run_sim_max_merge()
+    test_exit_criteria_deprecation_init()
+    test_exit_criteria_deprecation_setter()
+    test_run_auto_settings()
+    test_h0_chaining_plain_run()
