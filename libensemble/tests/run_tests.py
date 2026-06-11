@@ -303,7 +303,7 @@ def skip_config(directives, args, comm):
 
 def make_run_line(python_exec, test_script, comm, nprocs, args):
     """Build run line"""
-    cmd = python_exec + cov_opts + [test_script]
+    cmd = python_exec + ["-W", "ignore::DeprecationWarning"] + cov_opts + [test_script]
     if comm == "mpi":
         cmd = ["mpiexec", "-np", str(nprocs)] + (args.a.split() if args.a else []) + cmd
     else:
