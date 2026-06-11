@@ -30,7 +30,7 @@ from gest_api.vocs import VOCS
 
 from libensemble import Ensemble
 from libensemble.gen_classes import APOSMM
-from libensemble.specs import ExitCriteria, GenSpecs, SimSpecs
+from libensemble.specs import GenSpecs, SimSpecs
 from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
 
 
@@ -90,10 +90,8 @@ if __name__ == "__main__":
     )
 
     workflow.sim_specs = SimSpecs(simulator=six_hump_camel_func, vocs=vocs)
-    workflow.exit_criteria = ExitCriteria(sim_max=3000, wallclock_max=600)
-
     # Perform the run
-    H, _, _ = workflow.run()
+    H, _, _ = workflow.run(sim_max=3000, wallclock_max=600)
 
     if workflow.is_manager:
         print("[Manager]:", H[np.where(H["local_min"])]["x"])

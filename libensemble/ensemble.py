@@ -53,7 +53,7 @@ class Ensemble:
             from libensemble import Ensemble
             from libensemble.gen_classes.sampling import UniformSample
             from libensemble.sim_funcs.simple_sim import norm_eval
-            from libensemble.specs import ExitCriteria, GenSpecs, SimSpecs
+            from libensemble.specs import GenSpecs, SimSpecs
 
             sampling = Ensemble(parse_args=True)
 
@@ -75,10 +75,8 @@ class Ensemble:
                 batch_size=50,
             )
 
-            sampling.exit_criteria = ExitCriteria(sim_max=100)
-
             if __name__ == "__main__":
-                sampling.run()
+                sampling.run(sim_max=100)
                 sampling.save_output(__file__)
 
     Configure by:
@@ -333,6 +331,23 @@ class Ensemble:
         if isinstance(value, ExitCriteria):
             warnings.warn(EXIT_CRITERIA_DEPRECATION, LibEnsembleDeprecationWarning, stacklevel=2)
         self._exit_criteria = value or ExitCriteria()
+
+    def reset(self) -> None:
+        """Reset the ensemble state to allow a fresh, independent run.
+
+        Clears the accumulated history (``H0``) and ``persis_info`` so that
+        the next :meth:`run` call starts from a clean slate — as if no
+        previous run had occurred.
+
+        Use this between two calls to :meth:`run` when you want **independent**
+        runs rather than the default history-chaining behaviour::
+
+            ens.run(sim_max=10)   # first independent run
+            ens.reset()           # clear accumulated history
+            ens.run(sim_max=20)   # second independent run, H0 is empty again
+        """
+        self.H0 = None
+        self.persis_info = {}
 
     def _refresh_executor(self):
         Executor.executor = self.executor or Executor.executor

@@ -22,7 +22,7 @@ from libensemble.gen_funcs.sampling import latin_hypercube_sample as gen_f
 
 # Import libEnsemble items for this test
 from libensemble.sim_funcs.simple_sim import norm_eval as sim_f
-from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, SimSpecs
+from libensemble.specs import AllocSpecs, GenSpecs, SimSpecs
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
@@ -44,13 +44,11 @@ if __name__ == "__main__":
     )
     sampling.alloc_specs = AllocSpecs(alloc_f=give_sim_work_first)
 
-    sampling.exit_criteria = ExitCriteria(sim_max=100)
-
     if sampling.is_manager:
         if os.path.exists(log_file):
             os.remove(log_file)
 
-    sampling.run()
+    sampling.run(sim_max=100)
     if sampling.is_manager:
         print("len:", len(sampling.H))
         time.sleep(0.2)

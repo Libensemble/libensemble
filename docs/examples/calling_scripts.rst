@@ -47,6 +47,6 @@ paired with a gest-api ``simulator`` callable.
     :language: python
     :caption: tests/regression_tests/test_asktell_aposmm_nlopt.py
     :linenos:
-    :end-at: workflow.exit_criteria = ExitCriteria(sim_max=2000, wallclock_max=600)
+    :end-at: H, _, _ = workflow.run(sim_max=3000, wallclock_max=600)
 
 .. _regression tests: https://github.com/Libensemble/libensemble/tree/develop/libensemble/tests/regression_tests
