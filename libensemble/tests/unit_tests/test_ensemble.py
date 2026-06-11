@@ -42,13 +42,7 @@ def test_full_workflow():
     from libensemble.ensemble import Ensemble
     from libensemble.gen_funcs.sampling import latin_hypercube_sample
     from libensemble.sim_funcs.simple_sim import norm_eval
-    from libensemble.specs import (
-        AllocSpecs,
-        ExitCriteria,
-        GenSpecs,
-        LibeSpecs,
-        SimSpecs,
-    )
+    from libensemble.specs import AllocSpecs, GenSpecs, LibeSpecs, SimSpecs
 
     LS = LibeSpecs(comms="local", nworkers=4)
 
@@ -66,11 +60,10 @@ def test_full_workflow():
                 "ub": np.array([3]),
             },
         ),
-        exit_criteria=ExitCriteria(gen_max=101),
         alloc_specs=AllocSpecs(alloc_f=give_sim_work_first),
     )
 
-    ens.run()
+    ens.run(gen_max=101)
     if ens.is_manager:
         assert len(ens.H) >= 101
 
@@ -78,7 +71,7 @@ def test_full_workflow():
     ens.libE_specs.dry_run = True
     flag = 1
     try:
-        ens.run()
+        ens.run(gen_max=101)
     except SystemExit:
         flag = 0
     assert not flag, "Ensemble didn't exit after specifying dry_run"
@@ -91,7 +84,7 @@ def test_flakey_workflow():
     from libensemble.ensemble import Ensemble
     from libensemble.gen_funcs.sampling import latin_hypercube_sample
     from libensemble.sim_funcs.simple_sim import norm_eval
-    from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
+    from libensemble.specs import GenSpecs, LibeSpecs, SimSpecs
 
     LS = LibeSpecs(comms="local", nworkers=4)
 
@@ -108,10 +101,9 @@ def test_flakey_workflow():
                     "ub": np.array([3]),
                 },
             ),
-            exit_criteria=ExitCriteria(gen_max=101),
         )
         ens.sim_specs.inputs = (["x"],)  # note trailing comma
-        ens.run()
+        ens.run(gen_max=101)
     except ValidationError:
         flag = 0
 
@@ -190,13 +182,13 @@ def test_local_comms_without_nworkers():
 def test_ready_missing_sim_callable():
     """ready() should flag a missing sim callable."""
     from libensemble.ensemble import Ensemble
-    from libensemble.specs import ExitCriteria, LibeSpecs, SimSpecs
+    from libensemble.specs import LibeSpecs, SimSpecs
 
     e = Ensemble(
         libE_specs=LibeSpecs(comms="local", nworkers=4),
         sim_specs=SimSpecs(),  # no sim_f or simulator
-        exit_criteria=ExitCriteria(sim_max=10),
     )
+    e._exit_criteria.sim_max = 10  # set directly to avoid deprecation warning
     ok, issues = e.ready()
     assert not ok, "Should not be ready without a sim callable"
     assert any("sim_f" in msg for msg in issues), f"Expected sim_f mention in issues: {issues}"
@@ -206,12 +198,12 @@ def test_ready_missing_exit_criteria():
     """ready() should flag an exit_criteria with no stop condition."""
     from libensemble.ensemble import Ensemble
     from libensemble.sim_funcs.simple_sim import norm_eval
-    from libensemble.specs import ExitCriteria, LibeSpecs, SimSpecs
+    from libensemble.specs import LibeSpecs, SimSpecs
 
     e = Ensemble(
         libE_specs=LibeSpecs(comms="local", nworkers=4),
         sim_specs=SimSpecs(sim_f=norm_eval),
-        exit_criteria=ExitCriteria(),  # nothing set
+        # no exit criteria set — _exit_criteria defaults to ExitCriteria() with nothing set
     )
     ok, issues = e.ready()
     assert not ok, "Should not be ready with no exit condition"
@@ -222,14 +214,16 @@ def test_ready_missing_nworkers_local():
     """ready() should flag local comms without nworkers."""
     from libensemble.ensemble import Ensemble
     from libensemble.sim_funcs.simple_sim import norm_eval
-    from libensemble.specs import ExitCriteria, LibeSpecs, SimSpecs
+    from libensemble.specs import LibeSpecs, SimSpecs
 
     # Start valid, then bypass assignment validation to exercise ready().
     e = Ensemble(
         libE_specs=LibeSpecs(comms="local", nworkers=1),
         sim_specs=SimSpecs(sim_f=norm_eval),
-        exit_criteria=ExitCriteria(sim_max=10),
     )
+    e._exit_criteria.sim_max = 10  # set directly to avoid deprecation warning
+    # Manually force comms=local and nworkers=0 on the internal specs object
+    e._libE_specs.comms = "local"
     e._nworkers = 0
     e._libE_specs.nworkers = 0
 
@@ -242,14 +236,14 @@ def test_ready_field_mismatch():
     """ready() should flag when sim_specs.inputs requests fields not in gen_specs.outputs."""
     from libensemble.ensemble import Ensemble
     from libensemble.sim_funcs.simple_sim import norm_eval
-    from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
+    from libensemble.specs import GenSpecs, LibeSpecs, SimSpecs
 
     e = Ensemble(
         libE_specs=LibeSpecs(comms="local", nworkers=4),
         sim_specs=SimSpecs(sim_f=norm_eval, inputs=["x", "z"]),
         gen_specs=GenSpecs(outputs=[("x", float, (1,))]),  # missing "z"
-        exit_criteria=ExitCriteria(sim_max=10),
     )
+    e._exit_criteria.sim_max = 10  # set directly to avoid deprecation warning
     ok, issues = e.ready()
     assert not ok, "Should not be ready with mismatched gen/sim fields"
     assert any("z" in msg for msg in issues), f"Expected missing field 'z' in issues: {issues}"
@@ -259,14 +253,14 @@ def test_ready_happy_path():
     """ready() should return (True, []) for a fully configured ensemble."""
     from libensemble.ensemble import Ensemble
     from libensemble.sim_funcs.simple_sim import norm_eval
-    from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
+    from libensemble.specs import GenSpecs, LibeSpecs, SimSpecs
 
     e = Ensemble(
         libE_specs=LibeSpecs(comms="local", nworkers=4),
         sim_specs=SimSpecs(sim_f=norm_eval, inputs=["x"], outputs=[("f", float)]),
         gen_specs=GenSpecs(outputs=[("x", float, (1,))]),
-        exit_criteria=ExitCriteria(sim_max=10),
     )
+    e._exit_criteria.sim_max = 10  # set directly to avoid deprecation warning
     ok, issues = e.ready()
     assert ok, f"Should be ready but got issues: {issues}"
     assert issues == [], f"Issues should be empty but got: {issues}"
@@ -359,9 +353,6 @@ def test_gen_specs_vocs_integer_domain_yields_float_array():
     assert gs.user["lb"].dtype == float, "lb should be float dtype even for integer-domain variables"
     assert gs.user["ub"].dtype == float, "ub should be float dtype even for integer-domain variables"
 
-# --- run() kwargs / substep tests ---
-
-
 def test_run_sim_max_kwarg():
     """run(sim_max=10) should evaluate exactly 10 simulations."""
     from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
@@ -423,7 +414,7 @@ def test_run_sim_max_merge():
     from libensemble.ensemble import Ensemble
     from libensemble.gen_funcs.sampling import latin_hypercube_sample
     from libensemble.sim_funcs.simple_sim import norm_eval
-    from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
+    from libensemble.specs import AllocSpecs, GenSpecs, LibeSpecs, SimSpecs
 
     # Must have full sim/gen specs so run() actually works
     ens = Ensemble(
@@ -436,9 +427,9 @@ def test_run_sim_max_merge():
             batch_size=5,
             user={"lb": np.array([-3]), "ub": np.array([3])},
         ),
-        exit_criteria=ExitCriteria(sim_max=100),
         alloc_specs=AllocSpecs(alloc_f=give_sim_work_first),
     )
+    ens._exit_criteria.sim_max = 100  # set directly to avoid deprecation warning
     ens.run(sim_max=10)
     # stored exit_criteria should still have sim_max=100
     assert ens.exit_criteria.sim_max == 100, f"Expected sim_max=100 but got {ens.exit_criteria.sim_max}"
