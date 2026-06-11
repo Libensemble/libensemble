@@ -22,7 +22,7 @@ from libensemble.gen_funcs.sampling import latin_hypercube_sample as gen_f
 
 # Import libEnsemble items for this test
 from libensemble.sim_funcs.simple_sim import norm_eval as sim_f
-from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
+from libensemble.specs import AllocSpecs, GenSpecs, LibeSpecs, SimSpecs
 from libensemble.tools import check_npy_file_exists
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
@@ -46,17 +46,14 @@ if __name__ == "__main__":
         },
     )
 
-    exit_criteria = ExitCriteria(gen_max=501)
-
     sampling = Ensemble(
         libE_specs=libE_specs,
         sim_specs=sim_specs,
         gen_specs=gen_specs,
-        exit_criteria=exit_criteria,
     )
 
     sampling.alloc_specs = AllocSpecs(alloc_f=give_sim_work_first)
-    H, persis_info, flag = sampling.run()
+    H, persis_info, flag = sampling.run(gen_max=501)
 
     if sampling.is_manager:
         assert len(H) >= 501

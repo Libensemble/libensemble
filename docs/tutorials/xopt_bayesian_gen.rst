@@ -25,7 +25,7 @@ Imports
 
     from libensemble import Ensemble
     from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
-    from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
+    from libensemble.specs import AllocSpecs, GenSpecs, LibeSpecs, SimSpecs
 
 Simulator Function
 ------------------
@@ -93,17 +93,15 @@ The simulator is a simple callable function that takes a dictionary of inputs an
     )
 
     alloc_specs = AllocSpecs(alloc_f=alloc_f)
-    exit_criteria = ExitCriteria(sim_max=12)
 
     workflow = Ensemble(
         libE_specs=libE_specs,
         sim_specs=sim_specs,
         alloc_specs=alloc_specs,
         gen_specs=gen_specs,
-        exit_criteria=exit_criteria,
     )
 
-    H, _, _ = workflow.run()
+    H, _, _ = workflow.run(sim_max=12)
 
     if workflow.is_manager:
         print(f"Completed {len(H)} simulations")
@@ -158,10 +156,9 @@ Reset generator and change to libEnsemble-style simulator:
         sim_specs=sim_specs,
         alloc_specs=alloc_specs,
         gen_specs=gen_specs,
-        exit_criteria=exit_criteria,
     )
 
-    H, _, _ = workflow.run()
+    H, _, _ = workflow.run(sim_max=12)
 
     if workflow.is_manager:
         print(f"Completed {len(H)} simulations")

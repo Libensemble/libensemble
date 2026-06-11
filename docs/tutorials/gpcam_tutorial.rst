@@ -210,7 +210,7 @@ If you wish to make your own functions based on the above, those can be imported
     from pprint import pprint
 
     from libensemble import Ensemble
-    from libensemble.specs import LibeSpecs, GenSpecs, SimSpecs, AllocSpecs, ExitCriteria
+    from libensemble.specs import LibeSpecs, GenSpecs, SimSpecs, AllocSpecs
 
     # If importing from libensemble
     from libensemble.gen_funcs.persistent_gpCAM import persistent_gpCAM
@@ -256,15 +256,12 @@ If you wish to make your own functions based on the above, those can be imported
         user={"async_return": False},  # False = batch returns
     )
 
-    exit_criteria = ExitCriteria(sim_max=num_batches * batch_size)
-
-    # Initialize and run the ensemble.
+    # Initialize the ensemble.
     ensemble = Ensemble(
         libE_specs=libE_specs,
         sim_specs=sim_specs,
         gen_specs=gen_specs,
         alloc_specs=alloc_specs,
-        exit_criteria=exit_criteria,
     )
 
 At the end of our calling script we run the ensemble.
@@ -275,7 +272,7 @@ At the end of our calling script we run the ensemble.
     cleanup()
     ensemble.persis_info = {}
 
-    H, persis_info, flag = ensemble.run()  # Start the ensemble. Blocks until completion.
+    H, persis_info, flag = ensemble.run(sim_max=num_batches * batch_size)  # Start the ensemble. Blocks until completion.
     ensemble.save_output("H_array", append_attrs=False)  # Save H (history of all evaluated points) to file
     pprint(H[["sim_id", "x", "f"]][:16])  # See first 16 results
 
@@ -293,7 +290,7 @@ To see how the accuracy of the surrogate model improves, we can use previously e
     cleanup()
     ensemble.persis_info = {}
 
-    H, persis_info, flag = ensemble.run()
+    H, persis_info, flag = ensemble.run(sim_max=num_batches * batch_size)
     print(persis_info)
 
 Viewing model progression

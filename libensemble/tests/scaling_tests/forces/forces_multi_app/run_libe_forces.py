@@ -33,7 +33,7 @@ from libensemble import Ensemble
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.executors import MPIExecutor
 from libensemble.gen_funcs.persistent_sampling_var_resources import uniform_sample_diff_simulations as gen_f
-from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
+from libensemble.specs import AllocSpecs, GenSpecs, LibeSpecs, SimSpecs
 
 if __name__ == "__main__":
     # Initialize MPI Executor instance
@@ -95,11 +95,9 @@ if __name__ == "__main__":
         },
     )
 
-    # Instruct libEnsemble to exit after this many simulations.
-    ensemble.exit_criteria = ExitCriteria(sim_max=nsim_workers * 2)
-
-    # Run ensemble
-    ensemble.run()
+    # Run ensemble; exit after this many simulations
+    sim_max = nsim_workers * 2
+    ensemble.run(sim_max=sim_max)
 
     if ensemble.is_manager:
         # Note, this will change if changing sim_max, nworkers, lb, ub, etc.
@@ -107,7 +105,7 @@ if __name__ == "__main__":
         print(f"Final energy checksum: {chksum}")
 
         exp_chksums = {16: -21935405.696289998, 32: -26563930.6356}
-        exp_chksum = exp_chksums.get(ensemble.exit_criteria.sim_max)
+        exp_chksum = exp_chksums.get(sim_max)
 
         if exp_chksum is not None:
             assert np.isclose(chksum, exp_chksum), f"energy check sum is {chksum}"
