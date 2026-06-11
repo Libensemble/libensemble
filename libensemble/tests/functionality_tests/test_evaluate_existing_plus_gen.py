@@ -53,13 +53,14 @@ if __name__ == "__main__":
         batch_size=50,
         vocs=vocs,
     )
-    sampling.H0 = create_H0(lb, ub, 50)
+    H0 = create_H0(lb, ub, 50)
+    sampling.H0 = H0
     sampling.alloc_specs = AllocSpecs(alloc_f=give_sim_work_first)
     sampling.run(sim_max=100)
 
     if sampling.is_manager:
-        assert len(sampling.H) == 2 * len(sampling.H0)
-        assert np.array_equal(sampling.H0["x"][:50], sampling.H["x"][:50])
+        assert len(sampling.H) == 2 * len(H0)
+        assert np.array_equal(H0["x"][:50], sampling.H["x"][:50])
         assert np.all(sampling.H["sim_ended"])
         assert np.all(sampling.H["gen_worker"] == 0)
         print("\nlibEnsemble correctly appended to the initial sample via an additional gen.")
