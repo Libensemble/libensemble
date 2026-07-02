@@ -1,6 +1,6 @@
 .. _executor_index:
 
-**Overview** \|\| `Base Executor <ex_base.html>`__ \|\| `MPI Executor <ex_mpi.html>`__
+**Overview** || `Base Executor <ex_base.html>`__ || `MPI Executor <ex_mpi.html>`__ || `Globus Compute Executor <ex_globus_compute.html>`__
 
 Executors
 =========
@@ -14,8 +14,12 @@ portable interface for running and managing user applications.
     ex_overview
     ex_base
     ex_mpi
+    ex_globus_compute
 
 The **Executor** provides a portable interface for running applications on any system and
-any number of compute resources.
+any number of compute resources. The :doc:`MPI Executor<ex_mpi>` launches MPI
+applications on local resources; the
+:doc:`Globus Compute Executor<ex_globus_compute>` submits Python callables to
+remote Globus Compute endpoints.
 
 Please select from the sections above or the sidebar navigation to read more.

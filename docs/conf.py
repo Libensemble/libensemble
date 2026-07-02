@@ -31,7 +31,7 @@ class Mock(MagicMock):
         return MagicMock()
 
 
-autodoc_mock_imports = ["ax", "gpcam", "IPython", "matplotlib", "pandas", "scipy", "surmise"]
+autodoc_mock_imports = ["ax", "globus_compute_sdk", "gpcam", "IPython", "matplotlib", "pandas", "scipy", "surmise"]
 
 MOCK_MODULES = [
     "argparse",
@@ -135,7 +135,7 @@ bibtex_bibfiles = ["references.bib"]
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
 #
-# source_suffix = ['.rst', '.md']
+# source_suffix = ['.md', '.rst']
 source_suffix = ".rst"
 
 # The master toctree document.
@@ -205,7 +205,7 @@ html_theme = "furo"
 html_favicon = "./images/libE_logo_circle.png"
 html_title = "libEnsemble"
 
-# Theme options are theme-specific and customize the look and feel of a theme
+# Theme options are theme-specific and customize the look and feel of the theme
 # further.  For a list of options available for each theme, see the
 # documentation.
 #
