@@ -73,7 +73,7 @@ if __name__ == "__main__":
             "xtol_abs": 1e-6,
             "ftol_abs": 1e-6,
             "dist_to_bound_multiple": 0.5,
-            "max_active_runs": 6,
+            "max_active_runs": nworkers - 1,
             "lb": np.array([-3, -2]),
             "ub": np.array([3, 2]),
         },
