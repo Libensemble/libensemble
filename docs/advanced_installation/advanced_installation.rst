@@ -1,7 +1,7 @@
 Advanced Installation
 =====================
 
-`pip <advanced_installation_pip.html>`__ \|\| `uv <advanced_installation_uv.html>`__ \|\| `pixi <advanced_installation_pixi.html>`__ \|\| `conda <advanced_installation_conda.html>`__ \|\| `Spack <advanced_installation_spack.html>`__
+`pip <advanced_installation_pip.html>`__ || `uv <advanced_installation_uv.html>`__ || `pixi <advanced_installation_pixi.html>`__ || `conda <advanced_installation_conda.html>`__ || `Spack <advanced_installation_spack.html>`__
 
 libEnsemble can be installed from ``pip``, ``uv``, ``pixi``, ``Conda``, or ``Spack``.
 
@@ -31,7 +31,18 @@ Further recommendations for selected HPC systems are given in the
 Globus Compute
 --------------
 
-`Globus Compute`_ may be installed optionally to submit simulation function instances to remote Globus Compute endpoints.
+`Globus Compute`_ may be installed optionally to submit simulation function
+instances to remote Globus Compute endpoints::
+
+    pip install globus-compute-sdk
+
+This is an optional dependency; libEnsemble operates normally without it.
+If Globus Compute is not installed and a ``globus_compute_endpoint`` is
+configured, libEnsemble will warn and fall back to local execution.
+
+See :ref:`Globus Compute - Remote User Functions<globus_compute_ref>` for
+usage, and the :doc:`GlobusComputeExecutor API reference</executor/ex_globus_compute>`
+for the full executor interface.
 
 .. _Globus Compute: https://www.globus.org/compute
 .. _Python: http://www.python.org
