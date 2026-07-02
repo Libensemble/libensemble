@@ -17,8 +17,6 @@ logger = logging.getLogger(__name__)
 class Runner:
     @classmethod
     def from_specs(cls, specs):
-        if len(specs.get("globus_compute_endpoint", "")) > 0:
-            return GlobusComputeRunner(specs)
         if specs.get("threaded"):
             return ThreadRunner(specs)
         if (generator := specs.get("generator")) is not None:
@@ -65,36 +63,6 @@ class Runner:
                 "Perhaps you meant to set `SimSpecs.simulator` instead of `SimSpecs.sim_f`?"
             )
         return out
-
-
-class GlobusComputeRunner(Runner):
-    def __init__(self, specs):
-        super().__init__(specs)
-        self.globus_compute_executor = self._get_globus_compute_executor()(endpoint_id=specs["globus_compute_endpoint"])
-        self.globus_compute_fid = self.globus_compute_executor.register_function(self.f)
-
-    def _get_globus_compute_executor(self):
-        try:
-            from globus_compute_sdk import Executor
-        except ModuleNotFoundError:
-            logger.warning("Globus Compute use detected but Globus Compute not importable. Is it installed?")
-            logger.warning("Running function evaluations normally on local resources.")
-            return None
-        else:
-            return Executor
-
-    def _result(self, calc_in: npt.NDArray, persis_info: dict, libE_info: dict) -> (npt.NDArray, dict, int | None):
-        from libensemble.worker import Worker
-
-        libE_info["comm"] = None  # 'comm' object not pickle-able
-        Worker._set_executor(0, None)  # ditto for executor
-
-        args = self._truncate_args(calc_in, persis_info, libE_info)
-        task_fut = self.globus_compute_executor.submit_to_registered_function(self.globus_compute_fid, args)
-        return task_fut.result()
-
-    def shutdown(self) -> None:
-        self.globus_compute_executor.shutdown()
 
 
 class ThreadRunner(Runner):
