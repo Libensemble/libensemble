@@ -29,13 +29,13 @@ logger = logging.getLogger(__name__)
 # logger.setLevel(logging.DEBUG)
 
 
-def get_MPI_variant() -> str:
+def get_MPI_variant() -> str | None:
     """Returns MPI base implementation
 
     Returns
     -------
-    mpi_variant: str
-        MPI variant 'aprun' or 'jsrun' or 'msmpi' or 'mpich' or 'openmpi' or 'srun'
+    mpi_variant: str | None
+        MPI variant 'aprun' or 'jsrun' or 'msmpi' or 'mpich' or 'openmpi' or 'srun', or None if not found
 
     """
 
@@ -85,7 +85,7 @@ def get_MPI_variant() -> str:
     return None
 
 
-def get_MPI_runner(mpi_runner=None) -> str:
+def get_MPI_runner(mpi_runner: str | None = None) -> str | None:
     """Return whether ``mpirun`` is openmpi or mpich"""
     var = mpi_runner or get_MPI_variant()
     if var in ["mpich", "openmpi"]:
@@ -102,29 +102,31 @@ def task_partition(
     """
 
     # Convert to int if string is provided
-    num_procs = int(num_procs) if num_procs else None
-    num_nodes = int(num_nodes) if num_nodes else None
-    procs_per_node = int(procs_per_node) if procs_per_node else None
+    num_procs_int: int | None = int(num_procs) if num_procs else None
+    num_nodes_int: int | None = int(num_nodes) if num_nodes else None
+    procs_per_node_int: int | None = int(procs_per_node) if procs_per_node else None
 
     # If machinefile is provided - ignore everything else
     if machinefile:
-        if num_procs or num_nodes or procs_per_node:
+        if num_procs_int or num_nodes_int or procs_per_node_int:
             logger.warning("Machinefile provided - overriding " "procs/nodes/procs_per_node")
         return None, None, None
 
-    if not num_procs:
-        rassert(num_nodes and procs_per_node, "Need num_procs, num_nodes/procs_per_node, or machinefile")
-        num_procs = num_nodes * procs_per_node
+    if not num_procs_int:
+        rassert(num_nodes_int and procs_per_node_int, "Need num_procs, num_nodes/procs_per_node, or machinefile")
+        assert num_nodes_int is not None and procs_per_node_int is not None  # for mypy
+        num_procs_int = num_nodes_int * procs_per_node_int
 
-    elif not num_nodes:
-        procs_per_node = procs_per_node or num_procs
-        num_nodes = num_procs // procs_per_node
+    elif not num_nodes_int:
+        procs_per_node_int = procs_per_node_int or num_procs_int
+        num_nodes_int = num_procs_int // procs_per_node_int
 
-    elif not procs_per_node:
-        procs_per_node = num_procs // num_nodes
+    elif not procs_per_node_int:
+        procs_per_node_int = num_procs_int // num_nodes_int
 
-    rassert(num_procs == num_nodes * procs_per_node, "num_procs does not equal num_nodes*procs_per_node")
-    return num_procs, num_nodes, procs_per_node
+    assert num_nodes_int is not None and procs_per_node_int is not None  # for mypy
+    rassert(num_procs_int == num_nodes_int * procs_per_node_int, "num_procs does not equal num_nodes*procs_per_node")
+    return num_procs_int, num_nodes_int, procs_per_node_int
 
 
 def _max_rsets_per_node(worker_resources: WorkerResources) -> int:
@@ -137,9 +139,9 @@ def _max_rsets_per_node(worker_resources: WorkerResources) -> int:
 
 def get_resources(
     resources: Resources,
-    num_procs: int = None,
-    num_nodes: int = None,
-    procs_per_node: int = None,
+    num_procs: int | None = None,
+    num_nodes: int | None = None,
+    procs_per_node: int | None = None,
     hyperthreads: bool = False,
 ) -> tuple[int, int, int]:
     """Reconciles user-supplied options with available worker
@@ -153,6 +155,7 @@ def get_resources(
     raised if these are infeasible.
     """
     wresources = resources.worker_resources
+    assert wresources is not None  # for mypy
     gresources = resources.glob_resources
     node_list = wresources.local_nodelist
     rassert(node_list, "Node list is empty - aborting")
@@ -190,7 +193,7 @@ def get_resources(
                 f"Nodes: {num_nodes}  procs_per_node {procs_per_node}"
             )
     elif not num_nodes and not procs_per_node:
-        if num_procs <= cores_avail_per_node_per_worker:
+        if num_procs is not None and num_procs <= cores_avail_per_node_per_worker:
             num_nodes = 1
         else:
             num_nodes = local_node_count
@@ -198,49 +201,54 @@ def get_resources(
         num_nodes = local_node_count
 
     # Checks config is consistent and sufficient to express
-    num_procs, num_nodes, procs_per_node = task_partition(num_procs, num_nodes, procs_per_node)
+    result = task_partition(num_procs, num_nodes, procs_per_node)
+    if result == (None, None, None):
+        raise MPIResourcesException("task_partition returned all None unexpectedly")
+    num_procs_out, num_nodes_out, procs_per_node_out = result
+    # Type narrowing for mypy
+    assert num_procs_out is not None and num_nodes_out is not None and procs_per_node_out is not None
 
     rassert(
-        num_nodes <= local_node_count,
-        "Not enough nodes to honor arguments. " f"Requested {num_nodes}. Only {local_node_count} available",
+        num_nodes_out <= local_node_count,
+        "Not enough nodes to honor arguments. " f"Requested {num_nodes_out}. Only {local_node_count} available",
     )
 
     if gresources.enforce_worker_core_bounds:
         rassert(
-            procs_per_node <= cores_avail_per_node,
+            procs_per_node_out <= cores_avail_per_node,
             "Not enough processors on a node to honor arguments. "
-            f"Requested {procs_per_node}. Only {cores_avail_per_node} available",
+            f"Requested {procs_per_node_out}. Only {cores_avail_per_node} available",
         )
 
         rassert(
-            procs_per_node <= cores_avail_per_node_per_worker,
+            procs_per_node_out <= cores_avail_per_node_per_worker,
             "Not enough processors per worker to honor arguments. "
-            f"Requested {procs_per_node}. Only {cores_avail_per_node_per_worker} available",
+            f"Requested {procs_per_node_out}. Only {cores_avail_per_node_per_worker} available",
         )
 
         rassert(
-            num_procs <= (cores_avail_per_node * local_node_count),
+            num_procs_out <= (cores_avail_per_node * local_node_count),
             "Not enough procs to honor arguments. "
-            f"Requested {num_procs}. Only {cores_avail_per_node * local_node_count} available",
+            f"Requested {num_procs_out}. Only {cores_avail_per_node * local_node_count} available",
         )
 
-    if num_nodes < local_node_count:
+    if num_nodes_out < local_node_count:
         logger.debug(
             "User constraints mean fewer nodes being used "
-            f"than available. {num_nodes} nodes used. {local_node_count} nodes available"
+            f"than available. {num_nodes_out} nodes used. {local_node_count} nodes available"
         )
 
-    return num_procs, num_nodes, procs_per_node
+    return num_procs_out, num_nodes_out, procs_per_node_out
 
 
 def create_machinefile(
     resources: Resources,
     machinefile: str | None = None,
-    num_procs: int = None,
+    num_procs: int | None = None,
     num_nodes: int | None = None,
     procs_per_node: int | None = None,
     hyperthreads: bool = False,
-) -> tuple[bool, None, int, int]:
+) -> tuple[bool, int | None, int | None, int | None]:
     """Creates a machinefile based on user-supplied config options,
     completed by detected machine resources
     """
@@ -252,12 +260,13 @@ def create_machinefile(
         except Exception as e:
             logger.warning(f"Could not remove existing machinefile: {e}")
 
+    assert resources.worker_resources is not None  # for mypy
     node_list = resources.worker_resources.local_nodelist
     logger.debug(f"Creating machinefile with {num_nodes} nodes and {procs_per_node} ranks per node")
 
     with open(machinefile, "w") as f:
         for node in node_list[:num_nodes]:
-            f.write((node + "\n") * procs_per_node)
+            f.write((node + "\n") * (procs_per_node or 1))
 
     built_mfile = os.path.isfile(machinefile) and os.path.getsize(machinefile) > 0
     return built_mfile, num_procs, num_nodes, procs_per_node
@@ -268,6 +277,7 @@ def get_hostlist(resources: Resources, num_nodes=None):
 
     completed by detected machine resources
     """
+    assert resources.worker_resources is not None  # for mypy
     node_list = resources.worker_resources.local_nodelist
     hostlist_str = ",".join([str(x) for x in node_list[:num_nodes]])
     return hostlist_str
