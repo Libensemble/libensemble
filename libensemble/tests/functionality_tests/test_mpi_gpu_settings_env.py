@@ -26,7 +26,6 @@ import sys
 
 import numpy as np
 
-from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.executors.mpi_executor import MPIExecutor
 from libensemble.gen_funcs.persistent_sampling_var_resources import uniform_sample as gen_f
 
@@ -34,7 +33,7 @@ from libensemble.gen_funcs.persistent_sampling_var_resources import uniform_samp
 from libensemble.libE import libE
 from libensemble.sim_funcs import six_hump_camel
 from libensemble.sim_funcs.var_resources import gpu_variable_resources_subenv as sim_f
-from libensemble.tools import add_unique_random_streams, parse_args
+from libensemble.tools import parse_args
 
 # from libensemble import logger
 # logger.set_level("DEBUG")  # For testing the test
@@ -43,7 +42,7 @@ from libensemble.tools import add_unique_random_streams, parse_args
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
     nworkers, is_manager, libE_specs, _ = parse_args()
-    libE_specs["num_resource_sets"] = nworkers - 1  # Persistent gen does not need resources
+    libE_specs["num_resource_sets"] = nworkers  # Persistent gen does not need resources
     libE_specs["use_workflow_dir"] = True  # Only a place for Open MPI machinefiles
 
     # Optional for organization of output scripts
@@ -69,23 +68,16 @@ if __name__ == "__main__":
         "gen_f": gen_f,
         "persis_in": ["f", "x", "sim_id"],
         "out": [("priority", float), ("resource_sets", int), ("x", float, n)],
+        "initial_batch_size": nworkers - 1,
+        "batch_evaluate_same_priority": False,
+        "async_return": False,
         "user": {
-            "initial_batch_size": nworkers - 1,
-            "max_resource_sets": nworkers - 1,  # Any sim created can req. 1 worker up to all.
+            "max_resource_sets": nworkers,  # Any sim created can req. 1 worker up to all.
             "lb": np.array([-3, -2]),
             "ub": np.array([3, 2]),
         },
     }
 
-    alloc_specs = {
-        "alloc_f": alloc_f,
-        "user": {
-            "give_all_with_same_priority": False,
-            "async_return": False,  # False batch returns
-        },
-    }
-
-    persis_info = add_unique_random_streams({}, nworkers + 1)
     exit_criteria = {"sim_max": 10}
 
     # Ensure LIBE_PLATFORM environment variable is not set.
@@ -98,4 +90,4 @@ if __name__ == "__main__":
     exctr.register_app(full_path=six_hump_camel_app, app_name="six_hump_camel")
 
     # Perform the run
-    H, _, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs, alloc_specs=alloc_specs)
+    H, _, flag = libE(sim_specs, gen_specs, exit_criteria, libE_specs=libE_specs)

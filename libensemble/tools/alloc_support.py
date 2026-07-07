@@ -4,7 +4,11 @@ import numpy as np
 
 from libensemble.message_numbers import EVAL_GEN_TAG, EVAL_SIM_TAG
 from libensemble.resources.resources import Resources
-from libensemble.resources.scheduler import InsufficientFreeResources, InsufficientResourcesError, ResourceScheduler
+from libensemble.resources.scheduler import (  # noqa
+    InsufficientFreeResources,
+    InsufficientResourcesError,
+    ResourceScheduler,
+)
 from libensemble.utils.misc import extract_H_ranges
 
 logger = logging.getLogger(__name__)
@@ -76,28 +80,24 @@ class AllocSupport:
         """
         rset_team = None
         if self.resources is not None:
-            # Try schedule to non-gpu rsets first
-            if use_gpus is None:
+            # When GPUs exist and use_gpus not explicitly set, try GPU rsets first
+            if use_gpus is None and self.sched.resources.total_num_gpu_rsets > 0:
                 try:
-                    rset_team = self.sched.assign_resources(rsets_req, use_gpus=False, user_params=user_params)
+                    rset_team = self.sched.assign_resources(rsets_req, use_gpus=True, user_params=user_params)
                     return rset_team
-                except (InsufficientFreeResources, InsufficientResourcesError):
-                    pass
+                except InsufficientResourcesError:
+                    pass  # More rsets requested than GPU rsets exist - fall back to any
 
             rset_team = self.sched.assign_resources(rsets_req, use_gpus, user_params)
         return rset_team
 
-    def avail_worker_ids(self, persistent=None, active_recv=False, zero_resource_workers=None, gen_workers=None):
+    def avail_worker_ids(self, persistent=None, active_recv=False, gen_workers=None):
         """Returns available workers as a list of IDs, filtered by the given options.
 
         :param persistent: (Optional) Int. Only return workers with given ``persis_state`` (1=sim, 2=gen).
         :param active_recv: (Optional) Boolean. Only return workers with given active_recv state.
-        :param zero_resource_workers: (Optional) Boolean. Only return workers that require no resources.
         :param gen_workers: (Optional) Boolean. If True, return gen-only workers. If False, return all other workers.
         :returns: List of worker IDs.
-
-        If there are no zero resource workers defined, then the ``zero_resource_workers`` argument will
-        be ignored.
         """
 
         # For abbrev.
@@ -105,12 +105,6 @@ class AllocSupport:
             if persistent is None:
                 return True
             return wrk["persis_state"] == persistent
-
-        def fltr_zrw():
-            # If none exist or you did not ask for zrw then return True
-            if no_zrw or zero_resource_workers is None:
-                return True
-            return wrk["zero_resource_worker"] == zero_resource_workers
 
         def fltr_recving():
             if active_recv:
@@ -126,13 +120,12 @@ class AllocSupport:
         if active_recv and not persistent:
             raise AllocException("Cannot ask for non-persistent active receive workers")
 
-        # If there are no zero resource workers - then ignore zrw (i.e., use only if they exist)
-        no_zrw = not any(self.W["zero_resource_worker"])
+        # If there are no gen_workers - then ignore gen_workers
         no_gen_workers = not any(self.W["gen_worker"])
 
         wrks = []
         for wrk in self.W:
-            if fltr_recving() and fltr_persis() and fltr_zrw() and fltr_gen_workers():
+            if fltr_recving() and fltr_persis() and fltr_gen_workers():
                 wrks.append(wrk["worker_id"])
         return wrks
 
@@ -153,18 +146,13 @@ class AllocSupport:
         use_gpus = None
         if "resource_sets" in H.dtype.names:
             num_rsets_req = np.max(H[H_rows]["resource_sets"])  # sim rsets
-        elif "num_procs" in H.dtype.names:
+        elif "num_procs" in H.dtype.names and self.resources:
             procs_per_rset = self.resources.resource_manager.procs_per_rset
             num_rsets_req = AllocSupport._convert_rows_to_rsets(
                 libE_info, user_params, H, H_rows, procs_per_rset, "num_procs"
             )
         else:
             num_rsets_req = 1
-        if "use_gpus" in H.dtype.names:
-            if np.any(H[H_rows]["use_gpus"]):
-                use_gpus = True
-            else:
-                use_gpus = False
         if "num_gpus" in H.dtype.names:
             gpus_per_rset = self.resources.resource_manager.gpus_per_rset
             num_rsets_req_for_gpus = AllocSupport._convert_rows_to_rsets(
@@ -183,13 +171,13 @@ class AllocSupport:
         use_gpus = self.persis_info.get("gen_use_gpus", None)  # can be overwritten below
         if not num_rsets_req:
             gen_nprocs = self.persis_info.get("gen_num_procs", self.def_gen_num_procs)
-            if gen_nprocs:
+            if gen_nprocs and self.resources:
                 procs_per_rset = self.resources.resource_manager.procs_per_rset
                 num_rsets_req = AllocSupport._convert_to_rsets(
                     libE_info, user_params, procs_per_rset, gen_nprocs, "num_procs"
                 )
             gen_ngpus = self.persis_info.get("gen_num_gpus", self.def_gen_num_gpus)
-            if gen_ngpus:
+            if gen_ngpus and self.resources:
                 gpus_per_rset = self.resources.resource_manager.gpus_per_rset
                 num_rsets_req_for_gpus = AllocSupport._convert_to_rsets(
                     libE_info, user_params, gpus_per_rset, gen_ngpus, "num_gpus"
@@ -280,6 +268,7 @@ class AllocSupport:
 
         H_fields = AllocSupport._check_H_fields(H_fields)
         libE_info["H_rows"] = AllocSupport._check_H_rows(H_rows)
+        libE_info["batch_size"] = len(self.avail_worker_ids(gen_workers=False))
 
         work = {
             "H_fields": H_fields,

@@ -30,7 +30,6 @@ called with such dictionaries to initiate libEnsemble. A simple calling script
     from libensemble.libE import libE
     from generator import gen_random_sample
     from simulator import sim_find_sine
-    from libensemble.tools import add_unique_random_streams
 
     nworkers, is_manager, libE_specs, _ = parse_args()
 
@@ -44,11 +43,9 @@ called with such dictionaries to initiate libEnsemble. A simple calling script
 
     sim_specs = {"sim_f": sim_find_sine, "in": ["x"], "out": [("y", float)]}
 
-    persis_info = add_unique_random_streams({}, nworkers + 1)
-
     exit_criteria = {"sim_max": 80}
 
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, libE_specs=libE_specs)
 
 This will initiate libEnsemble with a Manager and ``nworkers`` workers (parsed from
 the command line), and runs on laptops or supercomputers. If an exception is
@@ -69,7 +66,6 @@ all platforms and comms-types may resemble:
     from libensemble.libE import libE
     from generator import gen_random_sample
     from simulator import sim_find_sine
-    from libensemble.tools import add_unique_random_streams
 
     if __name__ == "__main__":
         nworkers, is_manager, libE_specs, _ = parse_args()
@@ -92,11 +88,9 @@ all platforms and comms-types may resemble:
             "out": [("y", float)],
         }
 
-        persis_info = add_unique_random_streams({}, nworkers + 1)
-
         exit_criteria = {"sim_max": 80}
 
-        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
+        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, libE_specs=libE_specs)
 
 Alternatively, you may set the multiprocessing start method to ``"fork"`` via the following:
 
@@ -121,8 +115,14 @@ import socket
 import sys
 import traceback
 from pathlib import Path
+from typing import TYPE_CHECKING, cast
 
 import numpy as np
+
+if TYPE_CHECKING:
+    from libensemble.logger import LibensembleLogger
+
+from pydantic import validate_call as libE_wrapper
 
 from libensemble.comms.comms import QCommProcess, QCommThread, Timeout
 from libensemble.comms.logs import manager_logging_config
@@ -138,12 +138,11 @@ from libensemble.tools.alloc_support import AllocSupport
 from libensemble.tools.tools import _USER_SIM_ID_WARNING
 from libensemble.utils import launcher
 from libensemble.utils.misc import specs_dump
-from libensemble.utils.pydantic_bindings import libE_wrapper
 from libensemble.utils.timer import Timer
 from libensemble.version import __version__
 from libensemble.worker import worker_main
 
-logger = logging.getLogger(__name__)
+logger = cast("LibensembleLogger", logging.getLogger(__name__))
 # To change logging level for just this module
 # logger.setLevel(logging.DEBUG)
 
@@ -155,9 +154,9 @@ def libE(
     exit_criteria: ExitCriteria,
     persis_info: dict = {},
     alloc_specs: AllocSpecs = AllocSpecs(),
-    libE_specs: LibeSpecs = {},
+    libE_specs: LibeSpecs | dict = {},
     H0=None,
-) -> (np.ndarray, dict, int):
+) -> tuple[np.ndarray, dict, int]:
     """
     Parameters
     ----------
@@ -190,7 +189,7 @@ def libE(
     libE_specs: :obj:`dict` or :class:`LibeSpecs<libensemble.specs.LibeSpecs>`, Optional
 
         Specifications for libEnsemble
-        :doc:`(example)<data_structures/libE_specs>`
+        :doc:`(example)<data_structures/libE_specs/libE_specs>`
 
     H0: `NumPy structured array <https://docs.scipy.org/doc/numpy/user/basics.rec.html>`_, Optional
 
@@ -242,11 +241,23 @@ def libE(
     ]
     exit_criteria = specs_dump(ensemble.exit_criteria, by_alias=True, exclude_none=True)
 
+    # Restore objects that don't survive serialization via model_dump
+    if hasattr(ensemble.sim_specs, "simulator") and ensemble.sim_specs.simulator is not None:
+        sim_specs["simulator"] = ensemble.sim_specs.simulator
+    if hasattr(ensemble.sim_specs, "vocs") and ensemble.sim_specs.vocs is not None:
+        sim_specs["vocs"] = ensemble.sim_specs.vocs
+
+    if ensemble.gen_specs is not None:
+        if hasattr(ensemble.gen_specs, "generator") and ensemble.gen_specs.generator is not None:
+            gen_specs["generator"] = ensemble.gen_specs.generator
+        if hasattr(ensemble.gen_specs, "vocs") and ensemble.gen_specs.vocs is not None:
+            gen_specs["vocs"] = ensemble.gen_specs.vocs
+
     # Extract platform info from settings or environment
     platform_info = get_platform(libE_specs)
 
     if libE_specs["dry_run"]:
-        logger.manager_warning("Dry run. All libE() inputs validated. Exiting.")
+        logger.manager_warning("Dry run. All libE() inputs validated. Exiting.")  # type: ignore[attr-defined]
         sys.exit()
 
     libE_funcs = {"mpi": libE_mpi, "tcp": libE_tcp, "local": libE_local, "threads": libE_local}
@@ -280,8 +291,8 @@ def manager(
     logger.info(f"libE version v{__version__}")
 
     if "out" in gen_specs and ("sim_id", int) in gen_specs["out"]:
-        if "libensemble.gen_funcs" not in gen_specs["gen_f"].__module__:
-            logger.manager_warning(_USER_SIM_ID_WARNING)
+        if hasattr(gen_specs["gen_f"], "__module__") and "libensemble.gen_funcs" not in gen_specs["gen_f"].__module__:
+            logger.manager_warning(_USER_SIM_ID_WARNING)  # type: ignore[attr-defined]
 
     try:
         try:
@@ -458,6 +469,7 @@ def start_proc_team(nworkers, sim_specs, gen_specs, libE_specs, log_comm=True):
 
     for wcomm in wcomms:
         wcomm.run()
+
     return wcomms
 
 
@@ -489,6 +501,7 @@ def libE_local(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, li
     wcomms = start_proc_team(libE_specs["nworkers"], sim_specs, gen_specs, libE_specs)
 
     # Set manager resources after the forkpoint.
+    # if libE_specs["gen_on_worker"] == True, -n reflects the exact number of workers
     if resources is not None:
         resources.set_resource_manager(libE_specs["nworkers"])
 

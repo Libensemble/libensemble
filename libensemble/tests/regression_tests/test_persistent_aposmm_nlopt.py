@@ -14,6 +14,7 @@ persistent generator.
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: local mpi tcp
 # TESTSUITE_NPROCS: 3
+# TESTSUITE_EXTRA: true
 
 import sys
 from math import gamma, pi, sqrt
@@ -32,7 +33,7 @@ from time import time
 from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc as alloc_f
 from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
 from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
-from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
+from libensemble.tools import parse_args, save_libE_output
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
@@ -63,6 +64,7 @@ if __name__ == "__main__":
         "gen_f": gen_f,
         "persis_in": ["f"] + [n[0] for n in gen_out],
         "out": gen_out,
+        "initial_batch_size": 100,
         "user": {
             "initial_sample_size": 100,
             "sample_points": np.round(minima, 1),
@@ -79,12 +81,16 @@ if __name__ == "__main__":
 
     alloc_specs = {"alloc_f": alloc_f}
 
-    persis_info = add_unique_random_streams({}, nworkers + 1)
-
-    exit_criteria = {"sim_max": 2000}
+    exit_criteria = {"sim_max": 3000}
 
     # Perform the run
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+    H, persis_info, flag = libE(
+        sim_specs,
+        gen_specs,
+        exit_criteria,
+        alloc_specs=alloc_specs,
+        libE_specs=libE_specs,
+    )
 
     if is_manager:
         print("[Manager]:", H[np.where(H["local_min"])]["x"])

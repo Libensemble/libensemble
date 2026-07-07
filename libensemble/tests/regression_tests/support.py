@@ -2,8 +2,6 @@ import copy
 
 import numpy as np
 
-from libensemble.specs import input_fields, output_data
-
 branin_vals_and_minima = np.array(
     [
         [-3.14159, 12.275, 0.397887],
@@ -31,8 +29,6 @@ def nan_func(calc_in, persis_info, sim_specs, libE_info):
     return (H, persis_info)
 
 
-@input_fields(["x"])
-@output_data([("f", float, (2,))])
 def write_sim_func(calc_in, persis_info, sim_specs, libE_info):
     out = np.zeros(1, dtype=sim_specs["out"])
     out["f"] = calc_in["x"]
@@ -65,13 +61,16 @@ def remote_write_gen_func(calc_in, persis_info, gen_specs, libE_info):
     return H_o, persis_info
 
 
-def write_uniform_gen_func(H, persis_info, gen_specs, _):
+def write_uniform_gen_func(H, persis_info, gen_specs, libE_info):
+    from libensemble.tools import get_rng
+
     ub = gen_specs["user"]["ub"]
     lb = gen_specs["user"]["lb"]
     n = len(lb)
-    b = gen_specs["user"]["gen_batch_size"]
+    b = gen_specs["batch_size"]
     H_o = np.zeros(b, dtype=gen_specs["out"])
-    H_o["x"] = persis_info["rand_stream"].uniform(lb, ub, (b, n))
+    rng = get_rng(gen_specs, libE_info)
+    H_o["x"] = rng.uniform(lb, ub, (b, n))
     with open("test_gen_out.txt", "a") as f:
         f.write(f"gen_f produced: {H_o['x']}\n")
     return H_o, persis_info
@@ -105,7 +104,7 @@ persis_info_1 = {
     "next_to_give": 0,  # Remembers next H row to give in alloc_f
 }
 
-persis_info_1[0] = {
+persis_info_1[0] = {  # noqa
     "run_order": {},  # Used by manager to remember run order
     "total_runs": 0,  # Used by manager to count total runs
     "rand_stream": np.random.default_rng(1),

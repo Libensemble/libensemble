@@ -19,7 +19,7 @@ Can be constructed and passed to libEnsemble as a Python class or a dictionary.
   * libEnsemble uses the following defaults if the user doesn't provide their own ``alloc_specs``:
 
   ..  literalinclude:: ../../libensemble/specs.py
-      :start-at: alloc_f: Callable = give_sim_work_first
+      :start-at: alloc_f: object = only_persistent_gens
       :end-before: end_alloc_tag
       :caption: Default settings for alloc_specs
 
@@ -31,14 +31,4 @@ Can be constructed and passed to libEnsemble as a Python class or a dictionary.
       my_new_alloc = AllocSpecs()
       my_new_alloc.alloc_f = another_function
 
-.. seealso::
-  - `test_uniform_sampling_one_residual_at_a_time.py`_ specifies fields
-    to be used by the allocation function ``give_sim_work_first`` from
-    fast_alloc_and_pausing.py_.
-
-  ..  literalinclude:: ../../libensemble/tests/functionality_tests/test_uniform_sampling_one_residual_at_a_time.py
-      :start-at: alloc_specs
-      :end-before: end_alloc_specs_rst_tag
-
-.. _fast_alloc_and_pausing.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/alloc_funcs/fast_alloc_and_pausing.py
 .. _test_uniform_sampling_one_residual_at_a_time.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_uniform_sampling_one_residual_at_a_time.py

@@ -21,7 +21,10 @@ def persistent_aposmm_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info
     if libE_info["sim_max_given"] or not libE_info["any_idle_workers"]:
         return {}, persis_info
 
-    init_sample_size = gen_specs["user"]["initial_sample_size"]
+    if not persis_info:
+        persis_info = {i: {} for i in range(len(W))}
+    user = {**gen_specs, **alloc_specs.get("user", {})}
+    init_sample_size = user["initial_batch_size"]
     manage_resources = libE_info["use_resource_sets"]
     support = AllocSupport(W, manage_resources, persis_info, libE_info)
     gen_count = support.count_persis_gens()
@@ -69,7 +72,7 @@ def persistent_aposmm_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info
     if persis_info.get("gen_started") is None:
         for wid in support.avail_worker_ids(persistent=False, gen_workers=True):
             # Finally, call a persistent generator as there is nothing else to do.
-            persis_info.get(wid)["nworkers"] = len(W)
+            persis_info[wid]["nworkers"] = len(W)
             try:
                 Work[wid] = support.gen_work(
                     wid, gen_specs.get("in", []), range(len(H)), persis_info.get(wid), persistent=True

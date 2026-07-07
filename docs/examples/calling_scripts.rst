@@ -1,19 +1,12 @@
-Calling Scripts
-===============
+Top-Level Scripts
+=================
 
-Below are example calling scripts used to populate specifications for each user
-function and libEnsemble before initiating libEnsemble via the primary ``libE()``
-call. The primary libEnsemble-relevant portions have been highlighted in each
-example. Non-highlighted portions may include setup routines, compilation steps
-for user applications, or output processing. The first two scripts correspond to
-random sampling calculations, while the third corresponds to an optimization routine.
-
-Many other examples of calling scripts can be found in libEnsemble's `regression tests`_.
+Many other examples of top-level scripts can be found in libEnsemble's `regression tests`_.
 
 Local Sine Tutorial
 -------------------
 
-This example is from the Local Sine :doc:`Tutorial<../tutorials/local_sine_tutorial>`,
+This example is from the Local Sine :doc:`Tutorial<../tutorials/local_sine_tutorial/local_sine_tutorial>`,
 meant to run with Python's multiprocessing as the primary ``comms`` method.
 
 ..  literalinclude:: ../../examples/tutorials/simple_sine/test_local_sine_tutorial.py
@@ -38,35 +31,22 @@ Run using five workers with::
 
     python run_libe_forces.py -n 5
 
-One worker runs a persistent generator and the other four run the forces simulations.
-
 ..  literalinclude:: ../../libensemble/tests/scaling_tests/forces/forces_simple/run_libe_forces.py
     :language: python
     :caption: tests/scaling_tests/forces/forces_simple/run_libe_forces.py
     :linenos:
 
-Object + yaml Version
-~~~~~~~~~~~~~~~~~~~~~
+gest-api APOSMM
+---------------
 
-..  literalinclude:: ../../libensemble/tests/scaling_tests/forces/forces_adv/run_libe_forces_from_yaml.py
+This example from the regression tests demonstrates the gest-api interface with a
+standardized ``APOSMM`` generator class parameterized by a ``VOCS`` object, and
+paired with a gest-api ``simulator`` callable.
+
+..  literalinclude:: ../../libensemble/tests/regression_tests/test_asktell_aposmm_nlopt.py
     :language: python
-    :caption: tests/scaling_tests/forces/forces_adv/run_libe_forces_from_yaml.py
+    :caption: tests/regression_tests/test_asktell_aposmm_nlopt.py
     :linenos:
-
-..  literalinclude:: ../../libensemble/tests/scaling_tests/forces/forces_adv/forces.yaml
-    :language: yaml
-    :caption: tests/scaling_tests/forces/forces_adv/forces.yaml
-    :linenos:
-
-Persistent APOSMM with Gradients
---------------------------------
-
-This example is also from the regression tests and demonstrates configuring a
-persistent run via a custom allocation function.
-
-..  literalinclude:: ../../libensemble/tests/regression_tests/test_persistent_aposmm_with_grad.py
-    :language: python
-    :caption: tests/regression_tests/test_persistent_aposmm_with_grad.py
-    :linenos:
+    :end-at: workflow.exit_criteria = ExitCriteria(sim_max=2000, wallclock_max=600)
 
 .. _regression tests: https://github.com/Libensemble/libensemble/tree/develop/libensemble/tests/regression_tests

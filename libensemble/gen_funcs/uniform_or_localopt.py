@@ -10,12 +10,13 @@ import nlopt
 import numpy as np
 
 from libensemble.message_numbers import EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG, PERSIS_STOP, STOP_TAG
+from libensemble.tools import get_rng
 from libensemble.tools.persistent_support import PersistentSupport
 
 
 def uniform_or_localopt(H, persis_info, gen_specs, libE_info):
     """
-    This generation function returns ``gen_specs["user"]["gen_batch_size"]`` uniformly
+    This generation function returns ``gen_specs["batch_size"]`` uniformly
     sampled points when called in nonpersistent mode (i.e., when
     ``libE_info["persistent"]`` isn't ``True``).  Otherwise, the generation
     function starts a persistent nlopt local optimization run.
@@ -24,18 +25,17 @@ def uniform_or_localopt(H, persis_info, gen_specs, libE_info):
         `test_uniform_sampling_then_persistent_localopt_runs.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_uniform_sampling_then_persistent_localopt_runs.py>`_ # noqa
     """
     if libE_info.get("persistent"):
-        x_opt, persis_info_updates, tag_out = try_and_run_nlopt(H, gen_specs, libE_info)
-        H_o = []
-        return H_o, persis_info_updates, tag_out
+        return try_and_run_nlopt(H, gen_specs, libE_info)
     else:
+        rng = get_rng(gen_specs, libE_info)
         ub = gen_specs["user"]["ub"]
         lb = gen_specs["user"]["lb"]
         n = len(lb)
-        b = gen_specs["user"]["gen_batch_size"]
+        b = gen_specs["batch_size"]
 
         H_o = np.zeros(b, dtype=gen_specs["out"])
         for i in range(0, b):
-            x = persis_info["rand_stream"].uniform(lb, ub, (1, n))
+            x = rng.uniform(lb, ub, (1, n))
             H_o = add_to_Out(H_o, x, i, ub, lb)
 
         persis_info_updates = persis_info  # Send this back so it is overwritten.
@@ -107,10 +107,9 @@ def try_and_run_nlopt(H, gen_specs, libE_info):
         if exit_code > 0 and exit_code < 5:
             persis_info_updates["x_opt"] = x_opt
     except Exception:  # Raised when manager sent PERSIS_STOP or STOP_TAG
-        x_opt = []
         persis_info_updates = {}
 
-    return x_opt, persis_info_updates, FINISHED_PERSISTENT_GEN_TAG
+    return None, persis_info_updates, FINISHED_PERSISTENT_GEN_TAG
 
 
 def add_to_Out(H_o, x, i, ub, lb, local=False, active=False):

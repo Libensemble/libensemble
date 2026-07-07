@@ -4,8 +4,12 @@
 # Building flat MPI
 # -------------------------------------------------
 
-# GCC
-mpicc -O3 -o forces.x forces.c -lm
+# macOS (Apple Silicon with pixi) / GCC
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    mpicc -cc=clang -O3 -o forces.x forces.c -lm
+else
+    mpicc -O3 -o forces.x forces.c -lm
+fi
 
 # Intel
 # mpiicc -O3 -o forces.x forces.c
@@ -45,10 +49,3 @@ mpicc -O3 -o forces.x forces.c -lm
 # Nvidia (nvc) compiler with mpicc and on Cray system with target (Perlmutter)
 # mpicc -DGPU -O3 -fopenmp -mp=gpu -o forces.x forces.c
 # cc -DGPU -Wl,-znoexecstack -O3 -fopenmp -mp=gpu -target-accel=nvidia80 -o forces.x forces.c
-
-# xl (plain and using mpicc on Summit)
-# xlc_r -DGPU -O3 -qsmp=omp -qoffload -o forces.x forces.c
-# mpicc -DGPU -O3 -qsmp=omp -qoffload -o forces.x forces.c
-
-# Summit with gcc (Need up to offload capable gcc: module load gcc/12.1.0) - slower than xlc
-# mpicc -DGPU -Ofast -fopenmp -Wl,-rpath=/sw/summit/gcc/12.1.0-0/lib64 -lm -foffload=nvptx-none forces.c -o forces.x

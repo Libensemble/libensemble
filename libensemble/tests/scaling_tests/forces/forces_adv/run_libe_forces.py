@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import os
 import sys
+from pathlib import Path
 
 import numpy as np
 from forces_simf import run_forces  # Sim func from current dir
@@ -12,7 +13,7 @@ from libensemble.executors.mpi_executor import MPIExecutor
 # Import libEnsemble modules
 from libensemble.libE import libE
 from libensemble.manager import ManagerException
-from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
+from libensemble.tools import parse_args, save_libE_output
 
 PERSIS_GEN = False
 
@@ -20,15 +21,15 @@ if PERSIS_GEN:
     from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
     from libensemble.gen_funcs.persistent_sampling import persistent_uniform as gen_f
 else:
-    from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first as alloc_f
-    from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
+    from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first as alloc_f  # type: ignore[no-redef]
+    from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f  # type: ignore[no-redef]
 
 
 logger.set_level("INFO")  # INFO is now default
 
 nworkers, is_manager, libE_specs, _ = parse_args()
 
-sim_app = os.path.join(os.getcwd(), "../forces_app/forces.x")
+sim_app = Path.cwd() / "../forces_app/forces.x"
 
 if not os.path.isfile(sim_app):
     sys.exit("forces.x not found - please build first in ../forces_app dir")
@@ -65,23 +66,19 @@ gen_specs = {
     "gen_f": gen_f,  # Generator function
     "in": [],  # Generator input
     "out": [("x", float, (1,))],  # Name, type and size of data produced (must match sim_specs 'in')
+    "batch_size": 1000,  # How many random samples to generate in one call
     "user": {
         "lb": np.array([0]),  # Lower bound for random sample array (1D)
         "ub": np.array([32767]),  # Upper bound for random sample array (1D)
-        "gen_batch_size": 1000,  # How many random samples to generate in one call
     },
 }
 
 if PERSIS_GEN:
-    alloc_specs = {"alloc_f": alloc_f}
+    alloc_specs = {}
+    gen_specs["async_return"] = False
 else:
-    alloc_specs = {
-        "alloc_f": alloc_f,
-        "user": {
-            "batch_mode": True,  # If true wait for all sims to process before generate more
-            "num_active_gens": 1,  # Only one active generator at a time
-        },
-    }
+    alloc_specs = {"alloc_f": alloc_f, "user": {"batch_mode": True}}
+    gen_specs["num_active_gens"] = 1
 
 libE_specs["save_every_k_gens"] = 1000  # Save every K steps
 libE_specs["sim_dirs_make"] = True  # Separate each sim into a separate directory
@@ -91,16 +88,11 @@ libE_specs["profile"] = False  # Whether to have libE profile on (default False)
 sim_max = 8
 exit_criteria = {"sim_max": sim_max}
 
-# Create a different random number stream for each worker and the manager
-persis_info = {}
-persis_info = add_unique_random_streams(persis_info, nworkers + 1)
-
 try:
     H, persis_info, flag = libE(
         sim_specs,
         gen_specs,
         exit_criteria,
-        persis_info=persis_info,
         alloc_specs=alloc_specs,
         libE_specs=libE_specs,
     )

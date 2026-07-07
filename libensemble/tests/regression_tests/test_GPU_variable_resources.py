@@ -28,7 +28,6 @@ persistent generator.
 import numpy as np
 
 from libensemble import Ensemble
-from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.executors.mpi_executor import MPIExecutor
 from libensemble.gen_funcs.persistent_sampling_var_resources import uniform_sample_with_procs_gpus as gen_f1
 from libensemble.gen_funcs.persistent_sampling_var_resources import uniform_sample_with_var_gpus as gen_f2
@@ -36,10 +35,8 @@ from libensemble.gen_funcs.persistent_sampling_var_resources import uniform_samp
 # Import libEnsemble items for this test
 from libensemble.sim_funcs import six_hump_camel
 from libensemble.sim_funcs.var_resources import gpu_variable_resources_from_gen as sim_f
-from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
-from libensemble.tools import add_unique_random_streams
+from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
 
-# from libensemble import logger
 # logger.set_level("DEBUG")  # For testing the test
 
 
@@ -69,25 +66,19 @@ if __name__ == "__main__":
         gen_f=gen_f1,
         persis_in=["f", "x", "sim_id"],
         out=[("num_procs", int), ("num_gpus", int), ("x", float, 2)],
+        initial_batch_size=gpu_test.nworkers - 1,
+        batch_evaluate_same_priority=False,
+        async_return=False,
         user={
-            "initial_batch_size": gpu_test.nworkers - 1,
             "max_procs": gpu_test.nworkers - 1,  # Any sim created can req. 1 worker up to max
             "lb": np.array([-3, -2]),
             "ub": np.array([3, 2]),
         },
     )
 
-    gpu_test.alloc_specs = AllocSpecs(
-        alloc_f=alloc_f,
-        user={
-            "give_all_with_same_priority": False,
-            "async_return": False,  # False causes batch returns
-        },
-    )
-
     # Run with random num_procs/num_gpus for each simulation
-    gpu_test.persis_info = add_unique_random_streams({}, gpu_test.nworkers + 1)
-    gpu_test.exit_criteria = ExitCriteria(sim_max=20)
+    gpu_test.persis_info = {}
+    gpu_test.exit_criteria = ExitCriteria(sim_max=10)
 
     gpu_test.run()
     if gpu_test.is_manager:
@@ -96,7 +87,7 @@ if __name__ == "__main__":
     # Run with num_gpus based on x[0] for each simulation
     gpu_test.gen_specs.gen_f = gen_f2
     gpu_test.gen_specs.user["max_gpus"] = gpu_test.nworkers - 1
-    gpu_test.persis_info = add_unique_random_streams({}, gpu_test.nworkers + 1)
+    gpu_test.persis_info = {}
     gpu_test.exit_criteria = ExitCriteria(sim_max=20)
     gpu_test.run()
 

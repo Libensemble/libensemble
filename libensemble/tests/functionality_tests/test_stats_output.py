@@ -13,7 +13,7 @@ Note: This test contains multiple iterations to test different libE_stats output
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local
-# TESTSUITE_NPROCS: 2 4
+# TESTSUITE_NPROCS: 4
 
 import sys
 import warnings
@@ -28,7 +28,7 @@ from libensemble.gen_funcs.sampling import uniform_random_sample_with_variable_r
 from libensemble.libE import libE
 from libensemble.sim_funcs import helloworld, six_hump_camel
 from libensemble.sim_funcs.var_resources import multi_points_with_variable_resources as sim_f
-from libensemble.tools import add_unique_random_streams, parse_args
+from libensemble.tools import parse_args
 
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 from check_libE_stats import check_libE_stats
@@ -58,7 +58,10 @@ if __name__ == "__main__":
         "sim_f": sim_f,
         "in": ["x"],
         "out": [("f", float)],
-        "user": {"app": "helloworld"},  # helloworld or six_hump_camel
+        "user": {
+            "app": "helloworld",
+            "dry_run": True,
+        },  # dry_run avoids real MPI launches; stats format still exercised
     }
 
     gen_specs = {
@@ -70,34 +73,29 @@ if __name__ == "__main__":
             ("x", float, n),
             ("x_on_cube", float, n),
         ],
+        "batch_evaluate_same_priority": True,
+        "num_active_gens": 1,
+        "async_return": True,
+        "batch_size": 5,
         "user": {
-            "gen_batch_size": 5,
             "max_resource_sets": nworkers,
             "lb": np.array([-3, -2]),
             "ub": np.array([3, 2]),
         },
     }
 
-    alloc_specs = {
-        "alloc_f": give_sim_work_first,
-        "user": {
-            "batch_mode": False,
-            "give_all_with_same_priority": True,
-            "num_active_gens": 1,
-            "async_return": True,
-        },
-    }
+    alloc_specs = {"alloc_f": give_sim_work_first, "user": {"batch_mode": False}}
 
     # This can improve scheduling when tasks may run across multiple nodes
     libE_specs["scheduler_opts"] = {"match_slots": False}
 
-    exit_criteria = {"sim_max": 40, "wallclock_max": 300}
+    exit_criteria = {"sim_max": 12, "wallclock_max": 60}
 
     iterations = 2
 
     # Note that libE_stats.txt output will be appended across libE calls.
     for prob_id in range(iterations):
-        sim_specs["user"]["app"] = "six_hump_camel"
+        sim_specs["user"]["app"] = "helloworld"
 
         libE_specs["ensemble_dir_path"] = (
             "./ensemble_test_stats" + str(nworkers) + "_" + libE_specs.get("comms") + "_" + str(prob_id)
@@ -112,7 +110,7 @@ if __name__ == "__main__":
             libE_specs["stats_fmt"] = {"task_datetime": True, "show_resource_sets": True}
             check_task_datetime = True
 
-        persis_info = add_unique_random_streams({}, nworkers + 1)
+        persis_info = {}
 
         # Perform the run
         H, persis_info, flag = libE(

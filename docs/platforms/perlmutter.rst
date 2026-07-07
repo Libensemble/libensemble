@@ -50,7 +50,7 @@ by one of the following ways.
     conda config --add channels conda-forge
     conda install -c conda-forge libensemble
 
-See :doc:`advanced installation<../advanced_installation>` for other installation options.
+See :doc:`advanced installation<../advanced_installation/advanced_installation>` for other installation options.
 
 Job Submission
 --------------
@@ -104,26 +104,6 @@ others (each simulation using one GPU).
 To see GPU usage, ssh into the node you are on in another window and run::
 
     watch -n 0.1 nvidia-smi
-
-Running generator on the manager
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-An alternative is to run the generator on a thread on the manager. The
-number of workers can then be set to the number of simulation workers.
-
-Change the ``libE_specs`` in **run_libe_forces.py** as follows.
-
-   .. code-block:: python
-
-    nsim_workers = ensemble.nworkers
-
-    # Persistent gen does not need resources
-    ensemble.libE_specs = LibeSpecs(
-        gen_on_manager=True,
-
-and run with::
-
-    python run_libe_forces.py -n 4
 
 To watch video
 ^^^^^^^^^^^^^^
@@ -181,14 +161,14 @@ Some FAQs specific to Perlmutter. See more on the :doc:`FAQ<../FAQ>` page.
        #SBATCH --gpus-per-task=1
 
    Instead provide these to sub-tasks via the ``extra_args`` option to
-   the :doc:`MPIExecutor<../executor/mpi_executor>` ``submit`` function.
+   the :doc:`MPIExecutor<../executor/ex_index>` ``submit`` function.
 
 .. dropdown:: **GTL_DEBUG: [0] cudaHostRegister: no CUDA-capable device is detected**
 
    If using the environment variable ``MPICH_GPU_SUPPORT_ENABLED``, then ``srun`` commands, at
    time of writing, expect an option for allocating GPUs (e.g.~ ``--gpus-per-task=1`` would
    allocate one GPU to each MPI task of the MPI run). It is recommended that tasks submitted
-   via the :doc:`MPIExecutor<../executor/mpi_executor>` specify this in the ``extra_args``
+   via the :doc:`MPIExecutor<../executor/ex_index>` specify this in the ``extra_args``
    option to the ``submit`` function (rather than using an ``#SBATCH`` command). This is needed
    even when using setting ``CUDA_VISIBLE_DEVICES`` or other options.
 

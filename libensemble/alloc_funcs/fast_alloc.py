@@ -7,7 +7,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info, li
     to evaluate in the simulation function. The fields in ``sim_specs["in"]``
     are given. If all entries in `H` have been given a be evaluated, a worker
     is told to call the generator function, provided this wouldn't result in
-    more than ``alloc_specs["user"]["num_active_gen"]`` active generators.
+    more than ``gen_specs["num_active_gens"]`` or ``alloc_specs["user"]["num_active_gens"]`` active generators.
 
     This fast_alloc variation of give_sim_work_first is useful for cases that
     simply iterate through H, issuing evaluations in order and, in particular,
@@ -23,7 +23,8 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info, li
     if libE_info["sim_max_given"] or not libE_info["any_idle_workers"]:
         return {}, persis_info
 
-    user = alloc_specs.get("user", {})
+    user = {**gen_specs, **alloc_specs.get("user", {})}
+
     manage_resources = libE_info["use_resource_sets"]
 
     support = AllocSupport(W, manage_resources, persis_info, libE_info)

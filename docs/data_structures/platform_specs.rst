@@ -15,37 +15,37 @@ A ``Platform`` object or dictionary specifying settings for a platform.
 
 To define a platform (in calling script):
 
-.. tab-set::
+Platform Object
+^^^^^^^^^^^^^^^
 
-    .. tab-item:: Platform Object
+.. code-block:: python
 
-       .. code-block:: python
+    from libensemble.resources.platforms import Platform
 
-           from libensemble.resources.platforms import Platform
+    libE_specs["platform_specs"] = Platform(
+        mpi_runner="srun",
+        cores_per_node=64,
+        logical_cores_per_node=128,
+        gpus_per_node=8,
+        gpu_setting_type="runner_default",
+        gpu_env_fallback="ROCR_VISIBLE_DEVICES",
+        scheduler_match_slots=False,
+    )
 
-           libE_specs["platform_specs"] = Platform(
-               mpi_runner="srun",
-               cores_per_node=64,
-               logical_cores_per_node=128,
-               gpus_per_node=8,
-               gpu_setting_type="runner_default",
-               gpu_env_fallback="ROCR_VISIBLE_DEVICES",
-               scheduler_match_slots=False,
-           )
+Dictionary
+^^^^^^^^^^
 
-    .. tab-item:: Dictionary
+.. code-block:: python
 
-       .. code-block:: python
-
-           libE_specs["platform_specs"] = {
-               "mpi_runner": "srun",
-               "cores_per_node": 64,
-               "logical_cores_per_node": 128,
-               "gpus_per_node": 8,
-               "gpu_setting_type": "runner_default",
-               "gpu_env_fallback": "ROCR_VISIBLE_DEVICES",
-               "scheduler_match_slots": False,
-           }
+    libE_specs["platform_specs"] = {
+        "mpi_runner": "srun",
+        "cores_per_node": 64,
+        "logical_cores_per_node": 128,
+        "gpus_per_node": 8,
+        "gpu_setting_type": "runner_default",
+        "gpu_env_fallback": "ROCR_VISIBLE_DEVICES",
+        "scheduler_match_slots": False,
+    }
 
 The list of platform fields is given below. Any fields not given will be
 auto-detected by libEnsemble.

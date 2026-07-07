@@ -19,12 +19,13 @@ import sys
 
 import numpy as np
 
+from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
 from libensemble.sim_funcs.simple_sim import norm_eval as sim_f
-from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
+from libensemble.tools import parse_args, save_libE_output
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
@@ -51,19 +52,21 @@ if __name__ == "__main__":
         "gen_f": gen_f,
         "in": ["sim_id"],
         "out": [("x", float, (1,))],
+        "batch_size": 500,
         "user": {
             "lb": np.array([-3]),
             "ub": np.array([3]),
-            "gen_batch_size": 500,
         },
     }
 
-    persis_info = add_unique_random_streams({}, nworkers + 1)
-
     exit_criteria = {"gen_max": 501}
 
+    alloc_specs = {
+        "alloc_f": give_sim_work_first,
+    }
+
     # Perform the run
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info)
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs)
 
     if is_manager:
         # assert libE_specs["comms"] == "mpi", "MPI default comms should be set"

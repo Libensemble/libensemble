@@ -36,7 +36,7 @@ environment (if you need ``conda install``). More details at `Python for Polaris
 
        pip install libensemble
 
-See :doc:`here<../advanced_installation>` for more information on advanced options
+See :doc:`here<../advanced_installation/advanced_installation>` for more information on advanced options
 for installing libEnsemble, including using Spack.
 
 Job Submission

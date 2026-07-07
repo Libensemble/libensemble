@@ -10,16 +10,17 @@ The number of concurrent evaluations of the objective function will be 4-1=3.
 """
 
 import numpy as np
+from gest_api.vocs import VOCS
 
 import libensemble.sim_funcs.six_hump_camel as six_hump_camel
 from libensemble.executors.mpi_executor import MPIExecutor
-from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
+from libensemble.gen_classes.sampling import UniformSample
 from libensemble.libE import libE
 
 # Import libEnsemble items for this test
 from libensemble.message_numbers import WORKER_DONE
 from libensemble.sim_funcs.executor_hworld import executor_hworld as sim_f
-from libensemble.tools import add_unique_random_streams, parse_args
+from libensemble.tools import parse_args
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local
@@ -46,23 +47,24 @@ if __name__ == "__main__":
     }
 
     gen_specs = {
-        "gen_f": gen_f,
         "in": ["sim_id"],
+        "persis_in": ["x", "f", "sim_id"],
         "out": [("x", float, (2,))],
-        "user": {
-            "lb": np.array([-3, -2]),
-            "ub": np.array([3, 2]),
-            "gen_batch_size": nworkers,
-        },
+        "batch_size": nworkers,
     }
 
-    persis_info = add_unique_random_streams({}, nworkers + 1)
+    variables = {"x0": [-3, 3], "x1": [-2, 2]}
+    objectives = {"f": "EXPLORE"}
+
+    vocs = VOCS(variables=variables, objectives=objectives)
+
+    gen_specs["generator"] = UniformSample(vocs)
 
     # num sim_ended_count conditions in executor_hworld
     exit_criteria = {"sim_max": nworkers * 5}
 
     # Perform the run
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, libE_specs=libE_specs)
 
     if is_manager:
         print("\nChecking expected task status against Workers ...\n")

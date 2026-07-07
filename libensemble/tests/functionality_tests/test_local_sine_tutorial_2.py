@@ -3,7 +3,8 @@ from sine_gen import gen_random_sample
 from sine_sim import sim_find_sine
 
 from libensemble import Ensemble
-from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
+from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
+from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
 
 if __name__ == "__main__":
     libE_specs = LibeSpecs(nworkers=4, comms="local")
@@ -11,10 +12,10 @@ if __name__ == "__main__":
     gen_specs = GenSpecs(
         gen_f=gen_random_sample,  # Our generator function
         out=[("x", float, (1,))],  # gen_f output (name, type, size)
+        batch_size=10,  # number of x's gen_f generates per call
         user={
             "lower": np.array([-6]),  # lower boundary for random sampling
             "upper": np.array([6]),  # upper boundary for random sampling
-            "gen_batch_size": 10,  # number of x's gen_f generates per call
         },
     )
 
@@ -24,10 +25,11 @@ if __name__ == "__main__":
         out=[("y", float)],  # sim_f output. "y" = sine("x")
     )
 
+    alloc_specs = AllocSpecs(alloc_f=give_sim_work_first)
+
     exit_criteria = ExitCriteria(gen_max=160)
 
-    ensemble = Ensemble(sim_specs, gen_specs, exit_criteria, libE_specs)
-    ensemble.add_random_streams()
+    ensemble = Ensemble(sim_specs, gen_specs, exit_criteria, libE_specs, alloc_specs)
     ensemble.run()
 
     if ensemble.flag != 0:

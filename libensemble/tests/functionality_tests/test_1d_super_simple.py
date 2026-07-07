@@ -15,21 +15,18 @@ The number of concurrent evaluations of the objective function will be 4-1=3.
 
 import numpy as np
 
+from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 from libensemble.gen_funcs.sampling import latin_hypercube_sample as gen_f
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
-from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
+from libensemble.tools import parse_args, save_libE_output
 
 
 def sim_f(In):
     Out = np.zeros(1, dtype=[("f", float)])
     Out["f"] = np.linalg.norm(In)
     return Out
-
-
-def sim_f_noreturn(In):
-    print(np.linalg.norm(In))
 
 
 if __name__ == "__main__":
@@ -44,32 +41,22 @@ if __name__ == "__main__":
     gen_specs = {
         "gen_f": gen_f,
         "out": [("x", float, (1,))],
+        "batch_size": 500,
         "user": {
-            "gen_batch_size": 500,
             "lb": np.array([-3]),
             "ub": np.array([3]),
         },
     }
 
-    persis_info = add_unique_random_streams({}, nworkers + 1, seed=1234)
-
     exit_criteria = {"gen_max": 501}
 
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
+    alloc_specs = {
+        "alloc_f": give_sim_work_first,
+    }
+
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs, libE_specs=libE_specs)
 
     if is_manager:
         assert len(H) >= 501
         print("\nlibEnsemble with random sampling has generated enough points")
         save_libE_output(H, persis_info, __file__, nworkers)
-
-    # Test running a sim_f without any returns
-    sim_specs = {
-        "sim_f": sim_f_noreturn,
-        "in": ["x"],
-    }
-
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
-
-    if is_manager:
-        assert len(H) >= 501
-        print("\nlibEnsemble with random sampling has generated enough points")

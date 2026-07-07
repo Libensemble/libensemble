@@ -30,6 +30,9 @@ logger = logging.getLogger(__name__)
 # To change logging level for just this module
 # logger.setLevel(logging.DEBUG)
 
+# Placeholder for container support - replaced with simulation directory at runtime
+LIBE_SIM_DIR_PLACEHOLDER = "%LIBENSEMBLE_SIM_DIR%"
+
 STATES = """
 UNKNOWN
 CREATED
@@ -60,7 +63,7 @@ class ExecutorException(Exception):
 class TimeoutExpired(Exception):
     """Timeout exception raised when Timeout expires"""
 
-    def __init__(self, task: str, timeout: float) -> None:
+    def __init__(self, task: str, timeout: float | None) -> None:
         self.task = task
         self.timeout = timeout
 
@@ -148,9 +151,9 @@ class Task:
         self.stderr = stderr or self.name + ".err"
         self.workdir = workdir
         self.dry_run = dry_run
-        self.runline = None
+        self.runline: str | None = None
         self.run_attempts = 0
-        self.env = {}
+        self.env: dict[str, str] = {}
         self.ngpus_req = 0
 
     def reset(self) -> None:
@@ -175,11 +178,11 @@ class Task:
 
     def file_exists_in_workdir(self, filename: str) -> bool:
         """Returns true if the named file exists in the task's workdir"""
-        return self.workdir and os.path.exists(os.path.join(self.workdir, filename))
+        return self.workdir and os.path.exists(Path(self.workdir) / filename)
 
     def read_file_in_workdir(self, filename: str) -> str:
         """Opens and reads the named file in the task's workdir"""
-        path = os.path.join(self.workdir, filename)
+        path = Path(self.workdir) / filename
         if not os.path.exists(path):
             raise ValueError(f"{filename} not found in working directory")
         with open(path) as f:
@@ -236,6 +239,7 @@ class Task:
             self.state = "FINISHED"
         else:
             self.calc_task_timing()
+            assert self.process is not None
             self.errcode = self.process.returncode
             self.success = self.errcode == 0
             self.state = "FINISHED" if self.success else "FAILED"
@@ -251,6 +255,7 @@ class Task:
             return
 
         # Poll the task
+        assert self.process is not None
         poll = self.process.poll()
         if poll is None:
             self.state = "RUNNING"
@@ -327,7 +332,7 @@ class Task:
         self.poll()
         return self.finished
 
-    def kill(self, wait_time: int = 60) -> None:
+    def kill(self, wait_time: int | None = 60) -> None:
         """Kills or cancels the supplied task
 
         Parameters
@@ -423,14 +428,15 @@ class Executor:
         """
 
         self.manager_signal = None
-        self.default_apps = {"sim": None, "gen": None}
-        self.apps = {}
+        self.default_apps: dict[str, Application | None] = {"sim": None, "gen": None}
+        self.apps: dict[str, Application] = {}
 
         self.wait_time = 60
-        self.list_of_tasks = []
+        self.list_of_tasks: list[Task] = []
         self.workerID = None
         self.comm = None
         self.last_task = 0
+        self.base_dir = os.getcwd()
         Executor.executor = self
 
     def __enter__(self):
@@ -444,12 +450,12 @@ class Executor:
         pass  # To be overloaded
 
     @property
-    def sim_default_app(self) -> Application:
+    def sim_default_app(self) -> Application | None:
         """Returns the default simulation app"""
         return self.default_apps["sim"]
 
     @property
-    def gen_default_app(self) -> Application:
+    def gen_default_app(self) -> Application | None:
         """Returns the default generator app"""
         return self.default_apps["gen"]
 
@@ -464,7 +470,7 @@ class Executor:
             )
         return app
 
-    def default_app(self, calc_type: str) -> Application:
+    def default_app(self, calc_type: str) -> Application | None:
         """Gets the default app for a given calc type"""
         app = self.default_apps.get(calc_type)
         jassert(calc_type in ["sim", "gen"], "Unrecognized calculation type", calc_type)
@@ -522,6 +528,10 @@ class Executor:
 
         precedent: str, Optional
             Any str that should directly precede the application full path.
+            Supports the placeholder ``%LIBENSEMBLE_SIM_DIR%`` which is replaced
+            at runtime with the simulation directory as a relative path from
+            where the executor was created. This is useful for container exec
+            commands.
         """
 
         if not app_name:
@@ -533,10 +543,8 @@ class Executor:
             jassert(calc_type in self.default_apps, "Unrecognized calculation type", calc_type)
             self.default_apps[calc_type] = self.apps[app_name]
 
-    def manager_poll(self) -> int:
+    def manager_poll(self) -> int | None:
         """
-        .. _manager_poll_label:
-
         Polls for a manager signal
 
         The executor manager_signal attribute will be updated.
@@ -544,12 +552,13 @@ class Executor:
 
         self.manager_signal = None  # Reset
 
+        assert self.comm is not None
         # Check for messages; disregard anything but a stop signal
         if not self.comm.mail_flag():
-            return
+            return None
         mtag, man_signal = self.comm.recv()
         if mtag != STOP_TAG:
-            return
+            return None
 
         # Process the signal and push back on comm (for now)
         self.manager_signal = man_signal
@@ -572,8 +581,8 @@ class Executor:
     def polling_loop(
         self, task: Task, timeout: int | None = None, delay: float = 0.1, poll_manager: bool = False
     ) -> int:
-        """Optional, blocking, generic task status polling loop. Operates until the task
-        finishes, times out, or is optionally killed via a manager signal. On completion, returns a
+        """Blocking, generic task status polling loop. Operates until the task
+        finishes, times out, or is killed via a manager signal. On completion, returns a
         presumptive :ref:`calc_status<funcguides-calcstatus>` integer. Useful
         for running an application via the Executor until it stops without monitoring
         its intermediate output.
@@ -673,10 +682,26 @@ class Executor:
         self.workerID = workerid
         self.comm = comm
 
-    def _check_app_exists(self, full_path: str) -> None:
+    def _check_app_exists(self, app: Application) -> None:
         """Allows submit function to check if app exists and error if not"""
-        if not os.path.isfile(full_path):
-            raise ExecutorException(f"Application does not exist {full_path}")
+        if app.precedent:
+            # Could be a container call in precedent. In that case,
+            # the executable is not available on the host system and
+            # we just forward what the user provided.
+            return
+
+        if not os.path.isfile(app.full_path):
+            raise ExecutorException(f"Application does not exist {app.full_path}")
+
+    def _set_sim_dir_env(self, task: Task, run_cmd: list[str]) -> list[str]:
+        """Replace simulation directory placeholder in run command if present.
+
+        Supports container-based execution where the simulation directory needs to be
+        passed to container exec commands (e.g., podman-hpc exec --workdir).
+        """
+        sim_dir = os.path.relpath(task.workdir, self.base_dir)
+        task._add_to_env("LIBENSEMBLE_SIM_DIR", sim_dir)
+        return [arg.replace(LIBE_SIM_DIR_PLACEHOLDER, sim_dir) for arg in run_cmd]
 
     def submit(
         self,
@@ -685,13 +710,13 @@ class Executor:
         app_args: str | None = None,
         stdout: str | None = None,
         stderr: str | None = None,
-        dry_run: bool | None = False,
-        wait_on_start: bool | None = False,
+        dry_run: bool = False,
+        wait_on_start: bool = False,
         env_script: str | None = None,
     ) -> Task:
         """Create a new task and run as a local serial subprocess.
 
-        The created :class:`task<libensemble.executors.executor.Task>` object is returned.
+        Returns :class:`task<libensemble.executors.executor.Task>` object.
 
         Parameters
         ----------
@@ -734,6 +759,7 @@ class Executor:
             The launched task object
         """
 
+        app: Application | None = None
         if app_name is not None:
             app = self.get_app(app_name)
         elif calc_type is not None:
@@ -741,15 +767,20 @@ class Executor:
         else:
             raise ExecutorException("Either app_name or calc_type must be set")
 
+        assert app is not None
+
         default_workdir = os.getcwd()
         task = Task(app, app_args, default_workdir, stdout, stderr, self.workerID, dry_run)
 
         if not dry_run:
-            self._check_app_exists(task.app.full_path)
+            self._check_app_exists(task.app)
 
         runline = task.app.app_cmd.split()
         if task.app_args is not None:
             runline.extend(task.app_args.split())
+
+        runline = self._set_sim_dir_env(task, runline)
+        task.runline = " ".join(runline)
 
         if dry_run:
             logger.info(f"Test (No submit) Runline: {' '.join(runline)}")

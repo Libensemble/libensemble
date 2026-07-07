@@ -8,7 +8,7 @@ function launching tasks, see the
 :doc:`Electrostatic Forces tutorial <../tutorials/executor_forces_tutorial>`.
 
 .. IMPORTANT::
-  See the API for simulation functions :ref:`here<api_sim_f>`.
+  See the API for simulation functions :ref:`here<funcguides-sim>`.
 
 .. role:: underline
     :class: underline
@@ -60,5 +60,6 @@ Special simulation functions
    :maxdepth: 1
 
    sim_funcs/mock_sim
+   sim_funcs/surmise_test_function
 
 .. _build_forces.sh: https://github.com/Libensemble/libensemble/blob/main/libensemble/tests/scaling_tests/forces/forces_app/build_forces.sh
