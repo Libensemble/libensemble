@@ -39,16 +39,16 @@ jobs:
         shell: bash -l {0}
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           lfs: true
 
       - name: Checkout lockfile
         run: git lfs checkout
 
-      - uses: prefix-dev/setup-pixi@v0.9.6
+      - uses: prefix-dev/setup-pixi@v0.10.0
         with:
-          pixi-version: v0.68.1
+          pixi-version: v0.69.0
           frozen: true
           environments: ${{ matrix.python-version }}
           activate-environment: ${{ matrix.python-version }}
@@ -88,7 +88,7 @@ jobs:
           mv libensemble/tests/.cov* .
 
       - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v6
+        uses: codecov/codecov-action@v7
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
@@ -97,5 +97,5 @@ jobs:
     if: contains(github.base_ref, 'develop')
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
-      - uses: crate-ci/typos@v1.46.3
+      - uses: actions/checkout@v7
+      - uses: crate-ci/typos@v1.47.2

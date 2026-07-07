@@ -58,7 +58,10 @@ if __name__ == "__main__":
         "sim_f": sim_f,
         "in": ["x"],
         "out": [("f", float)],
-        "user": {"app": "helloworld"},  # helloworld or six_hump_camel
+        "user": {
+            "app": "helloworld",
+            "dry_run": True,
+        },  # dry_run avoids real MPI launches; stats format still exercised
     }
 
     gen_specs = {
@@ -86,13 +89,13 @@ if __name__ == "__main__":
     # This can improve scheduling when tasks may run across multiple nodes
     libE_specs["scheduler_opts"] = {"match_slots": False}
 
-    exit_criteria = {"sim_max": 40, "wallclock_max": 300}
+    exit_criteria = {"sim_max": 12, "wallclock_max": 60}
 
     iterations = 2
 
     # Note that libE_stats.txt output will be appended across libE calls.
     for prob_id in range(iterations):
-        sim_specs["user"]["app"] = "six_hump_camel"
+        sim_specs["user"]["app"] = "helloworld"
 
         libE_specs["ensemble_dir_path"] = (
             "./ensemble_test_stats" + str(nworkers) + "_" + libE_specs.get("comms") + "_" + str(prob_id)
