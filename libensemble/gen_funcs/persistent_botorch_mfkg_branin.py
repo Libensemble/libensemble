@@ -55,12 +55,12 @@ def project(X):
 def problem(X, ps, gen_specs):
     """
     Wrapper to convert tensor input to numpy and send to libE for evaluation.
-    
+
     Args:
         X: tensor of shape (n, 3) where columns are [x0, x1, fidelity]
         ps: PersistentSupport object for communication
         gen_specs: Generator specifications
-    
+
     Returns:
         tensor of shape (n,) with objective values
     """
@@ -69,15 +69,15 @@ def problem(X, ps, gen_specs):
     H_o = np.zeros(len(X), dtype=gen_specs["out"])
     H_o["x"] = X_np[:, :2]
     H_o["fidelity"] = X_np[:, 2]
-    
+
     tag, Work, calc_in = ps.send_recv(H_o)
-    
+
     # Convert results back to tensor
     if calc_in is None or len(calc_in) == 0:
         return None, tag
-    
+
     train_obj = torch.tensor(calc_in["f"], **tkwargs).unsqueeze(-1)
-    
+
     return train_obj, tag
 
 
@@ -154,12 +154,12 @@ def do_iteration(train_x, train_obj, q, ps, gen_specs):
     fit_gpytorch_mll(mll)
     mfkg_acqf = get_mfkg(model)
     new_x, new_obj, _, tag = optimize_mfkg_and_get_observation(mfkg_acqf, q, ps, gen_specs)
-    
+
     if new_obj is None:
         return model, train_x, train_obj, tag
-    
+
     train_x = torch.cat([train_x, new_x])
-    train_obj = torch.cat([train_obj, new_obj])  # Jeff: This is where the "sim" evaluation happens, and needs to be communicated back to the manager
+    train_obj = torch.cat([train_obj, new_obj])  # Jeff: This is where the "sim" eval happens, to be send the manager
 
     return model, train_x, train_obj, tag
 
