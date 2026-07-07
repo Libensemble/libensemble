@@ -6,7 +6,6 @@ Augmented Branin is a modified version of the Branin function with a fidelity pa
 
 __all__ = ["augmented_branin", "augmented_branin_func"]
 
-import math
 import numpy as np
 
 
@@ -31,8 +30,8 @@ def augmented_branin_func(x, fidelity):
     x0 = x[:, 0]
     x1 = x[:, 1]
 
-    t1 = 15 * x1 - (5.1 / (4 * math.pi**2) - 0.1 * (1 - fidelity)) * (15 * x0 - 5) ** 2 + 5 / math.pi * (15 * x0 - 5) - 6
-    t2 = 10 * (1 - 1 / (8 * math.pi)) * np.cos(15 * x0 - 5)
+    t1 = 15 * x1 - (5.1 / (4 * np.pi**2) - 0.1 * (1 - fidelity)) * (15 * x0 - 5) ** 2 + 5 / np.pi * (15 * x0 - 5) - 6
+    t2 = 10 * (1 - 1 / (8 * np.pi)) * np.cos(15 * x0 - 5)
     result = t1**2 + t2 + 10
 
     return -result  # negate for maximization

@@ -34,10 +34,6 @@ tkwargs = {
     "device": torch.device("cuda" if torch.cuda.is_available() else "cpu"),
 }
 
-# Specify bounds
-dim = 3
-bounds = torch.tensor([[0.0] * dim, [1.0] * dim], **tkwargs)
-
 # Specify target fidelity
 target_fidelities = {2: 1.0}
 
@@ -82,8 +78,8 @@ def problem(X, ps, gen_specs):
 
 
 # Function to generate training data
-def generate_initial_data(n, ps, gen_specs):  # Jeff: Initial sample size is twice this value of n
-    train_x = torch.rand(n, 2, **tkwargs)
+def generate_initial_data(n, ps, gen_specs, bounds):  # Jeff: Initial sample size is twice this value of n
+    train_x = bounds[0, :-1] + (bounds[1, :-1] - bounds[0, :-1]) * torch.rand(n, 2, **tkwargs)
     train_lf = torch.zeros(n, 1)
     train_hf = torch.ones(n, 1)
     train_x_full_lf = torch.cat((train_x, train_lf), dim=1)
@@ -101,7 +97,7 @@ def initialize_model(train_x, train_obj):
 
 
 # Multifidelity Knowledge Gradient acquisition function
-def get_mfkg(model):
+def get_mfkg(model, bounds):
 
     curr_val_acqf = FixedFeatureAcquisitionFunction(
         acq_function=PosteriorMean(model),
@@ -129,7 +125,7 @@ def get_mfkg(model):
 
 
 # Optimization step
-def optimize_mfkg_and_get_observation(mfkg_acqf, q, ps, gen_specs):
+def optimize_mfkg_and_get_observation(mfkg_acqf, q, ps, gen_specs, bounds):
     # Generate new candidates
     candidates, _ = optimize_acqf_mixed(
         acq_function=mfkg_acqf,
@@ -149,11 +145,11 @@ def optimize_mfkg_and_get_observation(mfkg_acqf, q, ps, gen_specs):
 
 
 # Function to perform a single iteration
-def do_iteration(train_x, train_obj, q, ps, gen_specs):
+def do_iteration(train_x, train_obj, q, ps, gen_specs, bounds):
     mll, model = initialize_model(train_x, train_obj)
     fit_gpytorch_mll(mll)
-    mfkg_acqf = get_mfkg(model)
-    new_x, new_obj, _, tag = optimize_mfkg_and_get_observation(mfkg_acqf, q, ps, gen_specs)
+    mfkg_acqf = get_mfkg(model, bounds)
+    new_x, new_obj, _, tag = optimize_mfkg_and_get_observation(mfkg_acqf, q, ps, gen_specs, bounds)
 
     if new_obj is None:
         return model, train_x, train_obj, tag
@@ -171,17 +167,19 @@ def persistent_botorch_mfkg(H, persis_info, gen_specs, libE_info):
     ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
 
     # Extract user parameters
-    ub = gen_specs["user"]["ub"]
-    lb = gen_specs["user"]["lb"]
+    ub = np.asarray(gen_specs["user"]["ub"], dtype=float)
+    lb = np.asarray(gen_specs["user"]["lb"], dtype=float)
+    bounds = torch.tensor([np.append(lb, 0.0), np.append(ub, 1.0)], **tkwargs)
+
     n_init_samples = gen_specs["user"]["n_init_samples"]
     q = gen_specs["user"]["q"]
 
     # ## Perform Multifidelity Bayesian Optimization
     # Generate initial data
-    train_x, train_obj, tag = generate_initial_data(n_init_samples, ps, gen_specs)
+    train_x, train_obj, tag = generate_initial_data(n_init_samples, ps, gen_specs, bounds)
 
     # Step
     while tag not in [STOP_TAG, PERSIS_STOP]:
-        model, train_x, train_obj, tag = do_iteration(train_x, train_obj, q, ps, gen_specs)
+        model, train_x, train_obj, tag = do_iteration(train_x, train_obj, q, ps, gen_specs, bounds)
 
     return None, persis_info, FINISHED_PERSISTENT_GEN_TAG
