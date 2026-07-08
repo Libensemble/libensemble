@@ -27,12 +27,11 @@ from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens
 from libensemble.gen_funcs.persistent_botorch_mfkg_branin import persistent_botorch_mfkg
 from libensemble.libE import libE
 from libensemble.sim_funcs.augmented_branin import augmented_branin
-from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
+from libensemble.tools import parse_args, save_libE_output
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
     nworkers, is_manager, libE_specs, _ = parse_args()
-    libE_specs["gen_on_manager"] = True
 
     sim_specs = {
         "sim_f": augmented_branin,
@@ -68,7 +67,7 @@ if __name__ == "__main__":
     exit_criteria = {"sim_max": 12}  # Exit after running sim_max simulations
 
     # Create a different random number stream for each worker and the manager
-    persis_info = add_unique_random_streams({}, nworkers + 1)
+    persis_info = {}
 
     # Run LibEnsemble, and store results in history array H
     H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
