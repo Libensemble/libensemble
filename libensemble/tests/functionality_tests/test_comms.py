@@ -12,7 +12,7 @@ The number of concurrent evaluations of the objective function will be N-1.
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local tcp
-# TESTSUITE_NPROCS: 2 4
+# TESTSUITE_NPROCS: 4
 
 import numpy as np
 

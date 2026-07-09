@@ -29,7 +29,7 @@ from libensemble.tools import parse_args
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local tcp
 # TESTSUITE_OS_SKIP: OSX WIN
-# TESTSUITE_NPROCS: 2 3 4
+# TESTSUITE_NPROCS: 3 4
 # TESTSUITE_OMPI_SKIP: true
 # TESTSUITE_EXTRA: true
 

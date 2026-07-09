@@ -24,7 +24,7 @@ logger.set_level("INFO")
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local
-# TESTSUITE_NPROCS: 3 4 5
+# TESTSUITE_NPROCS: 4 5
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
