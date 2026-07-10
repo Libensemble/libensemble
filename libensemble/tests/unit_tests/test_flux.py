@@ -17,6 +17,7 @@ from unittest import mock
 import pytest
 
 from libensemble.executors import flux_executor
+from libensemble.executors.executor import TimeoutExpired
 from libensemble.executors.mpi_runner import FLUX_MPIRunner, MPIRunner
 from libensemble.resources.env_resources import EnvResources
 from libensemble.resources.platforms import FluxAllocation, Known_platforms
@@ -447,6 +448,247 @@ def test_flux_executor_submit_builds_jobspec_with_environment_and_gpus():
     assert kwargs["environment"]["LIBENSEMBLE_SIM_DIR"] == "."
     jobspec.setattr_shell_option.assert_called_once_with("gpu-affinity", "per-task")
     assert task.flux_jobid == 42
+
+
+def test_flux_executor_init_connects_with_flux_uri():
+    """Test FluxExecutor initializes when Flux bindings and FLUX_URI are available."""
+    fake_flux_module = SimpleNamespace(Flux=mock.Mock(return_value="flux-handle"))
+
+    with (
+        mock.patch.object(flux_executor, "FLUX_AVAILABLE", True),
+        mock.patch.object(flux_executor, "flux", fake_flux_module),
+        mock.patch.dict(os.environ, {"FLUX_URI": "local:///tmp/flux-test"}, clear=False),
+    ):
+        executor = flux_executor.FluxExecutor()
+
+    fake_flux_module.Flux.assert_called_once_with()
+    assert executor.flux_handle == "flux-handle"
+    assert executor.resources is None
+    assert executor.platform_info == {}
+
+
+def test_flux_executor_wait_on_start_polls_until_running():
+    """Test FluxExecutor waits for a FluxTask to leave the startup states."""
+    executor = object.__new__(flux_executor.FluxExecutor)
+    task = SimpleNamespace(
+        name="flux-task",
+        state="CREATED",
+        finished=False,
+        timer=SimpleNamespace(tstart=None, start=mock.Mock(side_effect=lambda: setattr(task.timer, "tstart", 1.23))),
+        submit_time=None,
+    )
+
+    def poll_side_effect():
+        task.state = "RUNNING"
+
+    task.poll = mock.Mock(side_effect=poll_side_effect)
+
+    with mock.patch.object(flux_executor.time, "sleep"):
+        executor._wait_on_start(task, timeout=0.5)
+
+    assert task.poll.call_count == 1
+    assert task.state == "RUNNING"
+    assert task.timer.start.call_count == 2
+    assert task.submit_time == 1.23
+
+
+def test_flux_task_poll_maps_completion_waiting_and_unknown_states():
+    """Test FluxTask poll maps Flux job states to libEnsemble states."""
+    task = flux_executor.FluxTask(
+        app=SimpleNamespace(name="app"),
+        app_args=None,
+        workdir=os.getcwd(),
+        stdout="out.txt",
+        stderr="err.txt",
+        workerid=1,
+        dry_run=False,
+    )
+    task.flux_handle = object()
+    task.flux_jobid = 123
+    task.timer.start()
+    task.submit_time = task.timer.tstart
+    fake_flux = SimpleNamespace(job=SimpleNamespace(get_job=mock.Mock()))
+
+    with mock.patch.object(flux_executor, "flux", fake_flux):
+        fake_flux.job.get_job.return_value = {"state": "SCHED"}
+        task.poll()
+        assert task.state == "WAITING"
+        assert not task.finished
+
+        with mock.patch.object(task, "_handle_completion") as mock_handle_completion:
+            fake_flux.job.get_job.return_value = {"state": "INACTIVE"}
+            task.poll()
+        mock_handle_completion.assert_called_once_with({"state": "INACTIVE"})
+
+        fake_flux.job.get_job.return_value = {"state": "MYSTERY"}
+        task.finished = False
+        task.poll()
+
+    assert task.state == "UNKNOWN"
+
+
+def test_flux_task_handle_completion_success_and_failure():
+    """Test FluxTask completion handling sets success, state, and errcode."""
+    success_task = flux_executor.FluxTask(
+        app=SimpleNamespace(name="app"),
+        app_args=None,
+        workdir=os.getcwd(),
+        stdout="out.txt",
+        stderr="err.txt",
+        workerid=1,
+        dry_run=False,
+    )
+    success_task.timer.start()
+    success_task.submit_time = success_task.timer.tstart
+    success_task._handle_completion({"state": "INACTIVE", "result": "COMPLETED", "returncode": 0})
+    assert success_task.finished is True
+    assert success_task.success is True
+    assert success_task.state == "FINISHED"
+    assert success_task.errcode == 0
+
+    failed_task = flux_executor.FluxTask(
+        app=SimpleNamespace(name="app"),
+        app_args=None,
+        workdir=os.getcwd(),
+        stdout="out.txt",
+        stderr="err.txt",
+        workerid=1,
+        dry_run=False,
+    )
+    failed_task.timer.start()
+    failed_task.submit_time = failed_task.timer.tstart
+    failed_task._handle_completion({"state": "INACTIVE", "result": "FAILED", "returncode": 7})
+    assert failed_task.finished is True
+    assert failed_task.success is False
+    assert failed_task.state == "FAILED"
+    assert failed_task.errcode == 7
+
+
+def test_flux_task_set_complete_handles_dry_run_and_return_codes():
+    """Test FluxTask _set_complete for dry-run and non-dry-run tasks."""
+    dry_run_task = flux_executor.FluxTask(
+        app=SimpleNamespace(name="app"),
+        app_args=None,
+        workdir=os.getcwd(),
+        stdout="out.txt",
+        stderr="err.txt",
+        workerid=1,
+        dry_run=True,
+    )
+    dry_run_task._set_complete()
+    assert dry_run_task.finished is True
+    assert dry_run_task.success is True
+    assert dry_run_task.state == "FINISHED"
+
+    finished_task = flux_executor.FluxTask(
+        app=SimpleNamespace(name="app"),
+        app_args=None,
+        workdir=os.getcwd(),
+        stdout="out.txt",
+        stderr="err.txt",
+        workerid=1,
+        dry_run=False,
+    )
+    finished_task.errcode = 3
+    finished_task.timer.start()
+    finished_task.submit_time = finished_task.timer.tstart
+    finished_task._set_complete()
+    assert finished_task.finished is True
+    assert finished_task.success is False
+    assert finished_task.state == "FAILED"
+
+
+def test_flux_task_wait_completes_and_times_out():
+    """Test FluxTask wait completes after polling and raises on timeout."""
+    task = flux_executor.FluxTask(
+        app=SimpleNamespace(name="app"),
+        app_args=None,
+        workdir=os.getcwd(),
+        stdout="out.txt",
+        stderr="err.txt",
+        workerid=1,
+        dry_run=False,
+    )
+    task.flux_handle = object()
+    task.flux_jobid = 123
+
+    def complete_on_second_poll():
+        complete_on_second_poll.calls += 1
+        if complete_on_second_poll.calls == 1:
+            task.state = "RUNNING"
+        else:
+            task.finished = True
+            task.state = "FINISHED"
+
+    complete_on_second_poll.calls = 0
+    task.poll = mock.Mock(side_effect=complete_on_second_poll)
+
+    with mock.patch.object(flux_executor.time, "sleep"):
+        task.wait(timeout=1.0)
+
+    assert task.finished is True
+    assert task.state == "FINISHED"
+    assert task.poll.call_count == 2
+
+    timeout_task = flux_executor.FluxTask(
+        app=SimpleNamespace(name="app"),
+        app_args=None,
+        workdir=os.getcwd(),
+        stdout="out.txt",
+        stderr="err.txt",
+        workerid=1,
+        dry_run=False,
+    )
+    timeout_task.flux_handle = object()
+    timeout_task.flux_jobid = 456
+    timeout_task.poll = mock.Mock(side_effect=lambda: setattr(timeout_task, "state", "RUNNING"))
+
+    with (
+        mock.patch.object(flux_executor.time, "sleep"),
+        mock.patch.object(flux_executor.time, "time", side_effect=[0.0, 0.2]),
+    ):
+        with pytest.raises(TimeoutExpired):
+            timeout_task.wait(timeout=0.1)
+
+
+def test_flux_task_kill_cancels_and_marks_user_killed():
+    """Test FluxTask kill cancels the job and marks the task as user-killed."""
+    task = flux_executor.FluxTask(
+        app=SimpleNamespace(name="app"),
+        app_args=None,
+        workdir=os.getcwd(),
+        stdout="out.txt",
+        stderr="err.txt",
+        workerid=1,
+        dry_run=False,
+    )
+    task.flux_handle = object()
+    task.flux_jobid = 789
+    task.timer.start()
+    task.submit_time = task.timer.tstart
+
+    def poll_side_effect():
+        if poll_side_effect.calls == 0:
+            task.state = "RUNNING"
+        else:
+            task.finished = True
+            task.state = "FAILED"
+        poll_side_effect.calls += 1
+
+    poll_side_effect.calls = 0
+    task.poll = mock.Mock(side_effect=poll_side_effect)
+    fake_flux = SimpleNamespace(job=SimpleNamespace(cancel=mock.Mock()))
+
+    with (
+        mock.patch.object(flux_executor, "flux", fake_flux),
+        mock.patch.object(flux_executor.time, "sleep"),
+        mock.patch.object(flux_executor.time, "time", side_effect=[0.0, 0.0, 0.2]),
+    ):
+        task.kill(wait_time=1)
+
+    fake_flux.job.cancel.assert_called_once_with(task.flux_handle, task.flux_jobid)
+    assert task.state == "USER_KILLED"
+    assert task.finished is True
 
 
 # ========================================================================================
