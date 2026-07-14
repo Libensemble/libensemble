@@ -402,9 +402,9 @@ class Ensemble:
                 sampling.run(sim_max=30)
                 sampling.run(sim_max=40)
 
-            When ``sim_max`` is used (from kwargs or ``exit_criteria``),
-            ``libE_specs.final_gen_send`` and ``libE_specs.reuse_output_dir`` are
-            automatically set to ``True`` to support persistent generators across runs.
+            From the second call onward, ``libE_specs.final_gen_send`` and
+            ``libE_specs.reuse_output_dir`` are automatically set to ``True``
+            to support persistent generators across substep runs.
 
         Returns
         -------
@@ -450,11 +450,13 @@ class Ensemble:
         }
         if run_kwargs:
             effective_exit = self._exit_criteria.model_copy(update=run_kwargs)
-            self._has_run_n_evals = True
         else:
             effective_exit = self._exit_criteria
 
-        if sim_max is not None or getattr(self._exit_criteria, "sim_max", None) is not None:
+        # Only activate final_gen_send/reuse_output_dir for substep (multi-call) runs,
+        # i.e. when a prior run() call has already occurred. A single-call run never
+        # needs to chain history back to a persistent generator at shutdown.
+        if self._has_run_n_evals:
             self._libE_specs.final_gen_send = True
             self._libE_specs.reuse_output_dir = True
 
@@ -470,6 +472,7 @@ class Ensemble:
 
         # Chain history for next call
         self.H0 = self.H
+        self._has_run_n_evals = True
 
         return self.H, self.persis_info, self.flag
 

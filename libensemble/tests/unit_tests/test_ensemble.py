@@ -385,7 +385,7 @@ def test_exit_criteria_deprecation_setter():
 
 
 def test_run_auto_settings():
-    """run(sim_max=...) should auto-set final_gen_send and reuse_output_dir."""
+    """final_gen_send and reuse_output_dir should only be set from the second run() call onward."""
     from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
     from libensemble.ensemble import Ensemble
     from libensemble.gen_funcs.sampling import latin_hypercube_sample
@@ -404,6 +404,10 @@ def test_run_auto_settings():
         ),
         alloc_specs=AllocSpecs(alloc_f=give_sim_work_first),
     )
+    # First run: final_gen_send must NOT be set (this is not a substep run)
+    ens.run(sim_max=10)
+    assert not ens.libE_specs.final_gen_send, "final_gen_send should not be set on the first run()"
+    # Second run: now in substep mode, final_gen_send should be activated
     ens.run(sim_max=10)
     assert ens.libE_specs.final_gen_send is True
     assert ens.libE_specs.reuse_output_dir is True
