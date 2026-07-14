@@ -40,7 +40,7 @@ from libensemble.gen_funcs.persistent_surmise_calib import surmise_calib as gen_
 # Import libEnsemble items for this test
 from libensemble.sim_funcs.surmise_test_function import borehole as sim_f
 from libensemble.sim_funcs.surmise_test_function import tstd2theta
-from libensemble.specs import ExitCriteria, GenSpecs, SimSpecs
+from libensemble.specs import GenSpecs, SimSpecs
 from libensemble.tools import parse_args
 
 
@@ -98,11 +98,10 @@ def run_surmise_calib():
             async_return=True,
             active_recv_gen=True,
         ),
-        exit_criteria=ExitCriteria(sim_max=max_evals),
     )
 
     # Perform the run
-    H, _, _ = test.run()
+    H, _, _ = test.run(sim_max=max_evals)
 
     if test.is_manager:
         print("Cancelled sims", H["sim_id"][H["cancel_requested"]])

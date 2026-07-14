@@ -20,7 +20,7 @@ from libensemble.gen_funcs.persistent_sampling import persistent_uniform
 
 # Import libEnsemble items for this test
 from libensemble.sim_funcs.simple_sim import norm_eval as sim_f
-from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
+from libensemble.specs import GenSpecs, LibeSpecs, SimSpecs
 
 if __name__ == "__main__":
     sampling = Ensemble(parse_args=True)
@@ -37,9 +37,7 @@ if __name__ == "__main__":
         },
     )
 
-    sampling.exit_criteria = ExitCriteria(sim_max=500)
-
-    sampling.run()
+    sampling.run(sim_max=500)
     if sampling.is_manager:
         assert len(sampling.H) >= 500
         print("\nlibEnsemble with random sampling has generated enough points")

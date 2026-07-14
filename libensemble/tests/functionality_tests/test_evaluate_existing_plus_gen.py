@@ -21,7 +21,7 @@ from libensemble import Ensemble
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 from libensemble.gen_funcs.sampling import latin_hypercube_sample as gen_f
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel as sim_f
-from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, SimSpecs
+from libensemble.specs import AllocSpecs, GenSpecs, SimSpecs
 
 
 def create_H0(gen_specs, H0_size):
@@ -55,14 +55,14 @@ if __name__ == "__main__":
         },
     }
     sampling.gen_specs = GenSpecs(**gen_specs)
-    sampling.exit_criteria = ExitCriteria(sim_max=100)
-    sampling.H0 = create_H0(gen_specs, 50)
+    H0 = create_H0(gen_specs, 50)
+    sampling.H0 = H0
     sampling.alloc_specs = AllocSpecs(alloc_f=give_sim_work_first)
-    sampling.run()
+    sampling.run(sim_max=100)
 
     if sampling.is_manager:
-        assert len(sampling.H) == 2 * len(sampling.H0)
-        assert np.array_equal(sampling.H0["x"][:50], sampling.H["x"][:50])
+        assert len(sampling.H) == 2 * len(H0)
+        assert np.array_equal(H0["x"][:50], sampling.H["x"][:50])
         assert np.all(sampling.H["sim_ended"])
         assert np.all(sampling.H["gen_worker"] == 0)
         print("\nlibEnsemble correctly appended to the initial sample via an additional gen.")

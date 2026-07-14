@@ -9,7 +9,7 @@ Typical usage::
     import numpy as np
     from libensemble import Ensemble
     from libensemble.gen_classes.preloaded import PreloadedSampleGenerator
-    from libensemble.specs import ExitCriteria, GenSpecs, SimSpecs
+    from libensemble.specs import GenSpecs, SimSpecs
 
     H0 = np.zeros(500, dtype=[("x", float, 8), ("sim_id", int)])
     H0["x"] = my_existing_points
@@ -18,8 +18,7 @@ Typical usage::
     sampling = Ensemble(parse_args=True)
     sampling.gen_specs = GenSpecs(generator=PreloadedSampleGenerator(H0))
     sampling.sim_specs = SimSpecs(sim_f=my_sim, inputs=["x"], out=[("f", float)])
-    sampling.exit_criteria = ExitCriteria(sim_max=len(H0))
-    sampling.run()
+    sampling.run(sim_max=len(H0))
 
 This replaces the legacy ``give_pregenerated_work`` allocator pattern, which
 required a custom ``AllocSpecs`` and bypassed the generator entirely.  With
@@ -84,7 +83,7 @@ class PreloadedSampleGenerator(Generator):
         from libensemble import Ensemble
         from libensemble.gen_classes.preloaded import PreloadedSampleGenerator
         from libensemble.sim_funcs.borehole import borehole as sim_f, gen_borehole_input
-        from libensemble.specs import ExitCriteria, GenSpecs, SimSpecs
+        from libensemble.specs import GenSpecs, SimSpecs
 
         n_samp = 1000
         pts = np.zeros(n_samp, dtype=[("x", float, 8)])
@@ -93,8 +92,7 @@ class PreloadedSampleGenerator(Generator):
         sampling = Ensemble(parse_args=True)
         sampling.gen_specs = GenSpecs(generator=PreloadedSampleGenerator(pts))
         sampling.sim_specs = SimSpecs(sim_f=sim_f, inputs=["x"], out=[("f", float)])
-        sampling.exit_criteria = ExitCriteria(sim_max=n_samp)
-        sampling.run()
+        sampling.run(sim_max=n_samp)
     """
 
     def __init__(

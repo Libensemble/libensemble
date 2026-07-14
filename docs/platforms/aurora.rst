@@ -56,8 +56,8 @@ simulations for each worker:
 
 .. code-block:: python
 
-    # Instruct libEnsemble to exit after this many simulations
-    ensemble.exit_criteria = ExitCriteria(sim_max=nsim_workers * 2)
+    # Run ensemble; exit after this many simulations
+    ensemble.run(sim_max=nsim_workers * 2)
 
 Now grab an interactive session on two nodes (or use the batch script at
 ``../submission_scripts/submit_pbs_aurora.sh``)::

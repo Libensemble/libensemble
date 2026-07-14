@@ -24,7 +24,7 @@ from gest_api.vocs import VOCS
 from optimas.generators import GridSamplingGenerator
 
 from libensemble import Ensemble
-from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
+from libensemble.specs import GenSpecs, LibeSpecs, SimSpecs
 
 
 def eval_func(input_params: dict):
@@ -72,16 +72,13 @@ if __name__ == "__main__":
         vocs=vocs,
     )
 
-    exit_criteria = ExitCriteria(sim_max=n_evals)
-
     workflow = Ensemble(
         libE_specs=libE_specs,
         sim_specs=sim_specs,
         gen_specs=gen_specs,
-        exit_criteria=exit_criteria,
     )
 
-    H, _, _ = workflow.run()
+    H, _, _ = workflow.run(sim_max=n_evals)
 
     # Perform the run
     if workflow.is_manager:

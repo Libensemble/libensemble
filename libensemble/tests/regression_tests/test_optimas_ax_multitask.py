@@ -31,7 +31,7 @@ from optimas.core import Task
 from optimas.generators import AxMultitaskGenerator
 
 from libensemble import Ensemble
-from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
+from libensemble.specs import GenSpecs, LibeSpecs, SimSpecs
 
 
 def eval_func_multitask(input_params):
@@ -72,8 +72,6 @@ if __name__ == "__main__":
         vocs=vocs,
     )
 
-    exit_criteria = ExitCriteria(sim_max=15)
-
     H0 = None  # or np.load("multitask_first_pass.npy")
     for run_num in range(2):
         print(f"\nRun number: {run_num}")
@@ -91,11 +89,10 @@ if __name__ == "__main__":
             libE_specs=libE_specs,
             sim_specs=sim_specs,
             gen_specs=gen_specs,
-            exit_criteria=exit_criteria,
             H0=H0,
         )
 
-        H, _, _ = workflow.run()
+        H, _, _ = workflow.run(sim_max=15)
 
         if run_num == 0:
             H0 = H
