@@ -50,7 +50,15 @@ def project(X):
 # Wrapper function for compatibility with existing code
 def problem(X, ps, gen_specs):
     """
-    Wrapper to convert tensor input to numpy and send to libE for evaluation.
+    Send a batch of points to libE for evaluation and collect the results.
+
+    Results are gathered with a ``recv`` loop rather than a single ``send_recv``
+    so this works in both batch return mode (``async_return`` off, where the
+    whole batch arrives in one message) and asynchronous return mode
+    (``async_return`` on with ``active_recv_gen``, where results stream back one
+    or a few at a time, possibly out of order). The evaluated points are
+    reconstructed from the returned rows so the (x, fidelity) -> f pairing stays
+    correct regardless of the order results arrive in.
 
     Args:
         X: tensor of shape (n, 3) where columns are [x0, x1, fidelity]
@@ -58,23 +66,39 @@ def problem(X, ps, gen_specs):
         gen_specs: Generator specifications
 
     Returns:
-        tensor of shape (n,) with objective values
+        (new_x, new_obj, tag): tensor of the evaluated points (shape (m, 3)),
+        tensor of their objective values (shape (m, 1)), and the last message
+        tag. new_x/new_obj are None if no results were received (e.g. on stop).
     """
-    # Send points to be evaluated
+    # Send points to be evaluated.
     X_np = X.cpu().numpy()
     H_o = np.zeros(len(X), dtype=gen_specs["out"])
     H_o["x"] = X_np[:, :2]
     H_o["fidelity"] = X_np[:, 2]
+    ps.send(H_o)
 
-    tag, Work, calc_in = ps.send_recv(H_o)
+    # Collect results until the whole batch is back (or we are told to stop).
+    n_expected = len(X)
+    xs = []
+    objs = []
+    tag = None
+    while len(objs) < n_expected:
+        tag, Work, calc_in = ps.recv()
+        if tag in [STOP_TAG, PERSIS_STOP]:
+            break
+        if calc_in is None or len(calc_in) == 0:
+            continue
+        for row in calc_in:
+            xs.append(np.append(row["x"], row["fidelity"]))
+            objs.append(float(row["f"]))
 
-    # Convert results back to tensor
-    if calc_in is None or len(calc_in) == 0:
-        return None, tag
+    if len(objs) == 0:
+        return None, None, tag
 
-    train_obj = torch.tensor(calc_in["f"], **tkwargs).unsqueeze(-1)
+    new_x = torch.tensor(np.array(xs), **tkwargs)
+    new_obj = torch.tensor(np.array(objs), **tkwargs).unsqueeze(-1)
 
-    return train_obj, tag
+    return new_x, new_obj, tag
 
 
 # Function to generate training data
@@ -85,8 +109,10 @@ def generate_initial_data(n, ps, gen_specs, bounds):  # Jeff: Initial sample siz
     train_x_full_lf = torch.cat((train_x, train_lf), dim=1)
     train_x_full_hf = torch.cat((train_x, train_hf), dim=1)
     train_x_full = torch.cat((train_x_full_lf, train_x_full_hf), dim=0)
-    train_obj, tag = problem(train_x_full, ps, gen_specs)
-    return train_x_full, train_obj, tag
+    # problem returns the evaluated points (reconstructed from the results) so
+    # that x and objective stay paired even when results arrive out of order.
+    new_x, train_obj, tag = problem(train_x_full, ps, gen_specs)
+    return new_x, train_obj, tag
 
 
 # Function to initialize a botorch model
@@ -137,10 +163,10 @@ def optimize_mfkg_and_get_observation(mfkg_acqf, q, ps, gen_specs, bounds):
         options={"batch_limit": 10, "maxiter": 10},  # Jeff: I decreased this to make libE development faster
     )
 
-    # Observe new values
+    # Observe new values. problem returns the actually-evaluated points paired
+    # with their objectives (order-independent), which we use for training.
     cost = cost_model(candidates).sum()
-    new_x = candidates.detach()
-    new_obj, tag = problem(new_x, ps, gen_specs)
+    new_x, new_obj, tag = problem(candidates.detach(), ps, gen_specs)
     return new_x, new_obj, cost, tag
 
 
@@ -169,7 +195,7 @@ def persistent_botorch_mfkg(H, persis_info, gen_specs, libE_info):
     # Extract user parameters
     ub = np.asarray(gen_specs["user"]["ub"], dtype=float)
     lb = np.asarray(gen_specs["user"]["lb"], dtype=float)
-    bounds = torch.tensor([np.append(lb, 0.0), np.append(ub, 1.0)], **tkwargs)
+    bounds = torch.tensor(np.array([np.append(lb, 0.0), np.append(ub, 1.0)]), **tkwargs)
 
     n_init_samples = gen_specs["user"]["n_init_samples"]
     q = gen_specs["user"]["q"]
