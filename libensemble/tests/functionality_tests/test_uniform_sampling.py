@@ -18,6 +18,7 @@ import datetime
 import os
 
 import numpy as np
+from gest_api.vocs import VOCS
 
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 from libensemble.gen_funcs.sampling import uniform_random_sample
@@ -45,14 +46,13 @@ if __name__ == "__main__":
     }
     # end_sim_specs_rst_tag
 
+    vocs = VOCS(variables={"x0": [-3, 3], "x1": [-2, 2]}, objectives={"f": "EXPLORE"})
+
     gen_specs = {
         "gen_f": uniform_random_sample,  # Function generating sim_f input
         "out": [("x", float, (2,))],  # Tell libE gen_f output, type, size
         "batch_size": 500,
-        "user": {
-            "lb": np.array([-3, -2]),  # Used by this specific gen_f
-            "ub": np.array([3, 2]),  # Used by this specific gen_f
-        },
+        "vocs": vocs,
     }
     # end_gen_specs_rst_tag
 
@@ -70,7 +70,13 @@ if __name__ == "__main__":
             sim_specs["user"] = {"history_file": hfile}
 
         # Perform the run
-        H, _, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs, libE_specs=libE_specs)
+        H, _, flag = libE(
+            sim_specs,
+            gen_specs,
+            exit_criteria,
+            alloc_specs=alloc_specs,
+            libE_specs=libE_specs,
+        )
 
         if is_manager:
             assert flag == 0

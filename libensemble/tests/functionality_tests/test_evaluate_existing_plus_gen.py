@@ -15,6 +15,7 @@ The number of concurrent evaluations of the objective function will be 4-1=3.
 # TESTSUITE_NPROCS: 4
 
 import numpy as np
+from gest_api.vocs import VOCS
 
 # Import libEnsemble items for this test
 from libensemble import Ensemble
@@ -24,11 +25,8 @@ from libensemble.sim_funcs.six_hump_camel import six_hump_camel as sim_f
 from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, SimSpecs
 
 
-def create_H0(gen_specs, H0_size):
+def create_H0(lb, ub, H0_size):
     """Create an H0 for give_pregenerated_sim_work"""
-    # Manually creating H0
-    ub = gen_specs["user"]["ub"]
-    lb = gen_specs["user"]["lb"]
     n = len(lb)
     b = H0_size
 
@@ -41,22 +39,22 @@ def create_H0(gen_specs, H0_size):
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
-
     sampling = Ensemble(parse_args=True)
     sampling.sim_specs = SimSpecs(sim_f=sim_f, inputs=["x"], out=[("f", float)])
 
-    gen_specs = {
-        "gen_f": gen_f,
-        "outputs": [("x", float, (2,))],
-        "batch_size": 50,
-        "user": {
-            "lb": np.array([-3, -3]),
-            "ub": np.array([3, 3]),
-        },
-    }
-    sampling.gen_specs = GenSpecs(**gen_specs)
+    vocs = VOCS(variables={"x0": [-3, 3], "x1": [-3, 3]}, objectives={"f": "EXPLORE"})
+    lb = np.array([-3, -3])
+    ub = np.array([3, 3])
+
+    sampling.gen_specs = GenSpecs(
+        gen_f=gen_f,
+        persis_in=["f"],
+        outputs=[("x", float, (2,))],
+        batch_size=50,
+        vocs=vocs,
+    )
     sampling.exit_criteria = ExitCriteria(sim_max=100)
-    sampling.H0 = create_H0(gen_specs, 50)
+    sampling.H0 = create_H0(lb, ub, 50)
     sampling.alloc_specs = AllocSpecs(alloc_f=give_sim_work_first)
     sampling.run()
 

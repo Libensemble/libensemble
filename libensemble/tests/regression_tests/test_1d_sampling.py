@@ -13,7 +13,7 @@ The number of concurrent evaluations of the objective function will be 4-1=3.
 # TESTSUITE_COMMS: mpi local threads tcp
 # TESTSUITE_NPROCS: 4
 
-import numpy as np
+from gest_api.vocs import VOCS
 
 from libensemble import Ensemble
 from libensemble.gen_funcs.persistent_sampling import persistent_uniform
@@ -26,15 +26,14 @@ if __name__ == "__main__":
     sampling = Ensemble(parse_args=True)
     sampling.libE_specs = LibeSpecs(save_every_k_gens=300, safe_mode=False, disable_log_files=True)
     sampling.sim_specs = SimSpecs(sim_f=sim_f, inputs=["x"], outputs=[("f", float)])
+    vocs = VOCS(variables={"x0": [-3, 3]}, objectives={"f": "EXPLORE"})
+
     sampling.gen_specs = GenSpecs(
         gen_f=persistent_uniform,
         persis_in=["f"],
         outputs=[("x", float, (1,))],
         initial_batch_size=100,
-        user={
-            "lb": np.array([-3]),
-            "ub": np.array([3]),
-        },
+        vocs=vocs,
     )
 
     sampling.exit_criteria = ExitCriteria(sim_max=500)

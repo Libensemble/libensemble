@@ -14,6 +14,7 @@ The number of concurrent evaluations of the objective function will be 4-1=3.
 # TESTSUITE_NPROCS: 4
 
 import numpy as np
+from gest_api.vocs import VOCS
 
 from libensemble import Ensemble
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
@@ -28,14 +29,13 @@ if __name__ == "__main__":
     sampling = Ensemble(parse_args=True)
     sampling.libE_specs = LibeSpecs(save_every_k_sims=100)
     sampling.sim_specs = SimSpecs(sim_f=sim_f, inputs=["x"], outputs=[("f", float)])
+    vocs = VOCS(variables={"x0": [-3, 3], "x1": [-2, 2]}, objectives={"f": "EXPLORE"})
+
     sampling.gen_specs = GenSpecs(
         gen_f=gen_f,
         outputs=[("x", float, 2)],
         batch_size=100,
-        user={
-            "lb": np.array([-3, -2]),
-            "ub": np.array([3, 2]),
-        },
+        vocs=vocs,
     )
 
     sampling.alloc_specs = AllocSpecs(alloc_f=give_sim_work_first)

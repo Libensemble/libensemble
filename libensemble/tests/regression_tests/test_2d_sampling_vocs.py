@@ -33,7 +33,7 @@ if __name__ == "__main__":
 
     vocs = VOCS(
         variables={"x0": [-3.0, 3.0], "x1": [-2.0, 2.0]},
-        objectives={"f": "MINIMIZE"},
+        objectives={"f": "EXPLORE"},
     )
     generator = LatinHypercubeSample(vocs, random_seed=1)
 

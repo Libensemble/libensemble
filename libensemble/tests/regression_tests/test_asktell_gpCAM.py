@@ -56,10 +56,6 @@ if __name__ == "__main__":
         "persis_in": ["x", "f", "sim_id"],
         "out": [("x", float, (n,))],
         "batch_size": batch_size,
-        "user": {
-            "lb": np.array([-3, -2, -1, -1]),
-            "ub": np.array([3, 2, 1, 1]),
-        },
     }
 
     vocs = VOCS(variables={"x0": [-3, 3], "x1": [-2, 2], "x2": [-1, 1], "x3": [-1, 1]}, objectives={"f": "MINIMIZE"})
