@@ -84,6 +84,10 @@ def build_simfuncs():
         app_name = ".".join([sim.split(".")[0], "x"])
         if not os.path.isfile(app_name):
             buildstring = "mpicc -o " + os.path.join("simdir", app_name) + " " + os.path.join("simdir", sim)
+            if sys.platform == "darwin":
+                buildstring = (
+                    "mpicc -cc=clang -o " + os.path.join("simdir", app_name) + " " + os.path.join("simdir", sim)
+                )
             subprocess.check_call(buildstring.split())
 
 

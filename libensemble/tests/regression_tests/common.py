@@ -5,6 +5,7 @@ Common plumbing for regression tests
 import glob
 import os
 import os.path
+import sys
 import time
 
 
@@ -72,6 +73,8 @@ def build_simfunc():
     # Build simfunc
     # buildstring='mpif90 -o my_simtask.x my_simtask.f90' # On cray need to use ftn
     buildstring = "mpicc -o my_simtask.x ../unit_tests/simdir/my_simtask.c"
+    if sys.platform == "darwin":
+        buildstring = "mpicc -cc=clang -o my_simtask.x ../unit_tests/simdir/my_simtask.c"
     # subprocess.run(buildstring.split(),check=True) #Python3.5+
     subprocess.check_call(buildstring.split())
 
