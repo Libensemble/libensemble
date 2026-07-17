@@ -8,7 +8,7 @@ authors = [
   { name = "John-Luke Navarro" },
 ]
 
-dependencies = ["numpy", "psutil", "pydantic", "gest-api>=0.1,<0.2"]
+dependencies = ["numpy", "psutil", "pydantic", "gest-api"]
 
 description = "A Python toolkit for coordinating asynchronous and dynamic ensembles of calculations."
 name = "libensemble"
