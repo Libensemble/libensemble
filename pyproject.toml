@@ -14,7 +14,7 @@ dependencies = [
   "pyyaml",
   "tomli",
   "pydantic",
-  "gest-api>=0.1,<0.2",
+  "gest-api",
 ]
 
 description = "A Python toolkit for coordinating asynchronous and dynamic ensembles of calculations."
