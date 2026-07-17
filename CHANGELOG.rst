@@ -8,6 +8,24 @@ GitHub issues are referenced, and can be viewed with hyperlinks on the `github r
 
 .. _`github releases page`: https://github.com/Libensemble/libensemble/releases
 
+Release 1.6.1
+--------------
+
+:Date: July 17, 2026
+
+Dependencies:
+
+* ``gest-api`` dependency upper-bound removed.
+
+:Note:
+
+* Tests were run on Linux and MacOS with Python versions 3.10, 3.11, 3.12, 3.13, 3.14
+
+:Known Issues:
+
+* See known issues section in the documentation.
+
+
 Release 1.6.0
 --------------
 
@@ -26,15 +44,15 @@ General Updates:
 Examples:
 
 * Adding test for ibcdfo with jax. #1591
-* Optimas/Xopt examples. #1620 / #1635 
+* Optimas/Xopt examples. #1620 / #1635
 * Bayesian Optimization with Xopt tutorial / notebook.
 * Tasmanian generators moved to community examples.
 
 Dependencies:
 
-* ``gest-api`` is now a required dependency. #1666 
+* ``gest-api`` is now a required dependency. #1666
 * Remove Pydantic v1 support and Balsam. #1573
-* Python 3.14 supported. #1609 
+* Python 3.14 supported. #1609
 
 
 :Note:
