@@ -17,7 +17,7 @@ language: Python
 
 release:
   version: 1.6.1
-  date: 2026-07-17
+  date: 2026-07-20
 
 documentation:
   general: https://libensemble.readthedocs.io

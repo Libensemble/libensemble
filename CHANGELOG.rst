@@ -11,7 +11,7 @@ GitHub issues are referenced, and can be viewed with hyperlinks on the `github r
 Release 1.6.1
 --------------
 
-:Date: July 17, 2026
+:Date: July 20, 2026
 
 Dependencies:
 
