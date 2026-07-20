@@ -12,7 +12,7 @@ automatically installed alongside libEnsemble:
 * `pydantic`_   ``>= 2``
 * pyyaml_       ``>= v6.0``
 * tomli_        ``>= 1.2.1``
-* gest-api_     ``>= 0.1,<0.2``
+* gest-api_     ``>= 0.1``
 
 We recommend installing in a virtual environment from ``uv``, ``conda`` or another source.
 

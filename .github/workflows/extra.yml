@@ -48,17 +48,16 @@ jobs:
         - name: Checkout lockfile
           run: git lfs checkout
 
-        - uses: prefix-dev/setup-pixi@v0.9.4
+        - uses: prefix-dev/setup-pixi@v0.10.0
           with:
-            pixi-version: v0.55.0
-            cache: true
+            pixi-version: v0.69.0
             frozen: true
             environments: ${{ matrix.python-version }}
             activate-environment: ${{ matrix.python-version }}
 
-        - name: Install other testing dependencies
+        - name: Install minq
           run: |
-            pixi run -e ${{ matrix.python-version }} install/install_ibcdfo.sh
+            pixi run -e ${{ matrix.python-version }} ./install/install_minq.sh
 
         - name: Install libEnsemble, flake8, lock environment
           run: |
