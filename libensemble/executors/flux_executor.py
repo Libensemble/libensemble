@@ -166,27 +166,19 @@ class FluxTask(Task):
         if not self._check_poll():
             return
 
-        try:
-            # Wait for job to complete
-            start_time = time.time()
-            while True:
-                self.poll()
-                if self.finished:
-                    break
+        # Wait for job to complete
+        start_time = time.time()
+        while True:
+            self.poll()
+            if self.finished:
+                break
 
-                if timeout is not None:
-                    elapsed = time.time() - start_time
-                    if elapsed >= timeout:
-                        raise TimeoutExpired(self.name, timeout)
+            if timeout is not None:
+                elapsed = time.time() - start_time
+                if elapsed >= timeout:
+                    raise TimeoutExpired(self.name, timeout)
 
-                time.sleep(0.1)
-
-        except TimeoutExpired:
-            raise
-        except Exception as e:
-            logger.warning(f"Error waiting for Flux job {self.flux_jobid}: {e}")
-            self.state = "FAILED"
-            self.finished = True
+            time.sleep(0.1)
 
     def kill(self, wait_time: int | None = 60) -> None:
         """Kills/cancels the Flux job.
@@ -203,10 +195,6 @@ class FluxTask(Task):
 
         if self.finished:
             logger.warning(f"Trying to kill task that is no longer running. Task {self.name}: Status is {self.state}")
-            return
-
-        if self.flux_jobid is None:
-            logger.warning(f"Task {self.name} has no Flux job ID - cannot kill")
             return
 
         logger.info(f"Canceling Flux job {self.flux_jobid} for task {self.name}")
@@ -286,14 +274,6 @@ class FluxExecutor(Executor):
 
         self.resources = None
         self.platform_info: dict = {}
-
-    def set_resources(self, resources) -> None:
-        """Set resources for the executor."""
-        self.resources = resources
-
-    def add_platform_info(self, platform_info: dict | None = None) -> None:
-        """Add platform info to the executor."""
-        self.platform_info = platform_info or {}
 
     def submit(
         self,
