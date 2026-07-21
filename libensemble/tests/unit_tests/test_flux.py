@@ -398,7 +398,6 @@ def test_flux_executor_submit_builds_jobspec_with_environment_and_gpus():
 
     executor = object.__new__(flux_executor.FluxExecutor)
     executor.flux_handle = object()
-    executor.resources = None
     executor.platform_info = {}
     executor.workerID = 7
     executor.list_of_tasks = []
@@ -463,7 +462,6 @@ def test_flux_executor_init_connects_with_flux_uri():
 
     fake_flux_module.Flux.assert_called_once_with()
     assert executor.flux_handle == "flux-handle"
-    assert executor.resources is None
     assert executor.platform_info == {}
 
 
@@ -597,6 +595,52 @@ def test_flux_task_set_complete_handles_dry_run_and_return_codes():
     assert finished_task.success is False
     assert finished_task.state == "FAILED"
 
+    # cover waiting on a task that completes before timeout
+    task = flux_executor.FluxTask(
+        app=SimpleNamespace(name="app"),
+        app_args=None,
+        workdir=os.getcwd(),
+        stdout="out.txt",
+        stderr="err.txt",
+        workerid=1,
+        dry_run=False,
+    )
+    task._set_complete()
+    task.flux_jobid = 123
+    task.wait(timeout=10)
+    task.kill()
+
+
+def test_flux_task_dry_run_exception_and_kill():
+    """Test FluxTask dry run exception attributes."""
+    task = flux_executor.FluxTask(
+        app=SimpleNamespace(name="app"),
+        app_args=None,
+        workdir=os.getcwd(),
+        stdout="out.txt",
+        stderr="err.txt",
+        workerid=1,
+        dry_run=True,
+    )
+    task.wait()
+    assert task.finished is True
+    assert task.success is True
+    assert task.state == "FINISHED"
+    task.kill()
+    task = flux_executor.FluxTask(
+        app=SimpleNamespace(name="app"),
+        app_args=None,
+        workdir=os.getcwd(),
+        stdout="out.txt",
+        stderr="err.txt",
+        workerid=1,
+        dry_run=True,
+    )
+    task.poll()
+    assert task.finished is True
+    assert task.success is True
+    assert task.state == "FINISHED"
+
 
 def test_flux_task_wait_completes_and_times_out():
     """Test FluxTask wait completes after polling and raises on timeout."""
@@ -716,6 +760,7 @@ if __name__ == "__main__":
     # Validator tests
     test_validator_accepts_flux()
     test_validator_accepts_all_runners()
+    test_validator_rejects_invalid()
 
     # Platform tests
     test_flux_allocation_platform()
@@ -723,5 +768,15 @@ if __name__ == "__main__":
 
     # EnvResources tests
     test_env_resources_flux_env_variable()
+
+    # Flux Executor tests
+    test_flux_executor_init_connects_with_flux_uri()
+    test_flux_executor_wait_on_start_polls_until_running()
+    test_flux_task_poll_maps_completion_waiting_and_unknown_states()
+    test_flux_task_handle_completion_success_and_failure()
+    test_flux_task_set_complete_handles_dry_run_and_return_codes()
+    test_flux_task_dry_run_exception_and_kill()
+    test_flux_task_wait_completes_and_times_out()
+    test_flux_task_kill_cancels_and_marks_user_killed()
 
     print("All standalone tests passed!")
