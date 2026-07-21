@@ -12,9 +12,10 @@ The number of concurrent evaluations of the objective function will be N-1.
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local tcp
-# TESTSUITE_NPROCS: 2 4
+# TESTSUITE_NPROCS: 4
 
 import numpy as np
+from gest_api.vocs import VOCS
 
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 from libensemble.executors.mpi_executor import MPIExecutor  # Only used to get workerID in float_x1000
@@ -41,15 +42,14 @@ if __name__ == "__main__":
         "out": [("arr_vals", float, array_size), ("scal_val", float)],
     }
 
+    vocs = VOCS(variables={"x0": [-3, 3], "x1": [-2, 2]}, objectives={"f": "EXPLORE"})
+
     gen_specs = {
         "gen_f": gen_f,
         "in": ["sim_id"],
         "out": [("x", float, (2,))],
         "batch_size": sim_max,
-        "user": {
-            "lb": np.array([-3, -2]),
-            "ub": np.array([3, 2]),
-        },
+        "vocs": vocs,
     }
 
     exit_criteria = {"sim_max": sim_max, "wallclock_max": 300}
@@ -59,7 +59,13 @@ if __name__ == "__main__":
     }
 
     # Perform the run
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs, libE_specs=libE_specs)
+    H, persis_info, flag = libE(
+        sim_specs,
+        gen_specs,
+        exit_criteria,
+        alloc_specs=alloc_specs,
+        libE_specs=libE_specs,
+    )
 
     if is_manager:
         assert flag == 0

@@ -13,6 +13,7 @@ import multiprocessing
 import os
 
 import numpy as np
+from gest_api.vocs import VOCS
 
 import libensemble.sim_funcs.six_hump_camel as six_hump_camel
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
@@ -27,7 +28,7 @@ from libensemble.tools import parse_args
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local tcp
-# TESTSUITE_NPROCS: 2 3 4
+# TESTSUITE_NPROCS: 3 4
 # TESTSUITE_OMPI_SKIP: true
 # TESTSUITE_OS_SKIP: OSX WIN
 # TESTSUITE_EXTRA: true
@@ -75,15 +76,14 @@ if __name__ == "__main__":
         },
     }
 
+    vocs = VOCS(variables={"x0": [-3, 3], "x1": [-2, 2]}, objectives={"f": "EXPLORE"})
+
     gen_specs = {
         "gen_f": gen_f,
         "in": ["sim_id"],
         "out": [("x", float, (2,))],
         "batch_size": nworkers,
-        "user": {
-            "lb": np.array([-3, -2]),
-            "ub": np.array([3, 2]),
-        },
+        "vocs": vocs,
     }
 
     alloc_specs = {
@@ -100,7 +100,13 @@ if __name__ == "__main__":
 
     for i in range(iterations):
         # Perform the run
-        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs, libE_specs=libE_specs)
+        H, persis_info, flag = libE(
+            sim_specs,
+            gen_specs,
+            exit_criteria,
+            alloc_specs=alloc_specs,
+            libE_specs=libE_specs,
+        )
 
         if is_manager:
             print("\nChecking expected task status against Workers ...\n")

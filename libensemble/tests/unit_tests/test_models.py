@@ -174,6 +174,38 @@ def test_vocs_to_gen_specs():
     assert gs2.persis_in == ["custom"] and gs2.outputs == [("custom_out", int)]
 
 
+class _VariableWithDomain:
+    def __init__(self, domain):
+        self.domain = domain
+
+
+class _VocsWithVariableDomains:
+    variables = {"x0": _VariableWithDomain([-3, 3]), "x1": _VariableWithDomain([-2, 2])}
+    constants = {}
+    objectives = {}
+    observables = {}
+    constraints = {}
+
+
+def test_gen_specs_sets_user_bounds_from_vocs_variable_domains():
+    """GenSpecs should populate user bounds from VOCS variable domain attributes."""
+
+    gs = GenSpecs(vocs=_VocsWithVariableDomains(), user=None)
+
+    assert np.array_equal(gs.user["lb"], np.array([-3.0, -2.0]))
+    assert np.array_equal(gs.user["ub"], np.array([3.0, 2.0]))
+
+
+def test_gen_specs_preserves_partial_user_bounds_from_vocs_variable_domains():
+    """GenSpecs should only fill missing bounds from VOCS variable domain attributes."""
+
+    explicit_lb = np.array([0.0, 0.0])
+    gs = GenSpecs(vocs=_VocsWithVariableDomains(), user={"lb": explicit_lb})
+
+    assert np.array_equal(gs.user["lb"], explicit_lb)
+    assert np.array_equal(gs.user["ub"], np.array([3.0, 2.0]))
+
+
 if __name__ == "__main__":
     test_sim_gen_alloc_exit_specs()
     test_sim_gen_alloc_exit_specs_invalid()
@@ -182,3 +214,5 @@ if __name__ == "__main__":
     test_ensemble_specs()
     test_vocs_to_sim_specs()
     test_vocs_to_gen_specs()
+    test_gen_specs_sets_user_bounds_from_vocs_variable_domains()
+    test_gen_specs_preserves_partial_user_bounds_from_vocs_variable_domains()

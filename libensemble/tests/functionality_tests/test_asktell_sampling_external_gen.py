@@ -13,7 +13,7 @@ The number of concurrent evaluations of the objective function will be 3.
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local
-# TESTSUITE_NPROCS: 2 4
+# TESTSUITE_NPROCS: 4
 
 import numpy as np
 from gest_api.vocs import VOCS

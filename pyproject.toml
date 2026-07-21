@@ -8,7 +8,7 @@ authors = [
   { name = "John-Luke Navarro" },
 ]
 
-dependencies = ["numpy", "psutil", "pydantic", "gest-api>=0.1,<0.2"]
+dependencies = ["numpy", "psutil", "pydantic", "gest-api"]
 
 description = "A Python toolkit for coordinating asynchronous and dynamic ensembles of calculations."
 name = "libensemble"
@@ -43,7 +43,7 @@ Issues = "https://github.com/Libensemble/libensemble/issues"
 
 [build-system]
 build-backend = "setuptools.build_meta"
-requires = ["setuptools", "wheel", "pip>=24.3.1,<27", "setuptools>=75.1.0,<83"]
+requires = ["setuptools", "wheel", "pip>=24.3.1,<27", "setuptools>=75.1.0,<84"]
 
 [tool.setuptools.packages.find]
 where = ["."]
@@ -121,6 +121,7 @@ petsc4py = "==3.24.2"
 pandas = "<3"
 numpy = "<2.4"
 proxystore = ">=0.7.1,<0.9"
+ax-platform = ">=1.2.4,<2"
 
 [tool.pixi.feature.docs.dependencies]
 sphinx = ">=8.2.3,<9"
@@ -166,16 +167,10 @@ python = "3.13.*"
 [tool.pixi.feature.py314.dependencies]
 python = "3.14.*"
 
-# ax-platform only works up to 3.13 on Linux
-
-[tool.pixi.feature.py311e.target.linux-64.dependencies]
-ax-platform = "==0.5.0"
-
 [tool.pixi.feature.py311e.dependencies]
 globus-compute-sdk = ">=4.10.2,<5"
 
 [tool.pixi.feature.py312e.target.linux-64.dependencies]
-ax-platform = "==0.5.0"
 flux-core = ">=0.81.0,<0.82"
 
 [tool.pixi.feature.py312e.target.linux-64.pypi-dependencies]
@@ -185,7 +180,6 @@ flux-python = ">=0.81.0, <0.82"
 globus-compute-sdk = ">=4.10.2,<5"
 
 [tool.pixi.feature.py313e.target.linux-64.dependencies]
-ax-platform = "==0.5.0"
 flux-core = ">=0.81.0,<0.82"
 
 [tool.pixi.feature.py313e.target.linux-64.pypi-dependencies]
@@ -219,7 +213,7 @@ extra = [
   "enchant>=0.0.1,<0.0.2",
   "redis>=7.1.0,<9",
   "surmise>=0.3.0,<0.4",
-  "optimas @ git+https://github.com/optimas-org/optimas@multitask_uses_id",
+  "optimas @ git+https://github.com/optimas-org/optimas",
 ]
 dev = ["wat>=0.7.0,<0.8"]
 docs = ["pyenchant", "enchant>=0.0.1,<0.0.2", "sphinx-lfs-content>=1.1.10,<2"]
