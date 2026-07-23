@@ -19,7 +19,13 @@ Usage::
 
 Requirements:
     - flux-core Python bindings must be installed
-    - Must be running inside a Flux instance (FLUX_URI must be set)
+    - Must be running inside a Flux instance or provide a Flux URI
+
+Notes:
+    Flux handles are not thread-safe. FluxExecutor is best suited for
+    process-based libEnsemble runs, such as multiprocessing or MPI workers.
+    The executor reconnects lazily after process serialization so each worker
+    process uses its own Flux handle.
 """
 
 import logging
@@ -127,19 +133,29 @@ class FluxTask(Task):
         self.finished = True
         self.calc_task_timing()
 
-        # Check result/exit status
         result = str(info.get("result", "")).upper()
-        success = result == "COMPLETED" or info.get("returncode", 1) == 0
-
-        if success:
-            self.success = True
-            self.state = "FINISHED"
+        self.errcode = info.get("returncode", 1)
+        self.success = result == "COMPLETED" or self.errcode == 0
+        self.state = "FINISHED" if self.success else "FAILED"
+        if self.success:
             self.errcode = 0
-        else:
-            self.success = False
-            self.state = "FAILED"
-            # Try to get exit code from result
-            self.errcode = info.get("returncode", 1)
+
+        logger.info(f"Task {self.name} finished with state {self.state} (result={result})")
+
+    def _handle_result(self, info) -> None:
+        """Handle a terminal Flux JobInfo object returned by flux.job.result()."""
+        result = str(getattr(info, "result", "")).upper()
+        returncode = getattr(info, "returncode", 1)
+        if returncode == "":
+            returncode = 0 if result == "COMPLETED" else 1
+
+        self.errcode = returncode
+        self.finished = True
+        self.calc_task_timing()
+        self.success = result == "COMPLETED" or self.errcode == 0
+        self.state = "FINISHED" if self.success else "FAILED"
+        if self.success:
+            self.errcode = 0
 
         logger.info(f"Task {self.name} finished with state {self.state} (result={result})")
 
@@ -166,19 +182,26 @@ class FluxTask(Task):
         if not self._check_poll():
             return
 
-        # Wait for job to complete
-        start_time = time.time()
-        while True:
-            self.poll()
-            if self.finished:
-                break
+        if timeout is not None:
+            start_time = time.time()
+            while True:
+                self.poll()
+                if self.finished:
+                    return
 
-            if timeout is not None:
-                elapsed = time.time() - start_time
-                if elapsed >= timeout:
+                if time.time() - start_time >= timeout:
                     raise TimeoutExpired(self.name, timeout)
 
-            time.sleep(0.1)
+                time.sleep(0.1)
+
+        try:
+            info = flux.job.result(self.flux_handle, self.flux_jobid)
+            self._handle_result(info)
+        except Exception as e:
+            logger.warning(f"Error waiting for Flux job {self.flux_jobid}: {e}")
+            self.state = "UNKNOWN"
+            self.runtime = self.timer.elapsed
+            raise
 
     def kill(self, wait_time: int | None = 60) -> None:
         """Kills/cancels the Flux job.
@@ -200,23 +223,22 @@ class FluxTask(Task):
         logger.info(f"Canceling Flux job {self.flux_jobid} for task {self.name}")
 
         try:
-            # Cancel the job using Flux API
             flux.job.cancel(self.flux_handle, self.flux_jobid)
-
-            # Wait briefly for cancellation to take effect
-            if wait_time:
-                deadline = time.time() + min(wait_time, 5)  # Don't wait too long
-                while time.time() < deadline:
-                    self.poll()
-                    if self.finished:
-                        break
-                    time.sleep(0.1)
-
         except Exception as e:
             logger.warning(f"Error canceling Flux job {self.flux_jobid}: {e}")
+            return
+
+        if wait_time:
+            deadline = time.time() + min(wait_time, 5)  # Don't wait too long
+            while time.time() < deadline:
+                self.poll()
+                if self.finished:
+                    break
+                time.sleep(0.1)
 
         self.state = "USER_KILLED"
         self.finished = True
+        self.success = False
         self.calc_task_timing()
 
 
@@ -230,12 +252,14 @@ class FluxExecutor(Executor):
 
     Parameters
     ----------
-    None
+    uri: str, Optional
+        Flux instance URI. If omitted, ``flux.Flux()`` connects to the nearest
+        enclosing Flux instance discovered by Flux.
 
     Raises
     ------
     ExecutorException
-        If flux Python bindings are not available or FLUX_URI is not set.
+        If flux Python bindings are not available or connecting to Flux fails.
 
     Example
     -------
@@ -251,7 +275,7 @@ class FluxExecutor(Executor):
         task.wait()
     """
 
-    def __init__(self) -> None:
+    def __init__(self, uri: str | None = None) -> None:
         """Instantiate a new FluxExecutor instance."""
         if not FLUX_AVAILABLE:
             raise ExecutorException(
@@ -259,21 +283,27 @@ class FluxExecutor(Executor):
                 "Install flux-core or use MPIExecutor with mpi_runner='flux' instead."
             )
 
-        if not os.environ.get("FLUX_URI"):
-            raise ExecutorException(
-                "FLUX_URI environment variable not set. " "FluxExecutor must be used inside a Flux instance."
-            )
-
         super().__init__()
-
-        # Connect to the Flux instance
-        try:
-            self.flux_handle = flux.Flux()
-        except Exception as e:
-            raise ExecutorException(f"Failed to connect to Flux instance: {e}")
 
         self.resources = None
         self.platform_info: dict = {}
+        self.uri = uri
+        self.flux_handle = None
+
+    def __getstate__(self):
+        """Avoid sharing non-thread-safe Flux handles across worker processes."""
+        state = self.__dict__.copy()
+        state["flux_handle"] = None
+        return state
+
+    def _get_flux_handle(self):
+        """Return a Flux handle for this process, opening it lazily if needed."""
+        if self.flux_handle is None:
+            try:
+                self.flux_handle = flux.Flux(self.uri) if self.uri is not None else flux.Flux()
+            except Exception as e:
+                raise ExecutorException(f"Failed to connect to Flux instance: {e}")
+        return self.flux_handle
 
     def submit(
         self,
@@ -287,7 +317,7 @@ class FluxExecutor(Executor):
         stdout: str | None = None,
         stderr: str | None = None,
         dry_run: bool = False,
-        wait_on_start: bool = False,
+        wait_on_start: bool | int = False,
         extra_args: str | None = None,
     ) -> FluxTask:
         """Submit a job to Flux.
@@ -326,8 +356,9 @@ class FluxExecutor(Executor):
         dry_run: bool, Optional
             If True, don't actually submit the job
 
-        wait_on_start: bool, Optional
-            Whether to wait for job to start running
+        wait_on_start: bool or int, Optional
+            Whether to wait for job to start running. If an integer N is supplied,
+            wait at most N seconds.
 
         extra_args: str, Optional
             Additional arguments (currently not used for native Flux)
@@ -349,7 +380,8 @@ class FluxExecutor(Executor):
 
         default_workdir = os.getcwd()
         task = FluxTask(app, app_args, default_workdir, stdout, stderr, self.workerID, dry_run)
-        task.flux_handle = self.flux_handle
+        if not dry_run:
+            task.flux_handle = self._get_flux_handle()
 
         if not dry_run:
             self._check_app_exists(task.app)
@@ -363,8 +395,6 @@ class FluxExecutor(Executor):
                 if num_procs % procs_per_node != 0:
                     raise ExecutorException("num_procs must be divisible by procs_per_node for FluxExecutor")
                 num_nodes = num_procs // procs_per_node
-            else:
-                num_nodes = 1
         elif procs_per_node is not None and num_procs != num_nodes * procs_per_node:
             raise ExecutorException("num_procs must equal num_nodes * procs_per_node for FluxExecutor")
 
@@ -390,6 +420,9 @@ class FluxExecutor(Executor):
                         raise ExecutorException("num_gpus must be divisible by num_procs for FluxExecutor")
                     gpus_per_task = num_gpus // num_procs if num_gpus else 0
 
+                environment = dict(os.environ)
+                environment.update(task.env)
+
                 jobspec = JobspecV1.from_command(
                     command,
                     num_tasks=num_procs,
@@ -397,25 +430,28 @@ class FluxExecutor(Executor):
                     cores_per_task=1,
                     gpus_per_task=gpus_per_task,
                     cwd=task.workdir,
-                    environment=dict(os.environ),
+                    environment=environment,
+                    output=os.path.join(task.workdir, task.stdout),
+                    error=os.path.join(task.workdir, task.stderr),
                 )
-
-                if stdout:
-                    jobspec.stdout = os.path.join(task.workdir, stdout)
-                if stderr:
-                    jobspec.stderr = os.path.join(task.workdir, stderr)
                 if gpus_per_task:
                     jobspec.setattr_shell_option("gpu-affinity", "per-task")
 
                 logger.info(f"Submitting Flux job for task {task.name}: {task.runline}")
-                task.flux_jobid = flux.job.submit(self.flux_handle, jobspec)
+                task.flux_future = flux.job.submit_async(task.flux_handle, jobspec)
+                task.flux_jobid = task.flux_future.get_id() if task.flux_future else None
                 logger.info(f"Task {task.name} submitted with Flux job ID {task.flux_jobid}")
 
                 task.timer.start()
                 task.submit_time = task.timer.tstart
 
                 if wait_on_start:
-                    self._wait_on_start(task)
+                    timeout = (
+                        wait_on_start
+                        if isinstance(wait_on_start, int) and not isinstance(wait_on_start, bool)
+                        else 60.0
+                    )
+                    self._wait_on_start(task, timeout)
 
             except Exception as e:
                 logger.error(f"Failed to submit Flux job: {e}")
