@@ -99,3 +99,75 @@ When modernizing existing libEnsemble scripts (functionality tests, regression t
 - **Mandatory Fields**: Ensure `gen_specs["in"]` or `gen_specs["persis_in"]` includes at least one field (e.g., `["sim_id"]`) if feedback is sent back to the generator, to satisfy the allocator's requirements.
 - **gest-api Simulators**: The gest-api pattern also applies to simulators. Set `SimSpecs.simulator` to a callable with signature `(input_dict: dict, **kwargs) -> dict` instead of providing a `sim_f`. libEnsemble automatically wraps it with `gest_api_sim` from `libensemble.sim_funcs.gest_api_wrapper` and handles all NumPy conversions. `SimSpecs.inputs` and `SimSpecs.outputs` can be derived automatically when `SimSpecs.vocs` is provided.
 - **`safe_mode` is opt-in**: `libE_specs["safe_mode"]` defaults to `False`, meaning protected History fields (`gen_worker`, `gen_started_time`, `gen_ended_time`, `sim_worker`, `sim_started`, `sim_started_time`, `sim_ended`, `sim_ended_time`, `gen_informed`, `gen_informed_time`, `kill_sent`) are freely overwritable by default. Set `safe_mode=True` to enable protection. Overwriting these fields without understanding their purpose may crash libEnsemble.
+- **Pre-generated samples**: Scripts that previously used the ``give_pregenerated_work`` allocator (with no generator) should be migrated to use ``PreloadedSampleGenerator`` from ``libensemble.gen_classes.preloaded``. Pass it as ``GenSpecs(generator=PreloadedSampleGenerator(H0))`` and use the default ``AllocSpecs()``. The generator serves the pre-loaded points via ``suggest()`` and returns an empty list when exhausted, triggering normal ensemble shutdown.
+
+Deprecation Policy
+------------------
+
+This section describes the standard process for deprecating **any** libEnsemble feature
+(allocation functions, generator classes, public API, parameters, etc.).
+
+**Warning category**
+
+Always use ``LibEnsembleDeprecationWarning`` — a custom subclass of ``DeprecationWarning``
+importable from ``libensemble._deprecation``. Never emit bare ``DeprecationWarning``
+directly. The custom subclass lets users and downstream libraries filter libEnsemble
+deprecations independently::
+
+    from libensemble._deprecation import LibEnsembleDeprecationWarning
+    warnings.filterwarnings("error", category=LibEnsembleDeprecationWarning)
+
+**Emit the warning**
+
+Emit the warning at the earliest point of use (module import, class instantiation, or
+function call — whichever the user is most likely to see).  Use the ``warn_deprecated()``
+helper from the same module when the standard message format is sufficient::
+
+    import warnings
+    from libensemble._deprecation import LibEnsembleDeprecationWarning
+
+    warnings.warn(
+        "libensemble.<module>.<name> is deprecated as of libEnsemble X.Y "
+        "and will be removed in X.Z. Use <replacement> instead. "
+        "See https://libensemble.readthedocs.io/... for migration guidance.",
+        LibEnsembleDeprecationWarning,
+        stacklevel=2,  # points to the caller's import/call site
+    )
+
+**Docstring banner**
+
+Add a ``.. deprecated:: X.Y`` directive at the top of the deprecated object's docstring,
+naming the replacement and the removal version::
+
+    def my_old_function(...):
+        """
+        .. deprecated:: 2.0
+            ``my_old_function`` is deprecated and will be removed in libEnsemble 2.1.
+            Use :func:`libensemble.module.my_new_function` instead.
+        ...
+        """
+
+**Sphinx docs**
+
+In the relevant ``.rst`` file, move the deprecated item to a "Deprecated" section (or
+subsection) at the bottom of the page and prefix its ``automodule``/``autofunction`` block
+with a ``.. deprecated:: X.Y`` admonition and a ``.. warning::`` summarising all items
+in the section together with migration guidance.  See
+``docs/function_guides/allocator.rst`` for a reference example.
+
+**Pytest noise suppression**
+
+Add a ``filterwarnings`` rule to ``[tool.pytest.ini_options]`` in ``pyproject.toml`` so
+that tests of deprecated-but-not-yet-removed code do not produce noisy output::
+
+    [tool.pytest.ini_options]
+    filterwarnings = [
+        "ignore::libensemble._deprecation.LibEnsembleDeprecationWarning",
+    ]
+
+Remove this rule when the deprecated code is deleted.
+
+**Timeline**
+
+The standard window is: soft-deprecate in release N, hard-remove (delete code + tests) in N+1.
+Tests that exclusively cover deprecated features are deleted in the removal release, not before.
