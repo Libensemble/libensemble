@@ -339,27 +339,24 @@ def test_flux_executor_import_without_flux():
         pytest.skip("flux_executor module not available")
 
 
-def test_flux_executor_requires_flux_uri():
-    """Test FluxExecutor raises error when FLUX_URI not set"""
+def test_flux_executor_connects_lazily_with_default_or_explicit_uri():
+    """FluxExecutor should defer Flux connection and support explicit URIs."""
     try:
         from libensemble.executors.flux_executor import FLUX_AVAILABLE, FluxExecutor
 
         if not FLUX_AVAILABLE:
             pytest.skip("Flux Python bindings not available")
 
-        # Save and clear FLUX_URI
-        old_uri = os.environ.get("FLUX_URI")
-        if "FLUX_URI" in os.environ:
-            del os.environ["FLUX_URI"]
+        with mock.patch.object(flux_executor.flux, "Flux", return_value="default-handle") as mock_flux:
+            executor = FluxExecutor()
+            assert executor.flux_handle is None
+            assert executor._get_flux_handle() == "default-handle"
+            mock_flux.assert_called_once_with()
 
-        try:
-            from libensemble.executors.executor import ExecutorException
-
-            with pytest.raises(ExecutorException, match="FLUX_URI"):
-                FluxExecutor()
-        finally:
-            if old_uri:
-                os.environ["FLUX_URI"] = old_uri
+        with mock.patch.object(flux_executor.flux, "Flux", return_value="uri-handle") as mock_flux:
+            executor = FluxExecutor(uri="local:///tmp/flux-uri")
+            assert executor._get_flux_handle() == "uri-handle"
+            mock_flux.assert_called_once_with("local:///tmp/flux-uri")
 
     except ImportError:
         pytest.skip("flux_executor module not available")
@@ -395,6 +392,7 @@ def _make_uninitialized_flux_executor(*, worker_id: int = 7):
     executor = object.__new__(flux_executor.FluxExecutor)
     executor.flux_handle = object()
     executor.platform_info = {}
+    executor.uri = None
     executor.workerID = worker_id
     executor.list_of_tasks = []
     executor.apps = {}
@@ -420,6 +418,7 @@ def test_flux_executor_submit_builds_jobspec_with_environment_and_gpus():
 
     jobspec = SimpleNamespace(stdout=None, stderr=None)
     submit_calls = []
+    submit_future = SimpleNamespace(get_id=mock.Mock(return_value=42))
 
     def fake_from_command(command, **kwargs):
         submit_calls.append((command, kwargs))
@@ -431,9 +430,9 @@ def test_flux_executor_submit_builds_jobspec_with_environment_and_gpus():
     try:
         with (
             mock.patch.object(flux_executor, "JobspecV1", create=True, autospec=False) as _patched_jobspecV1,
-            mock.patch.object(flux_executor, "flux", create=True) as _patched_flux,  # noqa: F841  # noqa: F841
+            mock.patch.object(flux_executor, "flux", create=True) as _patched_flux,  # noqa: F841
             mock.patch.object(flux_executor.flux, "job", create=True) as _patched_job,  # noqa: F841
-            mock.patch.object(flux_executor.flux.job, "submit", return_value=42),
+            mock.patch.object(flux_executor.flux.job, "submit_async", return_value=submit_future) as mock_submit_async,
         ):
             _patched_jobspecV1.from_command.side_effect = fake_from_command
             task = executor.submit(app_name="sim", num_procs=4, num_nodes=2, num_gpus=4, app_args="--flag value")
@@ -450,16 +449,18 @@ def test_flux_executor_submit_builds_jobspec_with_environment_and_gpus():
     assert kwargs["num_nodes"] == 2
     assert kwargs["gpus_per_task"] == 1
     assert kwargs["environment"]["TEST_FLUX_ENV"] == "present"
-    # Environment passed through to Jobspec should include current process env.
-    assert "LIBENSEMBLE_SIM_DIR" not in kwargs["environment"] or isinstance(
-        kwargs["environment"].get("LIBENSEMBLE_SIM_DIR"), str
-    )
+    assert kwargs["environment"]["LIBENSEMBLE_SIM_DIR"] == "."
+    assert kwargs["output"] == os.path.join(task.workdir, task.stdout)
+    assert kwargs["error"] == os.path.join(task.workdir, task.stderr)
+    mock_submit_async.assert_called_once_with(executor.flux_handle, jobspec)
+    submit_future.get_id.assert_called_once_with()
     jobspec.setattr_shell_option.assert_called_once_with("gpu-affinity", "per-task")
     assert task.flux_jobid == 42
+    assert task.flux_future is submit_future
 
 
 def test_flux_executor_submit_dry_run_marks_task_complete_and_does_not_submit_job():
-    """Dry-run should not call JobspecV1.from_command or flux.job.submit."""
+    """Dry-run should not call JobspecV1.from_command or flux.job.submit_async."""
     executor = _make_uninitialized_flux_executor(worker_id=7)
 
     app = SimpleNamespace(
@@ -479,7 +480,7 @@ def test_flux_executor_submit_dry_run_marks_task_complete_and_does_not_submit_jo
         mock.patch.object(flux_executor, "JobspecV1", create=True, autospec=False) as _patched_jobspecV1,
         mock.patch.object(flux_executor, "flux", create=True) as _patched_flux,  # noqa: F841
         mock.patch.object(flux_executor.flux, "job", create=True) as _patched_job,  # noqa: F841
-        mock.patch.object(flux_executor.flux.job, "submit") as mock_submit,
+        mock.patch.object(flux_executor.flux.job, "submit_async") as mock_submit,
     ):
         _patched_jobspecV1.from_command = mock_from_command
         task = executor.submit(
@@ -519,12 +520,13 @@ def test_flux_executor_submit_wait_on_start_invokes_waiter():
     executor._check_app_exists = lambda app_obj: None
 
     jobspec = SimpleNamespace(stdout=None, stderr=None)
+    submit_future = SimpleNamespace(get_id=mock.Mock(return_value=123))
 
     with (
         mock.patch.object(flux_executor, "JobspecV1", create=True, autospec=False) as _patched_jobspecV1,
         mock.patch.object(flux_executor, "flux", create=True) as _patched_flux,  # noqa: F841
         mock.patch.object(flux_executor.flux, "job", create=True) as _patched_job,  # noqa: F841
-        mock.patch.object(flux_executor.flux.job, "submit", return_value=123),
+        mock.patch.object(flux_executor.flux.job, "submit_async", return_value=submit_future),
         mock.patch.object(executor, "_wait_on_start") as mock_wait_on_start,
     ):
         _patched_jobspecV1.from_command.return_value = jobspec
@@ -533,10 +535,10 @@ def test_flux_executor_submit_wait_on_start_invokes_waiter():
             num_procs=2,
             num_nodes=1,
             num_gpus=None,
-            wait_on_start=True,
+            wait_on_start=7,
         )
 
-    mock_wait_on_start.assert_called_once_with(task)
+    mock_wait_on_start.assert_called_once_with(task, 7)
     assert task.flux_jobid == 123
 
 
@@ -575,7 +577,9 @@ def test_flux_executor_submit_validation_errors():
         mock.patch.object(flux_executor, "JobspecV1", create=True, autospec=False) as _patched_jobspecV1,
         mock.patch.object(flux_executor, "flux", create=True) as _patched_flux,  # noqa: F841
         mock.patch.object(flux_executor.flux, "job", create=True) as _patched_job,  # noqa: F841
-        mock.patch.object(flux_executor.flux.job, "submit", return_value=1),
+        mock.patch.object(
+            flux_executor.flux.job, "submit_async", return_value=SimpleNamespace(get_id=mock.Mock(return_value=1))
+        ),
     ):
         _patched_jobspecV1.from_command.return_value = SimpleNamespace(stdout=None, stderr=None)
         executor.submit(app_name="sim", num_procs=4, procs_per_node=2)
@@ -609,7 +613,7 @@ def test_flux_executor_submit_error_from_flux_job_submit_sets_failed_to_start():
         mock.patch.object(flux_executor, "JobspecV1", create=True, autospec=False) as _patched_jobspecV1,
         mock.patch.object(flux_executor, "flux", create=True) as _patched_flux,  # noqa: F841
         mock.patch.object(flux_executor.flux, "job", create=True) as _patched_job,  # noqa: F841
-        mock.patch.object(flux_executor.flux.job, "submit", side_effect=RuntimeError("boom")),
+        mock.patch.object(flux_executor.flux.job, "submit_async", side_effect=RuntimeError("boom")),
     ):
         _patched_jobspecV1.from_command.return_value = jobspec
         with pytest.raises(Exception, match="Failed to submit Flux job"):
@@ -634,15 +638,21 @@ def test_flux_executor_submit_stdout_stderr_are_placed_under_workdir():
     executor.default_app = lambda calc_type: app
     executor._check_app_exists = lambda app_obj: None
 
-    jobspec = SimpleNamespace(stdout=None, stderr=None)
+    submit_calls = []
+
+    def fake_from_command(command, **kwargs):
+        submit_calls.append(kwargs)
+        return SimpleNamespace(stdout=None, stderr=None)
 
     with (
         mock.patch.object(flux_executor, "JobspecV1", create=True, autospec=False) as _patched_jobspecV1,
         mock.patch.object(flux_executor, "flux", create=True) as _patched_flux,  # noqa: F841
         mock.patch.object(flux_executor.flux, "job", create=True) as _patched_job,  # noqa: F841
-        mock.patch.object(flux_executor.flux.job, "submit", return_value=1),
+        mock.patch.object(
+            flux_executor.flux.job, "submit_async", return_value=SimpleNamespace(get_id=mock.Mock(return_value=1))
+        ),
     ):
-        _patched_jobspecV1.from_command.return_value = jobspec
+        _patched_jobspecV1.from_command.side_effect = fake_from_command
         task = executor.submit(
             app_name="sim",
             num_procs=2,
@@ -652,8 +662,8 @@ def test_flux_executor_submit_stdout_stderr_are_placed_under_workdir():
         )
 
     assert task.flux_jobid == 1
-    assert jobspec.stdout.endswith(os.path.join(task.workdir, "my_stdout.txt"))
-    assert jobspec.stderr.endswith(os.path.join(task.workdir, "my_stderr.txt"))
+    assert submit_calls[0]["output"].endswith(os.path.join(task.workdir, "my_stdout.txt"))
+    assert submit_calls[0]["error"].endswith(os.path.join(task.workdir, "my_stderr.txt"))
 
 
 def test_flux_executor_submit_sets_gpu_affinity_only_when_num_gpus_nonzero():
@@ -677,7 +687,9 @@ def test_flux_executor_submit_sets_gpu_affinity_only_when_num_gpus_nonzero():
         mock.patch.object(flux_executor, "JobspecV1", create=True, autospec=False) as _patched_jobspecV1,
         mock.patch.object(flux_executor, "flux", create=True) as _patched_flux,  # noqa: F841
         mock.patch.object(flux_executor.flux, "job", create=True) as _patched_job,  # noqa: F841
-        mock.patch.object(flux_executor.flux.job, "submit", return_value=1),
+        mock.patch.object(
+            flux_executor.flux.job, "submit_async", return_value=SimpleNamespace(get_id=mock.Mock(return_value=1))
+        ),
     ):
         _patched_jobspecV1.from_command.return_value = jobspec
         executor.submit(app_name="sim", num_procs=4, num_nodes=1, num_gpus=0)
@@ -685,20 +697,15 @@ def test_flux_executor_submit_sets_gpu_affinity_only_when_num_gpus_nonzero():
     jobspec.setattr_shell_option.assert_not_called()
 
 
-def test_flux_executor_init_connects_with_flux_uri():
-    """Test FluxExecutor initializes when Flux bindings and FLUX_URI are available."""
-    fake_flux_module = SimpleNamespace(Flux=mock.Mock(return_value="flux-handle"))
+def test_flux_executor_getstate_drops_flux_handle():
+    """FluxExecutor should not serialize an open Flux handle into worker processes."""
+    with mock.patch.object(flux_executor, "FLUX_AVAILABLE", True):
+        executor = flux_executor.FluxExecutor(uri="local:///tmp/flux-test")
 
-    with (
-        mock.patch.object(flux_executor, "FLUX_AVAILABLE", True),
-        mock.patch.object(flux_executor, "flux", fake_flux_module),
-        mock.patch.dict(os.environ, {"FLUX_URI": "local:///tmp/flux-test"}, clear=False),
-    ):
-        executor = flux_executor.FluxExecutor()
-
-    fake_flux_module.Flux.assert_called_once_with()
+    executor.flux_handle = "flux-handle"
+    state = executor.__getstate__()
+    assert state["flux_handle"] is None
     assert executor.flux_handle == "flux-handle"
-    assert executor.platform_info == {}
 
 
 def test_flux_executor_wait_on_start_polls_until_running():
@@ -910,6 +917,29 @@ def test_flux_task_wait_completes_and_times_out():
     assert task.state == "FINISHED"
     assert task.poll.call_count == 2
 
+    result_task = flux_executor.FluxTask(
+        app=SimpleNamespace(name="app"),
+        app_args=None,
+        workdir=os.getcwd(),
+        stdout="out.txt",
+        stderr="err.txt",
+        workerid=1,
+        dry_run=False,
+    )
+    result_task.flux_handle = object()
+    result_task.flux_jobid = 321
+    result_task.timer.start()
+    result_task.submit_time = result_task.timer.tstart
+    result_info = SimpleNamespace(result="COMPLETED", returncode=0)
+    fake_flux = SimpleNamespace(job=SimpleNamespace(result=mock.Mock(return_value=result_info)))
+
+    with mock.patch.object(flux_executor, "flux", fake_flux):
+        result_task.wait()
+
+    fake_flux.job.result.assert_called_once_with(result_task.flux_handle, result_task.flux_jobid)
+    assert result_task.finished is True
+    assert result_task.state == "FINISHED"
+
     timeout_task = flux_executor.FluxTask(
         app=SimpleNamespace(name="app"),
         app_args=None,
@@ -1006,7 +1036,7 @@ if __name__ == "__main__":
     test_env_resources_flux_env_variable()
 
     # Flux Executor tests
-    test_flux_executor_init_connects_with_flux_uri()
+    test_flux_executor_getstate_drops_flux_handle()
     test_flux_executor_wait_on_start_polls_until_running()
     test_flux_task_poll_maps_completion_waiting_and_unknown_states()
     test_flux_task_handle_completion_success_and_failure()
