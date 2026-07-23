@@ -52,7 +52,7 @@ Define the VOCS specification and set up the generator.
 
 .. code-block:: python
 
-    libE_specs = LibeSpecs(gen_on_manager=True, nworkers=4)
+    libE_specs = LibeSpecs(nworkers=4)
 
     vocs = VOCS(
         variables={"x1": [0, 1.0], "x2": [0, 10.0]},

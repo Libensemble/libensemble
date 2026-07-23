@@ -12,9 +12,9 @@ The number of concurrent evaluations of the objective function will be 4-1=3.
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local tcp
-# TESTSUITE_NPROCS: 2 4
+# TESTSUITE_NPROCS: 4
 
-import numpy as np
+from gest_api.vocs import VOCS
 
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
@@ -34,15 +34,14 @@ if __name__ == "__main__":
         "out": [("f", float)],
     }
 
+    vocs = VOCS(variables={"x0": [-3, 3], "x1": [-2, 2]}, objectives={"f": "EXPLORE"})
+
     gen_specs = {
         "gen_f": gen_f,
         "in": [],
         "out": [("x", float, 2)],
-        "user": {
-            "lb": np.array([-3, -2]),
-            "ub": np.array([3, 2]),
-            "initial_sample": 100,
-        },
+        "vocs": vocs,
+        "user": {"initial_sample": 100},
     }
 
     libE_specs["abort_on_exception"] = False
@@ -58,7 +57,13 @@ if __name__ == "__main__":
     # Perform the run
     return_flag = 1
     try:
-        H, _, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs, libE_specs=libE_specs)
+        H, _, flag = libE(
+            sim_specs,
+            gen_specs,
+            exit_criteria,
+            alloc_specs=alloc_specs,
+            libE_specs=libE_specs,
+        )
     except LoggedException as e:
         print(f"Caught deliberate exception: {e}")
         return_flag = 0

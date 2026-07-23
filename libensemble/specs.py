@@ -2,6 +2,7 @@ import random
 import warnings
 from pathlib import Path
 
+import numpy as np
 import pydantic
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
@@ -353,6 +354,24 @@ class GenSpecs(BaseModel):
                 self.persis_in = []
             if "_id" not in self.persis_in:
                 self.persis_in.append("_id")
+
+        # Set user["lb"]/["ub"] from VOCS continuous variables (for legacy generators
+        # that read bounds from gen_specs["user"]). Skip variables without a ``.domain``
+        # attribute (e.g., DiscreteVariable). Do not overwrite user-provided values.
+        if self.user is None:
+            self.user = {}
+        if "lb" not in self.user or "ub" not in self.user:
+            lbs, ubs = [], []
+            for _name, var in (getattr(self.vocs, "variables", None) or {}).items():
+                domain = getattr(var, "domain", None)
+                if domain is not None and len(domain) == 2:
+                    lbs.append(domain[0])
+                    ubs.append(domain[1])
+            if lbs:
+                if "lb" not in self.user:
+                    self.user["lb"] = np.array(lbs, dtype=float)
+                if "ub" not in self.user:
+                    self.user["ub"] = np.array(ubs, dtype=float)
 
         return self
 

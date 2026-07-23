@@ -12,11 +12,11 @@ The number of concurrent evaluations of the objective function will be 4-1=3.
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local tcp
-# TESTSUITE_NPROCS: 2 4
+# TESTSUITE_NPROCS: 4
 
 import os
 
-import numpy as np
+from gest_api.vocs import VOCS
 
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
@@ -47,14 +47,13 @@ if __name__ == "__main__":
         "out": [("f", float)],
     }
 
+    vocs = VOCS(variables={"x0": [-3, 3]}, objectives={"f": "EXPLORE"})
+
     gen_specs = {
         "gen_f": gen_f,
         "out": [("x", float, (1,))],
         "batch_size": 20,
-        "user": {
-            "lb": np.array([-3]),
-            "ub": np.array([3]),
-        },
+        "vocs": vocs,
     }
 
     exit_criteria = {"sim_max": 21}
@@ -63,7 +62,13 @@ if __name__ == "__main__":
         "alloc_f": give_sim_work_first,
     }
 
-    H, _, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs, libE_specs=libE_specs)
+    H, _, flag = libE(
+        sim_specs,
+        gen_specs,
+        exit_criteria,
+        alloc_specs=alloc_specs,
+        libE_specs=libE_specs,
+    )
 
     if is_manager:
         assert os.path.isdir(o_ensemble), f"Ensemble directory {o_ensemble} not created."

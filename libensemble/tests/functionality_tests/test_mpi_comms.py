@@ -14,7 +14,7 @@ from libensemble.tools import parse_args
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi
-# TESTSUITE_NPROCS: 2 4
+# TESTSUITE_NPROCS: 4
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":

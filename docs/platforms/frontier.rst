@@ -64,10 +64,9 @@ Now grab an interactive session on one node::
 
 Then in the session run::
 
-    python run_libe_forces.py --nworkers 9
+    python run_libe_forces.py --nworkers 8
 
-This places the generator on the first worker and runs simulations on the
-others (each simulation using one GPU).
+The workers will each run simulations with one GPU each.
 
 To see GPU usage, ssh into the node you are on in another window and run::
 
