@@ -1,13 +1,15 @@
 """
-Tests the APOSMM generator function's ability to handle exceptions
+Tests the APOSMM generator's ability to handle exceptions.
+
+The periodic_func with LN_BOBYQA generates NLopt roundoff-limited errors,
+which should propagate as exceptions to the calling script.
 
 Execute via one of the following commands (e.g. 3 workers):
-   mpiexec -np 4 python test_persistent_aposmm_exception.py
-   python test_persistent_aposmm_exception.py --nworkers 3
+   mpiexec -np 4 python test_aposmm_exception.py
+   python test_aposmm_exception.py --nworkers 3 --comms local
 
 When running with the above commands, the number of concurrent evaluations of
-the objective function will be 2, as one of the three workers will be the
-persistent generator.
+the objective function will be 3, as the generator runs on the manager.
 """
 
 # Do not change these lines - they are parsed by run-tests.sh
@@ -15,83 +17,79 @@ persistent generator.
 # TESTSUITE_NPROCS: 4
 # TESTSUITE_EXTRA: true
 
-import multiprocessing
-import sys
-
 import numpy as np
 
 import libensemble.gen_funcs
 
-# Import libEnsemble items for this test
-from libensemble.libE import libE
-from libensemble.sim_funcs.periodic_func import func_wrapper as sim_f
-
 libensemble.gen_funcs.rc.aposmm_optimizers = "nlopt"
-from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc as alloc_f
-from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
-from libensemble.tools import parse_args
+
+from gest_api.vocs import VOCS
+
+from libensemble import Ensemble
+from libensemble.gen_classes import APOSMM
+from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
 
 
-def assertion(passed):
-    """Raise assertion or MPI Abort"""
-    if libE_specs["comms"] == "mpi":
-        from mpi4py import MPI
+def periodic_func(x):
+    """
+    Periodic test function (gest-api version of periodic_func.func_wrapper).
+    """
+    from numpy import cos, sin
 
-        if passed:
-            print("\n\nMPI will be aborted as planned\n\n", flush=True)
-            MPI.COMM_WORLD.Abort(0)  # Abort with success
-        else:
-            MPI.COMM_WORLD.Abort(1)  # Abort with failure
-    else:
-        assert passed
-        print("\n\nException received as expected")
+    return {"f": sin(x["x0"]) * cos(x["x1"])}
 
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
-    multiprocessing.set_start_method("fork", force=True)
+    workflow = Ensemble(parse_args=True)
 
-    nworkers, is_manager, libE_specs, _ = parse_args()
-
-    if nworkers < 2:
-        sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
-
-    n = 2
-    sim_specs = {
-        "sim_f": sim_f,
-        "in": ["x"],
-        "out": [("f", float)],
-    }
-
-    gen_out = [("x", float, n), ("x_on_cube", float, n), ("sim_id", int), ("local_min", bool), ("local_pt", bool)]
-
-    gen_specs = {
-        "gen_f": gen_f,
-        "persis_in": ["f"] + [n[0] for n in gen_out],
-        "out": gen_out,
-        "initial_batch_size": 100,
-        "user": {
-            "initial_sample_size": 100,
-            "localopt_method": "LN_BOBYQA",
-            "lb": np.array([0, -np.pi / 2]),
-            "ub": np.array([2 * np.pi, 3 * np.pi / 2]),
+    vocs = VOCS(
+        variables={
+            "x0": [0, 2 * np.pi],
+            "x1": [-np.pi / 2, 3 * np.pi / 2],
+            "x0_on_cube": [0, 1],
+            "x1_on_cube": [0, 1],
         },
-    }
+        objectives={"f": "MINIMIZE"},
+    )
 
-    alloc_specs = {"alloc_f": alloc_f}
+    aposmm = APOSMM(
+        vocs,
+        max_active_runs=6,
+        initial_sample_size=100,
+        variables_mapping={
+            "x": ["x0", "x1"],
+            "x_on_cube": ["x0_on_cube", "x1_on_cube"],
+            "f": ["f"],
+        },
+        localopt_method="LN_BOBYQA",
+    )
 
-    exit_criteria = {"sim_max": 1000}
+    workflow.gen_specs = GenSpecs(
+        generator=aposmm,
+        vocs=vocs,
+        initial_batch_size=100,
+    )
+    workflow.sim_specs = SimSpecs(simulator=periodic_func, vocs=vocs)
+    workflow.exit_criteria = ExitCriteria(sim_max=1000)
+    workflow.libE_specs = LibeSpecs(abort_on_exception=False)
 
-    libE_specs["abort_on_exception"] = False
+    exception_raised = False
     try:
-        # Perform the run, which will fail because we want to test exception handling
-        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs, libE_specs=libE_specs)
-    except Exception as e:
-        if is_manager:
-            if e.args[1].endswith("NLopt roundoff-limited"):
-                assertion(True)
+        workflow.run()
+    except Exception:
+        if workflow.is_manager:
+            exception_raised = True
+
+    if workflow.is_manager:
+        if workflow.libE_specs.comms == "mpi":
+            from mpi4py import MPI
+
+            if exception_raised:
+                print("\n\nMPI will be aborted as planned\n\n", flush=True)
+                MPI.COMM_WORLD.Abort(0)
             else:
-                assertion(False)
-    else:
-        if is_manager:
-            assertion(False)
+                MPI.COMM_WORLD.Abort(1)
+        else:
+            assert exception_raised, "Expected an exception from the NLopt roundoff-limited error"
+            print("\n\nException received as expected")
