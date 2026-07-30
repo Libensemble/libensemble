@@ -230,6 +230,20 @@ class Polaris(Platform):
     scheduler_match_slots: bool = True
 
 
+class FluxAllocation(Platform):
+    """Platform configuration for running inside a Flux allocation.
+
+    This is a generic Flux configuration. For specific systems using Flux
+    (e.g., LLNL El Capitan), you may want to create a more specific platform
+    class with cores_per_node and gpus_per_node set appropriately.
+    """
+
+    mpi_runner: str = "flux"
+    runner_name: str = "flux"
+    gpu_setting_type: str = "runner_default"
+    scheduler_match_slots: bool = False
+
+
 class Known_platforms(BaseModel):
     """A list of platforms with known configurations.
 
@@ -271,6 +285,7 @@ class Known_platforms(BaseModel):
     aurora: Aurora = Aurora()
     generic_rocm: GenericROCm = GenericROCm()
     frontier: Frontier = Frontier()
+    flux: FluxAllocation = FluxAllocation()
     lumi: Lumi = Lumi()
     lumi_g: LumiGPU = LumiGPU()
     perlmutter: Perlmutter = Perlmutter()

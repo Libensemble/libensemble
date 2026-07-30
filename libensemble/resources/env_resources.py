@@ -35,6 +35,7 @@ class EnvResources:
     default_nodelist_env_pbs = "PBS_NODEFILE"
     default_nodelist_env_lsf = "LSB_HOSTS"
     default_nodelist_env_lsf_shortform = "LSB_MCPU_HOSTS"
+    default_nodelist_env_flux = "FLUX_URI"
 
     def __init__(
         self,
@@ -43,6 +44,7 @@ class EnvResources:
         nodelist_env_pbs: str | None = None,
         nodelist_env_lsf: str | None = None,
         nodelist_env_lsf_shortform: str | None = None,
+        nodelist_env_flux: str | None = None,
     ) -> None:
         """Initializes a new EnvResources instance
 
@@ -71,10 +73,17 @@ class EnvResources:
         nodelist_env_lsf_shortform: String, optional
             The environment variable giving a node list in LSF short-form format (Default: uses LSB_MCPU_HOSTS).
             Note: This is queried only if a node_list file is not provided.
+
+        nodelist_env_flux: String, optional
+            The environment variable indicating a Flux instance (Default: uses FLUX_URI).
+            When present, the nodelist is obtained via `flux resource list`.
+            Note: This is queried only if a node_list file is not provided.
         """
 
         self.scheduler = None
         self.nodelists = {}
+        # Check Flux first - it may run inside Slurm but should take precedence
+        self.nodelists["Flux"] = nodelist_env_flux or EnvResources.default_nodelist_env_flux
         self.nodelists["Slurm"] = nodelist_env_slurm or EnvResources.default_nodelist_env_slurm
         self.nodelists["Cobalt"] = nodelist_env_cobalt or EnvResources.default_nodelist_env_cobalt
         self.nodelists["PBS"] = nodelist_env_pbs or EnvResources.default_nodelist_env_pbs
@@ -82,6 +91,7 @@ class EnvResources:
         self.nodelists["LSF_shortform"] = nodelist_env_lsf_shortform or EnvResources.default_nodelist_env_lsf_shortform
 
         self.ndlist_funcs = {}
+        self.ndlist_funcs["Flux"] = EnvResources.get_flux_nodelist
         self.ndlist_funcs["Slurm"] = EnvResources.get_slurm_nodelist
         self.ndlist_funcs["Cobalt"] = EnvResources.get_cobalt_nodelist
         self.ndlist_funcs["PBS"] = EnvResources.get_pbs_nodelist
@@ -105,7 +115,7 @@ class EnvResources:
         return []
 
     @staticmethod
-    def abbrev_nodenames(node_list: list[str], prefix: str = None) -> list[str]:
+    def abbrev_nodenames(node_list: list[str], prefix: str | None = None) -> list[str]:
         """Returns nodelist with only string up to first dot"""
         newlist = [s.split(".", 1)[0] for s in node_list]
         return newlist
@@ -151,6 +161,14 @@ class EnvResources:
     def get_slurm_nodelist(node_list_env: str) -> list[str | Any]:
         """Gets global libEnsemble nodelist from the Slurm environment"""
         fullstr = os.environ[node_list_env]
+        return EnvResources.get_slurm_nodelist_from_string(fullstr)
+
+    @staticmethod
+    def get_slurm_nodelist_from_string(fullstr: str) -> list[str | Any]:
+        """Parses a nodelist string in Slurm format (also used by Flux).
+
+        This is extracted from get_slurm_nodelist to allow reuse with Flux.
+        """
         if not fullstr:
             return []
         # Split at commas outside of square brackets
@@ -170,6 +188,47 @@ class EnvResources:
                 suffix = splitstr[1]
                 nidlst.extend(EnvResources._noderange_append(prefix, nidstr, suffix))
         return sorted(nidlst)
+
+    @staticmethod
+    def get_flux_nodelist(node_list_env: str) -> list[str | Any]:
+        """Gets global libEnsemble nodelist from a Flux instance.
+
+        Uses `flux resource list` to obtain the list of available nodes.
+        The node_list_env parameter (FLUX_URI) is used to detect Flux presence
+        but the actual nodelist comes from the flux command.
+        """
+        import subprocess
+
+        try:
+            # flux resource list with format to get just hostnames
+            # -n: no header, -o: output format
+            result = subprocess.run(
+                ["flux", "resource", "list", "-n", "-o", "{nodelist}"],
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+            if result.returncode != 0:
+                logger.warning(f"flux resource list failed: {result.stderr}")
+                return []
+
+            nodelist_str = result.stdout.strip()
+            if not nodelist_str:
+                return []
+
+            # Parse the nodelist - Flux uses similar format to Slurm (e.g., "node[1-4]")
+            # We can reuse the Slurm parser for bracket notation
+            return EnvResources.get_slurm_nodelist_from_string(nodelist_str)
+
+        except subprocess.TimeoutExpired:
+            logger.warning("flux resource list timed out")
+            return []
+        except FileNotFoundError:
+            logger.warning("flux command not found")
+            return []
+        except Exception as e:
+            logger.warning(f"Error getting Flux nodelist: {e}")
+            return []
 
     @staticmethod
     def get_cobalt_nodelist(node_list_env: str) -> list[str | Any]:
