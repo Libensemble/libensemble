@@ -213,6 +213,7 @@ class Manager:
         self.gen_specs = gen_specs
         self.exit_criteria = exit_criteria
         self.elapsed = lambda: timer.elapsed
+        self._service_idle_start: float | None = None  # service_mode idle tracker
         self.wcomms = wcomms
         self.WorkerExc = False
         self.persis_pending: list[int] = []
@@ -714,9 +715,27 @@ class Manager:
                     self._check_work_order(Work[w], w)
                     self._send_work_order(Work[w], w)
                     self._update_state_on_alloc(Work[w], w)
-                assert self.term_test() or any(
-                    self.W["active"] != 0
-                ), "alloc_f did not return any work, although all workers are idle."
+                if not (self.term_test() or any(self.W["active"] != 0)):
+                    if self.libE_specs.get("service_mode"):
+                        # Service mode: external producer may have nothing
+                        # to dispatch right now. Throttle and re-poll instead
+                        # of asserting (which would treat this as deadlock).
+                        idle_timeout = self.libE_specs.get("service_mode_idle_timeout")
+                        if idle_timeout is not None:
+                            if self._service_idle_start is None:
+                                self._service_idle_start = time.time()
+                            elif time.time() - self._service_idle_start > idle_timeout:
+                                logger.info(
+                                    f"service_mode idle for {idle_timeout}s with no work, exiting"
+                                )
+                                break
+                        time.sleep(0.1)
+                        continue
+                    raise AssertionError(
+                        "alloc_f did not return any work, although all workers are idle."
+                    )
+                # work was dispatched OR workers active OR terminating — reset idle clock
+                self._service_idle_start = None
         except WorkerException as e:
             report_worker_exc(e)
             raise LoggedException(e.args[0], e.args[1]) from None
