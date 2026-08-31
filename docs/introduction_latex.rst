@@ -20,7 +20,7 @@
 .. _libE_specs: https://libensemble.readthedocs.io/en/main/data_structures/libE_specs.html
 .. _manuscript: https://arxiv.org/abs/2104.08322
 .. _mock: https://pypi.org/project/mock
-.. _mpi4py: https://bitbucket.org/mpi4py/mpi4py
+.. _mpi4py: https://mpi4py.readthedocs.io/en/stable/
 .. _MPICH: http://www.mpich.org/
 .. _mpmath: http://mpmath.org/
 .. _NLopt documentation: https://nlopt.readthedocs.io/en/latest/NLopt_Installation/
