@@ -191,7 +191,7 @@ def libE(
         Specifications for libEnsemble
         :doc:`(example)<data_structures/libE_specs/libE_specs>`
 
-    H0: `NumPy structured array <https://docs.scipy.org/doc/numpy/user/basics.rec.html>`_, Optional
+    H0: `NumPy structured array <https://numpy.org/doc/stable/user/basics.rec.html>`_, Optional
 
         A libEnsemble history to be prepended to this run's history
         :ref:`(example)<funcguides-history>`
@@ -199,7 +199,7 @@ def libE(
     Returns
     -------
 
-    H: `NumPy structured array <https://docs.scipy.org/doc/numpy/user/basics.rec.html>`_
+    H: `NumPy structured array <https://numpy.org/doc/stable/user/basics.rec.html>`_
 
         History array storing rows for each point.
         :ref:`(example)<funcguides-history>`

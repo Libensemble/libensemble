@@ -298,7 +298,7 @@ macOS and Windows Errors
   on our executables, then confirming the next alerts for the executable
   and ``mpiexec.hydra``.
 
-.. _Installing PETSc On Microsoft Windows: https://petsc.org/release/install/windows/#recommended-installation-methods
+.. _Installing PETSc On Microsoft Windows: https://petsc.org/release/install/windows/#installing-petsc-on-microsoft-windows
 .. _option to srun: https://docs.nersc.gov/systems/perlmutter/running-jobs/#single-gpu-tasks-in-parallel
 .. _Perlmutter: https://docs.nersc.gov/systems/perlmutter/architecture/
 .. _Python multiprocessing docs: https://docs.python.org/3/library/multiprocessing.html

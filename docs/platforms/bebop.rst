@@ -94,6 +94,6 @@ See the LCRC Bebop docs here_ for more information about Bebop.
 
 .. _Anaconda: https://www.anaconda.com/
 .. _Bebop: https://www.lcrc.anl.gov/systems/bebop
-.. _conda: https://conda.io/en/latest/
+.. _conda: https://docs.conda.io/en/latest/
 .. _here: https://docs.lcrc.anl.gov/bebop/running-jobs-bebop/
 .. _mpi4py: https://mpi4py.readthedocs.io/en/stable/

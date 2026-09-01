@@ -113,7 +113,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
 
     .. seealso::
 
-        `test_persistent_aposmm_scipy <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_aposmm_scipy.py>`_
+        `test_persistent_aposmm_scipy <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_aposmm_scipy.py>`_
         for basic APOSMM usage.
 
     .. seealso::

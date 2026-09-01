@@ -188,7 +188,7 @@ Additional Information
 
 See the NERSC Perlmutter_ docs for more information about Perlmutter.
 
-.. _conda: https://conda.io/en/latest/
+.. _conda: https://docs.conda.io/en/latest/
 .. _mpi4py: https://mpi4py.readthedocs.io/en/stable/
 .. _NERSC: https://www.nersc.gov/
 .. _option to srun: https://docs.nersc.gov/systems/perlmutter/running-jobs/#single-gpu-tasks-in-parallel

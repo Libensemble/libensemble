@@ -95,7 +95,7 @@ def save_libE_output(
     Parameters
     ----------
 
-    H: `NumPy structured array <https://docs.scipy.org/doc/numpy/user/basics.rec.html>`_
+    H: `NumPy structured array <https://numpy.org/doc/stable/user/basics.rec.html>`_
 
         History array storing rows for each point.
         :ref:`(example)<funcguides-history>`

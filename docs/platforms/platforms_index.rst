@@ -234,6 +234,6 @@ libEnsemble on specific HPC systems.
     example_scripts
 
 .. _Globus Compute: https://www.globus.org/compute
-.. _Globus Compute endpoints: https://globus-compute.readthedocs.io/en/latest/endpoints.html
+.. _Globus Compute endpoints: https://globus-compute.readthedocs.io/en/latest/endpoints/endpoint_examples.html
 .. _Globus: https://www.globus.org/
 .. _handful of task-rate and data limits: https://globus-compute.readthedocs.io/en/latest/limits.html

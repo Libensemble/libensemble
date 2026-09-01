@@ -142,7 +142,7 @@ class Ensemble:
 
         libEnsemble Executor instance for use within simulator functions or generators.
 
-    H0: `NumPy structured array <https://docs.scipy.org/doc/numpy/user/basics.rec.html>`_, Optional
+    H0: `NumPy structured array <https://numpy.org/doc/stable/user/basics.rec.html>`_, Optional
 
         A libEnsemble history to be prepended to this run's history
         :ref:`(example)<funcguides-history>`.
