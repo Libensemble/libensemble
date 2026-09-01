@@ -85,8 +85,8 @@ GPU), see the :doc:`forces_gpu<../tutorials/forces_gpu_tutorial>` tutorial. A vi
 of this example is also available.
 
 .. _ALCF: https://www.alcf.anl.gov/
-.. _conda: https://conda.io/en/latest/
-.. _demonstration: https://youtu.be/Ff0dYYLQzoU
+.. _conda: https://docs.conda.io/en/latest/
+.. _demonstration: https://www.youtube.com/watch?v=Ff0dYYLQzoU&feature=youtu.be
 .. _mpi4py: https://mpi4py.readthedocs.io/en/stable/
 .. _Polaris: https://www.alcf.anl.gov/polaris
-.. _Python for Polaris: https://docs.alcf.anl.gov/polaris/data-science-workflows/python/
+.. _Python for Polaris: https://docs.alcf.anl.gov/polaris/

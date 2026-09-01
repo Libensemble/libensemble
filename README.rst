@@ -179,8 +179,8 @@ Resources
    :target: https://packages.spack.io/package.html?name=py-libensemble
 .. |Tests| image:: https://github.com/Libensemble/libensemble/actions/workflows/extra.yml/badge.svg?branch=main
    :target: https://github.com/Libensemble/libensemble/actions
-.. |Coverage| image:: https://codecov.io/github/Libensemble/libensemble/graph/badge.svg
-   :target: https://codecov.io/github/Libensemble/libensemble
+.. |Coverage| image:: https://app.codecov.io/github/Libensemble/libensemble/graph/badge.svg
+   :target: https://app.codecov.io/github/Libensemble/libensemble
 .. |Docs| image:: https://readthedocs.org/projects/libensemble/badge/?maxAge=2592000
    :target: https://libensemble.readthedocs.org/en/latest/
    :alt: Documentation Status
@@ -195,7 +195,7 @@ Resources
 .. _conda-forge: https://conda-forge.org/
 .. _Contributions: https://github.com/Libensemble/libensemble/blob/main/CONTRIBUTING.rst
 .. _docs: https://libensemble.readthedocs.io/en/main/advanced_installation.html
-.. _gest-api: https://gest-api.readthedocs.io
+.. _gest-api: https://gest-api.readthedocs.io/en/latest/
 .. _GitHub: https://github.com/Libensemble/libensemble
 .. _libEnsemble mailing list: https://lists.mcs.anl.gov/mailman/listinfo/libensemble
 .. _libEnsemble Slack page: https://libensemble.slack.com
@@ -203,20 +203,20 @@ Resources
 .. _mpmath: http://mpmath.org/
 .. _PyPI: https://pypi.org
 .. _Quickstart: https://libensemble.readthedocs.io/en/main/introduction.html
-.. _ReadtheDocs: http://libensemble.readthedocs.org/
+.. _ReadtheDocs: https://libensemble.readthedocs.io/en/latest/
 .. _regression tests: https://github.com/Libensemble/libensemble/tree/main/libensemble/tests/regression_tests
 
 .. |Inline Example| image:: https://colab.research.google.com/assets/colab-badge.svg
-  :target:  http://colab.research.google.com/github/Libensemble/libensemble/blob/develop/examples/readme_notebook.ipynb
+  :target:  https://colab.research.google.com/github/Libensemble/libensemble/blob/develop/examples/readme_notebook.ipynb
 
 .. |Simple Ensemble| image:: https://colab.research.google.com/assets/colab-badge.svg
-  :target:  http://colab.research.google.com/github/Libensemble/libensemble/blob/develop/examples/tutorials/simple_sine/sine_tutorial_notebook.ipynb
+  :target:  https://colab.research.google.com/github/Libensemble/libensemble/blob/develop/examples/tutorials/simple_sine/sine_tutorial_notebook.ipynb
 
 .. |Ensemble with an MPI application| image:: https://colab.research.google.com/assets/colab-badge.svg
-  :target:  http://colab.research.google.com/github/Libensemble/libensemble/blob/develop/examples/tutorials/forces_with_executor/forces_tutorial_notebook.ipynb
+  :target:  https://colab.research.google.com/github/Libensemble/libensemble/blob/develop/examples/tutorials/forces_with_executor/forces_tutorial_notebook.ipynb
 
 .. |Optimization example| image:: https://colab.research.google.com/assets/colab-badge.svg
-  :target:  http://colab.research.google.com/github/Libensemble/libensemble/blob/develop/examples/tutorials/aposmm/aposmm_tutorial_notebook.ipynb
+  :target:  https://colab.research.google.com/github/Libensemble/libensemble/blob/develop/examples/tutorials/aposmm/aposmm_tutorial_notebook.ipynb
 
 .. |Surrogate Modeling| image:: https://colab.research.google.com/assets/colab-badge.svg
   :target:  https://colab.research.google.com/github/Libensemble/libensemble/blob/develop/examples/tutorials/gpcam_surrogate_model/gpcam.ipynb

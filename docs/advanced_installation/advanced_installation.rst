@@ -34,8 +34,8 @@ Globus Compute
 `Globus Compute`_ may be installed optionally to submit simulation function instances to remote Globus Compute endpoints.
 
 .. _Globus Compute: https://www.globus.org/compute
-.. _Python: http://www.python.org
-.. _NumPy: http://www.numpy.org
+.. _Python: https://www.python.org/
+.. _NumPy: https://numpy.org/
 .. _psutil: https://pypi.org/project/psutil/
-.. _pydantic: https://docs.pydantic.dev/1.10/
+.. _pydantic: https://pydantic.dev/docs/validation/latest/get-started/
 .. _gest-api: https://github.com/campa-consortium/gest-api

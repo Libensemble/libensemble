@@ -24,7 +24,7 @@ Issues can be raised at
 Issues may include reporting bugs or suggested features. Administrators
 will add issues, as appropriate, to the project board at
 
-    https://github.com/Libensemble/libensemble/projects
+    https://github.com/orgs/Libensemble/projects
 
 By convention, user branch names should have a <type>/<name> format, where
 example types are feature, bugfix, testing, docs, and experimental.
