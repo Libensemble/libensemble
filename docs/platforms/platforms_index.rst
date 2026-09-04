@@ -159,60 +159,9 @@ will better manage simulation and generation functions that contain considerable
 computational work or I/O. Therefore the second option is to use Globus Compute
 to isolate this work from the workers.
 
-.. _globus_compute_ref:
-
-Globus Compute - Remote User Functions
---------------------------------------
-
-If libEnsemble is running on some resource with
-internet access (laptops, login nodes, other servers, etc.), workers can be instructed to
-launch generator or simulator user function instances to separate resources from
-themselves via `Globus Compute`_ (formerly funcX), a distributed, high-performance function-as-a-service platform:
-
-    .. image:: ../images/funcxmodel.png
-        :alt: running_with_globus_compute
-        :scale: 50
-        :align: center
-
-This is useful for running ensembles across machines and heterogeneous resources, but
-comes with several caveats:
-
-    1. User functions registered with Globus Compute must be *non-persistent*, since
-       manager-worker communicators can't be serialized or used by a remote resource.
-
-    2. Likewise, the ``Executor.manager_poll()`` capability is disabled. The only
-       available control over remote functions by workers is processing return values
-       or exceptions when they complete.
-
-    3. Globus Compute imposes a `handful of task-rate and data limits`_ on submitted functions.
-
-    4. Users are responsible for authenticating via Globus_ and maintaining their
-       `Globus Compute endpoints`_ on their target systems.
-
-Users can still define Executor instances within their user functions and submit
-MPI applications normally, as long as libEnsemble and the target application are
-accessible on the remote system::
-
-    # Within remote user function
-    from libensemble.executors import MPIExecutor
-    exctr = MPIExecutor()
-    exctr.register_app(full_path="/home/user/forces.x", app_name="forces")
-    task = exctr.submit(app_name="forces", num_procs=64)
-
-Specify a Globus Compute endpoint in :class:`sim_specs<libensemble.specs.SimSpecs>` via the ``globus_compute_endpoint``
-argument. For example::
-
-    from libensemble.specs import SimSpecs
-
-    sim_specs = SimSpecs(
-        sim_f = sim_f,
-        inputs = ["x"],
-        out = [("f", float)],
-        globus_compute_endpoint = "3af6dc24-3f27-4c49-8d11-e301ade15353",
-    )
-
-See the ``libensemble/tests/scaling_tests/globus_compute_forces`` directory for a complete
-remote-simulation example.
+See :doc:`Globus Compute - Remote User Functions<globus_compute>` for the two
+integration approaches (manager-side GC-only mode and the user-facing
+``GlobusComputeExecutor``).
 
 Instructions for Specific Platforms
 -----------------------------------
@@ -231,9 +180,5 @@ libEnsemble on specific HPC systems.
     perlmutter
     polaris
     srun
+    globus_compute
     example_scripts
-
-.. _Globus Compute: https://www.globus.org/compute
-.. _Globus Compute endpoints: https://globus-compute.readthedocs.io/en/latest/endpoints.html
-.. _Globus: https://www.globus.org/
-.. _handful of task-rate and data limits: https://globus-compute.readthedocs.io/en/latest/limits.html
