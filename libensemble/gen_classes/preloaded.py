@@ -7,17 +7,27 @@ workers for simulation evaluation.  No VOCS or online generation is required.
 Typical usage::
 
     import numpy as np
+    from gest_api.vocs import ContinuousVariable, VOCS
+
     from libensemble import Ensemble
     from libensemble.gen_classes.preloaded import PreloadedSampleGenerator
     from libensemble.specs import ExitCriteria, GenSpecs, SimSpecs
 
+    vocs = VOCS(
+        # The bounds are metadata only; this generator does not sample from the VOCS.
+        variables={"x": ContinuousVariable(dtype=(float, (8,)), domain=[0.0, 1.0])},
+        objectives={"f": "MINIMIZE"},
+    )
     H0 = np.zeros(500, dtype=[("x", float, 8), ("sim_id", int)])
     H0["x"] = my_existing_points
     H0["sim_id"] = range(500)
 
     sampling = Ensemble(parse_args=True)
-    sampling.gen_specs = GenSpecs(generator=PreloadedSampleGenerator(H0))
-    sampling.sim_specs = SimSpecs(sim_f=my_sim, inputs=["x"], out=[("f", float)])
+    sampling.gen_specs = GenSpecs(
+        generator=PreloadedSampleGenerator(H0, vocs=vocs),
+        vocs=vocs,
+    )
+    sampling.sim_specs = SimSpecs(sim_f=my_sim, vocs=vocs)
     sampling.exit_criteria = ExitCriteria(sim_max=len(H0))
     sampling.run()
 
@@ -81,18 +91,27 @@ class PreloadedSampleGenerator(Generator):
     .. code-block:: python
 
         import numpy as np
+        from gest_api.vocs import ContinuousVariable, VOCS
+
         from libensemble import Ensemble
         from libensemble.gen_classes.preloaded import PreloadedSampleGenerator
         from libensemble.sim_funcs.borehole import borehole as sim_f, gen_borehole_input
         from libensemble.specs import ExitCriteria, GenSpecs, SimSpecs
 
         n_samp = 1000
+        vocs = VOCS(
+            variables={"x": ContinuousVariable(dtype=(float, (8,)), domain=[0.0, 1.0])},
+            objectives={"f": "MAXIMIZE"},
+        )
         pts = np.zeros(n_samp, dtype=[("x", float, 8)])
         pts["x"] = gen_borehole_input(n_samp)
 
         sampling = Ensemble(parse_args=True)
-        sampling.gen_specs = GenSpecs(generator=PreloadedSampleGenerator(pts))
-        sampling.sim_specs = SimSpecs(sim_f=sim_f, inputs=["x"], out=[("f", float)])
+        sampling.gen_specs = GenSpecs(
+            generator=PreloadedSampleGenerator(pts, vocs=vocs),
+            vocs=vocs,
+        )
+        sampling.sim_specs = SimSpecs(sim_f=sim_f, vocs=vocs)
         sampling.exit_criteria = ExitCriteria(sim_max=n_samp)
         sampling.run()
     """
