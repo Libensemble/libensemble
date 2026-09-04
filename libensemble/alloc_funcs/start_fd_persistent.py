@@ -1,11 +1,22 @@
 import numpy as np
 
+from libensemble._deprecation import warn_deprecated
 from libensemble.message_numbers import EVAL_GEN_TAG
 from libensemble.tools.alloc_support import AllocSupport, InsufficientFreeResources
+
+warn_deprecated(
+    name="libensemble.alloc_funcs.start_fd_persistent",
+    replacement="the default only_persistent_gens with a persistent generator",
+)
 
 
 def finite_diff_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info, libE_info):
     """
+    .. deprecated:: 2.0
+        ``start_fd_persistent.finite_diff_alloc`` is deprecated and will be removed in
+        libEnsemble 2.1. Use the default ``only_persistent_gens`` (with a persistent generator)
+        instead.
+
     This allocation function will give simulation work if possible, but
     otherwise start 1 persistent generator.  If all points requested by
     the persistent generator for a given (x_ind, f_ind) pair have been returned from the

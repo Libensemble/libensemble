@@ -1,11 +1,22 @@
 import numpy as np
 
+from libensemble._deprecation import warn_deprecated
 from libensemble.message_numbers import EVAL_GEN_TAG
 from libensemble.tools.alloc_support import AllocSupport, InsufficientFreeResources
+
+warn_deprecated(
+    name="libensemble.alloc_funcs.inverse_bayes_allocf",
+    replacement="the default only_persistent_gens with a persistent generator",
+)
 
 
 def only_persistent_gens_for_inverse_bayes(W, H, sim_specs, gen_specs, alloc_specs, persis_info, libE_info):
     """
+    .. deprecated:: 2.0
+        ``inverse_bayes_allocf.only_persistent_gens_for_inverse_bayes`` is deprecated and will
+        be removed in libEnsemble 2.1. Use the default ``only_persistent_gens`` (with a
+        persistent generator) instead.
+
     Starts up to gen_count number of persistent generators.
     These persistent generators produce points (x) in batches and subbatches.
     The points x are given in subbatches to workers to perform a calculation.
