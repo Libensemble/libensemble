@@ -1,8 +1,20 @@
+from libensemble._deprecation import warn_deprecated
 from libensemble.tools.alloc_support import AllocSupport, InsufficientFreeResources
+
+warn_deprecated(
+    name="libensemble.alloc_funcs.only_one_gen_alloc",
+    replacement="libensemble.alloc_funcs.give_sim_work_first.give_sim_work_first "
+    "with num_active_gens=1, or the default only_persistent_gens",
+)
 
 
 def ensure_one_active_gen(W, H, sim_specs, gen_specs, alloc_specs, persis_info, libE_info):
     """
+    .. deprecated:: 2.0
+        ``only_one_gen_alloc.ensure_one_active_gen`` is deprecated and will be removed in
+        libEnsemble 2.1. Use :func:`libensemble.alloc_funcs.give_sim_work_first.give_sim_work_first`
+        with ``num_active_gens=1``, or the default ``only_persistent_gens`` instead.
+
     This allocation function gives (in order) entries in ``H`` to idle workers
     to evaluate in the simulation function. The fields in ``sim_specs["in"]``
     are given. If there is no active generator, then one is started.

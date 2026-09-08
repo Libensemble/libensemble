@@ -1,12 +1,23 @@
 import numpy as np
 
+from libensemble._deprecation import warn_deprecated
 from libensemble.gen_funcs.persistent_aposmm import decide_where_to_start_localopt, extract_rk_c, update_history_dist
 from libensemble.message_numbers import EVAL_GEN_TAG
 from libensemble.tools.alloc_support import AllocSupport, InsufficientFreeResources
 
+warn_deprecated(
+    name="libensemble.alloc_funcs.start_persistent_local_opt_gens",
+    replacement="libensemble.alloc_funcs.persistent_aposmm_alloc.persistent_aposmm_alloc",
+)
+
 
 def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info, libE_info):
     """
+    .. deprecated:: 2.0
+        ``start_persistent_local_opt_gens.start_persistent_local_opt_gens`` is deprecated and
+        will be removed in libEnsemble 2.1. Use
+        :func:`libensemble.alloc_funcs.persistent_aposmm_alloc.persistent_aposmm_alloc` instead.
+
     This allocation function will do the following:
 
     - Start up a persistent generator that is a local opt run at the first point
