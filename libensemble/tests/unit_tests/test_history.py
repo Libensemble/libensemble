@@ -92,6 +92,7 @@ def test_hist_init_1():
     assert hist.index == 0
     assert hist.sim_ended_count == 0
     assert hist.gen_informed_count == 0
+    assert hist.cache_set is False
 
 
 def test_hist_init_1A_H0():
