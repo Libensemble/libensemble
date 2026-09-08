@@ -91,4 +91,4 @@ After release
   on the kanban project board (inc. the release checklist). Those that were
   already in *Done* should be archived.
 
-.. _libE-Templater: https://github.com/Libensemble/libE-templater
+.. _libE-Templater: https://github.com/Libensemble/libE-HPC-Templater

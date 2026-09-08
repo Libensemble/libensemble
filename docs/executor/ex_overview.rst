@@ -156,4 +156,4 @@ which partitions resources among workers, ensuring that runs utilize different
 resources (e.g., nodes). Furthermore, the ``MPIExecutor`` offers resilience via the
 feature of re-launching tasks that fail to start because of system factors.
 
-.. _concurrent futures: https://docs.python.org/library/concurrent.futures.html
+.. _concurrent futures: https://docs.python.org/3/library/concurrent.futures.html

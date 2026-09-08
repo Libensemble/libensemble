@@ -75,4 +75,4 @@ To see GPU usage, ssh into the node you are on in another window and run::
 
 .. _Frontier: https://docs.olcf.ornl.gov/systems/frontier_user_guide.html
 .. _python_on_frontier: https://www.olcf.ornl.gov/wp-content/uploads/2-16-23_python_on_frontier.pdf
-.. _demonstration: https://youtu.be/H2fmbZ6DnVc
+.. _demonstration: https://www.youtube.com/watch?v=H2fmbZ6DnVc&feature=youtu.be

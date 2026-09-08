@@ -5,7 +5,7 @@ GitHub release
 
 The administrator should follow the GitHub instructions to draft a new release.
 These can currently be found at
-https://help.github.com/en/articles/creating-releases.
+https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository.
 
 Both the version and title will be of the form vX.Y.Z, for example, v0.5.0.
 

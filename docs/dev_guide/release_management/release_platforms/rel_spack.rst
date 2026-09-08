@@ -8,7 +8,7 @@ This assumes you have already:
  - made a PyPI package for the new libEnsemble version and
  - made a GitHub fork of Spack and cloned it to your local system.
 
-Details on how to create forks can be found at https://help.github.com/articles/fork-a-repo.
+Details on how to create forks can be found at https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo.
 
 You now have a configuration like that shown at https://stackoverflow.com/a/6286877/6346040.
 
@@ -130,5 +130,5 @@ Quick summary for bringing the develop branch on a forked repo up to speed with 
 
 Reference: <https://stackoverflow.com/questions/9646167/clean-up-a-fork-and-restart-it-from-the-upstream/39628366>
 
-.. _packaging: https://spack.readthedocs.io/en/latest/packaging_guide.html
+.. _packaging: https://spack.readthedocs.io/en/latest/packaging_guide_creation.html
 .. _contribution: https://spack.readthedocs.io/en/latest/contribution_guide.html

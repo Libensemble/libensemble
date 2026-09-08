@@ -118,6 +118,6 @@ Modeling and Approximation
 .. _Surmise: https://surmise.readthedocs.io/en/latest/index.html
 .. _Tasmanian: https://github.com/ORNL/Tasmanian
 .. _user guide: https://libensemble.readthedocs.io/en/latest/programming_libE.html
-.. _VTMOP: https://github.com/Libensemble/libe-community-examples#vtmop
+.. _VTMOP: https://libensemble.readthedocs.io/projects/libe-community-examples/en/latest/generators.html#vtmop-link
 .. _WarpX: https://warpx.readthedocs.io/en/latest/
 .. _ytopt: https://github.com/ytopt-team/ytopt

@@ -25,4 +25,4 @@ If your system doesn't allow you to perform these installations, try adding
 ``--user`` to the end of each command.
 
 .. _Matplotlib: https://matplotlib.org/
-.. _NumPy: https://www.numpy.org/
+.. _NumPy: https://numpy.org/

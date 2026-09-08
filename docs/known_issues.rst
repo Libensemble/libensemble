@@ -28,4 +28,4 @@ may occur when using libEnsemble.
 * We currently recommended running in Central mode on Bridges as distributed
   runs are experiencing hangs.
 
-.. _pickle error: https://docs.nersc.gov/development/languages/python/using-python-perlmutter/#missing-support-for-matched-proberecv
+.. _pickle error: https://docs.nersc.gov/development/languages/python/using-python-perlmutter/#known-issues
