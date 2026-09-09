@@ -68,12 +68,10 @@ docs = ["docs", "basic"]
 dev = ["dev", "basic", "extra", "docs"]
 
 # CI environments
-py311 = ["py311", "basic"]
 py312 = ["py312", "basic"]
 py313 = ["py313", "basic"]
 py314 = ["py314", "basic"]
 
-py311e = ["py311", "py311e", "basic", "extra"]
 py312e = ["py312", "py312e", "basic", "extra"]
 py313e = ["py313", "py313e", "basic", "extra"]
 py314e = ["py314", "py314e", "basic", "extra"]
@@ -158,17 +156,12 @@ octave = ">=9.4.0,<11"
 pyzmq = ">=26.4.0,<28"
 
 # Python versions
-[tool.pixi.feature.py311.dependencies]
-python = "3.11.*"
 [tool.pixi.feature.py312.dependencies]
 python = "3.12.*"
 [tool.pixi.feature.py313.dependencies]
 python = "3.13.*"
 [tool.pixi.feature.py314.dependencies]
 python = "3.14.*"
-
-[tool.pixi.feature.py311e.dependencies]
-globus-compute-sdk = ">=4.10.2,<5"
 
 [tool.pixi.feature.py312e.dependencies]
 globus-compute-sdk = ">=4.10.2,<5"
@@ -211,7 +204,7 @@ docs = ["pyenchant", "enchant>=0.0.1,<0.0.2", "sphinx-lfs-content>=1.1.10,<2"]
 # Various config from here onward
 [tool.black]
 line-length = 120
-target-version = ["py311", "py312", "py313", "py314"]
+target-version = ["py312", "py313", "py314"]
 force-exclude = '''
 (
   /(
