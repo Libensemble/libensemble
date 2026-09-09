@@ -12,7 +12,7 @@ dependencies = ["numpy", "psutil", "pydantic", "gest-api"]
 
 description = "A Python toolkit for coordinating asynchronous and dynamic ensembles of calculations."
 name = "libensemble"
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 license = { file = "LICENSE" }
 readme = "README.rst"
 
@@ -26,7 +26,6 @@ classifiers = [
   "Operating System :: Unix",
   "Operating System :: MacOS",
   "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
   "Programming Language :: Python :: 3.14",
@@ -173,7 +172,7 @@ globus-compute-sdk = ">=4.10.2,<5"
 
 # Dependencies for libEnsemble
 [tool.pixi.dependencies]
-python = ">=3.11,<3.15"
+python = ">=3.12,<3.15"
 pip = ">=25.2,<26"
 setuptools = ">=80.8.0,<81"
 numpy = ">=2.2.6,<3"

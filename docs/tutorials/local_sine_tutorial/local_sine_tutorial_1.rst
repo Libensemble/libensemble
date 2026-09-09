@@ -8,7 +8,7 @@ the correct version is installed.
 
 .. code-block:: bash
 
-    python --version  # This should be >= 3.11
+    python --version  # This should be >= 3.12
 
 .. _Python: https://www.python.org/
 

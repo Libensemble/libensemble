@@ -8,7 +8,7 @@ libEnsemble can be installed from ``pip``, ``uv``, ``pixi``, ``Conda``, or ``Spa
 libEnsemble requires the following dependencies, which are typically
 automatically installed alongside libEnsemble:
 
-* Python_       ``>= 3.11``
+* Python_       ``>= 3.12``
 * NumPy_        ``>= 1.21``
 * psutil_       ``>= 5.9.4``
 * `pydantic`_   ``>= 2``
