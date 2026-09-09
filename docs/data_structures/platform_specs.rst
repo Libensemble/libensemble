@@ -90,6 +90,13 @@ E.g., in the command line or batch submission script:
 
     export LIBE_PLATFORM="perlmutter_g"
 
+.. note::
+
+    The ``flux`` platform configures the :doc:`MPI Executor <../executor/ex_mpi>`
+    to launch applications by subprocessing ``flux run``. This is independent
+    of the :doc:`Flux Executor <../executor/ex_flux>`, which instead submits
+    jobs directly to Flux via its Python API bindings.
+
 .. _known-platforms:
 
 Known Platforms List

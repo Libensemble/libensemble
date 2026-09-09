@@ -226,6 +226,7 @@ libEnsemble on specific HPC systems.
 
     aurora
     bebop
+    flux
     frontier
     improv
     perlmutter

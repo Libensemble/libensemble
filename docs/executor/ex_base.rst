@@ -1,7 +1,7 @@
 Base Executor
 =============
 
-`Overview <ex_overview.html>`__ \|\| **Base Executor** \|\| `MPI Executor <ex_mpi.html>`__
+`Overview <ex_overview.html>`__ \|\| **Base Executor** \|\| `MPI Executor <ex_mpi.html>`__ \|\| `Flux Executor <ex_flux.html>`__
 
 .. automodule:: executor
     :no-undoc-members:
