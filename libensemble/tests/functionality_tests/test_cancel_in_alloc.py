@@ -37,7 +37,7 @@ if __name__ == "__main__":
         "sim_f": sim_f,
         "in": ["x"],
         "out": [("f", float)],
-        "user": {"uniform_random_pause_ub": 10},  # long sleep ensures sims are still running when cancel fires
+        "user": {"uniform_random_pause_ub": 2},  # sleep ensures sims are still running when cancel fires
     }
 
     vocs = VOCS(variables={"x0": [-3, 3], "x1": [-2, 2]}, objectives={"f": "EXPLORE"})

@@ -14,6 +14,11 @@ from libensemble.executors.executor import NOT_STARTED_STATES, Executor, Executo
 from libensemble.message_numbers import STOP_TAG, TASK_FAILED, UNSET_TAG
 from libensemble.resources.mpi_resources import MPIResourcesException
 
+# Run all tests in this module with simulated task subprocesses (FakePopen via
+# the fast_launch fixture) unless marked real_launch. This removes real MPI
+# spawn overhead and wall-clock sleeps while exercising the executor logic.
+pytestmark = pytest.mark.usefixtures("fast_launch")
+
 NCORES = 1
 build_sims = ["my_simtask.c", "my_serialtask.c", "c_startup.c"]
 
@@ -166,7 +171,7 @@ def is_ompi():
 
 # -----------------------------------------------------------------------------
 # The following would typically be in the user sim_func.
-def polling_loop(exctr, task, timeout_sec=2, delay=0.1):
+def polling_loop(exctr, task, timeout_sec=1.0, delay=0.02):
     """Iterate over a loop, polling for an exit condition"""
     start = time.time()
 
@@ -198,7 +203,7 @@ def polling_loop(exctr, task, timeout_sec=2, delay=0.1):
     return task
 
 
-def polling_loop_multitask(exctr, task_list, timeout_sec=4.0, delay=0.1):
+def polling_loop_multitask(exctr, task_list, timeout_sec=1.0, delay=0.02):
     """Iterate over a loop, polling for exit conditions on multiple tasks"""
     start = time.time()
 
@@ -342,7 +347,7 @@ def test_kill_on_timeout():
     cores = NCORES
     args_for_sim = "sleep 10"
     task = exctr.submit(calc_type="sim", num_procs=cores, app_args=args_for_sim)
-    task = polling_loop(exctr, task)
+    task = polling_loop(exctr, task, timeout_sec=0.5)
     assert task.finished, "task.finished should be True. Returned " + str(task.finished)
     assert task.state == "USER_KILLED", "task.state should be USER_KILLED. Returned " + str(task.state)
 
@@ -354,7 +359,7 @@ def test_kill_on_timeout_polling_loop_method():
     cores = NCORES
     args_for_sim = "sleep 10"
     task = exctr.submit(calc_type="sim", num_procs=cores, app_args=args_for_sim)
-    exctr.polling_loop(task, timeout=1)
+    exctr.polling_loop(task, timeout=0.5)
     assert task.finished, "task.finished should be True. Returned " + str(task.finished)
     assert task.state == "USER_KILLED", "task.state should be USER_KILLED. Returned " + str(task.state)
 
@@ -425,7 +430,7 @@ def test_procs_and_machinefile_logic():
             f.write(socket.gethostname() + "\n")
 
     task = exctr.submit(calc_type="sim", machinefile=machinefilename, app_args=args_for_sim)
-    task = polling_loop(exctr, task, timeout_sec=4, delay=0.1)
+    task = polling_loop(exctr, task, timeout_sec=0.5, delay=0.02)
     assert task.finished, "task.finished should be True. Returned " + str(task.finished)
     assert task.state == "FINISHED", "task.state should be FINISHED. Returned " + str(task.state)
 
@@ -441,8 +446,8 @@ def test_procs_and_machinefile_logic():
         )
     else:
         task = exctr.submit(calc_type="sim", num_procs=6, num_nodes=2, procs_per_node=3, app_args=args_for_sim)
-    task = polling_loop(exctr, task, timeout_sec=4, delay=0.1)
-    time.sleep(0.25)
+    task = polling_loop(exctr, task, timeout_sec=0.5, delay=0.02)
+    time.sleep(0.05)
     assert task.finished, "task.finished should be True. Returned " + str(task.finished)
     assert task.state == "FINISHED", "task.state should be FINISHED. Returned " + str(task.state)
 
@@ -466,8 +471,8 @@ def test_procs_and_machinefile_logic():
     else:
         task = exctr.submit(calc_type="sim", num_nodes=2, procs_per_node=3, app_args=args_for_sim)
     assert 1
-    task = polling_loop(exctr, task, timeout_sec=4, delay=0.1)
-    time.sleep(0.25)
+    task = polling_loop(exctr, task, timeout_sec=0.5, delay=0.02)
+    time.sleep(0.05)
     assert task.finished, "task.finished should be True. Returned " + str(task.finished)
     assert task.state == "FINISHED", "task.state should be FINISHED. Returned " + str(task.state)
 
@@ -482,14 +487,14 @@ def test_procs_and_machinefile_logic():
     # Testing no num_nodes (should not fail).
     task = exctr.submit(calc_type="sim", num_procs=2, procs_per_node=2, app_args=args_for_sim)
     assert 1
-    task = polling_loop(exctr, task, timeout_sec=4, delay=0.1)
+    task = polling_loop(exctr, task, timeout_sec=0.5, delay=0.02)
     assert task.finished, "task.finished should be True. Returned " + str(task.finished)
     assert task.state == "FINISHED", "task.state should be FINISHED. Returned " + str(task.state)
 
     # Testing no procs_per_node (shouldn't fail)
     task = exctr.submit(calc_type="sim", num_nodes=1, num_procs=2, app_args=args_for_sim)
     assert 1
-    task = polling_loop(exctr, task, timeout_sec=4, delay=0.1)
+    task = polling_loop(exctr, task, timeout_sec=0.5, delay=0.02)
     assert task.finished, "task.finished should be True. Returned " + str(task.finished)
     assert task.state == "FINISHED", "task.state should be FINISHED. Returned " + str(task.state)
 
@@ -536,7 +541,7 @@ def test_finish_and_kill():
     args_for_sim = "sleep 0.1"
     task = exctr.submit(calc_type="sim", num_procs=cores, app_args=args_for_sim)
     while not task.finished:
-        time.sleep(0.1)
+        time.sleep(0.02)
         task.poll()
     assert task.finished, "task.finished should be True. Returned " + str(task.finished)
     assert task.state == "FINISHED", "task.state should be FINISHED. Returned " + str(task.state)
@@ -676,7 +681,7 @@ def test_task_failure():
     cores = NCORES
     args_for_sim = "sleep 1.0 Fail"
     task = exctr.submit(calc_type="sim", num_procs=cores, app_args=args_for_sim)
-    task = polling_loop(exctr, task, timeout_sec=3)
+    task = polling_loop(exctr, task, timeout_sec=0.5)
     assert task.finished, "task.finished should be True. Returned " + str(task.finished)
     assert task.state == "FAILED", "task.state should be FAILED. Returned " + str(task.state)
 
@@ -711,7 +716,7 @@ def test_retries_launch_fail():
     print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     setup_executor_fakerunner()
     exctr = Executor.executor
-    exctr.retry_delay_incr = 0.05
+    exctr.retry_delay_incr = 0.02
     cores = NCORES
     args_for_sim = "sleep 0"
     task = exctr.submit(calc_type="sim", num_procs=cores, app_args=args_for_sim)
@@ -724,11 +729,11 @@ def test_retries_before_polling_loop_method():
     print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     setup_executor_fakerunner()
     exctr = Executor.executor
-    exctr.retry_delay_incr = 0.05
+    exctr.retry_delay_incr = 0.02
     cores = NCORES
     args_for_sim = "sleep 0"
     task = exctr.submit(calc_type="sim", num_procs=cores, app_args=args_for_sim)
-    exctr.polling_loop(task, timeout=1)
+    exctr.polling_loop(task, timeout=0.5)
     assert task.finished, "task.finished should be True. Returned " + str(task.finished)
     assert task.state == "FAILED_TO_START", "task.state should be FAILED_TO_START. Returned " + str(task.state)
     assert task.run_attempts == 5, "task.run_attempts should be 5. Returned " + str(task.run_attempts)
@@ -738,7 +743,7 @@ def test_retries_run_fail():
     print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     setup_executor()
     exctr = Executor.executor
-    exctr.retry_delay_incr = 0.05
+    exctr.retry_delay_incr = 0.02
     cores = NCORES
     args_for_sim = "sleep 0 Fail"
     task = exctr.submit(calc_type="sim", num_procs=cores, app_args=args_for_sim, wait_on_start=True)
@@ -811,6 +816,7 @@ def test_serial_exe_exception():
         pytest.fail("Expected exception")
 
 
+@pytest.mark.real_launch
 def test_serial_exe_env_script():
     env_script_path = os.path.join(os.getcwd(), "./env_script_in.sh")
     setup_serial_executor()
@@ -835,6 +841,7 @@ def test_serial_exe_dryrun():
     assert task.state == "FINISHED", "task.state should be FINISHED. Returned " + str(task.state)
 
 
+@pytest.mark.real_launch
 def test_serial_startup_times():
     print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     setup_executor_startups()
@@ -864,6 +871,8 @@ def test_serial_startup_times():
 def test_futures_interface():
     print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     setup_executor()
+    exctr = Executor.executor
+    exctr.fail_time = 0.3  # Don't wait out full fail_time for early-failure check
     cores = NCORES
     args_for_sim = "sleep 3"
     with Executor.executor as exctr:
@@ -877,6 +886,8 @@ def test_futures_interface():
 def test_futures_interface_cancel():
     print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     setup_executor()
+    exctr = Executor.executor
+    exctr.fail_time = 0.3  # Don't wait out full fail_time for early-failure check
     cores = NCORES
     args_for_sim = "sleep 3"
     with Executor.executor as exctr:

@@ -88,8 +88,8 @@ def executor_hworld(H, _, sim_specs, info):
         print("sim_ended_count", sim_ended_count, flush=True)
 
         if ELAPSED_TIMEOUT:
-            args_for_sim = "sleep 60"  # Manager kill - if signal received else completes
-            timeout = 65.0
+            args_for_sim = "sleep 20"  # Manager kill - if signal received else completes
+            timeout = 25.0
 
         else:
             timeout = 6.0
@@ -104,7 +104,7 @@ def executor_hworld(H, _, sim_specs, info):
                 args_for_sim = "sleep 1"  # Should finish
                 launch_shc = True
             elif sim_ended_count == 4:
-                args_for_sim = "sleep 8"  # Worker kill on timeout
+                args_for_sim = "sleep 3"  # Worker kill on timeout
                 timeout = 1.0
             elif sim_ended_count == 5:
                 args_for_sim = "sleep 2 Fail"  # Manager kill - if signal received else completes
