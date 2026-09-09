@@ -12,7 +12,7 @@ dependencies = ["numpy", "psutil", "pydantic", "gest-api"]
 
 description = "A Python toolkit for coordinating asynchronous and dynamic ensembles of calculations."
 name = "libensemble"
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 license = { file = "LICENSE" }
 readme = "README.rst"
 
@@ -26,7 +26,6 @@ classifiers = [
   "Operating System :: Unix",
   "Operating System :: MacOS",
   "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
   "Programming Language :: Python :: 3.14",
@@ -68,12 +67,10 @@ docs = ["docs", "basic"]
 dev = ["dev", "basic", "extra", "docs"]
 
 # CI environments
-py311 = ["py311", "basic"]
 py312 = ["py312", "basic"]
 py313 = ["py313", "basic"]
 py314 = ["py314", "basic"]
 
-py311e = ["py311", "py311e", "basic", "extra"]
 py312e = ["py312", "py312e", "basic", "extra"]
 py313e = ["py313", "py313e", "basic", "extra"]
 py314e = ["py314", "py314e", "basic", "extra"]
@@ -158,17 +155,12 @@ octave = ">=9.4.0,<11"
 pyzmq = ">=26.4.0,<28"
 
 # Python versions
-[tool.pixi.feature.py311.dependencies]
-python = "3.11.*"
 [tool.pixi.feature.py312.dependencies]
 python = "3.12.*"
 [tool.pixi.feature.py313.dependencies]
 python = "3.13.*"
 [tool.pixi.feature.py314.dependencies]
 python = "3.14.*"
-
-[tool.pixi.feature.py311e.dependencies]
-globus-compute-sdk = ">=4.10.2,<5"
 
 [tool.pixi.feature.py312e.dependencies]
 globus-compute-sdk = ">=4.10.2,<5"
@@ -180,7 +172,7 @@ globus-compute-sdk = ">=4.10.2,<5"
 
 # Dependencies for libEnsemble
 [tool.pixi.dependencies]
-python = ">=3.11,<3.15"
+python = ">=3.12,<3.15"
 pip = ">=25.2,<26"
 setuptools = ">=80.8.0,<81"
 numpy = ">=2.2.6,<3"
@@ -211,7 +203,7 @@ docs = ["pyenchant", "enchant>=0.0.1,<0.0.2", "sphinx-lfs-content>=1.1.10,<2"]
 # Various config from here onward
 [tool.black]
 line-length = 120
-target-version = ["py311", "py312", "py313", "py314"]
+target-version = ["py312", "py313", "py314"]
 force-exclude = '''
 (
   /(

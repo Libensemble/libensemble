@@ -11,7 +11,7 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         mpi-version: [mpich]
-        python-version: ["py311e", "py312e", "py313e", "py314e"]
+        python-version: ["py312e", "py313e", "py314e"]
         comms-type: [m, l]
         include:
           - os: macos-latest
