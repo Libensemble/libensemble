@@ -205,7 +205,13 @@ extra = [
   "surmise>=0.3.0,<0.4",
   "optimas @ git+https://github.com/optimas-org/optimas",
 ]
-dev = ["wat>=0.7.0,<0.8"]
+dev = [
+  "wat>=0.7.0,<0.8",
+  "pyenchant",
+  "enchant>=0.0.1,<0.0.2",
+  "flake8-modern-annotations>=1.6.0,<2",
+  "flake8-type-checking>=3.0.0,<4",
+]
 docs = ["pyenchant", "enchant>=0.0.1,<0.0.2", "sphinx-lfs-content>=1.1.10,<2"]
 
 # Various config from here onward

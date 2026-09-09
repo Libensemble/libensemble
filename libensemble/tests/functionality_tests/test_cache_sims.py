@@ -1,0 +1,73 @@
+"""
+Runs libEnsemble with Latin hypercube sampling on a simple 1D problem
+
+Execute via one of the following commands (e.g. 3 workers):
+   mpiexec -np 4 python test_1d_sampling.py
+   python test_1d_sampling.py --nworkers 3
+   python test_1d_sampling.py --nworkers 3 --comms tcp
+
+The number of concurrent evaluations of the objective function will be 4-1=3.
+"""
+
+# Do not change these lines - they are parsed by run-tests.sh
+# TESTSUITE_COMMS: mpi local
+# TESTSUITE_NPROCS: 2 4
+
+import time
+
+import numpy as np
+
+from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
+from libensemble.gen_funcs.sampling import latin_hypercube_sample as gen_f
+
+# Import libEnsemble items for this test
+from libensemble.libE import libE
+from libensemble.tools import parse_args, save_libE_output
+
+
+def sim_f(In):
+    Out = np.zeros(1, dtype=[("f", float)])
+    time.sleep(1.1)
+    Out["f"] = np.linalg.norm(In)
+    return Out
+
+
+if __name__ == "__main__":
+    nworkers, is_manager, libE_specs, _ = parse_args()
+    libE_specs["cache_long_sims"] = True
+    libE_specs["cache_dir"] = "."
+
+    sim_specs = {
+        "sim_f": sim_f,
+        "in": ["x"],
+        "out": [("f", float)],
+    }
+
+    gen_specs = {
+        "gen_f": gen_f,
+        "out": [("x", float, (1,))],
+        "batch_size": 10,
+        "user": {
+            "lb": np.array([-3]),
+            "ub": np.array([3]),
+            "gen_seed": 42,
+        },
+    }
+
+    alloc_specs = {"alloc_f": give_sim_work_first}
+
+    exit_criteria = {"sim_max": 11}
+
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs, libE_specs=libE_specs)
+
+    if is_manager:
+        assert len(H) >= 11
+        print("\nlibEnsemble with random sampling has generated enough points")
+        save_libE_output(H, persis_info, __file__, nworkers)
+
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs, libE_specs=libE_specs)
+
+    if is_manager:
+        # better way of seeing "long" sims not actually taking so long (because of cache?)
+        durations = H["sim_ended_time"] - H["sim_started_time"]
+        assert any((durations < 1.1) & (durations != -np.inf))
