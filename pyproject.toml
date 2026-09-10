@@ -165,7 +165,17 @@ python = "3.14.*"
 [tool.pixi.feature.py312e.dependencies]
 globus-compute-sdk = ">=4.10.2,<5"
 
-[tool.pixi.feature.py313e]
+[tool.pixi.feature.py312e.target.linux-64.dependencies]
+flux-core = ">=0.81.0,<0.82"
+
+[tool.pixi.feature.py312e.target.linux-64.pypi-dependencies]
+flux-python = ">=0.81.0, <0.82"
+
+[tool.pixi.feature.py313e.target.linux-64.dependencies]
+flux-core = ">=0.81.0,<0.82"
+
+[tool.pixi.feature.py313e.target.linux-64.pypi-dependencies]
+flux-python = ">=0.81.0, <0.82"
 
 [tool.pixi.feature.py314e]
 
@@ -199,6 +209,13 @@ extra = [
 ]
 dev = ["wat>=0.7.0,<0.8"]
 docs = ["pyenchant", "enchant>=0.0.1,<0.0.2", "sphinx-lfs-content>=1.1.10,<2"]
+
+# Note: For FluxExecutor (native Flux Python API), the flux-core Python bindings
+# are required. These are typically installed via:
+#   - conda: conda install -c conda-forge flux-core
+#   - spack: spack install flux-core
+#   - system package manager on supported systems
+# The MPIExecutor with mpi_runner="flux" works without Python bindings.
 
 # Various config from here onward
 [tool.black]

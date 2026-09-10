@@ -284,7 +284,7 @@ def test_gen_specs_vocs_populates_user_bounds():
 
     vocs = VOCS(
         variables={"x0": [-3, 3], "x1": [-2, 2], "x2": [-1, 1], "x3": [-1, 1]},
-        objectives={"f": "EXPLORE"},
+        objectives={"f": "EXPLORE"}
     )
     gs = GenSpecs(vocs=vocs)
     assert "lb" in gs.user, "lb should be populated in user from VOCS"

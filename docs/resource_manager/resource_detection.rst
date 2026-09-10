@@ -16,7 +16,12 @@ SLURM           SLURM_NODELIST
 COBALT          COBALT_PARTNAME
 LSF             LSB_HOSTS/LSB_MCPU_HOSTS
 PBS             PBS_NODEFILE
+Flux            FLUX_URI
 ===========  ===========================
+
+Flux is detected via the ``FLUX_URI`` environment variable, but unlike the
+other schedulers above, the nodelist itself is obtained by running
+``flux resource list`` rather than parsing an environment variable directly.
 
 These environment variable names can be modified via the :ref:`resource_info<resource_info>`
 :class:`libE_specs<libensemble.specs.LibeSpecs>` option.
