@@ -143,28 +143,27 @@ def test_ensemble_specs_update_libE_specs():
 
 
 def test_ensemble_prevent_comms_overwrite():
-    """Test that libE_specs is updated as expected with .attribute setting"""
+    """Test that the configured communication method cannot be changed."""
     from libensemble.ensemble import Ensemble
     from libensemble.specs import LibeSpecs
 
     ensemble = Ensemble(
-        libE_specs=LibeSpecs(comms="mpi"),
+        libE_specs=LibeSpecs(comms="local", nworkers=4),
     )
-
     flag = 1
     try:
-        ensemble.libE_specs = LibeSpecs(comms="local")
+        ensemble.libE_specs = LibeSpecs(comms="threads")
     except ValueError:
         flag = 0
 
-    assert not flag, "UserWarning should've been raised upon trying to overwrite comms"
+    assert not flag, "should not be able to overwrite comms through the property setter"
 
     # test that dot-notation is also disallowed, upon trying .run()
     # TODO: This may not be possible
     flag = 1
-    ensemble = Ensemble()
+    ensemble = Ensemble(libE_specs=LibeSpecs(comms="local", nworkers=4))
     try:
-        ensemble.libE_specs.comms = "mpi"
+        ensemble.libE_specs.comms = "threads"
         ensemble.run()
     except ValueError:
         flag = 0
@@ -225,15 +224,12 @@ def test_ready_missing_nworkers_local():
     from libensemble.sim_funcs.simple_sim import norm_eval
     from libensemble.specs import ExitCriteria, LibeSpecs, SimSpecs
 
-    # Bypass the constructor ValueError by using mpi comms first,
-    # then patch to local after construction.
+    # Start valid, then bypass assignment validation to exercise ready().
     e = Ensemble(
-        libE_specs=LibeSpecs(comms="mpi"),
+        libE_specs=LibeSpecs(comms="local", nworkers=1),
         sim_specs=SimSpecs(sim_f=norm_eval),
         exit_criteria=ExitCriteria(sim_max=10),
     )
-    # Manually force comms=local and nworkers=0 on the internal specs object
-    e._libE_specs.comms = "local"
     e._nworkers = 0
     e._libE_specs.nworkers = 0
 
@@ -282,10 +278,7 @@ def test_gen_specs_vocs_populates_user_bounds():
 
     from libensemble.specs import GenSpecs
 
-    vocs = VOCS(
-        variables={"x0": [-3, 3], "x1": [-2, 2], "x2": [-1, 1], "x3": [-1, 1]},
-        objectives={"f": "EXPLORE"}
-    )
+    vocs = VOCS(variables={"x0": [-3, 3], "x1": [-2, 2], "x2": [-1, 1], "x3": [-1, 1]}, objectives={"f": "EXPLORE"})
     gs = GenSpecs(vocs=vocs)
     assert "lb" in gs.user, "lb should be populated in user from VOCS"
     assert "ub" in gs.user, "ub should be populated in user from VOCS"
