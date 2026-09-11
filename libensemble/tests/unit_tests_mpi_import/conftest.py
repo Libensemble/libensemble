@@ -2,8 +2,10 @@
 
 import warnings
 
+import mpi4py
 import pytest
 
+mpi4py.rc.initialize = False
 warnings.simplefilter("ignore", ResourceWarning)
 
 

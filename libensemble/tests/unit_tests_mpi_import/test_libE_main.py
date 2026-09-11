@@ -2,6 +2,7 @@ import os
 
 import mock
 import pytest
+from mpi4py import MPI
 
 import libensemble.tests.unit_tests.setup as setup
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
@@ -9,7 +10,6 @@ from libensemble.comms.logs import LogConfig
 from libensemble.libE import libE
 from libensemble.manager import LoggedException
 from libensemble.resources.resources import Resources
-from libensemble.tests.regression_tests.common import mpi_comm_excl
 
 
 class MPIAbortException(Exception):
@@ -155,8 +155,7 @@ def test_exception_raising_check_inputs():
 
 def test_proc_not_in_communicator():
     """Checking proc not in communicator returns exit status of 3"""
-    libE_specs = {}
-    libE_specs["mpi_comm"], mpi_comm_null = mpi_comm_excl()
+    libE_specs = {"mpi_comm": MPI.COMM_NULL}
     H, _, flag = libE(
         {"sim_f": print, "in": ["x"], "out": [("f", float)]},
         {"gen_f": print, "out": [("x", float)]},
