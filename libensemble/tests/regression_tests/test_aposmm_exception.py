@@ -1,8 +1,8 @@
 """
 Tests the APOSMM generator's ability to handle exceptions.
 
-The periodic_func with LN_BOBYQA generates NLopt roundoff-limited errors,
-which should propagate as exceptions to the calling script.
+An invalid zero initial step makes NLopt fail deterministically. The error should
+propagate from the optimizer process to the calling script.
 
 Execute via one of the following commands (e.g. 3 workers):
    mpiexec -np 4 python test_aposmm_exception.py
@@ -63,6 +63,7 @@ if __name__ == "__main__":
             "f": ["f"],
         },
         localopt_method="LN_BOBYQA",
+        dist_to_bound_multiple=0,
     )
 
     workflow.gen_specs = GenSpecs(
@@ -91,5 +92,5 @@ if __name__ == "__main__":
             else:
                 MPI.COMM_WORLD.Abort(1)
         else:
-            assert exception_raised, "Expected an exception from the NLopt roundoff-limited error"
+            assert exception_raised, "Expected an exception from the invalid NLopt initial step"
             print("\n\nException received as expected")
