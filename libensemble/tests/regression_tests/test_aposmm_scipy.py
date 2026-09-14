@@ -89,7 +89,8 @@ if __name__ == "__main__":
     H, _, _ = workflow.run()
 
     if workflow.is_manager:
-        print("[Manager]:", H[np.where(H["local_min"])]["x"])
+        x_min = np.column_stack([H[H["local_min"]]["x0"], H[H["local_min"]]["x1"]])
+        print("[Manager]:", x_min)
         print("[Manager]: Time taken =", time() - start_time, flush=True)
 
         tol = 1e-3
@@ -97,7 +98,7 @@ if __name__ == "__main__":
         for m in minima:
             # The minima are known on this test problem.
             # We use their values to test APOSMM has identified all minima
-            print(np.min(np.sum((H[H["local_min"]]["x"] - m) ** 2, 1)), flush=True)
-            if np.min(np.sum((H[H["local_min"]]["x"] - m) ** 2, 1)) < tol:
+            print(np.min(np.sum((x_min - m) ** 2, 1)), flush=True)
+            if np.min(np.sum((x_min - m) ** 2, 1)) < tol:
                 min_found += 1
         assert min_found >= 2, f"Found {min_found} minima"
