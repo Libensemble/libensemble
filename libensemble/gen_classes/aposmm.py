@@ -1,7 +1,7 @@
 import copy
 import warnings
 from math import gamma, pi, sqrt
-from typing import List
+from typing import Any
 
 import numpy as np
 from gest_api.vocs import VOCS
@@ -177,7 +177,7 @@ class APOSMM(LibensembleGenerator):
         History: npt.NDArray = [],
         sample_points: npt.NDArray = None,
         localopt_method: str = "scipy_Nelder-Mead",
-        rk_const: float = None,
+        rk_const: float | None = None,
         xtol_abs: float = 1e-6,
         ftol_abs: float = 1e-6,
         opt_return_codes: list[int] = [0],
@@ -211,9 +211,8 @@ class APOSMM(LibensembleGenerator):
 
         self.vocs = vocs
 
-        gen_specs = {}
-        gen_specs["user"] = {}
-        persis_info = {}
+        gen_specs: dict[str, Any] = {"user": {}}
+        persis_info: dict[str, Any] = {}
         n = len(list(vocs.variables.keys()))
 
         if not rk_const:
@@ -290,7 +289,7 @@ class APOSMM(LibensembleGenerator):
 
         # Initialize APOSMM internal state directly (no subprocess)
         user_specs = gen_specs["user"]
-        libE_info = {"comm": []}  # no comm needed in direct mode
+        libE_info: dict[str, Any] = {"comm": []}  # no comm needed in direct mode
         self._n, self._n_s, self._rk_const, self._ld, self._mu, self._nu, _, self.local_H = initialize_APOSMM(
             History, user_specs, libE_info
         )
@@ -306,6 +305,7 @@ class APOSMM(LibensembleGenerator):
 
         self._user_specs = user_specs
         self._max_active_runs = max_active_runs
+        self._rng = np.random.default_rng(random_seed)
 
         # Build reverse mapping: VOCS field name -> (internal_name, index)
         self._reverse_mapping = {}
@@ -313,9 +313,9 @@ class APOSMM(LibensembleGenerator):
             for i, vocs_name in enumerate(vocs_names):
                 self._reverse_mapping[vocs_name] = (internal_name, i, len(vocs_names))
 
-        self.all_local_minima = []
+        self.all_local_minima: list[npt.NDArray] = []
         self._told_initial_sample = False
-        self._first_called_method = None
+        self._first_called_method: str | None = None
         self._pending_results = None
         self._first_pass = True
         self._n_r = 0  # number of results received in last ingest
@@ -390,9 +390,10 @@ class APOSMM(LibensembleGenerator):
         self._n_s += n_new
         self._update_history_dist(self.local_H, self._n)
 
-    def suggest_numpy(self, num_points: int = 0) -> npt.NDArray:
+    def suggest_numpy(self, num_points: int | None = 0) -> npt.NDArray:
         """Request the next set of points to evaluate, as a NumPy array."""
         out_fields = [i[0] for i in self.gen_specs["out"]]
+        num_points = num_points or 0
 
         if self._first_called_method is None:
             self._first_called_method = "suggest"
@@ -402,8 +403,14 @@ class APOSMM(LibensembleGenerator):
             if not self._initial_sample_generated:
                 total = self._user_specs["initial_sample_size"]
                 self._add_k_sample_points(
-                    total, self._user_specs, self.persis_info,
-                    self._n, [], self.local_H, self._sim_id_to_child_inds,
+                    total,
+                    self._user_specs,
+                    self.persis_info,
+                    self._n,
+                    [],
+                    self.local_H,
+                    self._sim_id_to_child_inds,
+                    self._rng,
                 )
                 self._initial_sample_generated = True
                 self._initial_suggest_idx = 0
@@ -416,8 +423,8 @@ class APOSMM(LibensembleGenerator):
             return unmap_numpy_array(result, self.variables_mapping)
 
         # Main optimization phase
-        new_opt_inds = []
-        new_inds = []
+        new_opt_inds: list[int] = []
+        new_inds: list[int] = []
 
         # Process any pending ingested results through local optimizers
         if self._pending_results is not None:
@@ -433,7 +440,7 @@ class APOSMM(LibensembleGenerator):
                 for name in calc_in.dtype.names:
                     if name in self.local_H.dtype.names:
                         self.local_H[name][sim_id] = row[name]
-            self._n_s = int(np.sum(~self.local_H["local_pt"][:len(self.local_H)]))
+            self._n_s = int(np.sum(~self.local_H["local_pt"][: len(self.local_H)]))
             self._update_history_dist(self.local_H, self._n)
 
             for row in calc_in:
@@ -447,7 +454,10 @@ class APOSMM(LibensembleGenerator):
                             x_opt = x_new.x
                             opt_flag = x_new.opt_flag
                             opt_ind = self._update_history_optimal(
-                                x_opt, opt_flag, self.local_H, self._run_order[child_idx],
+                                x_opt,
+                                opt_flag,
+                                self.local_H,
+                                self._run_order[child_idx],
                             )
                             new_opt_inds.append(opt_ind)
                             self._local_opters.pop(child_idx)
@@ -465,7 +475,13 @@ class APOSMM(LibensembleGenerator):
 
         # Decide where to start new local optimization runs
         starting_inds = self._decide_where_to_start(
-            self.local_H, self._n, self._n_s, self._rk_const, self._ld, self._mu, self._nu,
+            self.local_H,
+            self._n,
+            self._n_s,
+            self._rk_const,
+            self._ld,
+            self._mu,
+            self._nu,
         )
 
         for ind in starting_inds:
@@ -499,8 +515,14 @@ class APOSMM(LibensembleGenerator):
 
         if num_samples > 0:
             self._add_k_sample_points(
-                num_samples, self._user_specs, self.persis_info,
-                self._n, [], self.local_H, self._sim_id_to_child_inds,
+                num_samples,
+                self._user_specs,
+                self.persis_info,
+                self._n,
+                [],
+                self.local_H,
+                self._sim_id_to_child_inds,
+                self._rng,
             )
             new_inds = new_inds + list(range(len(self.local_H) - num_samples, len(self.local_H)))
 
@@ -539,7 +561,7 @@ class APOSMM(LibensembleGenerator):
         self._n_r = len(results)
         self._pending_results = results.copy()
 
-    def suggest_updates(self) -> List[npt.NDArray]:
+    def suggest_updates(self) -> list[npt.NDArray]:
         """Request a list of NumPy arrays containing entries that have been identified as minima."""
         minima = copy.deepcopy(self.all_local_minima)
         self.all_local_minima = []
