@@ -8,7 +8,8 @@ from gest_api.vocs import VOCS
 from numpy import typing as npt
 
 from libensemble.generators import LibensembleGenerator
-from libensemble.utils.misc import unmap_numpy_array
+from libensemble.message_numbers import FINISHED_PERSISTENT_GEN_TAG
+from libensemble.utils.misc import np_to_list_dicts, unmap_numpy_array
 
 
 class APOSMM(LibensembleGenerator):
@@ -321,6 +322,7 @@ class APOSMM(LibensembleGenerator):
         self._n_r = 0  # number of results received in last ingest
         self._initial_sample_generated = False
         self._initial_suggest_idx = 0  # tracks how many initial sample points have been handed out
+        self.gen_result: tuple[npt.NDArray | list | None, dict | None, int | None] | None = None
 
     def _map_to_internal(self, results):
         """Map VOCS-named structured array to internal APOSMM field names (x, x_on_cube, f, sim_id)."""
@@ -414,6 +416,9 @@ class APOSMM(LibensembleGenerator):
                 )
                 self._initial_sample_generated = True
                 self._initial_suggest_idx = 0
+
+            if self._initial_suggest_idx >= self._user_specs["initial_sample_size"]:
+                raise RuntimeError("Cannot suggest points since APOSMM is currently expecting to receive a sample")
 
             k = num_points if num_points > 0 else (self._user_specs["initial_sample_size"] - self._initial_suggest_idx)
             start = self._initial_suggest_idx
@@ -567,8 +572,33 @@ class APOSMM(LibensembleGenerator):
         self.all_local_minima = []
         return minima
 
+    def setup(self) -> None:
+        """Reject legacy setup calls; direct APOSMM initializes in its constructor."""
+        raise RuntimeError("Direct APOSMM does not support setup().")
+
     def finalize(self) -> None:
         """Stop all local optimizer processes."""
+        if self._first_called_method is None:
+            raise RuntimeError("Generator has not been started.")
         for _, p in self._local_opters.items():
             p.destroy()
         self._local_opters.clear()
+        self.persis_info["run_order"] = self._run_order
+        self.gen_result = (self.local_H, self.persis_info, FINISHED_PERSISTENT_GEN_TAG)
+
+    def export(
+        self, vocs_field_names: bool = False, as_dicts: bool = False
+    ) -> tuple[npt.NDArray | list | None, dict | None, int | None]:
+        """Return the APOSMM history, persistent information, and exit tag."""
+        if self.gen_result is None:
+            return (None, None, None)
+
+        local_H, persis_info, tag = self.gen_result
+        if vocs_field_names and local_H is not None and self.variables_mapping:
+            local_H = unmap_numpy_array(local_H, self.variables_mapping)
+        if as_dicts and local_H is not None:
+            if vocs_field_names and self.variables_mapping:
+                local_H = np_to_list_dicts(local_H, self.variables_mapping)
+            else:
+                local_H = np_to_list_dicts(local_H)
+        return (local_H, persis_info, tag)
