@@ -227,9 +227,13 @@ def run_local_nlopt(user_specs, comm_queue, x0, f0, child_can_read, parent_can_r
     assert dist_to_bound > np.finfo(np.float64).eps, "The distance to the boundary is too small for NLopt to handle"
 
     if "dist_to_bound_multiple" in user_specs:
-        opt.set_initial_step(dist_to_bound * user_specs["dist_to_bound_multiple"])
+        initial_step = dist_to_bound * user_specs["dist_to_bound_multiple"]
+        if initial_step <= 0:
+            raise APOSMMException("NLopt initial step must be positive")
     else:
-        opt.set_initial_step(dist_to_bound)
+        initial_step = dist_to_bound
+
+    opt.set_initial_step(initial_step)
 
     run_max_eval = user_specs.get("run_max_eval", 1000 * n)
     opt.set_maxeval(run_max_eval)

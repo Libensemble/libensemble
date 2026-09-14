@@ -33,6 +33,7 @@ jobs:
 
     env:
       HYDRA_LAUNCHER: "fork"
+      MPIR_CVAR_CH4_NETMOD: "ofi"
       TERM: xterm-256color
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
