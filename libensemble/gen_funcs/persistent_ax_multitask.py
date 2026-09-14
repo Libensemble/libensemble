@@ -8,7 +8,7 @@ of the whole libEnsemble run.
 This `gen_f` is meant to be used with the `alloc_f` function
 `only_persistent_gens`
 
-Requires: Ax>=0.5.0
+Requires: Ax==0.5.0
 
 Ax notes:
 Each arm = a set of simulation inputs (a sim_id)
