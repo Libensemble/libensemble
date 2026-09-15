@@ -21,6 +21,6 @@ echo "Installing MINQ at ibcdfo-required commit ${MINQ_COMMIT}"
 git clone https://github.com/POptUS/MINQ
 git -C MINQ checkout "$MINQ_COMMIT"
 pushd MINQ/py/minq5/
-export PYTHONPATH="$PYTHONPATH:$(pwd)"
+export PYTHONPATH="${PYTHONPATH:-}:$(pwd)"
 echo "PYTHONPATH=$PYTHONPATH" >> $GITHUB_ENV
 popd
