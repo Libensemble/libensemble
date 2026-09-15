@@ -353,6 +353,7 @@ def test_gen_specs_vocs_integer_domain_yields_float_array():
     assert gs.user["lb"].dtype == float, "lb should be float dtype even for integer-domain variables"
     assert gs.user["ub"].dtype == float, "ub should be float dtype even for integer-domain variables"
 
+
 def test_run_sim_max_kwarg():
     """run(sim_max=10) should evaluate exactly 10 simulations."""
     from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
@@ -521,7 +522,6 @@ def test_h0_chaining_plain_run():
         assert ens.H0 is not None, "H0 should be set after run"
         sim_count = int(np.sum(ens.H0["sim_ended"]))
         assert sim_count == 5, f"Expected 5 sims but got {sim_count}"
-
 
 
 if __name__ == "__main__":
