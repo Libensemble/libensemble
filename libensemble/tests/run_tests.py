@@ -2,6 +2,7 @@
 
 import argparse
 import glob
+import json
 import os
 import platform
 import shutil
@@ -45,6 +46,7 @@ UNIT_TEST_SUBDIRS = [
 UNIT_TEST_DIRS = [TESTING_DIR / subdir for subdir in UNIT_TEST_SUBDIRS]
 REG_TEST_SUBDIR = TESTING_DIR / "regression_tests"
 FUNC_TEST_SUBDIR = TESTING_DIR / "functionality_tests"
+REG_TEST_DIRS = [REG_TEST_SUBDIR, FUNC_TEST_SUBDIR]
 
 # Coverage merge and report dir
 COV_MERGE_DIR = TESTING_DIR
@@ -139,7 +141,7 @@ def cleanup(root_dir):
         # Task output scripts in unit tests
         "libe_task_*.sh",
     ]
-    dirs_to_clean = UNIT_TEST_DIRS + [REG_TEST_SUBDIR, FUNC_TEST_SUBDIR]
+    dirs_to_clean = UNIT_TEST_DIRS + REG_TEST_DIRS
     for dir_path in dirs_to_clean:
         full_path = Path(root_dir) / dir_path
         full_path_str = str(full_path)
@@ -224,10 +226,15 @@ def merge_coverage_reports(root_dir):
         cprint("No coverage files found to merge.", style="yellow")
 
 
-def parse_test_directives(test_script):
-    """Parse test suite directives from the test script."""
+def parse_bool(value):
+    """Parse a boolean test directive value."""
+    if value.lower() not in {"true", "false"}:
+        raise ValueError(f"Expected true or false, got {value!r}")
+    return value.lower() == "true"
 
-    # Directives with default options
+
+def parse_test_directives(test_script, largest_nprocs_only=False):
+    """Parse and validate test suite directives from a test script."""
     directives = {
         "comms": ["local"],
         "nprocs": [4],
@@ -235,25 +242,43 @@ def parse_test_directives(test_script):
         "exclude": False,
         "os_skip": [],
         "ompi_skip": False,
+        "tier": "core",
+        "features": [],
     }
 
     directive_patterns = [
         ("# TESTSUITE_COMMS:", "comms", lambda x: x.split()),
         ("# TESTSUITE_NPROCS:", "nprocs", lambda x: [int(n) for n in x.split()]),
-        ("# TESTSUITE_EXTRA:", "extra", lambda x: x.lower() == "true"),
-        ("# TESTSUITE_EXCLUDE:", "exclude", lambda x: x.lower() == "true"),
+        ("# TESTSUITE_EXTRA:", "extra", parse_bool),
+        ("# TESTSUITE_EXCLUDE:", "exclude", parse_bool),
         ("# TESTSUITE_OS_SKIP:", "os_skip", lambda x: x.split()),
-        ("# TESTSUITE_OMPI_SKIP:", "ompi_skip", lambda x: x.lower() == "true"),
+        ("# TESTSUITE_OMPI_SKIP:", "ompi_skip", parse_bool),
+        ("# TESTSUITE_TIER:", "tier", str.lower),
+        ("# TESTSUITE_FEATURES:", "features", lambda x: x.lower().split()),
     ]
 
-    with open(test_script, "r") as f:
-        for line in f:
+    with open(test_script) as test_file:
+        for line in test_file:
             for pattern, key, parse_func in directive_patterns:
                 if line.startswith(pattern):
                     value = line.split(":", 1)[1].strip()
-                    directives[key] = parse_func(value)
+                    try:
+                        directives[key] = parse_func(value)
+                    except (TypeError, ValueError) as exc:
+                        raise ValueError(f"Invalid {pattern[:-1]} in {test_script}: {exc}") from exc
                     break
-    if REG_RUN_LARGEST_TEST_ONLY:
+
+    unknown_comms = set(directives["comms"]) - {"mpi", "local", "tcp", "threads"}
+    if unknown_comms:
+        raise ValueError(f"Unknown TESTSUITE_COMMS values in {test_script}: {sorted(unknown_comms)}")
+    if not directives["nprocs"] or any(nprocs < 1 for nprocs in directives["nprocs"]):
+        raise ValueError(f"TESTSUITE_NPROCS must contain positive integers in {test_script}")
+    unknown_os = set(directives["os_skip"]) - set(platform_mappings.values())
+    if unknown_os:
+        raise ValueError(f"Unknown TESTSUITE_OS_SKIP values in {test_script}: {sorted(unknown_os)}")
+    if directives["tier"] not in {"smoke", "core", "external", "slow"}:
+        raise ValueError(f"Unknown TESTSUITE_TIER value in {test_script}: {directives['tier']}")
+    if largest_nprocs_only or REG_RUN_LARGEST_TEST_ONLY:
         directives["nprocs"] = [directives["nprocs"][-1]]
     return directives
 
@@ -282,28 +307,32 @@ def build_forces(root_dir):
     shutil.copy(forces_app_dir / "forces.x", destination_dir)
 
 
-def skip_test(directives, args, current_os):
-    """Skip a test based on directives"""
+def skip_test(directives, args, current_os, test_script):
+    """Return whether a script is excluded by metadata or CLI filters."""
     if directives["exclude"] or (directives["extra"] and not args.e):
         return True
     if current_os in directives["os_skip"]:
         return True
+    if args.tier and directives["tier"] not in args.tier:
+        return True
+    if args.feature and not set(args.feature).issubset(directives["features"]):
+        return True
+    if args.match and not any(pattern in os.path.basename(test_script) for pattern in args.match):
+        return True
     return False
 
 
-def skip_config(directives, args, comm):
-    """Skip a test configuration based on directives"""
-    open_mpi = is_open_mpi()
+def skip_config(directives, args, comm, open_mpi):
+    """Skip a test configuration based on directives."""
     mpiexec_flags = args.a if args.a else ""
     if directives["ompi_skip"] and open_mpi and mpiexec_flags == "--oversubscribe" and comm == "mpi":
-        # cprint(f"Skipping test for Open MPI: {test_script_name}")
         return True
     return False
 
 
 def make_run_line(python_exec, test_script, comm, nprocs, args):
-    """Build run line"""
-    cmd = python_exec + cov_opts + [test_script]
+    """Build a standalone test command."""
+    cmd = python_exec + (cov_opts if args.coverage else []) + [test_script]
     if comm == "mpi":
         cmd = ["mpiexec", "-np", str(nprocs)] + (args.a.split() if args.a else []) + cmd
     else:
@@ -312,13 +341,29 @@ def make_run_line(python_exec, test_script, comm, nprocs, args):
 
 
 def process_output(success, test_start, test_num, name, comm, nprocs, suppress):
-    """Process output, timing and print"""
-    test_end = time.time()
-    duration = total_time(test_start, test_end)
+    """Process output and return a timing record."""
+    duration = total_time(test_start, time.time())
     if success:
         print_test_passed(test_num, name, comm, nprocs, duration, suppress)
     else:
         print_test_failed(test_num, name, comm, nprocs, duration)
+    return {"test": name, "comms": comm, "nprocs": nprocs, "duration": duration, "passed": success}
+
+
+def report_durations(records, count, output_path=None):
+    """Print slow configurations and optionally write all timing records as JSON."""
+    if records and count:
+        print_heading(f"Slowest {min(count, len(records))} test configurations")
+        for record in sorted(records, key=lambda item: item["duration"], reverse=True)[:count]:
+            status = "passed" if record["passed"] else "failed"
+            cprint(
+                f"{record['duration']:8.2f}s  {record['test']} "
+                f"({record['comms']}, {record['nprocs']} processes, {status})"
+            )
+    if output_path:
+        with open(output_path, "w") as output_file:
+            json.dump(records, output_file, indent=2)
+            output_file.write("\n")
 
 
 # -----------------------------------------------------------------------------------------
@@ -338,7 +383,25 @@ def parse_arguments():
     parser.add_argument("-e", action="store_true", help="Run extra unit and regression tests")
     parser.add_argument("-A", metavar="<string>", help="Supply arguments to python")
     parser.add_argument("-a", metavar="<string>", help="Supply a string of args to add to mpiexec line")
+    coverage_group = parser.add_mutually_exclusive_group()
+    coverage_group.add_argument("--coverage", dest="coverage", action="store_true", help="Collect coverage")
+    coverage_group.add_argument("--no-coverage", dest="coverage", action="store_false", help="Disable coverage")
+    parser.set_defaults(coverage=COV_REPORT)
+    parser.add_argument(
+        "--list", action="store_true", help="List selected standalone test configurations without running"
+    )
+    parser.add_argument("--fail-fast", action="store_true", help="Stop after the first standalone test failure")
+    parser.add_argument(
+        "--largest-nprocs-only", action="store_true", help="Run only the largest TESTSUITE_NPROCS configuration"
+    )
+    parser.add_argument("--durations", type=int, default=0, metavar="N", help="Report the N slowest configurations")
+    parser.add_argument("--timings-json", metavar="PATH", help="Write standalone test timings as JSON")
+    parser.add_argument("--tier", action="append", choices=["smoke", "core", "external", "slow"])
+    parser.add_argument("--feature", action="append", help="Require a TESTSUITE_FEATURES value")
+    parser.add_argument("--match", action="append", help="Run standalone tests whose filename contains this value")
     args = parser.parse_args()
+    if args.durations < 0:
+        parser.error("--durations must be non-negative")
     return args
 
 
@@ -348,8 +411,12 @@ def run_unit_tests(root_dir, python_exec, args):
     for dir_path in UNIT_TEST_DIRS:
         cprint(f"Entering unit test dir: {dir_path}", style="yellow", newline=True)
         full_path = Path(root_dir) / dir_path
-        cov_rep = cov_report_type + ":cov_unit"
-        cmd = python_exec + ["-m", "pytest", "--color=yes", "--timeout=120", "--cov", "--cov-report", cov_rep]
+        cmd = python_exec + ["-m", "pytest", "--color=yes", "--timeout=120"]
+        if args.coverage:
+            cov_rep = cov_report_type + ":cov_unit"
+            cmd += ["--cov", "--cov-report", cov_rep]
+        if args.durations:
+            cmd.append(f"--durations={args.durations}")
         if args.e:
             cmd.append("--runextra")
         if args.s:
@@ -358,9 +425,8 @@ def run_unit_tests(root_dir, python_exec, args):
 
 
 def run_regression_tests(root_dir, python_exec, args, current_os):
-    """Run regression tests."""
-
-    test_dirs = [REG_TEST_SUBDIR, FUNC_TEST_SUBDIR]
+    """Run standalone regression and functionality tests."""
+    list_only = REG_LIST_TESTS_ONLY or args.list
     user_comms_list = []
     if args.m:
         user_comms_list.append("mpi")
@@ -370,51 +436,61 @@ def run_regression_tests(root_dir, python_exec, args, current_os):
         user_comms_list = ["mpi", "local"]
 
     print_heading(f"Running regression tests (comms: {', '.join(user_comms_list)})")
-    if not REG_LIST_TESTS_ONLY:
-        build_forces(root_dir)  # Build forces.x before running tests
 
-    reg_test_list = REG_TEST_LIST
     reg_test_files = []
-    for dir_path in test_dirs:
+    for dir_path in REG_TEST_DIRS:
         full_path = Path(root_dir) / dir_path
-        reg_test_files.extend(glob.glob(str(full_path / reg_test_list)))
+        reg_test_files.extend(glob.glob(str(full_path / REG_TEST_LIST)))
 
     reg_test_files = sorted(reg_test_files)
+    selected_test_files = []
+    for test_script in reg_test_files:
+        directives = parse_test_directives(test_script, args.largest_nprocs_only)
+        if not skip_test(directives, args, current_os, test_script):
+            selected_test_files.append(test_script)
+    if not list_only and any("test_executor_forces_tutorial" in path for path in selected_test_files):
+        build_forces(root_dir)
+
+    open_mpi = is_open_mpi() if "mpi" in user_comms_list else False
     reg_pass = 0
     reg_fail = 0
     test_num = 0
+    records = []
     start_time = time.time()
 
-    for test_script in reg_test_files:
+    for test_script in selected_test_files:
         test_script_name = os.path.basename(test_script)
-        directives = parse_test_directives(test_script)
-        if skip_test(directives, args, current_os):
-            continue
-
+        directives = parse_test_directives(test_script, args.largest_nprocs_only)
         comms_list = [comm for comm in directives["comms"] if comm in user_comms_list]
         for comm in comms_list:
             nprocs_list = directives["nprocs"]
             for nprocs in nprocs_list:
-                if skip_config(directives, args, comm):
+                if skip_config(directives, args, comm, open_mpi):
                     continue
                 test_num += 1
                 cmd = make_run_line(python_exec, test_script, comm, nprocs, args)
                 cwd = os.path.dirname(test_script)
                 print_test_start(test_num, test_script_name, comm, nprocs)
-                if REG_LIST_TESTS_ONLY:
+                if list_only:
                     continue
                 test_start = time.time()
                 try:
                     suppress_output = not args.z
                     run_command(cmd, cwd=cwd, suppress_output=suppress_output)
-                    process_output(True, test_start, test_num, test_script_name, comm, nprocs, suppress_output)
+                    records.append(
+                        process_output(True, test_start, test_num, test_script_name, comm, nprocs, suppress_output)
+                    )
                     reg_pass += 1
                 except subprocess.CalledProcessError as e:
-                    process_output(False, test_start, test_num, test_script_name, comm, nprocs, suppress_output)
+                    records.append(
+                        process_output(False, test_start, test_num, test_script_name, comm, nprocs, suppress_output)
+                    )
                     reg_fail += 1
-                    if REG_STOP_ON_FAILURE:
+                    if args.fail_fast or REG_STOP_ON_FAILURE:
+                        report_durations(records, args.durations, args.timings_json)
                         sys.exit(e.returncode)
     end_time = time.time()
+    report_durations(records, args.durations, args.timings_json)
     total = reg_pass + reg_fail
     summary_style = "green" if reg_fail == 0 else "red"
     prefix = "FAIL" if reg_fail > 0 else "PASS"
@@ -456,7 +532,7 @@ def main():
         run_unit_tests(root_dir, python_exec, args)
     if RUN_REG_TESTS:
         run_regression_tests(root_dir, python_exec, args, current_os)
-    if COV_REPORT:
+    if args.coverage:
         merge_coverage_reports(root_dir)
 
     # If you make this far, all passed.
