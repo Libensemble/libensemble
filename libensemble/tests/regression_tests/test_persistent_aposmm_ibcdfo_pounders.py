@@ -23,6 +23,9 @@ doing the simulation evaluations.
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: local mpi
 # TESTSUITE_NPROCS: 3
+# TESTSUITE_EXTRA: true
+# TESTSUITE_TIER: external
+# TESTSUITE_FEATURES: external ibcdfo pounders real-launch
 
 import multiprocessing
 import sys
@@ -122,7 +125,7 @@ if __name__ == "__main__":
 
         alloc_specs = {"alloc_f": alloc_f}
 
-        exit_criteria = {"sim_max": 500}
+        exit_criteria = {"sim_max": 500, "wallclock_max": 300}
 
         # Perform the run
         H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs, libE_specs=libE_specs)
