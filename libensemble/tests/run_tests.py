@@ -278,6 +278,10 @@ def parse_test_directives(test_script, largest_nprocs_only=False):
         raise ValueError(f"Unknown TESTSUITE_OS_SKIP values in {test_script}: {sorted(unknown_os)}")
     if directives["tier"] not in {"smoke", "core", "external", "slow"}:
         raise ValueError(f"Unknown TESTSUITE_TIER value in {test_script}: {directives['tier']}")
+    if directives["extra"] and directives["tier"] == "core":
+        directives["tier"] = "external"
+    if directives["extra"] and "external" not in directives["features"]:
+        directives["features"].append("external")
     if largest_nprocs_only or REG_RUN_LARGEST_TEST_ONLY:
         directives["nprocs"] = [directives["nprocs"][-1]]
     return directives
@@ -317,7 +321,10 @@ def skip_test(directives, args, current_os, test_script):
         return True
     if args.feature and not set(args.feature).issubset(directives["features"]):
         return True
-    if args.match and not any(pattern in os.path.basename(test_script) for pattern in args.match):
+    test_name = os.path.basename(test_script)
+    if args.match and not any(pattern in test_name for pattern in args.match):
+        return True
+    if args.exclude_match and any(pattern in test_name for pattern in args.exclude_match):
         return True
     return False
 
@@ -399,9 +406,19 @@ def parse_arguments():
     parser.add_argument("--tier", action="append", choices=["smoke", "core", "external", "slow"])
     parser.add_argument("--feature", action="append", help="Require a TESTSUITE_FEATURES value")
     parser.add_argument("--match", action="append", help="Run standalone tests whose filename contains this value")
+    parser.add_argument("--exclude-match", action="append", help="Skip tests whose filename contains this value")
+    parser.add_argument("--shard", metavar="INDEX/TOTAL", help="Run one stable shard of the selected standalone tests")
     args = parser.parse_args()
     if args.durations < 0:
         parser.error("--durations must be non-negative")
+    if args.shard:
+        try:
+            index, total = (int(value) for value in args.shard.split("/", 1))
+        except ValueError:
+            parser.error("--shard must have the form INDEX/TOTAL")
+        if total < 1 or index < 0 or index >= total:
+            parser.error("--shard requires TOTAL > 0 and 0 <= INDEX < TOTAL")
+        args.shard = (index, total)
     return args
 
 
@@ -448,6 +465,9 @@ def run_regression_tests(root_dir, python_exec, args, current_os):
         directives = parse_test_directives(test_script, args.largest_nprocs_only)
         if not skip_test(directives, args, current_os, test_script):
             selected_test_files.append(test_script)
+    if args.shard:
+        shard_index, shard_total = args.shard
+        selected_test_files = selected_test_files[shard_index::shard_total]
     if not list_only and any("test_executor_forces_tutorial" in path for path in selected_test_files):
         build_forces(root_dir)
 

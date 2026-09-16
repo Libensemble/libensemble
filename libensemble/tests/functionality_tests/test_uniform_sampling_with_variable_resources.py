@@ -15,6 +15,8 @@ Note: This test contains multiple iterations to test different configurations.
 # TESTSUITE_COMMS: mpi local
 # TESTSUITE_NPROCS: 4
 # TESTSUITE_EXTRA: true
+# TESTSUITE_TIER: slow
+# TESTSUITE_FEATURES: external resources executor real-launch
 
 from multiprocessing import set_start_method
 
