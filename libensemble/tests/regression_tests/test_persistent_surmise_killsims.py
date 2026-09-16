@@ -26,6 +26,8 @@ in the libEnsemble documentation.
 # TESTSUITE_NPROCS: 4
 # TESTSUITE_EXTRA: true
 # TESTSUITE_OS_SKIP: OSX
+# TESTSUITE_TIER: slow
+# TESTSUITE_FEATURES: external surmise real-launch
 
 # Requires:
 #   Install Surmise package

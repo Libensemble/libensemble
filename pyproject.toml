@@ -60,20 +60,21 @@ libensemble = { path = ".", editable = true }
 
 [tool.pixi.environments]
 default = []
-basic = ["basic"]
-extra = ["basic", "extra"]
-docs = ["docs", "basic"]
+basic = ["basic", "mpich"]
+extra = ["basic", "mpich", "extra"]
+docs = ["docs", "basic", "mpich"]
 
-dev = ["dev", "basic", "extra", "docs"]
+dev = ["dev", "basic", "mpich", "extra", "docs"]
 
 # CI environments
-py312 = ["py312", "basic"]
-py313 = ["py313", "basic"]
-py314 = ["py314", "basic"]
+py312 = ["py312", "basic", "mpich"]
+py313 = ["py313", "basic", "mpich"]
+py314 = ["py314", "basic", "mpich"]
 
-py312e = ["py312", "py312e", "basic", "extra"]
-py313e = ["py313", "py313e", "basic", "extra"]
-py314e = ["py314", "py314e", "basic", "extra"]
+py312e = ["py312", "py312e", "basic", "mpich", "extra"]
+py313e = ["py313", "py313e", "basic", "mpich", "extra"]
+py314e = ["py314", "py314e", "basic", "mpich", "extra"]
+openmpi = ["py312", "basic", "openmpi"]
 
 
 # Extra tools for dev environment
@@ -85,13 +86,18 @@ black = ">=25.12.0,<26"
 
 # Basic dependencies for basic CI
 [tool.pixi.feature.basic.dependencies]
-mypy = ">=1.19.1,<2"
-mpi = ">=1.0.1,<2"
-mpich = ">=4.3.2,<5"
 mpi4py = ">=4.1.1,<5"
 scipy = ">=1.15.2,<2"
 mpmath = "<=1.3.0"
 nlopt = ">=2.10.0,<3"
+
+[tool.pixi.feature.mpich.dependencies]
+mpi = "1.0.*"
+mpich = ">=4.3.2,<5"
+
+[tool.pixi.feature.openmpi.dependencies]
+mpi = "1.0.*"
+openmpi = ">=5,<6"
 
 [tool.pixi.feature.basic.pypi-dependencies]
 ibcdfo = { git = "https://github.com/POptUS/IBCDFO.git", subdirectory = "ibcdfo_pypkg" }

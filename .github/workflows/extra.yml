@@ -2,109 +2,237 @@ name: libEnsemble-complete-CI
 
 on:
   workflow_dispatch:
+    inputs:
+      run_exhaustive:
+        description: Run the legacy Python, OS, and transport matrix
+        required: false
+        default: false
+        type: boolean
+
+concurrency:
+  group: complete-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  HYDRA_LAUNCHER: fork
+  MPIR_CVAR_CH4_NETMOD: ofi
+  TERM: xterm-256color
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
-  test-libE:
-    runs-on: ${{ matrix.os }}
+  core:
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest]
-        mpi-version: [mpich]
-        python-version: ["py312e", "py313e", "py314e"]
-        comms-type: [m, l]
-        include:
-          - os: macos-latest
-            python-version: "py312e"
-            mpi-version: mpich
-            comms-type: m
-          - os: macos-latest
-            python-version: "py312e"
-            mpi-version: mpich
-            comms-type: l
-          - os: ubuntu-latest
-            mpi-version: openmpi
-            python-version: "py312e"
-            comms-type: l
-
-    env:
-      HYDRA_LAUNCHER: "fork"
-      MPIR_CVAR_CH4_NETMOD: "ofi"
-      TERM: xterm-256color
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    defaults:
-      run:
-        shell: bash -l {0}
-
+        comms: [m, l]
     steps:
       - uses: actions/checkout@v7
         with:
           lfs: true
-
-      - name: Checkout lockfile
-        run: git lfs checkout
-
       - uses: prefix-dev/setup-pixi@v0.10.2
         with:
           pixi-version: v0.69.0
           cache: true
           frozen: true
-          environments: ${{ matrix.python-version }}
-          activate-environment: ${{ matrix.python-version }}
-
-      - name: Install other testing dependencies
-        run: |
-          pixi run -e ${{ matrix.python-version }} install/install_minq.sh
-
-      - name: Install libEnsemble, flake8, lock environment
-        run: |
-          pip install -e .
-          flake8 libensemble
-
-      - name: Install gpcam
-        if: matrix.python-version != 'py313e' && matrix.python-version != 'py314e'
-        run: |
-          pixi run -e ${{ matrix.python-version }} pip install gpcam==8.1.13
-
-      - name: Remove test using octave, gpcam, globus-compute on Python 3.13
-        if: matrix.python-version == 'py313e' || matrix.python-version == 'py314e'
-        run: |
-          rm ./libensemble/tests/unit_tests/test_ufunc_runners.py # needs globus-compute
-          rm ./libensemble/tests/regression_tests/test_gpCAM.py # needs gpcam, which doesn't build on 3.13
-          rm ./libensemble/tests/regression_tests/test_asktell_gpCAM.py # needs gpcam, which doesn't build on 3.13
-          rm ./libensemble/tests/regression_tests/test_optimas_ax_mf.py # needs ax-platform, which doesn't yet support 3.14
-          rm ./libensemble/tests/regression_tests/test_optimas_ax_sf.py # needs ax-platform, which doesn't yet support 3.14
-
-      - name: Start Redis
-        if: matrix.os == 'ubuntu-latest'
-        uses: supercharge/redis-github-action@v2
+          environments: py312e
+      - name: Install MINQ
+        run: pixi run -e py312e install/install_minq.sh
+      - name: Run core tests
+        run: >-
+          pixi run -e py312e ./libensemble/tests/run_tests.py -r -e -${{ matrix.comms }}
+          --tier core --no-coverage --fail-fast --durations 25
+          --timings-json timings-core-${{ matrix.comms }}.json
+      - name: Upload timings
+        if: always()
+        uses: actions/upload-artifact@v4
         with:
-          redis-version: 7
+          name: complete-core-${{ matrix.comms }}-timings
+          path: timings-core-${{ matrix.comms }}.json
+          if-no-files-found: ignore
 
-      - name: Run extensive tests, Ubuntu
-        if: matrix.os == 'ubuntu-latest'
+  external:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1]
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          lfs: true
+      - uses: prefix-dev/setup-pixi@v0.10.2
+        with:
+          pixi-version: v0.69.0
+          cache: true
+          frozen: true
+          environments: py312e
+      - name: Install external test dependencies
         run: |
-          ./libensemble/tests/run_tests.py -e -${{ matrix.comms-type }}
+          pixi run -e py312e install/install_minq.sh
+          pixi run -e py312e pip install gpcam==8.1.13
+      - name: Run external integration shard
+        run: >-
+          pixi run -e py312e ./libensemble/tests/run_tests.py -r -e -l
+          --tier external --no-coverage --fail-fast --durations 25
+          --exclude-match test_proxystore_integration.py
+          --shard ${{ matrix.shard }}/2
+          --timings-json timings-external-${{ matrix.shard }}.json
+      - name: Upload timings
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: external-${{ matrix.shard }}-timings
+          path: timings-external-${{ matrix.shard }}.json
+          if-no-files-found: ignore
 
-      - name: Run extensive tests, macOS
-        if: matrix.os == 'macos-latest'
-        run: |
-          pixi run -e ${{ matrix.python-version }} ./libensemble/tests/run_tests.py -e -${{ matrix.comms-type }}
-
-      - name: Merge coverage
-        run: |
-          mv libensemble/tests/.cov* .
-
-      - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v7
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-
-  spellcheck:
-    name: Spellcheck release branch
-    if: contains(github.base_ref, 'develop')
+  slow:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: crate-ci/typos@v1.50.1
+        with:
+          lfs: true
+      - uses: prefix-dev/setup-pixi@v0.10.2
+        with:
+          pixi-version: v0.69.0
+          cache: true
+          frozen: true
+          environments: py312e
+      - name: Install slow-test dependencies
+        run: pixi run -e py312e pip install gpcam==8.1.13
+      - name: Run slow integration tests
+        run: >-
+          pixi run -e py312e ./libensemble/tests/run_tests.py -r -e -l
+          --tier slow --no-coverage --fail-fast --durations 25
+          --timings-json timings-slow.json
+      - name: Upload timings
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: slow-test-timings
+          path: timings-slow.json
+          if-no-files-found: ignore
+
+  external-mpi-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          lfs: true
+      - uses: prefix-dev/setup-pixi@v0.10.2
+        with:
+          pixi-version: v0.69.0
+          cache: true
+          frozen: true
+          environments: py312e
+      - name: Run representative external MPI tests
+        run: >-
+          pixi run -e py312e ./libensemble/tests/run_tests.py -r -e -m
+          --no-coverage --fail-fast --largest-nprocs-only --durations 20
+          --match test_mfkg_branin.py
+          --match test_persistent_aposmm_nlopt.py
+          --match test_optimas_grid_sample.py
+
+  proxystore:
+    runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          lfs: true
+      - uses: prefix-dev/setup-pixi@v0.10.2
+        with:
+          pixi-version: v0.69.0
+          cache: true
+          frozen: true
+          environments: py312e
+      - name: Run ProxyStore integration
+        run: >-
+          pixi run -e py312e ./libensemble/tests/run_tests.py -r -e -l
+          --feature redis --no-coverage --fail-fast --durations 10
+
+  openmpi:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          lfs: true
+      - uses: prefix-dev/setup-pixi@v0.10.2
+        with:
+          pixi-version: v0.69.0
+          cache: true
+          frozen: true
+          environments: openmpi
+      - name: Verify Open MPI environment
+        run: pixi run -e openmpi mpiexec --version
+      - name: Run Open MPI compatibility tests
+        run: >-
+          pixi run -e openmpi ./libensemble/tests/run_tests.py -r -m
+          -a=--oversubscribe --no-coverage --fail-fast --durations 20
+          --match test_1d_super_simple.py
+          --match test_mpi_runners.py
+          --match test_persistent_uniform_sampling_async.py
+
+  macos-platform:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          lfs: true
+      - uses: prefix-dev/setup-pixi@v0.10.2
+        with:
+          pixi-version: v0.69.0
+          cache: true
+          frozen: true
+          environments: py312e
+      - name: Run macOS platform tests
+        run: >-
+          pixi run -e py312e ./libensemble/tests/run_tests.py -r -l
+          --no-coverage --fail-fast --durations 20
+          --match test_1d_super_simple.py
+          --match test_executor_simple.py
+          --match test_persistent_uniform_sampling_async.py
+          --match test_sim_dirs_per_calc.py
+
+  exhaustive:
+    if: ${{ inputs.run_exhaustive == true }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        environment: [py312e, py313e, py314e]
+        comms: [m, l]
+        include:
+          - os: macos-latest
+            environment: py312e
+            comms: m
+          - os: macos-latest
+            environment: py312e
+            comms: l
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          lfs: true
+      - uses: prefix-dev/setup-pixi@v0.10.2
+        with:
+          pixi-version: v0.69.0
+          cache: true
+          frozen: true
+          environments: ${{ matrix.environment }}
+      - name: Install optional dependencies
+        if: matrix.environment == 'py312e'
+        run: pixi run -e py312e pip install gpcam==8.1.13
+      - name: Run exhaustive suite
+        run: >-
+          pixi run -e ${{ matrix.environment }} ./libensemble/tests/run_tests.py
+          -e -${{ matrix.comms }} --no-coverage --durations 25
