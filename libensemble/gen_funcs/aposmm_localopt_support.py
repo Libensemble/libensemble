@@ -654,7 +654,9 @@ def run_local_tao(user_specs, comm_queue, x0, f0, child_can_read, parent_can_rea
 def opt_runner(run_local_opt, user_specs, comm_queue, x0, f0, child_can_read, parent_can_read):
     try:
         run_local_opt(user_specs, comm_queue, x0, f0, child_can_read, parent_can_read)
-    except Exception:
+    except BaseException:
+        # A dependency may call sys.exit() during optimizer startup. Always unblock
+        # the parent so it can surface that failure instead of waiting indefinitely.
         comm_queue.put(ErrorMsg(traceback.format_exc()))
         parent_can_read.set()
 
