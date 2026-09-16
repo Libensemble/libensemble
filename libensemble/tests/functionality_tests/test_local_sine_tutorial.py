@@ -4,7 +4,7 @@ from sine_gen_std import RandomSample
 from sine_sim import sim_find_sine
 
 from libensemble import Ensemble
-from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
+from libensemble.specs import GenSpecs, LibeSpecs, SimSpecs
 
 if __name__ == "__main__":  # Python-quirk required on macOS and windows
     libE_specs = LibeSpecs(nworkers=4, comms="local")
@@ -25,10 +25,8 @@ if __name__ == "__main__":  # Python-quirk required on macOS and windows
         out=[("y", float)],  # sim_f output. "y" = sine("x")
     )  # sim_specs_end_tag
 
-    exit_criteria = ExitCriteria(sim_max=80)  # Stop libEnsemble after 80 simulations
-
-    ensemble = Ensemble(sim_specs, gen_specs, exit_criteria, libE_specs)
-    ensemble.run()  # start the ensemble. Blocks until completion.
+    ensemble = Ensemble(sim_specs, gen_specs, libE_specs=libE_specs)
+    ensemble.run(sim_max=80)  # start the ensemble. Blocks until completion.
 
     history = ensemble.H  # start visualizing our results
 

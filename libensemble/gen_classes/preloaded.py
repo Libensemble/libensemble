@@ -11,7 +11,7 @@ Typical usage::
 
     from libensemble import Ensemble
     from libensemble.gen_classes.preloaded import PreloadedSampleGenerator
-    from libensemble.specs import ExitCriteria, GenSpecs, SimSpecs
+    from libensemble.specs import GenSpecs, SimSpecs
 
     vocs = VOCS(
         # The bounds are metadata only; this generator does not sample from the VOCS.
@@ -28,8 +28,7 @@ Typical usage::
         vocs=vocs,
     )
     sampling.sim_specs = SimSpecs(sim_f=my_sim, vocs=vocs)
-    sampling.exit_criteria = ExitCriteria(sim_max=len(H0))
-    sampling.run()
+    sampling.run(sim_max=len(H0))
 
 This replaces the legacy ``give_pregenerated_work`` allocator pattern, which
 required a custom ``AllocSpecs`` and bypassed the generator entirely.  With
@@ -96,7 +95,7 @@ class PreloadedSampleGenerator(Generator):
         from libensemble import Ensemble
         from libensemble.gen_classes.preloaded import PreloadedSampleGenerator
         from libensemble.sim_funcs.borehole import borehole as sim_f, gen_borehole_input
-        from libensemble.specs import ExitCriteria, GenSpecs, SimSpecs
+        from libensemble.specs import GenSpecs, SimSpecs
 
         n_samp = 1000
         vocs = VOCS(
@@ -112,8 +111,7 @@ class PreloadedSampleGenerator(Generator):
             vocs=vocs,
         )
         sampling.sim_specs = SimSpecs(sim_f=sim_f, vocs=vocs)
-        sampling.exit_criteria = ExitCriteria(sim_max=n_samp)
-        sampling.run()
+        sampling.run(sim_max=n_samp)
     """
 
     def __init__(
