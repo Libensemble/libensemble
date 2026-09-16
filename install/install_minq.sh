@@ -22,5 +22,5 @@ git clone https://github.com/POptUS/MINQ
 git -C MINQ checkout "$MINQ_COMMIT"
 pushd MINQ/py/minq5/
 export PYTHONPATH="${PYTHONPATH:-}:$(pwd)"
-echo "PYTHONPATH=$PYTHONPATH" >> $GITHUB_ENV
+echo "PYTHONPATH=$PYTHONPATH" >> "${GITHUB_ENV:-/dev/null}"
 popd
