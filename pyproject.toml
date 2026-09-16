@@ -101,7 +101,7 @@ mpi = "1.0.*"
 openmpi = ">=5,<6"
 
 [tool.pixi.feature.basic.pypi-dependencies]
-ibcdfo = { git = "https://github.com/POptUS/IBCDFO.git", subdirectory = "ibcdfo_pypkg" }
+ibcdfo = { git = "https://github.com/POptUS/IBCDFO.git", rev = "538a7adf690dfd08b410a7567fa114c8fa9783f4", subdirectory = "ibcdfo_pypkg" }
 
 # "dev" dependencies needed for basic CI
 flake8 = ">=7.3.0,<8"
