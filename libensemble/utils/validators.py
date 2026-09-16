@@ -179,6 +179,16 @@ def check_H0(values):
     return values
 
 
+def check_set_gen_specs_from_variables(values):
+    if not len(scg(values, "outputs")):
+        generator = scg(values, "generator")
+        if generator and hasattr(generator, "gen_specs"):
+            out = generator.gen_specs.get("out", [])
+            if len(out):
+                scs(values, "outputs", out)
+    return values
+
+
 def check_provided_ufuncs(self):
     assert hasattr(self.sim_specs, "sim_f"), "Simulation function not provided to SimSpecs."
     assert isinstance(self.sim_specs.sim_f, Callable), "Simulation function is not callable."
