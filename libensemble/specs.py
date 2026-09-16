@@ -14,7 +14,6 @@ from libensemble.utils.validators import (
     check_input_dir_exists,
     check_inputs_exist,
     check_provided_ufuncs,
-    check_set_gen_specs_from_variables,
     check_valid_comms_type,
     check_valid_in,
     check_valid_out,
@@ -334,15 +333,20 @@ class GenSpecs(BaseModel):
         if not self.inputs and self.generator is not None:
             self.inputs = self.persis_in
 
-        # Set outputs: variables + constants (what the generator produces)
+        # Set outputs: check generator.gen_specs["out"] first, then fall back to VOCS
         if not self.outputs:
-            out_fields = []
-            for attr in ["variables", "constants"]:
-                if obj := getattr(self.vocs, attr, None):
-                    for name, field in obj.items():
-                        dtype = _get_dtype(field, name)
-                        out_fields.append(_convert_dtype_to_output_tuple(name, dtype))
-            self.outputs = out_fields
+            if self.generator is not None and hasattr(self.generator, "gen_specs"):
+                gen_out = self.generator.gen_specs.get("out", [])
+                if len(gen_out):
+                    self.outputs = gen_out
+            if not self.outputs:
+                out_fields = []
+                for attr in ["variables", "constants"]:
+                    if obj := getattr(self.vocs, attr, None):
+                        for name, field in obj.items():
+                            dtype = _get_dtype(field, name)
+                            out_fields.append(_convert_dtype_to_output_tuple(name, dtype))
+                self.outputs = out_fields
 
         # Add _id field if generator returns_id is True
         if self.generator is not None and getattr(self.generator, "returns_id", False):
@@ -374,10 +378,6 @@ class GenSpecs(BaseModel):
                     self.user["ub"] = np.array(ubs, dtype=float)
 
         return self
-
-    @model_validator(mode="after")
-    def check_set_gen_specs_from_variables(self):
-        return check_set_gen_specs_from_variables(self)
 
 
 class AllocSpecs(BaseModel):
