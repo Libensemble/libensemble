@@ -14,6 +14,7 @@ from libensemble.utils.validators import (
     check_input_dir_exists,
     check_inputs_exist,
     check_provided_ufuncs,
+    check_set_gen_specs_from_variables,
     check_valid_comms_type,
     check_valid_in,
     check_valid_out,
@@ -333,20 +334,24 @@ class GenSpecs(BaseModel):
         if not self.inputs and self.generator is not None:
             self.inputs = self.persis_in
 
-        # Set outputs: check generator.gen_specs["out"] first, then fall back to VOCS
+        # Set outputs: variables + constants (what the generator produces)
         if not self.outputs:
-            if self.generator is not None and hasattr(self.generator, "gen_specs"):
-                gen_out = self.generator.gen_specs.get("out", [])
-                if len(gen_out):
-                    self.outputs = gen_out
-            if not self.outputs:
-                out_fields = []
-                for attr in ["variables", "constants"]:
-                    if obj := getattr(self.vocs, attr, None):
-                        for name, field in obj.items():
-                            dtype = _get_dtype(field, name)
-                            out_fields.append(_convert_dtype_to_output_tuple(name, dtype))
-                self.outputs = out_fields
+            out_fields = []
+            for attr in ["variables", "constants"]:
+                if obj := getattr(self.vocs, attr, None):
+                    for name, field in obj.items():
+                        dtype = _get_dtype(field, name)
+                        out_fields.append(_convert_dtype_to_output_tuple(name, dtype))
+            self.outputs = out_fields
+
+        # Merge in any additional fields from generator.gen_specs["out"] (e.g., x_on_cube, local_min)
+        if self.generator is not None and hasattr(self.generator, "gen_specs"):
+            gen_out = self.generator.gen_specs.get("out", [])
+            existing_names = {f[0] for f in self.outputs}
+            for field in gen_out:
+                if field[0] not in existing_names:
+                    self.outputs.append(field)
+                    existing_names.add(field[0])
 
         # Add _id field if generator returns_id is True
         if self.generator is not None and getattr(self.generator, "returns_id", False):
@@ -378,6 +383,10 @@ class GenSpecs(BaseModel):
                     self.user["ub"] = np.array(ubs, dtype=float)
 
         return self
+
+    @model_validator(mode="after")
+    def check_set_gen_specs_from_variables(self):
+        return check_set_gen_specs_from_variables(self)
 
 
 class AllocSpecs(BaseModel):
