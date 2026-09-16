@@ -344,6 +344,15 @@ class GenSpecs(BaseModel):
                         out_fields.append(_convert_dtype_to_output_tuple(name, dtype))
             self.outputs = out_fields
 
+        # Merge in any additional fields from generator.gen_specs["out"] (e.g., x_on_cube, local_min)
+        if self.generator is not None and hasattr(self.generator, "gen_specs"):
+            gen_out = self.generator.gen_specs.get("out", [])
+            existing_names = {f[0] for f in self.outputs}
+            for field in gen_out:
+                if field[0] not in existing_names:
+                    self.outputs.append(field)
+                    existing_names.add(field[0])
+
         # Add _id field if generator returns_id is True
         if self.generator is not None and getattr(self.generator, "returns_id", False):
             if self.outputs is None:
