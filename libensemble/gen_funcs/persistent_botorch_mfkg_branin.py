@@ -44,7 +44,7 @@ cost_aware_utility = InverseCostWeightedUtility(cost_model=cost_model)
 
 # Custom function to project posterior to target fidelity (defer to default)
 def project(X):
-    return project_to_target_fidelity(X=X, target_fidelities=target_fidelities)
+    return project_to_target_fidelity(X=X, target_fidelities=target_fidelities, d=3)
 
 
 # Wrapper function for compatibility with existing code

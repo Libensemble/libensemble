@@ -64,6 +64,7 @@ See ``libensemble/tests/regression_tests/test_xopt_EI.py`` for an example of how
 - When writing new code, prefer the ``LibeSpecs``, ``SimSpecs``, and ``GenSpecs`` dataclasses over the classic ``sim_specs`` and ``gen_specs`` bare dictionaries.
 - Read ``CONTRIBUTING.md`` for more information.
 - The external ``libE-community-examples`` repository contains past use-cases, generators, and other examples.
+- Always feel free to ask questions during development.
 
 Development Environment
 -----------------------
