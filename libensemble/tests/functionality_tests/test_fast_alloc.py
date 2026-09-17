@@ -13,7 +13,6 @@ The number of concurrent evaluations of the objective function will be 4-1=3.
 # TESTSUITE_NPROCS: 4
 
 import gc
-import sys
 
 import numpy as np
 
@@ -51,12 +50,6 @@ if __name__ == "__main__":
     }
 
     exit_criteria = {"sim_max": 2 * num_pts, "wallclock_max": 300}
-
-    if libE_specs["comms"] == "tcp":
-        # Can't use the same interface for manager and worker if we want
-        # repeated calls to libE -- the manager sets up a different server
-        # each time, and the worker will not know what port to connect to.
-        sys.exit("Cannot run with tcp when repeated calls to libE -- aborting...")
 
     for time in np.append([0], np.logspace(-5, -1, 2)):
         if is_manager:

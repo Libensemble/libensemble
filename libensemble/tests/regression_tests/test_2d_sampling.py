@@ -4,13 +4,13 @@ Runs libEnsemble with Latin hypercube sampling on a simple 2D problem
 Execute via one of the following commands (e.g. 3 workers):
    mpiexec -np 4 python test_2d_sampling.py
    python test_2d_sampling.py --nworkers 3
-   python test_2d_sampling.py --nworkers 3 --comms tcp
+   python test_2d_sampling.py --nworkers 3 --comms threads
 
 The number of concurrent evaluations of the objective function will be 4-1=3.
 """
 
 # Do not change these lines - they are parsed by run-tests.sh
-# TESTSUITE_COMMS: mpi local threads tcp
+# TESTSUITE_COMMS: mpi local threads
 # TESTSUITE_NPROCS: 4
 
 import numpy as np

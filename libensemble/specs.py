@@ -1,4 +1,3 @@
-import random
 import warnings
 from pathlib import Path
 
@@ -8,7 +7,6 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens
 from libensemble.utils.validators import (
-    check_any_workers_and_disable_rm_if_tcp,
     check_exit_criteria,
     check_H0,
     check_input_dir_exists,
@@ -445,13 +443,13 @@ class LibeSpecs(BaseModel):
 
     comms: str | None = "mpi"
     """
-    Manager/Worker communications mode. ``'mpi'``, ``'local'``, ``'threads'``, or ``'tcp'``
+    Manager/Worker communications mode. ``'mpi'``, ``'local'``, or ``'threads'``.
     If ``nworkers`` is specified, then ``local`` comms will be used unless a parallel MPI
     environment is detected.
     """
 
     nworkers: int | None = 0
-    """ Number of worker processes in ``"local"``, ``"threads"``, or ``"tcp"``."""
+    """ Number of worker processes in ``"local"`` or ``"threads"``."""
 
     gen_on_worker: bool = False
     """ Instructs libEnsemble to run generator functions on a worker rank.
@@ -606,10 +604,6 @@ class LibeSpecs(BaseModel):
         return set_default_comms(cls, values)
 
     @model_validator(mode="after")
-    def check_any_workers_and_disable_rm_if_tcp(self):
-        return check_any_workers_and_disable_rm_if_tcp(self)
-
-    @model_validator(mode="after")
     def enable_save_H_when_every_K(self):
         return enable_save_H_when_every_K(self)
 
@@ -690,28 +684,6 @@ class LibeSpecs(BaseModel):
 
     live_data: object | None = None
     """ Add a live data capture object (e.g., for plotting). """
-
-    workers: list[str] | None = []
-    """ TCP Only: A list of worker hostnames. """
-
-    ip: str | None = None
-    """ TCP Only: IP address for Manager's system. """
-
-    port: int | None = 0
-    """ TCP Only: Port number for Manager's system. """
-
-    authkey: str | None = f"libE_auth_{random.randrange(99999)}"
-    """ TCP Only: Authkey for Manager's system."""
-
-    workerID: int | None = None
-    """ TCP Only: Worker ID number assigned to the new process. """
-
-    worker_cmd: list[str] | None = []
-    """
-    TCP Only: Split string corresponding to worker/client Python process invocation. Contains
-    a local Python path, user script, and manager/server format-fields for ``manager_ip``,
-    ``manager_port``, ``authkey``, and ``workerID``. ``nworkers`` is specified normally.
-    """
 
     final_gen_send: bool | None = False
     """

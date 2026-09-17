@@ -4,7 +4,7 @@ Tests libEnsemble's inverse_bayes generator function
 Execute via one of the following commands (e.g. 3 workers):
    mpiexec -np 4 python test_inverse_bayes_example.py
    python test_inverse_bayes_example.py --nworkers 3
-   python test_inverse_bayes_example.py --nworkers 3 --comms tcp
+   python test_inverse_bayes_example.py --nworkers 3 --comms threads
 
 Debugging:
    mpiexec -np 4 xterm -e "python inverse_bayes_example.py"
@@ -15,7 +15,7 @@ persistent generator.
 """
 
 # Do not change these lines - they are parsed by run-tests.sh
-# TESTSUITE_COMMS: mpi local tcp
+# TESTSUITE_COMMS: mpi local threads
 # TESTSUITE_NPROCS: 4
 
 import numpy as np

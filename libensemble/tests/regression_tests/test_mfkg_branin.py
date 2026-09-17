@@ -18,7 +18,7 @@ to the generator:
 Execute via one of the following commands:
    mpiexec -np 5 python run_botorch_mfkg_branin.py
    python run_botorch_mfkg_branin.py --nworkers 4
-   python run_botorch_mfkg_branin.py --nworkers 4 --comms tcp
+   python run_botorch_mfkg_branin.py --nworkers 4 --comms threads
 
 With ``--nworkers 4`` one worker is the generator and three concurrently
 evaluate the objective.

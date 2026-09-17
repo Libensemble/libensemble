@@ -57,7 +57,7 @@ def check_valid_in(cls, v):
 
 
 def check_valid_comms_type(cls, value):
-    assert value in ["mpi", "local", "threads", "tcp"], "Invalid comms type"
+    assert value in ["mpi", "local", "threads"], "Invalid comms type"
     return value
 
 
@@ -107,19 +107,6 @@ def check_mpi_runner_type(cls, value):
             "custom",
         ], "Invalid MPI runner name"
     return value
-
-
-def check_any_workers_and_disable_rm_if_tcp(values):
-    comms_type = scg(values, "comms")
-    if comms_type in ["local", "tcp"]:
-        if scg(values, "nworkers"):
-            assert scg(values, "nworkers") >= 1, "Must specify at least one worker"
-        else:
-            if comms_type == "tcp":
-                assert scg(values, "workers"), "Without nworkers, must specify worker hosts on TCP"
-    if comms_type == "tcp":
-        scs(values, "disable_resource_manager", True)  # Resource management not supported with TCP
-    return values
 
 
 def set_default_comms(cls, values):

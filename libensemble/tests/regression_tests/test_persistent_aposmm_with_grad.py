@@ -5,7 +5,7 @@ information from the sim_f
 Execute via one of the following commands (e.g. 3 workers):
    mpiexec -np 4 python test_persistent_aposmm_with_grad.py
    python test_persistent_aposmm_with_grad.py --nworkers 3
-   python test_persistent_aposmm_with_grad.py --nworkers 3 --comms tcp
+   python test_persistent_aposmm_with_grad.py --nworkers 3 --comms threads
 
 When running with the above commands, the number of concurrent evaluations of
 the objective function will be 2, as one of the three workers will be the
@@ -13,7 +13,7 @@ persistent generator.
 """
 
 # Do not change these lines - they are parsed by run-tests.sh
-# TESTSUITE_COMMS: local mpi tcp
+# TESTSUITE_COMMS: local mpi threads
 # TESTSUITE_NPROCS: 4
 # TESTSUITE_EXTRA: true
 

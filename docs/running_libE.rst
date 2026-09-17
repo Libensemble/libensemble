@@ -71,30 +71,6 @@ This nesting does work with MPICH_ and its derivative MPI implementations.
 It is also unsuitable to use this mode when running on the **launch** nodes of
 three-tier systems. In that case ``local`` mode is recommended.
 
-TCP Comms
----------
-
-Run the Manager on one system and launch workers to remote
-systems or nodes over TCP. Configure through
-:class:`libE_specs<libensemble.specs.LibeSpecs>`, or on the command line
-if using an :class:`Ensemble<libensemble.ensemble.Ensemble>` object with
-``Ensemble(parse_args=True)``,
-
-**Reverse-ssh interface**
-
-Set ``comms`` to ``ssh`` to launch workers on remote ssh-accessible systems. This
-co-locates workers, functions, and any applications. Simulator functions can be
-persistent, unlike those submitted to :ref:`Globus Compute<globus_compute_ref>`,
-which must be non-persistent.
-
-The remote working directory and Python need to be specified. This may resemble::
-
-    python myscript.py --comms ssh --workers machine1 machine2 --worker_pwd /home/workers --worker_python /home/.conda/.../python
-
-**Limitations of TCP mode**
-
-- There cannot be two calls to ``Ensemble.run()`` or ``libE()`` in the same script.
-
 Further Command Line Options
 ----------------------------
 

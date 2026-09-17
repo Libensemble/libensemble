@@ -1,6 +1,6 @@
 .. _datastruct-libe-specs:
 
-**Introduction** \|\| `General <libE_specs_general.html>`__ \|\| `Directories <libE_specs_directories.html>`__ \|\| `Profiling <libE_specs_profiling.html>`__ \|\| `TCP <libE_specs_tcp.html>`__ \|\| `History <libE_specs_history.html>`__ \|\| `Resources <libE_specs_resources.html>`__
+**Introduction** \|\| `General <libE_specs_general.html>`__ \|\| `Directories <libE_specs_directories.html>`__ \|\| `Profiling <libE_specs_profiling.html>`__ \|\| `History <libE_specs_history.html>`__ \|\| `Resources <libE_specs_resources.html>`__
 
 LibE Specs
 ==========
@@ -19,7 +19,6 @@ libEnsemble is primarily customized by setting options within a ``LibeSpecs`` in
     libE_specs_general
     libE_specs_directories
     libE_specs_profiling
-    libE_specs_tcp
     libE_specs_history
     libE_specs_resources
 

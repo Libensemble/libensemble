@@ -335,7 +335,6 @@ def parse_arguments():
     parser.add_argument("-r", action="store_true", help="Run only the regression tests")
     parser.add_argument("-m", action="store_true", help="Run the regression tests using MPI comms")
     parser.add_argument("-l", action="store_true", help="Run the regression tests using Local comms")
-    parser.add_argument("-t", action="store_true", help="Run the regression tests using TCP comms")
     parser.add_argument("-e", action="store_true", help="Run extra unit and regression tests")
     parser.add_argument("-A", metavar="<string>", help="Supply arguments to python")
     parser.add_argument("-a", metavar="<string>", help="Supply a string of args to add to mpiexec line")
@@ -367,10 +366,8 @@ def run_regression_tests(root_dir, python_exec, args, current_os):
         user_comms_list.append("mpi")
     if args.l:
         user_comms_list.append("local")
-    if args.t:
-        user_comms_list.append("tcp")
     if not user_comms_list:
-        user_comms_list = ["mpi", "local", "tcp"]
+        user_comms_list = ["mpi", "local"]
 
     print_heading(f"Running regression tests (comms: {', '.join(user_comms_list)})")
     if not REG_LIST_TESTS_ONLY:

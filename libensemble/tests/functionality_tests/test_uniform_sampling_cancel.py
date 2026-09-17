@@ -5,7 +5,7 @@ some points.
 Execute via one of the following commands (e.g. 3 workers):
    mpiexec -np 4 python test_uniform_sampling_cancel.py
    python test_uniform_sampling_cancel.py --nworkers 3
-   python test_uniform_sampling_cancel.py --nworkers 3 --comms tcp
+   python test_uniform_sampling_cancel.py --nworkers 3 --comms threads
 
 The number of concurrent evaluations of the objective function will be 4-1=3.
 

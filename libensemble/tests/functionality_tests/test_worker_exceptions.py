@@ -5,13 +5,13 @@ libE worker exception raising
 Execute via one of the following commands (e.g. 3 workers):
    mpiexec -np 4 python test_worker_exceptions.py
    python test_worker_exceptions.py --nworkers 3
-   python test_worker_exceptions.py --nworkers 3 --comms tcp
+   python test_worker_exceptions.py --nworkers 3 --comms threads
 
 The number of concurrent evaluations of the objective function will be 4-1=3.
 """
 
 # Do not change these lines - they are parsed by run-tests.sh
-# TESTSUITE_COMMS: mpi local tcp
+# TESTSUITE_COMMS: mpi local threads
 # TESTSUITE_NPROCS: 4
 
 from gest_api.vocs import VOCS

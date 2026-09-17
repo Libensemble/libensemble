@@ -5,11 +5,11 @@ VOCS-based version of test_2d_sampling.py. using the
 Execute via one of the following commands (e.g. 3 workers):
    mpiexec -np 4 python test_2d_sampling_vocs.py
    python test_2d_sampling_vocs.py --nworkers 3
-   python test_2d_sampling_vocs.py --nworkers 3 --comms tcp
+   python test_2d_sampling_vocs.py --nworkers 3 --comms threads
 """
 
 # Do not change these lines - they are parsed by run-tests.sh
-# TESTSUITE_COMMS: mpi local threads tcp
+# TESTSUITE_COMMS: mpi local threads
 # TESTSUITE_NPROCS: 4
 
 import numpy as np

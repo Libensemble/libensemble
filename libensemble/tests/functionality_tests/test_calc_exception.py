@@ -4,11 +4,11 @@ A test of libEnsemble exception handling.
 Execute via one of the following commands (e.g. 3 workers):
    mpiexec -np 4 python test_calc_exception.py
    python test_calc_exception.py --nworkers 3
-   python test_calc_exception.py --nworkers 3 --comms tcp
+   python test_calc_exception.py --nworkers 3 --comms threads
 """
 
 # Do not change these lines - they are parsed by run-tests.sh
-# TESTSUITE_COMMS: mpi local tcp
+# TESTSUITE_COMMS: mpi local threads
 # TESTSUITE_NPROCS: 4
 
 from gest_api.vocs import VOCS

@@ -23,10 +23,6 @@ jobs:
             mpi-version: mpich
             comms-type: l
           - os: ubuntu-latest
-            python-version: "py312e"
-            mpi-version: mpich
-            comms-type: t
-          - os: ubuntu-latest
             mpi-version: openmpi
             python-version: "py312e"
             comms-type: l

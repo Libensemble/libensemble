@@ -22,7 +22,6 @@ persistent generator.
 # TESTSUITE_NPROCS: 3 6
 
 import os
-import sys
 
 import numpy as np
 
@@ -47,9 +46,6 @@ if __name__ == "__main__":
 
     # Optional for organization of output scripts
     libE_specs["sim_dirs_make"] = True
-
-    if libE_specs["comms"] == "tcp":
-        sys.exit("This test only runs with MPI or local -- aborting...")
 
     # Get paths for applications to run
     six_hump_camel_app = six_hump_camel.__file__

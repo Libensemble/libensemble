@@ -15,7 +15,6 @@ Note: This test contains multiple iterations to test different libE_stats output
 # TESTSUITE_COMMS: mpi local
 # TESTSUITE_NPROCS: 4
 
-import sys
 import warnings
 
 import numpy as np
@@ -40,9 +39,6 @@ if __name__ == "__main__":
     nworkers, is_manager, libE_specs, _ = parse_args()
 
     libE_specs["sim_dirs_make"] = True
-
-    if libE_specs["comms"] == "tcp":
-        sys.exit("This test only runs with MPI or local -- aborting...")
 
     # Get paths for applications to run
     hello_world_app = helloworld.__file__

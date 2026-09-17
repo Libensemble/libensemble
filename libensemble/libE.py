@@ -4,8 +4,7 @@ The libE module is the outer libEnsemble routine.
 This module sets up the manager and the team of workers, configured according
 to the contents of :ref:`libE_specs<datastruct-libe-specs>`. The manager/worker
 communications scheme used in libEnsemble is parsed from the ``comms`` key if
-present, with valid values being ``mpi``, ``local`` (for multiprocessing), or
-``tcp``.
+present, with valid values being ``mpi`` or ``local`` (for multiprocessing).
 
 MPI is the default if ``nworkers`` is not given. However, if ``libE_specs["nworkers"]``
 is specified, then ``local`` comms will be used unless a parallel MPI environment
@@ -109,7 +108,6 @@ See below for the complete traditional API.
 __all__ = ["libE"]
 
 import logging
-import os
 import pickle  # Only used when saving output on error
 import socket
 import sys
@@ -126,7 +124,6 @@ from pydantic import validate_call as libE_wrapper
 
 from libensemble.comms.comms import QCommProcess, QCommThread, Timeout
 from libensemble.comms.logs import manager_logging_config
-from libensemble.comms.tcp_mgr import ClientQCommManager, ServerQCommManager
 from libensemble.executors.executor import Executor
 from libensemble.executors.mpi_executor import MPIExecutor
 from libensemble.history import History
@@ -136,9 +133,7 @@ from libensemble.resources.resources import Resources
 from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs, _EnsembleSpecs
 from libensemble.tools.alloc_support import AllocSupport
 from libensemble.tools.tools import _USER_SIM_ID_WARNING
-from libensemble.utils import launcher
 from libensemble.utils.misc import specs_dump
-from libensemble.utils.timer import Timer
 from libensemble.version import __version__
 from libensemble.worker import worker_main
 
@@ -260,7 +255,7 @@ def libE(
         logger.manager_warning("Dry run. All libE() inputs validated. Exiting.")  # type: ignore[attr-defined]
         sys.exit()
 
-    libE_funcs = {"mpi": libE_mpi, "tcp": libE_tcp, "local": libE_local, "threads": libE_local}
+    libE_funcs = {"mpi": libE_mpi, "local": libE_local, "threads": libE_local}
 
     if sim_specs.get("globus_compute_endpoint"):
         libE_specs["_gc_only"] = True
@@ -533,131 +528,6 @@ def libE_local(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, li
     return manager(
         wcomms, sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, hist, on_cleanup=cleanup
     )
-
-
-# ==================== TCP version =================================
-
-
-def get_ip():
-    """Get the IP address of the current host"""
-    try:
-        return socket.gethostbyname(socket.gethostname())
-    except socket.gaierror:
-        return "localhost"
-
-
-def libE_tcp_default_ID():
-    """Assign a (we hope unique) worker ID if not assigned by manager."""
-    return f"{get_ip()}_pid{os.getpid()}"
-
-
-def libE_tcp(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0):
-    """Main routine for TCP multiprocessing launch of libE."""
-
-    is_worker = libE_specs.get("workerID") is not None
-
-    exctr = Executor.executor
-    if exctr is not None:
-        # TCP does not currently support resource_management but when does, assume
-        # each TCP worker is in a different resource pool (only knowing local_host)
-        if not is_worker:
-            exctr.serial_setup()
-
-    if is_worker:
-        libE_tcp_worker(sim_specs, gen_specs, libE_specs)
-        return [], persis_info, []
-
-    return libE_tcp_mgr(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0)
-
-
-def libE_tcp_worker_launcher(libE_specs):
-    """Get a launch function from libE_specs."""
-    if "worker_launcher" in libE_specs:
-        worker_launcher = libE_specs["worker_launcher"]
-    else:
-        worker_cmd = libE_specs["worker_cmd"]
-
-        def worker_launcher(specs):
-            """Basic worker launch function."""
-            return launcher.launch(worker_cmd, specs)
-
-    return worker_launcher
-
-
-def libE_tcp_start_team(manager, nworkers, workers, ip, port, authkey, launchf):
-    """Launch nworkers workers that attach back to a managers server."""
-    worker_procs = []
-    specs = {"manager_ip": ip, "manager_port": port, "authkey": authkey}
-    with Timer() as timer:
-        for w in range(1, nworkers + 1):
-            logger.info(f"Manager is launching worker {w}")
-            if workers is not None:
-                specs["worker_ip"] = workers[w - 1]
-                specs["tunnel_port"] = 0x71BE
-            specs["workerID"] = w
-            worker_procs.append(launchf(specs))
-        logger.info(f"Manager is awaiting {nworkers} workers")
-        wcomms = manager.await_workers(nworkers)
-        logger.info(f"Manager connected to {nworkers} workers ({timer.elapsed} s)")
-    return worker_procs, wcomms
-
-
-def libE_tcp_mgr(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0):
-    """Main routine for TCP multiprocessing launch of libE at manager."""
-    hist = History(alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
-
-    # Set up a worker launcher
-    launchf = libE_tcp_worker_launcher(libE_specs)
-
-    # Get worker launch parameters and fill in defaults for TCP/IP conn
-    if libE_specs.get("nworkers"):
-        workers = None
-        nworkers = libE_specs["nworkers"]
-    elif libE_specs.get("workers"):
-        workers = libE_specs["workers"]
-        nworkers = len(workers)
-    ip = libE_specs["ip"] or get_ip()
-    port = libE_specs["port"]
-    authkey = libE_specs["authkey"]
-
-    with ServerQCommManager(port, authkey.encode("utf-8")) as tcp_manager:
-        # Get port if needed because of auto-assignment
-        if port == 0:
-            _, port = tcp_manager.address
-
-        if not libE_specs["disable_log_files"]:
-            exit_logger = manager_logging_config(specs=libE_specs)
-        else:
-            exit_logger = None
-
-        logger.info(f"Launched server at ({ip}, {port})")
-
-        # Launch worker team and set up logger
-        worker_procs, wcomms = libE_tcp_start_team(tcp_manager, nworkers, workers, ip, port, authkey, launchf)
-
-        def cleanup():
-            """Handler to clean up launched team."""
-            for wp in worker_procs:
-                launcher.cancel(wp, timeout=libE_specs["worker_timeout"])
-            if exit_logger is not None:
-                exit_logger()
-
-        # Run generic manager
-        return manager(
-            wcomms, sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, hist, on_cleanup=cleanup
-        )
-
-
-def libE_tcp_worker(sim_specs, gen_specs, libE_specs):
-    """Main routine for TCP worker launched by libE."""
-    ip = libE_specs["ip"]
-    port = libE_specs["port"]
-    authkey = libE_specs["authkey"]
-    workerID = libE_specs["workerID"]
-
-    with ClientQCommManager(ip, port, authkey.encode("utf-8"), workerID) as comm:
-        worker_main(comm, sim_specs, gen_specs, libE_specs, workerID=workerID, log_comm=True)
-        logger.debug(f"Worker {workerID} exiting")
 
 
 # ==================== Additional Internal Functions ===========================

@@ -4,7 +4,7 @@ Runs libEnsemble with APOSMM and SciPy local optimization routines.
 Execute via one of the following commands (e.g. 3 workers):
    mpiexec -np 4 python test_aposmm_scipy.py
    python test_aposmm_scipy.py --nworkers 3 --comms local
-   python test_aposmm_scipy.py --nworkers 3 --comms tcp
+   python test_aposmm_scipy.py --nworkers 3 --comms threads
 
 When running with the above commands, the number of concurrent evaluations of
 the objective function will be 3, as the generator runs on the manager.

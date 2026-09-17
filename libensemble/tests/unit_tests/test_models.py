@@ -78,19 +78,11 @@ def test_sim_gen_alloc_exit_specs_invalid():
 def test_libe_specs():
     sim_specs, gen_specs, exit_criteria = setup.make_criteria_and_specs_0()
     libE_specs = {"mpi_comm": Fake_MPI(), "comms": "mpi"}
-    ls = LibeSpecs.model_validate(libE_specs)
+    LibeSpecs.model_validate(libE_specs)
 
     libE_specs["sim_input_dir"] = "."
     libE_specs["sim_dir_copy_files"] = ["."]
-    ls = LibeSpecs.model_validate(libE_specs)
-
-    libE_specs = {"comms": "tcp", "nworkers": 4}
-
-    ls = LibeSpecs.model_validate(libE_specs)
-    assert ls.disable_resource_manager, "resource manager should be disabled when using tcp comms"
-
-    libE_specs = {"comms": "tcp", "workers": ["hello.host"]}
-    ls = LibeSpecs.model_validate(libE_specs)
+    LibeSpecs.model_validate(libE_specs)
 
 
 def test_libe_specs_invalid():

@@ -16,7 +16,6 @@ Note: This test contains multiple iterations to test different configurations.
 # TESTSUITE_NPROCS: 4
 # TESTSUITE_EXTRA: true
 
-import sys
 from multiprocessing import set_start_method
 
 import numpy as np
@@ -37,9 +36,6 @@ if __name__ == "__main__":
     libE_specs["sim_dirs_make"] = True
     en_suffix = str(nworkers) + "_" + libE_specs.get("comms")
     libE_specs["ensemble_dir_path"] = "./ensemble_diff_nodes_w" + en_suffix
-
-    if libE_specs["comms"] == "tcp":
-        sys.exit("This test only runs with MPI or local -- aborting...")
 
     # Get paths for applications to run
     hello_world_app = helloworld.__file__

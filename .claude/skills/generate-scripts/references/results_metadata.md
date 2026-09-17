@@ -39,4 +39,3 @@ If the minimum objective value is exactly 0.0, check whether those rows have
 `sim_ended == True`. Unevaluated rows often have fields initialized to zero.
 This is common for the last few rows when the simulation budget is exhausted — they were
 allocated by the generator but never evaluated.
-

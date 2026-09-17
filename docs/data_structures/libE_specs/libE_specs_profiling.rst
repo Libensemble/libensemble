@@ -1,7 +1,7 @@
 Profiling
 =========
 
-`Introduction <libE_specs.html>`__ \|\| `General <libE_specs_general.html>`__ \|\| `Directories <libE_specs_directories.html>`__ \|\| **Profiling** \|\| `TCP <libE_specs_tcp.html>`__ \|\| `History <libE_specs_history.html>`__ \|\| `Resources <libE_specs_resources.html>`__
+`Introduction <libE_specs.html>`__ \|\| `General <libE_specs_general.html>`__ \|\| `Directories <libE_specs_directories.html>`__ \|\| **Profiling** \|\| `History <libE_specs_history.html>`__ \|\| `Resources <libE_specs_resources.html>`__
 
 **profile** [bool] = ``False``:
     Profile manager and worker logic using ``cProfile``.

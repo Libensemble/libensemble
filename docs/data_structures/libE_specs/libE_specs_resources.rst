@@ -1,7 +1,7 @@
 Resources
 =========
 
-`Introduction <libE_specs.html>`__ \|\| `General <libE_specs_general.html>`__ \|\| `Directories <libE_specs_directories.html>`__ \|\| `Profiling <libE_specs_profiling.html>`__ \|\| `TCP <libE_specs_tcp.html>`__ \|\| `History <libE_specs_history.html>`__ \|\| **Resources**
+`Introduction <libE_specs.html>`__ \|\| `General <libE_specs_general.html>`__ \|\| `Directories <libE_specs_directories.html>`__ \|\| `Profiling <libE_specs_profiling.html>`__ \|\| `History <libE_specs_history.html>`__ \|\| **Resources**
 
 **disable_resource_manager** [bool] = ``False``:
     Disable the built-in resource manager, including automatic resource detection

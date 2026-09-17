@@ -5,7 +5,7 @@ Runs libEnsemble on the 6-hump camel problem. Documented here:
 Execute via one of the following commands (e.g. 3 workers):
    mpiexec -np 4 python test_persistent_sim_uniform_sampling.py
    python test_persistent_sim_uniform_sampling.py --nworkers 3
-   python test_persistent_sim_uniform_sampling.py --nworkers 3 --comms tcp
+   python test_persistent_sim_uniform_sampling.py --nworkers 3 --comms threads
 
 When running with the above command, the number of concurrent evaluations of
 the objective function will be 2, as one of the three workers will be the
@@ -13,7 +13,7 @@ persistent generator.
 """
 
 # Do not change these lines - they are parsed by run-tests.sh
-# TESTSUITE_COMMS: mpi local tcp
+# TESTSUITE_COMMS: mpi local threads
 # TESTSUITE_NPROCS: 4
 # TESTSUITE_OS_SKIP: WIN
 
