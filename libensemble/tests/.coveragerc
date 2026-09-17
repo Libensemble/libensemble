@@ -18,8 +18,20 @@ omit =
     */unit_tests_nompi/*
     */unit_tests_logger/*
     */regression_tests/*
+    */alloc_funcs/start_persistent_local_opt_gens.py
+    */alloc_funcs/fast_alloc_and_pausing.py
+    */alloc_funcs/start_fd_persistent.py
     */sim_funcs/helloworld.py
     */sim_funcs/executor_hworld.py
+    */sim_funcs/chwirut1.py
+    */sim_funcs/var_resources.py
+    */sim_funcs/rosenbrock.py
+    */sim_funcs/borehole_kills.py
+    */sim_funcs/noisy_vector_mapping.py
+    */sim_funcs/augmented_branin.py
+    */sim_funcs/comms_testing.py
+    */sim_funcs/inverse_bayes.py
+    */sim_funcs/borehole.py
     */tools/test_support.py
     */tools/forkable_pdb.py
     */tools/parse_args.py
