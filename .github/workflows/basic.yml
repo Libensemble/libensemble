@@ -130,7 +130,7 @@ jobs:
       - name: Install MINQ
         run: pixi run -e py312 ./install/install_minq.sh
       - name: Run canonical coverage suite
-        run: pixi run -e py312 ./libensemble/tests/run_tests.py -l --coverage --fail-fast --durations 25
+        run: pixi run -e py312 ./libensemble/tests/run_tests.py -l -m --coverage --fail-fast --durations 25
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v7
         env:
