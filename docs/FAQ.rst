@@ -145,8 +145,6 @@ HPC Errors and Questions
   is to either switch fabric or turn off matching probes. See the answer to "Why
   does libEnsemble hang on certain systems when running with MPI?"
 
-  For more information see https://bitbucket.org/mpi4py/mpi4py/issues/102/unpicklingerror-on-commrecv-after-iprobe.
-
 .. dropdown:: **srun: Job \*\*\*\*\*\* step creation temporarily disabled, retrying (Requested nodes are busy)**
 
   Note that this message has been observed on Perlmutter when none of the problems
@@ -161,7 +159,7 @@ HPC Errors and Questions
     See question **can't open hfi unit: -1 (err=23)** for more info.
 
   - All the memory is assigned to the first job-step (srun application), due to a default
-    exclusive mode scheduling policy. This has been observed on `Perlmutter`_ and `SDF`_.
+    exclusive mode scheduling policy. This has been observed on `Perlmutter`_.
 
     In some cases using these environment variables will stop the issue::
 
@@ -302,6 +300,5 @@ macOS and Windows Errors
 .. _option to srun: https://docs.nersc.gov/systems/perlmutter/running-jobs/#single-gpu-tasks-in-parallel
 .. _Perlmutter: https://docs.nersc.gov/systems/perlmutter/architecture/
 .. _Python multiprocessing docs: https://docs.python.org/3/library/multiprocessing.html
-.. _SDF: https://sdf.slac.stanford.edu/public/doc/#/?id=what-is-the-sdf
 .. _Support: https://libensemble.readthedocs.io/en/main/introduction.html#resources
 .. _xQuartz: https://www.xquartz.org/
