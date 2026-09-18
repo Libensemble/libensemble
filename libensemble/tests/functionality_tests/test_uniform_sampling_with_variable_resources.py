@@ -86,7 +86,7 @@ if __name__ == "__main__":
     # This can improve scheduling when tasks may run across multiple nodes
     libE_specs["scheduler_opts"] = {"match_slots": False}
 
-    exit_criteria = {"sim_max": 40, "wallclock_max": 300}
+    exit_criteria = {"sim_max": 12, "wallclock_max": 300}
 
     if libE_specs["comms"] == "local":
         iterations = 4
@@ -122,4 +122,6 @@ if __name__ == "__main__":
 
         if is_manager:
             assert flag == 0
+            assert np.count_nonzero(H["sim_ended"]) >= exit_criteria["sim_max"]
+            assert len(np.unique(H["resource_sets"])) > 1
             save_libE_output(H, persis_info, __file__, nworkers)
