@@ -141,9 +141,6 @@ latexmk = ">=4.88,<5"
 fonts-conda-forge = ">=1,<2"
 imagemagick = ">=7.1.2_16,<8"
 
-[tool.pixi.tasks.build-docs]
-cmd = "cd docs && make html"
-
 [tool.pixi.tasks.build-pdf]
 cmd = "cd docs && make latexpdf"
 

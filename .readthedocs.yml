@@ -23,7 +23,8 @@ build:
     - asdf plugin add pixi
     - asdf install pixi latest
     - asdf global pixi latest
-    - pixi run -e docs build-docs
+    - pixi run -e docs sphinx-build -b html docs docs/_build/html -W --keep-going
+    - pixi run -e docs sphinx-build -b linkcheck docs docs/_build/linkcheck
     - mkdir -p $READTHEDOCS_OUTPUT/html/
     - cp -r docs/_build/html/** $READTHEDOCS_OUTPUT/html/
     - pixi run -e docs build-pdf
