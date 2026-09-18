@@ -102,6 +102,15 @@ E.g., in the command line or batch submission script:
 Known Platforms List
 --------------------
 
+.. autopydantic_model:: libensemble.resources.platforms.FluxAllocation
+    :model-show-validator-members: False
+    :model-show-validator-summary: False
+    :model-show-field-summary: False
+    :field-list-validators: False
+    :field-show-required: False
+    :field-show-default: False
+    :field-show-alias: False
+
 .. dropdown:: ``Known_platforms``
     :open:
 

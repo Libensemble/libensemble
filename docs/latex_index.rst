@@ -1,5 +1,7 @@
 .. libEnsemble documentation master file for the latex build
 
+:orphan:
+
 =====
 Dummy
 =====

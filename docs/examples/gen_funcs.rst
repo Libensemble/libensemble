@@ -41,7 +41,6 @@ Optimization
 
   aposmm
   uniform_or_localopt
-  ax_multitask<ax_multitask>
   VTMOP<https://libensemble.readthedocs.io/projects/libe-community-examples/en/latest/generators.html#module-vtmop>
   ytopt<https://libensemble.readthedocs.io/projects/libe-community-examples/en/latest/generators.html#module-ytopt_heffte.ytopt_asktell>
   consensus<https://libensemble.readthedocs.io/projects/libe-community-examples/en/latest/generators.html#gens.persistent_independent_optimize>
@@ -50,10 +49,6 @@ Optimization
 - :doc:`APOSMM<aposmm>`
 
   Asynchronously Parallel Optimization Solver for finding Multiple Minima (APOSMM_).
-
-- :doc:`Ax Multitask<ax_multitask>`
-
-  Bayesian optimization with a Gaussian process driven by an Ax_ multi-task algorithm.
 
 - :ref:`DEAP-NSGA-II<community:deap-link>`
 

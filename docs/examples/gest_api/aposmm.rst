@@ -10,7 +10,7 @@ APOSMM
 APOSMM with libEnsemble
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-.. literalinclude:: ../../../libensemble/tests/regression_tests/test_asktell_aposmm_nlopt.py
+.. literalinclude:: ../../../libensemble/tests/regression_tests/test_aposmm_nlopt.py
     :linenos:
     :start-at:        workflow = Ensemble(parse_args=True)
     :end-before:         # Perform the run

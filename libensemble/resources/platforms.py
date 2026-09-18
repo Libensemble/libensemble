@@ -90,7 +90,7 @@ class Platform(BaseModel):
     - ``"option_gpus_per_node"``: Expresses GPUs per node on MPI runner command line.
     - ``"option_gpus_per_task"``: Expresses GPUs per task on MPI runner command line.
 
-    With the exception of "runner_default", the :attr:`gpu_setting_name`
+    With the exception of "runner_default", the :attr:`Platform.gpu_setting_name`
     attribute is also required when this attribute is set.
 
     If "gpu_setting_type" is not provided (same as ``runner_default``) and the

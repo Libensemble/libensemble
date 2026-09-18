@@ -6,6 +6,8 @@ Base Executor
 .. automodule:: executor
     :no-undoc-members:
 
+.. autoexception:: libensemble.executors.executor.ExecutorException
+
 Only for running local serial-launched applications.
 To run MPI applications and use detected resources, use the `MPI Executor <ex_mpi.html>`__ tab.
 
