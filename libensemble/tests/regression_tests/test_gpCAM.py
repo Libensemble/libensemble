@@ -22,6 +22,8 @@ generator setup.
 # TESTSUITE_COMMS: mpi local
 # TESTSUITE_NPROCS: 4
 # TESTSUITE_EXTRA: true
+# TESTSUITE_TIER: slow
+# TESTSUITE_FEATURES: external gpcam
 
 import sys
 import warnings

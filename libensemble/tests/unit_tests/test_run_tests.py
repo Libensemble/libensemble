@@ -10,6 +10,7 @@ def make_args(**overrides):
         "a": None,
         "coverage": True,
         "e": False,
+        "exclude_match": None,
         "feature": None,
         "match": None,
         "tier": None,
@@ -90,3 +91,6 @@ def test_skip_test_applies_tier_feature_and_name_filters():
 
     assert not run_tests.skip_test(directives, args, "LIN", "/tests/test_proxystore.py")
     assert run_tests.skip_test(directives, args, "LIN", "/tests/test_other.py")
+
+    args.exclude_match = ["proxystore"]
+    assert run_tests.skip_test(directives, args, "LIN", "/tests/test_proxystore.py")
