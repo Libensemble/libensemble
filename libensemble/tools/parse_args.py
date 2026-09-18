@@ -1,7 +1,6 @@
 import argparse
 import os
 import sys
-from pathlib import Path
 
 # ==================== Command-line argument parsing ===========================
 
@@ -11,7 +10,7 @@ parser.add_argument(
     "--comms",
     type=str,
     nargs="?",
-    choices=["local", "threads", "tcp", "ssh", "client", "mpi"],
+    choices=["local", "threads", "mpi"],
     help="Type of communicator",
 )
 parser.add_argument("-n", "--nworkers", type=int, nargs="?", help="Number of local forked processes")
@@ -83,70 +82,6 @@ def _local_parse_args(args):
     return nworkers, True, libE_specs, args.tester_args
 
 
-def _tcp_parse_args(args):
-    """Parses arguments for local TCP connections"""
-    nworkers = args.nworkers or 4
-    cmd = [
-        sys.executable,
-        sys.argv[0],
-        "--comms",
-        "client",
-        "--server",
-        "{manager_ip}",
-        "{manager_port}",
-        "{authkey}",
-        "--workerID",
-        "{workerID}",
-        "--nworkers",
-        str(nworkers),
-    ]
-    libE_specs = {"nworkers": nworkers, "worker_cmd": cmd, "comms": "tcp"}
-    return nworkers, True, libE_specs, args.tester_args
-
-
-def _ssh_parse_args(args):
-    """Parses arguments for SSH with reverse tunnel."""
-    nworkers = len(args.workers)
-    worker_pwd = Path(args.worker_pwd) if args.worker_pwd else Path.cwd()
-    script_dir, script_name = os.path.split(sys.argv[0])
-    worker_script_name = worker_pwd / script_name
-    ssh = ["ssh", "-R", "{tunnel_port}:localhost:{manager_port}", "{worker_ip}"]
-    cmd = [
-        args.worker_python,
-        worker_script_name,
-        "--comms",
-        "client",
-        "--server",
-        "localhost",
-        "{tunnel_port}",
-        "{authkey}",
-        "--workerID",
-        "{workerID}",
-        "--nworkers",
-        str(nworkers),
-    ]
-    cmd = " ".join(cmd)
-    cmd = f"( cd {worker_pwd} ; {cmd} )"
-    ssh.append(cmd)
-    libE_specs = {"workers": args.workers, "worker_cmd": ssh, "ip": "localhost", "comms": "tcp"}
-    return nworkers, True, libE_specs, args.tester_args
-
-
-def _client_parse_args(args):
-    """Parses arguments for a TCP client."""
-    nworkers = args.nworkers or 4
-    ip, port, authkey = args.server
-    libE_specs = {
-        "ip": ip,
-        "port": int(port),
-        "authkey": authkey,
-        "workerID": args.workerID,
-        "nworkers": nworkers,
-        "comms": "tcp",
-    }
-    return nworkers, False, libE_specs, args.tester_args
-
-
 def parse_args():
     """
     Parses command-line arguments.
@@ -171,7 +106,7 @@ def parse_args():
 
     Usage::
 
-        usage: test_... [-h] [--comms [{local, tcp, ssh, client, mpi}]]
+        usage: test_... [-h] [--comms [{local, threads, mpi}]]
                         [--nworkers [NWORKERS]] [--workers WORKERS [WORKERS ...]]
                         [--nsim_workers [NSIM_WORKERS]]
                         [--nresource_sets [NRESOURCE_SETS]]
@@ -186,7 +121,7 @@ def parse_args():
 
         --comms,          Communications medium for manager and workers.
                           Default is 'local' if --nworkers is provided, otherwise  'mpi'.
-        --nworkers/-n,    (For 'local' or 'tcp' comms) Set number of workers.
+        --nworkers/-n,    (For 'local' or 'threads' comms) Set number of workers.
         --nresource_sets, Explicitly set the number of resource sets. This sets
                           libE_specs["num_resource_sets"]. By default, resources will be
                           divided by workers.
@@ -240,9 +175,6 @@ def parse_args():
         "mpi": _mpi_parse_args,
         "local": _local_parse_args,
         "threads": _local_parse_args,
-        "tcp": _tcp_parse_args,
-        "ssh": _ssh_parse_args,
-        "client": _client_parse_args,
     }
     if args.pwd is not None:
         os.chdir(args.pwd)

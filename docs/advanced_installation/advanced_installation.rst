@@ -1,7 +1,7 @@
 Advanced Installation
 =====================
 
-`pip <advanced_installation_pip.html>`__ || `uv <advanced_installation_uv.html>`__ || `pixi <advanced_installation_pixi.html>`__ || `conda <advanced_installation_conda.html>`__ || `Spack <advanced_installation_spack.html>`__
+:doc:`pip <advanced_installation_pip>` || :doc:`uv <advanced_installation_uv>` || :doc:`pixi <advanced_installation_pixi>` || :doc:`conda <advanced_installation_conda>` || :doc:`Spack <advanced_installation_spack>`
 
 libEnsemble can be installed from ``pip``, ``uv``, ``pixi``, ``Conda``, or ``Spack``.
 

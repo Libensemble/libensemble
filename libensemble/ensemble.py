@@ -5,9 +5,9 @@ import numpy.typing as npt
 from libensemble.executors import Executor
 from libensemble.libE import libE
 from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
-from libensemble.tools import parse_args as parse_args_f
 from libensemble.tools import save_libE_output
 from libensemble.tools.parse_args import mpi_init
+from libensemble.tools.parse_args import parse_args as parse_args_f
 from libensemble.utils.misc import specs_dump
 
 ATTR_ERR_MSG = 'Unable to load "{}". Is the function or submodule correctly named?'
@@ -216,7 +216,7 @@ class Ensemble:
 
         - A simulation callable (``sim_f`` or ``simulator``) is set on ``sim_specs``.
         - At least one exit condition is configured on ``exit_criteria``.
-        - Workers are available (``nworkers > 0`` for local/threads/tcp comms,
+        - Workers are available (``nworkers > 0`` for local/threads comms,
           or MPI comms is set, which infers workers from the MPI communicator).
         - If both ``gen_specs`` and ``sim_specs`` use the classic field-name interface,
           the generator output field names are a superset of the simulator input field names.
@@ -259,7 +259,7 @@ class Ensemble:
 
         # --- workers: must be determinable ---
         comms = getattr(self._libE_specs, "comms", "mpi")
-        if comms in ("local", "threads", "tcp"):
+        if comms in ("local", "threads"):
             if not self.nworkers:
                 issues.append(
                     f"libE_specs.comms is '{comms}' but 'nworkers' is not set. "

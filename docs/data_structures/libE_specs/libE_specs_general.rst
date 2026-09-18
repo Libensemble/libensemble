@@ -1,15 +1,15 @@
 General
 =======
 
-`Introduction <libE_specs.html>`__ \|\| **General** \|\| `Directories <libE_specs_directories.html>`__ \|\| `Profiling <libE_specs_profiling.html>`__ \|\| `TCP <libE_specs_tcp.html>`__ \|\| `History <libE_specs_history.html>`__ \|\| `Resources <libE_specs_resources.html>`__
+:doc:`Introduction <libE_specs>` || **General** || :doc:`Directories <libE_specs_directories>` || :doc:`Profiling <libE_specs_profiling>` || :doc:`History <libE_specs_history>` || :doc:`Resources <libE_specs_resources>`
 
 **comms** [str] = ``"mpi"``:
-    Manager/Worker communications mode: ``'mpi'``, ``'local'``, ``'threads'``, or ``'tcp'``.
+    Manager/Worker communications mode: ``'mpi'``, ``'local'``, or ``'threads'``.
     If ``nworkers`` is specified, then ``local`` comms will be used unless a
     parallel MPI environment is detected.
 
 **nworkers** [int]:
-    Number of worker processes in ``"local"``, ``"threads"``, or ``"tcp"``.
+    Number of worker processes in ``"local"`` or ``"threads"``.
 
 **gen_on_worker** [bool] = False
     Instructs Worker process to run generator instead of Manager.

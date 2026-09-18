@@ -1,7 +1,7 @@
 MPI Executor
 ============
 
-`Overview <ex_overview.html>`__ \|\| `Base Executor <ex_base.html>`__ \|\| **MPI Executor** \|\| `Flux Executor <ex_flux.html>`__
+:doc:`Overview <ex_overview>` || :doc:`Base Executor <ex_base>` || **MPI Executor** || :doc:`Flux Executor <ex_flux>`
 
 .. automodule:: mpi_executor
     :no-undoc-members:

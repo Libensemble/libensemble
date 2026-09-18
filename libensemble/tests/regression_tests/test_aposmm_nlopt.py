@@ -4,14 +4,14 @@ Runs libEnsemble with APOSMM with the NLopt local optimizer.
 Execute via one of the following commands (e.g. 3 workers):
    mpiexec -np 4 python test_aposmm_nlopt.py
    python test_aposmm_nlopt.py --nworkers 3 --comms local
-   python test_aposmm_nlopt.py --nworkers 3 --comms tcp
+   python test_aposmm_nlopt.py --nworkers 3 --comms threads
 
 When running with the above commands, the number of concurrent evaluations of
 the objective function will be 3, as the generator runs on the manager.
 """
 
 # Do not change these lines - they are parsed by run-tests.sh
-# TESTSUITE_COMMS: local mpi tcp
+# TESTSUITE_COMMS: local mpi threads
 # TESTSUITE_NPROCS: 4
 
 from math import gamma, pi, sqrt

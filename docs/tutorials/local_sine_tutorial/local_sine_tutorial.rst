@@ -2,7 +2,7 @@
 Simple Introduction
 ===================
 
-**Introduction** \|\| `1. Getting started <local_sine_tutorial_1.html>`__ \|\| `2. Generator <local_sine_tutorial_2.html>`__ \|\| `3. Simulator <local_sine_tutorial_3.html>`__ \|\| `4. Script <local_sine_tutorial_4.html>`__ \|\| `5. Next steps <local_sine_tutorial_5.html>`__
+**Introduction** || :doc:`1. Getting started <local_sine_tutorial_1>` || :doc:`2. Generator <local_sine_tutorial_2>` || :doc:`3. Simulator <local_sine_tutorial_3>` || :doc:`4. Script <local_sine_tutorial_4>` || :doc:`5. Next steps <local_sine_tutorial_5>`
 
 This tutorial demonstrates the capability to perform ensembles of
 calculations in parallel using :doc:`libEnsemble<../../introduction>`.

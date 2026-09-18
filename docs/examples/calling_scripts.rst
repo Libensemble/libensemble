@@ -43,10 +43,10 @@ This example from the regression tests demonstrates the gest-api interface with 
 standardized ``APOSMM`` generator class parameterized by a ``VOCS`` object, and
 paired with a gest-api ``simulator`` callable.
 
-..  literalinclude:: ../../libensemble/tests/regression_tests/test_asktell_aposmm_nlopt.py
+..  literalinclude:: ../../libensemble/tests/regression_tests/test_aposmm_nlopt.py
     :language: python
-    :caption: tests/regression_tests/test_asktell_aposmm_nlopt.py
+    :caption: tests/regression_tests/test_aposmm_nlopt.py
     :linenos:
-    :end-at: workflow.exit_criteria = ExitCriteria(sim_max=2000, wallclock_max=600)
+    :end-before:     # Perform the run
 
 .. _regression tests: https://github.com/Libensemble/libensemble/tree/develop/libensemble/tests/regression_tests

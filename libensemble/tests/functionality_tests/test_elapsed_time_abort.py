@@ -4,13 +4,13 @@ Tests libEnsemble's capability to abort after a certain amount of elapsed time.
 Execute via one of the following commands (e.g. 3 workers):
    mpiexec -np 4 python test_6-hump_camel_elapsed_time_abort.py
    python test_6-hump_camel_elapsed_time_abort.py --nworkers 3
-   python test_6-hump_camel_elapsed_time_abort.py --nworkers 3 --comms tcp
+   python test_6-hump_camel_elapsed_time_abort.py --nworkers 3 --comms threads
 
 The number of concurrent evaluations of the objective function will be 4-1=3.
 """
 
 # Do not change these lines - they are parsed by run-tests.sh
-# TESTSUITE_COMMS: mpi local tcp
+# TESTSUITE_COMMS: mpi local threads
 # TESTSUITE_NPROCS: 4
 
 from gest_api.vocs import VOCS

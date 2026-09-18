@@ -1,7 +1,7 @@
 5. Next steps
 =============
 
-`Introduction <local_sine_tutorial.html>`__ \|\| `1. Getting started <local_sine_tutorial_1.html>`__ \|\| `2. Generator <local_sine_tutorial_2.html>`__ \|\| `3. Simulator <local_sine_tutorial_3.html>`__ \|\| `4. Script <local_sine_tutorial_4.html>`__ \|\| **5. Next steps**
+:doc:`Introduction <local_sine_tutorial>` || :doc:`1. Getting started <local_sine_tutorial_1>` || :doc:`2. Generator <local_sine_tutorial_2>` || :doc:`3. Simulator <local_sine_tutorial_3>` || :doc:`4. Script <local_sine_tutorial_4>` || **5. Next steps**
 
 **libEnsemble with MPI**
 

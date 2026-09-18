@@ -1,7 +1,7 @@
 Globus Compute Executor
 =======================
 
-`Overview <ex_overview.html>`__ || `Base Executor <ex_base.html>`__ || `MPI Executor <ex_mpi.html>`__ || **Globus Compute Executor**
+:doc:`Overview <ex_overview>` || :doc:`Base Executor <ex_base>` || :doc:`MPI Executor <ex_mpi>` || **Globus Compute Executor**
 
 The :class:`GlobusComputeExecutor<libensemble.executors.globus_compute_executor.GlobusComputeExecutor>`
 submits Python callables to a remote `Globus Compute`_ endpoint instead of

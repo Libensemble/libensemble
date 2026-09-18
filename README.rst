@@ -144,7 +144,6 @@ Resources
 
 - Ask questions or report issues on GitHub_.
 - Email ``libEnsemble@lists.mcs.anl.gov`` to request `libEnsemble Slack page`_.
-- Join the `libEnsemble mailing list`_ for updates about new releases.
 
 **Further Information:**
 
@@ -197,7 +196,6 @@ Resources
 .. _docs: https://libensemble.readthedocs.io/en/main/advanced_installation.html
 .. _gest-api: https://gest-api.readthedocs.io/en/latest/
 .. _GitHub: https://github.com/Libensemble/libensemble
-.. _libEnsemble mailing list: https://lists.mcs.anl.gov/mailman/listinfo/libensemble
 .. _libEnsemble Slack page: https://libensemble.slack.com
 .. _MPICH: http://www.mpich.org/
 .. _mpmath: http://mpmath.org/

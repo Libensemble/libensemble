@@ -4,7 +4,7 @@ Runs libEnsemble testing the executor functionality.
 Execute via one of the following commands (e.g. 3 workers):
    mpiexec -np 4 python test_executor_hworld.py
    python test_executor_hworld.py --nworkers 3
-   python test_executor_hworld.py --nworkers 3 --comms tcp
+   python test_executor_hworld.py --nworkers 3 --comms threads
 
 The number of concurrent evaluations of the objective function will be 4-1=3.
 """
@@ -27,7 +27,7 @@ from libensemble.tests.regression_tests.common import build_simfunc
 from libensemble.tools import parse_args
 
 # Do not change these lines - they are parsed by run-tests.sh
-# TESTSUITE_COMMS: mpi local tcp
+# TESTSUITE_COMMS: mpi local threads
 # TESTSUITE_NPROCS: 3 4
 # TESTSUITE_OMPI_SKIP: true
 # TESTSUITE_OS_SKIP: OSX WIN
@@ -46,9 +46,6 @@ if __name__ == "__main__":
     if cores_all_tasks > logical_cores:
         disable_resource_manager = True
         mess_resources = "Oversubscribing - Resource manager disabled"
-    elif libE_specs.get("comms", False) == "tcp":
-        disable_resource_manager = True
-        mess_resources = "TCP comms does not support resource management. Resource manager disabled"
     else:
         disable_resource_manager = False
         mess_resources = "Resource manager enabled"
@@ -92,11 +89,7 @@ if __name__ == "__main__":
 
     exit_criteria = {"wallclock_max": 10, "sim_max": nworkers}
 
-    # TCP does not support multiple libE calls
-    if libE_specs["comms"] == "tcp":
-        iterations = 1
-    else:
-        iterations = 2
+    iterations = 2
 
     for i in range(iterations):
         # Perform the run

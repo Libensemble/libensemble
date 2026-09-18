@@ -1,7 +1,7 @@
 2. Generator
 ============
 
-`Introduction <local_sine_tutorial.html>`__ \|\| `1. Getting started <local_sine_tutorial_1.html>`__ \|\| **2. Generator** \|\| `3. Simulator <local_sine_tutorial_3.html>`__ \|\| `4. Script <local_sine_tutorial_4.html>`__ \|\| `5. Next steps <local_sine_tutorial_5.html>`__
+:doc:`Introduction <local_sine_tutorial>` || :doc:`1. Getting started <local_sine_tutorial_1>` || **2. Generator** || :doc:`3. Simulator <local_sine_tutorial_3>` || :doc:`4. Script <local_sine_tutorial_4>` || :doc:`5. Next steps <local_sine_tutorial_5>`
 
 Let's begin the coding portion of this tutorial by writing our generator.
 

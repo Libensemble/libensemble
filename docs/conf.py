@@ -118,6 +118,16 @@ intersphinx_mapping = {
     "community": ("https://libensemble.readthedocs.io/projects/libe-community-examples/en/latest/", None)
 }
 
+# These hosts reject automated requests from Sphinx linkcheck with HTTP 403.
+linkcheck_ignore = [
+    r"https://(docs|www)\.(alcf|lcrc)\.anl\.gov/.*",
+    r"https://www\.mcs\.anl\.gov/.*",
+    r"https://link\.aps\.org/.*",
+    r"https://libensemble\.slack\.com(?:/.*)?$",
+    r"https://software\.intel\.com/.*",
+    r"https://stackoverflow\.com/.*",
+]
+
 autodoc_pydantic_model_show_json = False
 
 extlinks = {

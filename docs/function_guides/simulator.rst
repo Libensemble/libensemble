@@ -3,7 +3,7 @@
 Simulator Functions
 ===================
 
-**Introduction** \|\| `Standardized Simulator (gest-api) <simulator_standardized.html>`__ \|\| `Legacy Simulator Function <simulator_legacy.html>`__
+**Introduction** || :doc:`Standardized Simulator (gest-api) <simulator_standardized>` || :doc:`Legacy Simulator Function <simulator_legacy>`
 
 Simulator and :ref:`Generator functions<funcguides-gen>` have relatively similar interfaces.
 

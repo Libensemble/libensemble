@@ -17,7 +17,6 @@ The number of concurrent evaluations of the objective function will be 4-1=3.
 # TESTSUITE_COMMS: mpi
 # TESTSUITE_NPROCS: 4
 
-import sys
 from copy import deepcopy
 
 import numpy as np
@@ -34,11 +33,6 @@ from libensemble.tools import parse_args, save_libE_output
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
     nworkers, is_manager, libE_specs, _ = parse_args()
-    if libE_specs["comms"] == "tcp":
-        # Can't use the same interface for manager and worker if we want
-        # repeated calls to libE -- the manager sets up a different server
-        # each time, and the worker will not know what port to connect to.
-        sys.exit("Cannot run with tcp when repeated calls to libE -- aborting...")
 
     # Declare the run parameters/functions
     m = 214

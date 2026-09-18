@@ -4,7 +4,7 @@ Runs libEnsemble testing the MPI Runners command creation.
 Execute via one of the following commands (e.g. 3 workers):
    mpiexec -np 4 python test_mpi_runners.py
    python test_mpi_runners.py --nworkers 3
-   python test_mpi_runners.py --nworkers 3 --comms tcp
+   python test_mpi_runners.py --nworkers 3 --comms threads
 
 The number of concurrent evaluations of the objective function will be 4-1=3.
 """

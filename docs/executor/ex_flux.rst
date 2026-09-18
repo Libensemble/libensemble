@@ -1,7 +1,7 @@
 Flux Executor
 ==============
 
-`Overview <ex_overview.html>`__ \|\| `Base Executor <ex_base.html>`__ \|\| `MPI Executor <ex_mpi.html>`__ \|\| **Flux Executor**
+:doc:`Overview <ex_overview>` || :doc:`Base Executor <ex_base>` || :doc:`MPI Executor <ex_mpi>` || **Flux Executor**
 
 .. automodule:: flux_executor
     :no-undoc-members:
