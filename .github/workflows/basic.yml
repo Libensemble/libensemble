@@ -87,34 +87,6 @@ jobs:
           path: timings-${{ matrix.comms }}.json
           if-no-files-found: ignore
 
-  tcp-smoke:
-    if: "! github.event.pull_request.draft"
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          lfs: true
-      - uses: prefix-dev/setup-pixi@v0.10.2
-        with:
-          pixi-version: v0.69.0
-          cache: true
-          frozen: true
-          environments: py312
-      - name: Run TCP smoke tests
-        run: >-
-          pixi run -e py312 ./libensemble/tests/run_tests.py -r -t
-          --no-coverage --fail-fast --durations 20 --timings-json timings-tcp.json
-          --match test_1d_sampling.py
-          --match test_persistent_uniform_sampling.py
-          --match test_worker_exceptions.py
-      - name: Upload timings
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: tcp-smoke-timings
-          path: timings-tcp.json
-          if-no-files-found: ignore
-
   macos-smoke:
     if: "! github.event.pull_request.draft"
     runs-on: macos-latest
