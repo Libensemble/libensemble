@@ -1,7 +1,7 @@
 1. Getting started
 ==================
 
-`Introduction <local_sine_tutorial.html>`__ \|\| **1. Getting started** \|\| `2. Generator <local_sine_tutorial_2.html>`__ \|\| `3. Simulator <local_sine_tutorial_3.html>`__ \|\| `4. Script <local_sine_tutorial_4.html>`__ \|\| `5. Next steps <local_sine_tutorial_5.html>`__
+:doc:`Introduction <local_sine_tutorial>` || **1. Getting started** || :doc:`2. Generator <local_sine_tutorial_2>` || :doc:`3. Simulator <local_sine_tutorial_3>` || :doc:`4. Script <local_sine_tutorial_4>` || :doc:`5. Next steps <local_sine_tutorial_5>`
 
 libEnsemble is written entirely in Python_. Let's make sure
 the correct version is installed.

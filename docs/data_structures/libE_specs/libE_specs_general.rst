@@ -1,7 +1,7 @@
 General
 =======
 
-`Introduction <libE_specs.html>`__ \|\| **General** \|\| `Directories <libE_specs_directories.html>`__ \|\| `Profiling <libE_specs_profiling.html>`__ \|\| `History <libE_specs_history.html>`__ \|\| `Resources <libE_specs_resources.html>`__
+:doc:`Introduction <libE_specs>` || **General** || :doc:`Directories <libE_specs_directories>` || :doc:`Profiling <libE_specs_profiling>` || :doc:`History <libE_specs_history>` || :doc:`Resources <libE_specs_resources>`
 
 **comms** [str] = ``"mpi"``:
     Manager/Worker communications mode: ``'mpi'``, ``'local'``, or ``'threads'``.

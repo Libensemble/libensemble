@@ -1,6 +1,6 @@
 .. _datastruct-libe-specs:
 
-**Introduction** \|\| `General <libE_specs_general.html>`__ \|\| `Directories <libE_specs_directories.html>`__ \|\| `Profiling <libE_specs_profiling.html>`__ \|\| `History <libE_specs_history.html>`__ \|\| `Resources <libE_specs_resources.html>`__
+**Introduction** || :doc:`General <libE_specs_general>` || :doc:`Directories <libE_specs_directories>` || :doc:`Profiling <libE_specs_profiling>` || :doc:`History <libE_specs_history>` || :doc:`Resources <libE_specs_resources>`
 
 LibE Specs
 ==========

@@ -1,7 +1,7 @@
 Standardized Simulator (gest-api)
 =================================
 
-`Introduction <simulator.html>`__ \|\| **Standardized Simulator (gest-api)** \|\| `Legacy Simulator Function <simulator_legacy.html>`__
+:doc:`Introduction <simulator>` || **Standardized Simulator (gest-api)** || :doc:`Legacy Simulator Function <simulator_legacy>`
 
 Standardized simulators are plain callables — no base class required — with the signature::
 

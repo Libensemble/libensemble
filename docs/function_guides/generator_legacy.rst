@@ -1,7 +1,7 @@
 Legacy Generator Function
 =========================
 
-`Introduction <generator.html>`__ \|\| `Standardized Generator (gest-api) <generator_standardized.html>`__ \|\| **Legacy Generator Function**
+:doc:`Introduction <generator>` || :doc:`Standardized Generator (gest-api) <generator_standardized>` || **Legacy Generator Function**
 
 .. code-block:: python
 

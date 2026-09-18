@@ -1,7 +1,7 @@
 Base Executor
 =============
 
-`Overview <ex_overview.html>`__ \|\| **Base Executor** \|\| `MPI Executor <ex_mpi.html>`__ \|\| `Flux Executor <ex_flux.html>`__
+:doc:`Overview <ex_overview>` || **Base Executor** || :doc:`MPI Executor <ex_mpi>` || :doc:`Flux Executor <ex_flux>`
 
 .. automodule:: executor
     :no-undoc-members:
@@ -9,7 +9,7 @@ Base Executor
 .. autoexception:: libensemble.executors.executor.ExecutorException
 
 Only for running local serial-launched applications.
-To run MPI applications and use detected resources, use the `MPI Executor <ex_mpi.html>`__ tab.
+To run MPI applications and use detected resources, use the :doc:`MPI Executor <ex_mpi>` tab.
 
 .. tab-set::
 

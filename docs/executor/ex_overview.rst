@@ -1,7 +1,7 @@
 Overview
 ========
 
-**Overview** || `Base Executor <ex_base.html>`__ || `MPI Executor <ex_mpi.html>`__ || `Flux Executor <ex_flux.html>`__ || `Globus Compute Executor <ex_globus_compute.html>`__
+**Overview** || :doc:`Base Executor <ex_base>` || :doc:`MPI Executor <ex_mpi>` || :doc:`Flux Executor <ex_flux>` || :doc:`Globus Compute Executor <ex_globus_compute>`
 
 The **Executor** provides a portable interface for running applications on any system and
 any number of compute resources.

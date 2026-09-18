@@ -1,7 +1,7 @@
 Spack
 =====
 
-`Advanced Installation <advanced_installation.html>`__ \|\| `pip <advanced_installation_pip.html>`__ \|\| `uv <advanced_installation_uv.html>`__ \|\| `pixi <advanced_installation_pixi.html>`__ \|\| `conda <advanced_installation_conda.html>`__ \|\| **Spack**
+:doc:`Advanced Installation <advanced_installation>` || :doc:`pip <advanced_installation_pip>` || :doc:`uv <advanced_installation_uv>` || :doc:`pixi <advanced_installation_pixi>` || :doc:`conda <advanced_installation_conda>` || **Spack**
 
 Install libEnsemble using the Spack_ distribution::
 

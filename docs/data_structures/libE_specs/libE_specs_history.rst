@@ -1,7 +1,7 @@
 History
 =======
 
-`Introduction <libE_specs.html>`__ \|\| `General <libE_specs_general.html>`__ \|\| `Directories <libE_specs_directories.html>`__ \|\| `Profiling <libE_specs_profiling.html>`__ \|\| **History** \|\| `Resources <libE_specs_resources.html>`__
+:doc:`Introduction <libE_specs>` || :doc:`General <libE_specs_general>` || :doc:`Directories <libE_specs_directories>` || :doc:`Profiling <libE_specs_profiling>` || **History** || :doc:`Resources <libE_specs_resources>`
 
 **save_every_k_sims** [int]:
     Save history array to file after every k simulated points.

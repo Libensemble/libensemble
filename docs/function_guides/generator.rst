@@ -3,7 +3,7 @@
 Generators
 ==========
 
-**Introduction** \|\| `Standardized Generator (gest-api) <generator_standardized.html>`__ \|\| `Legacy Generator Function <generator_legacy.html>`__
+**Introduction** || :doc:`Standardized Generator (gest-api) <generator_standardized>` || :doc:`Legacy Generator Function <generator_legacy>`
 
 Writing a Generator
 -------------------
