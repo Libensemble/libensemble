@@ -67,7 +67,16 @@ def test_make_run_line_without_coverage():
 
     cmd = run_tests.make_run_line(["python"], "test_example.py", "local", 4, args)
 
-    assert cmd == ["python", "test_example.py", "--comms", "local", "--nworkers", "3"]
+    assert cmd == [
+        "python",
+        "-W",
+        "ignore::DeprecationWarning",
+        "test_example.py",
+        "--comms",
+        "local",
+        "--nworkers",
+        "3",
+    ]
 
 
 def test_make_run_line_with_mpi_coverage():
@@ -76,7 +85,7 @@ def test_make_run_line_with_mpi_coverage():
     cmd = run_tests.make_run_line(["python"], "test_example.py", "mpi", 4, args)
 
     assert cmd[:4] == ["mpiexec", "-np", "4", "--oversubscribe"]
-    assert cmd[4:] == ["python", *run_tests.cov_opts, "test_example.py"]
+    assert cmd[4:] == ["python", "-W", "ignore::DeprecationWarning", *run_tests.cov_opts, "test_example.py"]
 
 
 def test_skip_test_applies_tier_feature_and_name_filters():
