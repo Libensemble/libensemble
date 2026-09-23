@@ -67,7 +67,16 @@ def test_make_run_line_without_coverage():
 
     cmd = run_tests.make_run_line(["python"], "test_example.py", "local", 4, args)
 
-    assert cmd == ["python", "-W", "ignore::DeprecationWarning", "test_example.py", "--comms", "local", "--nworkers", "3"]
+    assert cmd == [
+        "python",
+        "-W",
+        "ignore::DeprecationWarning",
+        "test_example.py",
+        "--comms",
+        "local",
+        "--nworkers",
+        "3",
+    ]
 
 
 def test_make_run_line_with_mpi_coverage():
