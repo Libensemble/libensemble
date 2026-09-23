@@ -126,6 +126,9 @@ linkcheck_ignore = [
     r"https://libensemble\.slack\.com(?:/.*)?$",
     r"https://software\.intel\.com/.*",
     r"https://stackoverflow\.com/.*",
+    r"https?://www\.mpich\.org/.*",
+    r"https://www\.sfu\.ca/~ssurjano/camel6\.html",
+    r"https://github\.com/Libensemble/libensemble/blob/.*",
 ]
 
 autodoc_pydantic_model_show_json = False

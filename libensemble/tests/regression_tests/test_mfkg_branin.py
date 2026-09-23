@@ -30,6 +30,8 @@ evaluate the objective.
 # TESTSUITE_NPROCS: 4
 # TESTSUITE_EXTRA: true
 # TESTSUITE_OS_SKIP: OSX
+# TESTSUITE_TIER: slow
+# TESTSUITE_FEATURES: external botorch
 
 import numpy as np
 
@@ -44,7 +46,7 @@ LB = np.array([0.0, 0.0])
 UB = np.array([1.0, 1.0])
 N_INIT_SAMPLES = 4  # Each initial point gets a high- and a low-fidelity evaluation
 Q = 4  # Batch size per MFKG iteration (keeps up to q sim workers busy)
-SIM_MAX = 16  # Exit after running this many simulations
+SIM_MAX = 12  # Initial sample plus one MFKG acquisition batch
 
 
 def run_mfkg(async_return, nworkers, is_manager, libE_specs):

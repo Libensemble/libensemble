@@ -63,7 +63,7 @@ if __name__ == "__main__":
         num_resource_sets=gpu_test.nworkers - 1,
         resource_info={"cores_on_node": (32, 64), "gpus_on_node": 4},
         sim_dirs_make=True,
-        ensemble_dir_path="./ensemble_GPU_variable_multi_task_w" + str(nworkers),
+        ensemble_dir_path="./ensemble_GPU_variable_multi_task_w" + str(nworkers) + str(gpu_test.libE_specs.comms),
     )
 
     gpu_test.sim_specs = SimSpecs(
