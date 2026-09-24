@@ -12,7 +12,7 @@ def ensure_one_active_gen(W, H, sim_specs, gen_specs, alloc_specs, persis_info, 
     """
     .. deprecated:: 2.0
         ``only_one_gen_alloc.ensure_one_active_gen`` is deprecated and will be removed in
-        libEnsemble 2.1. Use :func:`libensemble.alloc_funcs.give_sim_work_first.give_sim_work_first`
+        libEnsemble 2.1. Use :func:`give_sim_work_first.give_sim_work_first`
         with ``num_active_gens=1``, or the default ``only_persistent_gens`` instead.
 
     This allocation function gives (in order) entries in ``H`` to idle workers

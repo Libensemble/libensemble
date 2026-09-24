@@ -211,20 +211,20 @@ Deprecated Allocation Functions
 
    - Functions that managed non-persistent generators (``fast_alloc``, ``fast_alloc_and_pausing``,
      ``only_one_gen_alloc``) should be replaced with
-     :func:`~libensemble.alloc_funcs.give_sim_work_first.give_sim_work_first` or the default
-     :func:`~libensemble.alloc_funcs.start_only_persistent.only_persistent_gens` with a
+     :func:`~give_sim_work_first.give_sim_work_first` or the default
+     :func:`~start_only_persistent.only_persistent_gens` with a
      persistent generator.
    - APOSMM-adjacent functions (``start_persistent_local_opt_gens``, ``start_fd_persistent``)
      should migrate to
-     :func:`~libensemble.alloc_funcs.persistent_aposmm_alloc.persistent_aposmm_alloc`.
+     :func:`~persistent_aposmm_alloc.persistent_aposmm_alloc`.
    - ``inverse_bayes_allocf`` should be replaced with the default ``only_persistent_gens``
      combined with a persistent generator that implements the required batch/subbatch logic.
 
 fast_alloc
 ----------
 .. deprecated:: 2.0
-   Use :func:`~libensemble.alloc_funcs.give_sim_work_first.give_sim_work_first` or the default
-   :func:`~libensemble.alloc_funcs.start_only_persistent.only_persistent_gens` instead.
+   Use :func:`~give_sim_work_first.give_sim_work_first` or the default
+   :func:`~start_only_persistent.only_persistent_gens` instead.
    Will be removed in libEnsemble 2.1.
 
 .. automodule:: fast_alloc
@@ -234,7 +234,7 @@ fast_alloc
 fast_alloc_and_pausing
 ----------------------
 .. deprecated:: 2.0
-   Use the default :func:`~libensemble.alloc_funcs.start_only_persistent.only_persistent_gens`
+   Use the default :func:`~start_only_persistent.only_persistent_gens`
    with a persistent generator instead. Will be removed in libEnsemble 2.1.
 
 .. automodule:: fast_alloc_and_pausing
@@ -244,9 +244,9 @@ fast_alloc_and_pausing
 only_one_gen_alloc
 ------------------
 .. deprecated:: 2.0
-   Use :func:`~libensemble.alloc_funcs.give_sim_work_first.give_sim_work_first` with
+   Use :func:`~give_sim_work_first.give_sim_work_first` with
    ``num_active_gens=1``, or the default
-   :func:`~libensemble.alloc_funcs.start_only_persistent.only_persistent_gens` instead.
+   :func:`~start_only_persistent.only_persistent_gens` instead.
    Will be removed in libEnsemble 2.1.
 
 .. automodule:: only_one_gen_alloc
@@ -256,7 +256,7 @@ only_one_gen_alloc
 start_fd_persistent
 -------------------
 .. deprecated:: 2.0
-   Use the default :func:`~libensemble.alloc_funcs.start_only_persistent.only_persistent_gens`
+   Use the default :func:`~start_only_persistent.only_persistent_gens`
    with a persistent generator instead. Will be removed in libEnsemble 2.1.
 
 .. automodule:: start_fd_persistent
@@ -266,7 +266,7 @@ start_fd_persistent
 start_persistent_local_opt_gens
 -------------------------------
 .. deprecated:: 2.0
-   Use :func:`~libensemble.alloc_funcs.persistent_aposmm_alloc.persistent_aposmm_alloc`
+   Use :func:`~persistent_aposmm_alloc.persistent_aposmm_alloc`
    instead. Will be removed in libEnsemble 2.1.
 
 .. automodule:: start_persistent_local_opt_gens
@@ -276,7 +276,7 @@ start_persistent_local_opt_gens
 inverse_bayes_allocf
 --------------------
 .. deprecated:: 2.0
-   Use the default :func:`~libensemble.alloc_funcs.start_only_persistent.only_persistent_gens`
+   Use the default :func:`~start_only_persistent.only_persistent_gens`
    with a persistent generator instead. Will be removed in libEnsemble 2.1.
 
 .. automodule:: inverse_bayes_allocf

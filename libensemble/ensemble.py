@@ -120,23 +120,23 @@ class Ensemble:
     Parameters
     ----------
 
-    sim_specs: class:`SimSpecs<libensemble.specs.SimSpecs>`
+    sim_specs: SimSpecs
 
         Specifications for the simulator function.
 
-    gen_specs: class:`GenSpecs<libensemble.specs.GenSpecs>`, Optional
+    gen_specs: GenSpecs, Optional
 
         Specifications for the generator.
 
-    exit_criteria: class:`ExitCriteria<libensemble.specs.ExitCriteria>`
+    exit_criteria: ExitCriteria
 
         Tell libEnsemble when to stop a run.
 
-    libE_specs: class:`LibeSpecs<libensemble.specs.LibeSpecs>`, Optional
+    libE_specs: LibeSpecs, Optional
 
         Specifications for libEnsemble.
 
-    alloc_specs: class:`AllocSpecs<libensemble.specs.AllocSpecs>`, Optional
+    alloc_specs: AllocSpecs, Optional
 
         Specifications for the allocation function.
 
@@ -145,7 +145,7 @@ class Ensemble:
         Persistent information to be passed between user function instances
         :doc:`(example)<data_structures/persis_info>`
 
-    executor: :class:`Executor<libensemble.executors.executor.Executor>`, Optional
+    executor: Executor, Optional
 
         libEnsemble Executor instance for use within simulator functions or generators.
 
@@ -222,7 +222,7 @@ class Ensemble:
         return self.nworkers, self.is_manager, self._libE_specs
 
     def ready(self) -> tuple[bool, list[str]]:
-        """Verify that all necessary data has been provided before calling :meth:`run`.
+        """Verify that all necessary data has been provided before calling ``run()``.
 
         Performs a pre-flight check on the ensemble configuration, covering:
 
@@ -336,10 +336,10 @@ class Ensemble:
         """Reset the ensemble state to allow a fresh, independent run.
 
         Clears the accumulated history (``H0``) and ``persis_info`` so that
-        the next :meth:`run` call starts from a clean slate — as if no
+        the next ``run()`` call starts from a clean slate — as if no
         previous run had occurred.
 
-        Use this between two calls to :meth:`run` when you want **independent**
+        Use this between two calls to ``run()`` when you want **independent**
         runs rather than the default history-chaining behaviour::
 
             ens.run(sim_max=10)   # first independent run
