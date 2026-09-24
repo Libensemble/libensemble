@@ -105,6 +105,7 @@ class History:
         self.grow_count = 0
         self.safe_mode = False
         self.use_cache = False
+        self.cache_set = False
 
         self.sim_started_count = np.sum(H["sim_started"])
         self.sim_ended_count = np.sum(H["sim_ended"])
