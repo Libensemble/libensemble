@@ -850,7 +850,6 @@ class Manager:
             "gen_num_procs": self.gen_num_procs,
             "gen_num_gpus": self.gen_num_gpus,
             "gen_on_worker": self.libE_specs.get("gen_on_worker", False),
-            "gen_on_manager": self.libE_specs.get("gen_on_manager", False),
             "cache": cache,
             "hist": self.hist,
         }
