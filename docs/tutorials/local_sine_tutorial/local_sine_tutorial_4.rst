@@ -40,8 +40,8 @@ libEnsemble should stop execution in :ref:`ExitCriteria<datastruct-exit-criteria
     :language: python
     :linenos:
     :lineno-start: 26
-    :start-at: exit_criteria = ExitCriteria
-    :end-at: exit_criteria = ExitCriteria
+    :start-at: ensemble = Ensemble
+    :end-at: ensemble.run
 
 Now we're ready to write our libEnsemble :doc:`libE<../../programming_libE>`
 function call. :ref:`ensemble.H<funcguides-history>` is the final version of

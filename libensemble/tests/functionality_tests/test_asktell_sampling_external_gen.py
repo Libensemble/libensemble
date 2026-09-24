@@ -22,7 +22,7 @@ from libensemble import Ensemble
 
 # from libensemble.gen_classes.external.sampling import UniformSampleArray
 from libensemble.gen_classes.external.sampling import UniformSample
-from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
+from libensemble.specs import GenSpecs, LibeSpecs, SimSpecs
 
 # Import libEnsemble items for this test
 
@@ -75,17 +75,14 @@ if __name__ == "__main__":
             vocs=vocs,
         )
 
-        exit_criteria = ExitCriteria(gen_max=201)
-
         ensemble = Ensemble(
             parse_args=True,
             sim_specs=sim_specs,
             gen_specs=gen_specs,
-            exit_criteria=exit_criteria,
             libE_specs=libE_specs,
         )
 
-        ensemble.run()
+        ensemble.run(gen_max=201)
 
         if ensemble.is_manager:
             print(ensemble.H[["sim_id", "x0", "x1", "f"]][:10])

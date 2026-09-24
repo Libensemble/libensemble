@@ -143,7 +143,7 @@ class LocalOptInterfacer(object):
 
         self.process.start()
         self.is_running = True
-        self.parent_can_read.wait()
+        self._wait_for_child()
         x_new = self.comm_queue.get()
         if isinstance(x_new, ErrorMsg):
             raise APOSMMException(x_new.x)
@@ -173,7 +173,7 @@ class LocalOptInterfacer(object):
             self.comm_queue.put((data["x_on_cube"], data["f"]))
 
         self.child_can_read.set()
-        self.parent_can_read.wait()
+        self._wait_for_child()
 
         x_new = self.comm_queue.get()
         if isinstance(x_new, ErrorMsg):
@@ -184,6 +184,28 @@ class LocalOptInterfacer(object):
             x_new = np.atleast_2d(x_new)
 
         return x_new
+
+    def _wait_for_child(self, poll_interval=0.2):
+        """Wait for the optimizer child process to signal that it has produced a result.
+
+        Rather than blocking forever on ``parent_can_read``, poll the event while
+        also checking that the child is still alive. A child that dies abruptly
+        (segfault, os._exit, or a SystemExit raised before the handler can run)
+        would otherwise never set the event, hanging the generator -- and with it
+        the whole ensemble -- indefinitely.
+        """
+        while not self.parent_can_read.wait(timeout=poll_interval):
+            if not self.process.is_alive():
+                # Child exited. Give it a final chance to have set the event
+                # concurrently with our liveness check before declaring failure.
+                if self.parent_can_read.is_set():
+                    break
+                raise APOSMMException(
+                    "APOSMM Error: the local optimizer subprocess exited unexpectedly "
+                    f"(exitcode {self.process.exitcode}) without returning a result. "
+                    "Check the output above for errors raised by the optimizer, and verify "
+                    "that the optimizer and any of its dependencies are correctly installed."
+                )
 
     def destroy(self):
         """Recursively kill any optimizer processes still running"""
@@ -655,6 +677,11 @@ def opt_runner(run_local_opt, user_specs, comm_queue, x0, f0, child_can_read, pa
     try:
         run_local_opt(user_specs, comm_queue, x0, f0, child_can_read, parent_can_read)
     except BaseException:
+        # Must catch BaseException, not Exception: some optimizers (e.g. IBCDFO
+        # when its MINQ dependency is at an unsupported commit) abort via
+        # sys.exit(), which raises SystemExit. SystemExit inherits from
+        # BaseException, so an `except Exception` here would let the child die
+        # silently without ever setting parent_can_read, deadlocking the parent.
         # A dependency may call sys.exit() during optimizer startup. Always unblock
         # the parent so it can surface that failure instead of waiting indefinitely.
         comm_queue.put(ErrorMsg(traceback.format_exc()))

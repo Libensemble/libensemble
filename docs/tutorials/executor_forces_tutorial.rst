@@ -90,8 +90,8 @@ exit after running eight simulations, and finally we :doc:`run<../libe_module>` 
 .. literalinclude:: ../../libensemble/tests/functionality_tests/test_executor_forces_tutorial.py
     :language: python
     :linenos:
-    :start-at: Instruct libEnsemble
-    :end-at: ensemble.run()
+    :start-at: # Run ensemble; exit after this many simulations
+    :end-at: ensemble.run(sim_max=8)
     :lineno-start: 55
 
 Exercise

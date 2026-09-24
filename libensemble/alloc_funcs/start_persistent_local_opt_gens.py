@@ -16,7 +16,7 @@ def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, alloc_specs, per
     .. deprecated:: 2.0
         ``start_persistent_local_opt_gens.start_persistent_local_opt_gens`` is deprecated and
         will be removed in libEnsemble 2.1. Use
-        :func:`libensemble.alloc_funcs.persistent_aposmm_alloc.persistent_aposmm_alloc` instead.
+        :func:`persistent_aposmm_alloc.persistent_aposmm_alloc` instead.
 
     This allocation function will do the following:
 

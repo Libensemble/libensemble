@@ -9,7 +9,7 @@ from forces_simf import run_forces  # Sim func from current dir
 from libensemble import Ensemble
 from libensemble.executors import MPIExecutor
 from libensemble.gen_funcs.persistent_sampling import persistent_uniform as gen_f
-from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
+from libensemble.specs import GenSpecs, LibeSpecs, SimSpecs
 
 if __name__ == "__main__":
     # Initialize MPI Executor
@@ -58,11 +58,8 @@ if __name__ == "__main__":
 
     # Starts one persistent generator. Simulated values are returned in batch.
 
-    # Instruct libEnsemble to exit after this many simulations
-    ensemble.exit_criteria = ExitCriteria(sim_max=8)
-
-    # Run ensemble
-    ensemble.run()
+    # Run ensemble; exit after this many simulations
+    ensemble.run(sim_max=8)
 
     if ensemble.is_manager:
         # Note, this will change if changing sim_max, nworkers, lb, ub, etc.

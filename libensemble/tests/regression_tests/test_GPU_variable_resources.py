@@ -35,7 +35,7 @@ from libensemble.gen_funcs.persistent_sampling_var_resources import uniform_samp
 # Import libEnsemble items for this test
 from libensemble.sim_funcs import six_hump_camel
 from libensemble.sim_funcs.var_resources import gpu_variable_resources_from_gen as sim_f
-from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
+from libensemble.specs import GenSpecs, LibeSpecs, SimSpecs
 
 # logger.set_level("DEBUG")  # For testing the test
 
@@ -78,18 +78,15 @@ if __name__ == "__main__":
 
     # Run with random num_procs/num_gpus for each simulation
     gpu_test.persis_info = {}
-    gpu_test.exit_criteria = ExitCriteria(sim_max=10)
-
-    gpu_test.run()
+    gpu_test.run(sim_max=10)
     if gpu_test.is_manager:
         assert gpu_test.flag == 0
 
-    # Run with num_gpus based on x[0] for each simulation
+    # Run with num_gpus based on x[0] for each simulation (independent run)
     gpu_test.gen_specs.gen_f = gen_f2
     gpu_test.gen_specs.user["max_gpus"] = gpu_test.nworkers - 1
-    gpu_test.persis_info = {}
-    gpu_test.exit_criteria = ExitCriteria(sim_max=20)
-    gpu_test.run()
+    gpu_test.reset()
+    gpu_test.run(sim_max=20)
 
     if gpu_test.is_manager:
         assert gpu_test.flag == 0
