@@ -62,50 +62,6 @@ def give_sim_work_first(
     gen_count = support.count_gens()
     Work = {}
 
-    # if not persis_info.get("updated_H_indices"):
-    #     persis_info["updated_H_indices"] = []
-
-    # points_to_evaluate = ~H["sim_started"] & ~H["cancel_requested"]
-
-    # gen_out_fields = [j[0] for j in gen_specs["out"]]
-
-    # indices_to_update = []
-    # cache_hit = False
-
-    # if len(libE_info["cache"]) and np.any(points_to_evaluate):
-    #     for H_index, H_entry in enumerate(H):
-    #         if H_index in persis_info["updated_H_indices"]:
-    #             continue
-    #         for cache_index, cache_entry in enumerate(libE_info["cache"]):
-    #             for field in gen_out_fields:
-    #                 if field in libE_info["cache"].dtype.names and np.allclose(
-    #                     H_entry[field], cache_entry[field], rtol=1e-8, atol=1e-8
-    #                 ):
-    #                     cache_hit = True
-    #                     indices_to_update.append({"cache_index": cache_index, "H_index": H_index, "field": field})
-    #                     persis_info["updated_H_indices"].append(H_index)
-    #                     print(f"Using cache entry {cache_index} for History index {H_index}. Field: {field}")
-
-    # if cache_hit:
-
-    #     q_inds = np.array([i["H_index"] for i in indices_to_update])
-    #     libE_info["hist"].update_history_x_out(q_inds=q_inds, sim_worker=1)
-
-    #     simulated_calc_out = np.zeros(len(q_inds), dtype=sim_specs["out"])
-    #     for i, H_index in enumerate(q_inds):
-    #         simulated_calc_out[i] = libE_info["cache"][indices_to_update[i]["cache_index"]][
-    #             indices_to_update[i]["field"]
-    #         ]
-
-    #     simulated_D_recv = {
-    #         "calc_out": simulated_calc_out,
-    #         "libE_info": {
-    #             "H_rows": q_inds,
-    #         },
-    #     }
-
-    #     libE_info["hist"].update_history_f(simulated_D_recv, kill_canceled_sims=False)
-
     points_to_evaluate = ~H["sim_started"] & ~H["cancel_requested"]
 
     if np.any(points_to_evaluate):
