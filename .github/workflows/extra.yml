@@ -66,6 +66,8 @@ jobs:
           environments: py312e
       - name: Install MINQ
         run: pixi run -e py312e ./install/install_minq.sh
+      - name: Install coverage test dependencies
+        run: pixi run -e py312e pip install gpcam==8.1.13
       - name: Run canonical coverage suite
         run: pixi run -e py312e ./libensemble/tests/run_tests.py -l -m -e --coverage --fail-fast --durations 25
       - name: Upload coverage reports to Codecov
