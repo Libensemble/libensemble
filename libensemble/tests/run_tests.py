@@ -339,7 +339,7 @@ def skip_config(directives, args, comm, open_mpi):
 
 def make_run_line(python_exec, test_script, comm, nprocs, args):
     """Build a standalone test command."""
-    cmd = python_exec + (cov_opts if args.coverage else []) + [test_script]
+    cmd = python_exec + ["-W", "ignore::DeprecationWarning"] + (cov_opts if args.coverage else []) + [test_script]
     if comm == "mpi":
         cmd = ["mpiexec", "-np", str(nprocs)] + (args.a.split() if args.a else []) + cmd
     else:

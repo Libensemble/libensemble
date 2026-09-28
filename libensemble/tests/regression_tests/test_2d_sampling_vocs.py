@@ -17,7 +17,7 @@ from gest_api.vocs import VOCS
 
 from libensemble import Ensemble
 from libensemble.gen_classes.sampling import LatinHypercubeSample
-from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
+from libensemble.specs import GenSpecs, LibeSpecs, SimSpecs
 
 
 def sim_f(In, persis_info, sim_specs, _):
@@ -45,9 +45,7 @@ if __name__ == "__main__":
         batch_size=100,
     )
 
-    sampling.exit_criteria = ExitCriteria(sim_max=200)
-
-    sampling.run()
+    sampling.run(sim_max=200)
     if sampling.is_manager:
         assert len(sampling.H) >= 200
         x0 = sampling.H["x0"]

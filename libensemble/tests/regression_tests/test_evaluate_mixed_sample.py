@@ -24,7 +24,7 @@ from libensemble.alloc_funcs.give_pregenerated_work import give_pregenerated_sim
 # Import libEnsemble items for this test
 from libensemble.sim_funcs.borehole import borehole as sim_f
 from libensemble.sim_funcs.borehole import borehole_func, gen_borehole_input
-from libensemble.specs import AllocSpecs, ExitCriteria, SimSpecs
+from libensemble.specs import AllocSpecs, SimSpecs
 
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
@@ -47,8 +47,7 @@ if __name__ == "__main__":
     sampling.H0 = H0
     sampling.sim_specs = SimSpecs(sim_f=sim_f, inputs=["x"], out=[("f", float)])
     sampling.alloc_specs = AllocSpecs(alloc_f=alloc_f)
-    sampling.exit_criteria = ExitCriteria(sim_max=len(H0))
-    sampling.run()
+    sampling.run(sim_max=len(H0))
 
     if sampling.is_manager:
         assert len(sampling.H) == len(H0)

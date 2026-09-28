@@ -105,7 +105,7 @@ libEnsemble classes, APOSMM, and our simulator callable:
     from libensemble import Ensemble
     from libensemble.gen_classes import APOSMM
     from gest_api.vocs import VOCS
-    from libensemble.specs import SimSpecs, GenSpecs, ExitCriteria
+    from libensemble.specs import SimSpecs, GenSpecs
 
 APOSMM supports a wide variety of external optimizers. The ``rc.aposmm_optimizers``
 statement above indicates to APOSMM which optimization method package to use,
@@ -156,9 +156,8 @@ Finally, we configure the simulation function, exit criteria, and run the workfl
     :linenos:
 
         workflow.sim_specs = SimSpecs(simulator=six_hump_camel_func, vocs=vocs)
-        workflow.exit_criteria = ExitCriteria(sim_max=2000)
 
-        H, _, _ = workflow.run()
+        H, _, _ = workflow.run(sim_max=2000)
 
         if workflow.is_manager:
             # We can map our variables back to an array for easy printing

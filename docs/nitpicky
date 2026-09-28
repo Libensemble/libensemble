@@ -58,6 +58,8 @@ py:class comm
 py:class communicator
 
 # Additional nitpicky targets from recent Sphinx warnings
+py:class ..
+py:class libensemble._deprecation.LibEnsembleDeprecationWarning
 py:class libensemble.resources.platforms.Lumi
 py:class libensemble.resources.platforms.LumiGPU
 py:class numpy._typing._array_like._ScalarT
