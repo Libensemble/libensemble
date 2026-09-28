@@ -25,7 +25,7 @@ from gest_api.vocs import VOCS
 
 from libensemble import Ensemble
 from libensemble.gen_classes import APOSMM
-from libensemble.specs import ExitCriteria, GenSpecs, SimSpecs
+from libensemble.specs import GenSpecs, SimSpecs
 
 
 def periodic_func(x):
@@ -75,9 +75,7 @@ if __name__ == "__main__":
     workflow.sim_specs = SimSpecs(simulator=periodic_func, vocs=vocs)
 
     # Setting a very high sim_max and a short wallclock_max so timeout will occur
-    workflow.exit_criteria = ExitCriteria(sim_max=50000, wallclock_max=5)
-
-    H, _, flag = workflow.run()
+    H, _, flag = workflow.run(sim_max=50000, wallclock_max=5)
 
     if workflow.is_manager:
         assert flag == 2, "Test should have timed out"

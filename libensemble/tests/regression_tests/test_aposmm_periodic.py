@@ -25,7 +25,7 @@ from gest_api.vocs import VOCS
 
 from libensemble import Ensemble
 from libensemble.gen_classes import APOSMM
-from libensemble.specs import ExitCriteria, GenSpecs, SimSpecs
+from libensemble.specs import GenSpecs, SimSpecs
 
 
 def periodic_func(x):
@@ -75,9 +75,8 @@ if __name__ == "__main__":
         initial_batch_size=100,
     )
     workflow.sim_specs = SimSpecs(simulator=periodic_func, vocs=vocs)
-    workflow.exit_criteria = ExitCriteria(sim_max=1000)
 
-    H, _, _ = workflow.run()
+    H, _, _ = workflow.run(sim_max=1000)
 
     if workflow.is_manager:
         min_ids = np.where(H["local_min"])

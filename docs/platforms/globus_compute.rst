@@ -56,7 +56,7 @@ This mode supports both the :ref:`gest-api simulator format<datastruct-sim-specs
 .. code-block:: python
 
     from libensemble import Ensemble
-    from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
+    from libensemble.specs import GenSpecs, LibeSpecs, SimSpecs
 
 
     def my_sim(input_dict: dict, **kwargs) -> dict:
@@ -76,9 +76,8 @@ This mode supports both the :ref:`gest-api simulator format<datastruct-sim-specs
         sim_specs=sim_specs,
         gen_specs=gen_specs,
         libE_specs=libE_specs,
-        exit_criteria=ExitCriteria(sim_max=20),
     )
-    H, _, _ = workflow.run()
+    H, _, _ = workflow.run(sim_max=20)
 
 Users can also define ``Executor`` instances within their remote simulator
 functions and submit MPI applications normally, as long as libEnsemble and

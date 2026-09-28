@@ -54,7 +54,7 @@ and an exit condition.
 
     from libensemble import Ensemble
     from libensemble.gen_classes.sampling import UniformSample
-    from libensemble.specs import LibeSpecs, SimSpecs, GenSpecs, ExitCriteria
+    from libensemble.specs import LibeSpecs, SimSpecs, GenSpecs
 
 
     def six_hump_camel_func(calc_in: dict):
@@ -97,18 +97,15 @@ and an exit condition.
             batch_size=50,
         )
 
-        exit_criteria = ExitCriteria(sim_max=100)
-
         # Create ensemble
         ensemble = Ensemble(
             libE_specs=libE_specs,
             sim_specs=sim_specs,
             gen_specs=gen_specs,
-            exit_criteria=exit_criteria,
         )
 
         # Run ensemble
-        ensemble.run()
+        ensemble.run(sim_max=100)
 
         ensemble.save_output(__file__)
         print("Some output data:\n", ensemble.H[["x0", "x1", "f"]][:10])

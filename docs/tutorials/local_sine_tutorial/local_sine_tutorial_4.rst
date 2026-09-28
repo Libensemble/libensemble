@@ -33,8 +33,8 @@ functions to expect.
     :start-at: gen_specs = GenSpecs
     :end-at: sim_specs_end_tag
 
-We then specify the circumstances where
-libEnsemble should stop execution in :ref:`ExitCriteria<datastruct-exit-criteria>`.
+We then specify when libEnsemble should stop execution by passing the
+termination criterion directly to :meth:`Ensemble.run<libensemble.ensemble.Ensemble.run>`.
 
 .. literalinclude:: ../../../libensemble/tests/functionality_tests/test_local_sine_tutorial.py
     :language: python

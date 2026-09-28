@@ -27,7 +27,7 @@ from gest_api.vocs import VOCS
 
 from libensemble import Ensemble
 from libensemble.gen_classes import APOSMM
-from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
+from libensemble.specs import GenSpecs, LibeSpecs, SimSpecs
 
 
 def periodic_func(x):
@@ -72,12 +72,11 @@ if __name__ == "__main__":
         initial_batch_size=100,
     )
     workflow.sim_specs = SimSpecs(simulator=periodic_func, vocs=vocs)
-    workflow.exit_criteria = ExitCriteria(sim_max=1000)
     workflow.libE_specs = LibeSpecs(abort_on_exception=False)
 
     exception_raised = False
     try:
-        workflow.run()
+        workflow.run(sim_max=1000)
     except Exception:
         if workflow.is_manager:
             exception_raised = True
