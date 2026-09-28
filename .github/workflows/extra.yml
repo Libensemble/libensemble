@@ -45,7 +45,7 @@ jobs:
           --timings-json timings-core-${{ matrix.comms }}.json
       - name: Upload timings
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: complete-core-${{ matrix.comms }}-timings
           path: timings-core-${{ matrix.comms }}.json
@@ -104,7 +104,7 @@ jobs:
           --timings-json timings-external-${{ matrix.shard }}.json
       - name: Upload timings
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: external-${{ matrix.shard }}-timings
           path: timings-external-${{ matrix.shard }}.json
@@ -131,7 +131,7 @@ jobs:
           --timings-json timings-slow.json
       - name: Upload timings
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: slow-test-timings
           path: timings-slow.json
