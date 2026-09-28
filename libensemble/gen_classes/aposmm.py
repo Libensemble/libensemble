@@ -9,6 +9,7 @@ from numpy import typing as npt
 
 from libensemble.generators import PersistentGenInterfacer
 from libensemble.message_numbers import EVAL_GEN_TAG, PERSIS_STOP
+from libensemble.utils.misc import map_numpy_array
 
 
 class APOSMM(PersistentGenInterfacer):
@@ -22,7 +23,7 @@ class APOSMM(PersistentGenInterfacer):
 
         `https://doi.org/10.1007/s12532-017-0131-4 <https://doi.org/10.1007/s12532-017-0131-4>`_
 
-    VOCS variables must include both regular and ``*_on_cube`` versions. E.g.,:
+    APOSMM uses normalized coordinates internally; users only need to define the physical-domain variables. E.g.,:
 
     .. code-block:: python
 
@@ -30,13 +31,9 @@ class APOSMM(PersistentGenInterfacer):
             "var1": [-10.0, 10.0],
             "var2": [0.0, 100.0],
             "var3": [1.0, 50.0],
-            "var1_on_cube": [0, 1.0],
-            "var2_on_cube": [0, 1.0],
-            "var3_on_cube": [0, 1.0],
         }
         variables_mapping = {
             "x": ["var1", "var2", "var3"],
-            "x_on_cube": ["var1_on_cube", "var2_on_cube", "var3_on_cube"],
         }
         gen = APOSMM(vocs, 3, 3, variables_mapping=variables_mapping, ...)
 
@@ -162,6 +159,7 @@ class APOSMM(PersistentGenInterfacer):
     """
 
     returns_id = True
+    internal_fields = ["x_on_cube"]
 
     def _validate_vocs(self, vocs: VOCS):
         if len(vocs.constraints):
@@ -192,15 +190,13 @@ class APOSMM(PersistentGenInterfacer):
 
         self.vocs = vocs
 
+        variables_mapping = kwargs.get("variables_mapping", {})
+        self._internal_vocs_fields = list(variables_mapping.get("x_on_cube", []))
+
         gen_specs: Dict[str, Any] = {}
         gen_specs["user"] = {}
         libE_info: Dict[str, Any] = {}
         gen_specs["gen_f"] = aposmm
-        n = len(list(vocs.variables.keys()))
-
-        if not rk_const:
-            rk_const = 0.5 * ((gamma(1 + (n / 2)) * 5) ** (1 / n)) / sqrt(pi)
-
         FIELDS = [
             "initial_sample_size",
             "sample_points",
@@ -222,42 +218,24 @@ class APOSMM(PersistentGenInterfacer):
                 gen_specs["user"][k] = val
 
         super().__init__(vocs, History, {}, gen_specs, libE_info, **kwargs)
+        self.variables_mapping.pop("x_on_cube", None)
 
-        # Set bounds using the correct x mapping
-        x_mapping = self.variables_mapping["x"]
-        self.gen_specs["user"]["lb"] = np.array([vocs.variables[var].domain[0] for var in x_mapping])
-        self.gen_specs["user"]["ub"] = np.array([vocs.variables[var].domain[1] for var in x_mapping])
-
-        x_size = len(self.variables_mapping.get("x", []))
-        x_on_cube_size = len(self.variables_mapping.get("x_on_cube", []))
-
+        x_mapping = self.variables_mapping.get("x", [])
+        if not x_mapping:
+            raise ValueError("APOSMM requires at least one variable mapped to 'x'.")
         try:
-            assert x_size > 0 and x_on_cube_size > 0
-        except AssertionError:
-            raise ValueError(
-                """ User must provide a variables_mapping dictionary in the following format:
-
-                    variables = {"core": [-3, 3], "edge": [-2, 2], "core_on_cube": [0, 1], "edge_on_cube": [0, 1]}
-                    objectives = {"energy": "MINIMIZE"}
-
-                    variables_mapping = {
-                        "x": ["core", "edge"],
-                        "x_on_cube": ["core_on_cube", "edge_on_cube"],
-                        "f": ["energy"],
-                    }
-                """
-            )
-        try:
-            assert x_size == x_on_cube_size
-        except AssertionError:
-            raise ValueError(
-                "Within the variables_mapping dictionary, x and x_on_cube "
-                + f"must have same length but got {x_size} and {x_on_cube_size}"
-            )
-
+            self.gen_specs["user"]["lb"] = np.array([vocs.variables[var].domain[0] for var in x_mapping])
+            self.gen_specs["user"]["ub"] = np.array([vocs.variables[var].domain[1] for var in x_mapping])
+        except KeyError as exc:
+            raise ValueError(f"Mapped APOSMM variable {exc.args[0]!r} is not present in VOCS.") from exc
+        x_size = len(x_mapping)
+        if not rk_const:
+            rk_const = 0.5 * ((gamma(1 + (x_size / 2)) * 5) ** (1 / x_size)) / sqrt(pi)
+            self.gen_specs["user"]["rk_const"] = rk_const
+        self.internal_fields = ["x_on_cube", *self._internal_vocs_fields]
         gen_specs["out"] = [
             ("x", float, x_size),
-            ("x_on_cube", float, x_on_cube_size),
+            ("x_on_cube", float, x_size),
             ("sim_id", int),
             ("local_min", bool),
             ("local_pt", bool),
@@ -310,6 +288,50 @@ class APOSMM(PersistentGenInterfacer):
             cond = True
         return self._last_suggest is None or (cond and (self._suggest_idx >= len(self._last_suggest)))
 
+    def _add_internal_coordinates(self, results: npt.NDArray) -> npt.NDArray:
+        if results is None or not len(results):
+            return results
+
+        if "x" not in results.dtype.names:
+            results = map_numpy_array(results, self.variables_mapping)
+        if "x" not in results.dtype.names:
+            raise ValueError("APOSMM ingest data must include the 'x' variable.")
+
+        internal_fields = [name for name in self._internal_vocs_fields if name in results.dtype.names]
+        if internal_fields:
+            dtype = [(name, results.dtype[name]) for name in results.dtype.names if name not in internal_fields]
+            public_results = np.zeros(len(results), dtype=dtype)
+            for name in public_results.dtype.names:
+                public_results[name] = results[name]
+            results = public_results
+
+        if "x_on_cube" not in results.dtype.names:
+            dtype = list(results.dtype.descr) + [("x_on_cube", float, (len(self.gen_specs["user"]["lb"]),))]
+            converted = np.zeros(len(results), dtype=dtype)
+            for name in results.dtype.names:
+                converted[name] = results[name]
+            results = converted
+
+        lb = self.gen_specs["user"]["lb"]
+        ub = self.gen_specs["user"]["ub"]
+        results["x_on_cube"] = (results["x"] - lb) / (ub - lb)
+        if self.gen_specs["user"].get("periodic"):
+            results["x_on_cube"] %= 1
+        return results
+
+    def _remove_internal_coordinates(self, results: npt.NDArray) -> npt.NDArray:
+        if results is None:
+            return results
+        internal_fields = {"x_on_cube", *self._internal_vocs_fields}
+        fields_to_remove = internal_fields.intersection(results.dtype.names)
+        if not fields_to_remove:
+            return results
+        dtype = [(name, results.dtype[name]) for name in results.dtype.names if name not in fields_to_remove]
+        public_results = np.zeros(len(results), dtype=dtype)
+        for name in public_results.dtype.names:
+            public_results[name] = results[name]
+        return public_results
+
     def suggest_numpy(self, num_points: int = 0) -> npt.NDArray:
         """Request the next set of points to evaluate, as a NumPy array."""
 
@@ -341,13 +363,16 @@ class APOSMM(PersistentGenInterfacer):
 
         self._last_call = "suggest"
         self._last_num_points = num_points
-        return results
+        return self._remove_internal_coordinates(results)
 
     def ingest_numpy(self, results: npt.NDArray, tag: int = EVAL_GEN_TAG) -> None:
 
         if self._first_called_method is None:
             self._first_called_method = "ingest"
             self.gen_specs["user"]["generate_sample_points"] = False
+
+        if results is not None:
+            results = self._add_internal_coordinates(results)
 
         if (results is None and tag == PERSIS_STOP) or self._told_initial_sample:
             super().ingest_numpy(results, tag)
@@ -381,4 +406,4 @@ class APOSMM(PersistentGenInterfacer):
         """Request a list of NumPy arrays containing entries that have been identified as minima."""
         minima = copy.deepcopy(self.all_local_minima)
         self.all_local_minima = []
-        return minima
+        return [self._remove_internal_coordinates(item) for item in minima]

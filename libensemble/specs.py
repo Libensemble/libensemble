@@ -328,6 +328,11 @@ class GenSpecs(BaseModel):
                     persis_in_fields.extend(list(obj.keys()))
             self.persis_in = persis_in_fields
 
+        internal_fields = getattr(self.generator, "internal_fields", []) if self.generator is not None else []
+        self.persis_in[:] = [field for field in self.persis_in if field not in internal_fields]
+        if self.inputs:
+            self.inputs[:] = [field for field in self.inputs if field not in internal_fields]
+
         # Set inputs: same as persis_in for gest-api generators (needed for H0 ingestion)
         if not self.inputs and self.generator is not None:
             self.inputs = self.persis_in
@@ -338,16 +343,22 @@ class GenSpecs(BaseModel):
             for attr in ["variables", "constants"]:
                 if obj := getattr(self.vocs, attr, None):
                     for name, field in obj.items():
+                        if name in internal_fields:
+                            continue
                         dtype = _get_dtype(field, name)
                         out_fields.append(_convert_dtype_to_output_tuple(name, dtype))
             self.outputs = out_fields
 
-        # Merge in any additional fields from generator.gen_specs["out"] (e.g., x_on_cube, local_min)
+        if self.outputs:
+            self.outputs[:] = [field for field in self.outputs if field[0] not in internal_fields]
+
+        # Merge in additional public fields returned by the generator.
         if self.generator is not None and hasattr(self.generator, "gen_specs"):
+            internal_fields = getattr(self.generator, "internal_fields", [])
             gen_out = self.generator.gen_specs.get("out", [])
             existing_names = {f[0] for f in self.outputs}
             for field in gen_out:
-                if field[0] not in existing_names:
+                if field[0] not in internal_fields and field[0] not in existing_names:
                     self.outputs.append(field)
                     existing_names.add(field[0])
 
