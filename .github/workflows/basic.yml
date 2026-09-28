@@ -81,7 +81,7 @@ jobs:
           --timings-json timings-${{ matrix.comms }}.json
       - name: Upload timings
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: core-${{ matrix.comms }}-timings
           path: timings-${{ matrix.comms }}.json
