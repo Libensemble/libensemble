@@ -223,7 +223,7 @@ html_title = "libEnsemble"
 # documentation.
 #
 html_theme_options = {
-    "announcement": "<em>libEnsemble v2.0 is released, with many new features and changes.</em>",
+    "announcement": "<em>libEnsemble v2.0 is pending, with many new features and changes.</em>",
     "source_repository": "https://github.com/Libensemble/libensemble/",
     "source_branch": "main",
     "source_directory": "docs/",
