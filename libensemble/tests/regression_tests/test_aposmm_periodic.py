@@ -45,15 +45,12 @@ if __name__ == "__main__":
         variables={
             "x0": [0, 2 * np.pi],
             "x1": [-np.pi / 2, 3 * np.pi / 2],
-            "x0_on_cube": [0, 1],
-            "x1_on_cube": [0, 1],
         },
         objectives={"f": "MINIMIZE"},
     )
 
     variables_mapping = {
         "x": ["x0", "x1"],
-        "x_on_cube": ["x0_on_cube", "x1_on_cube"],
         "f": ["f"],
     }
 
