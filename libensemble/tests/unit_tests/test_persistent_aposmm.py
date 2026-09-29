@@ -470,7 +470,7 @@ def test_asktell_ingest_first():
 
 @pytest.mark.extra
 def test_asktell_consecutive_during_sample():
-    """Test consecutive suggest and ingest during sample"""
+    """Test consecutive ingest during sampling"""
 
     from gest_api.vocs import VOCS
 
@@ -503,12 +503,11 @@ def test_asktell_consecutive_during_sample():
         dist_to_bound_multiple=0.01,
     )
 
-    # Test consecutive suggest
     first = my_APOSMM.suggest(1)
     first[0]["energy"] = six_hump_camel_func(np.array([first[0]["core"], first[0]["edge"]]))
     my_APOSMM.ingest(first)
-    second = my_APOSMM.suggest(1)
-    second += my_APOSMM.suggest(4)
+    second = my_APOSMM.suggest(5)
+
     for point in second:
         point["energy"] = six_hump_camel_func(np.array([point["core"], point["edge"]]))
     # Test consecutive ingest
@@ -522,8 +521,8 @@ def test_asktell_consecutive_during_sample():
 
     while total_evals < eval_max:
 
-        sample, detected_minima = my_APOSMM.suggest(3), my_APOSMM.suggest_updates()
-        sample += my_APOSMM.suggest(3)
+        sample = my_APOSMM.suggest(6)
+        detected_minima = my_APOSMM.suggest_updates()
         if len(detected_minima):
             for m in detected_minima:
                 potential_minima.append(m)

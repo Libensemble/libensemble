@@ -200,20 +200,22 @@ class StandardGenRunner(Runner):
 
 
 class LibensembleGenRunner(StandardGenRunner):
-    def _get_initial_suggest(self, libE_info) -> npt.NDArray:
-        """Get initial batch from a LibensembleGenerator.
+    def _get_mapping_for_outputs(self) -> dict:
+        """Return mappings whose internal fields are declared generator outputs."""
+        output_names = {field[0] for field in self.specs.get("out", [])}
+        return {
+            name: fields for name, fields in getattr(self.gen, "variables_mapping", {}).items() if name in output_names
+        }
 
-        LibensembleGenerator.suggest_numpy emits VOCS-field-named structured arrays
-        (e.g. x0/x1, energy). The manager-side history expects mapped fields (x, f)
-        unless the user explicitly requested otherwise.
-        """
+    def _get_initial_suggest(self, libE_info) -> npt.NDArray:
+        """Get initial batch from a LibensembleGenerator."""
         initial_batch = self.specs.get("initial_batch_size") or self.specs.get("batch_size") or libE_info["batch_size"]
         H_out = self.gen.suggest_numpy(initial_batch)
-        return map_numpy_array(H_out, mapping=getattr(self.gen, "variables_mapping", {}))
+        return map_numpy_array(H_out, mapping=self._get_mapping_for_outputs())
 
     def _get_points_updates(self, batch_size: int) -> (npt.NDArray, list):
         numpy_out = self.gen.suggest_numpy(batch_size)
-        numpy_out = map_numpy_array(numpy_out, mapping=getattr(self.gen, "variables_mapping", {}))
+        numpy_out = map_numpy_array(numpy_out, mapping=self._get_mapping_for_outputs())
         if callable(getattr(self.gen, "suggest_updates", None)):
             updates = self.gen.suggest_updates()
         else:
@@ -221,10 +223,10 @@ class LibensembleGenRunner(StandardGenRunner):
         return numpy_out, updates
 
     def _convert_ingest(self, x: npt.NDArray) -> list:
-        self.gen.ingest_numpy(unmap_numpy_array(x, mapping=getattr(self.gen, "variables_mapping", {})))
+        self.gen.ingest_numpy(unmap_numpy_array(x, mapping=self._get_mapping_for_outputs()))
 
     def _convert_initial_ingest(self, x: npt.NDArray) -> list:
-        self.gen.ingest_numpy(unmap_numpy_array(x, mapping=getattr(self.gen, "variables_mapping", {})))
+        self.gen.ingest_numpy(unmap_numpy_array(x, mapping=self._get_mapping_for_outputs()))
 
 
 class LibensembleGenThreadRunner(StandardGenRunner):
