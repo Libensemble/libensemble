@@ -453,11 +453,11 @@ class Manager:
             cf = cache[f]
             hf = self.hist.H[f][work_row]
             try:
+                atol = self.libE_specs.get("cache_tolerances", {}).get(f, 0.0)
                 if cf.ndim == 1:
-                    mask &= np.isclose(cf, hf)
+                    mask &= np.isclose(cf, hf, rtol=0.0, atol=atol)
                 else:
-                    # multi-dim field: reduce over all axes except the cache axis
-                    mask &= np.all(np.isclose(cf, hf), axis=tuple(range(1, cf.ndim)))
+                    mask &= np.all(np.isclose(cf, hf, rtol=0.0, atol=atol), axis=tuple(range(1, cf.ndim)))
             except (TypeError, ValueError):
                 # object or non-numeric dtype: fall back to element-wise equality
                 mask &= np.array([c == hf for c in cf])
@@ -467,39 +467,49 @@ class Manager:
 
     def _update_local_entry_from_cache(
         self, cache_row: npt.NDArray, work_row: int, new_dtype: np.dtype, w: int, dtype_with_idx: np.dtype
-    ) -> None:
-        """Updates the local `from_cache` record with the cache row"""
+    ) -> npt.NDArray:
+        """Create a local record for a cached result."""
         from_cache_entry = np.empty(1, dtype=dtype_with_idx)
         from_cache_entry["H_row"] = work_row  # log this for later checking if outbound rows are already cached
         from_cache_entry["worker_id"] = w  # used to simulate the worker sending back work that actually came from cache
-        for field in np.dtype(new_dtype).names:  # we now only do this since all outbound fields were close
+        for field in cache_row.dtype.names:
             from_cache_entry[field] = cache_row[field]
-        self.from_cache[-1] = from_cache_entry  # the local record was already appended
-        self.cache_hit = True
+        return from_cache_entry
 
     def _cache_scan(
         self, cache: npt.NDArray, Work: dict, w: int, dtype_with_idx: np.dtype, new_dtype: np.dtype
-    ) -> None:
+    ) -> list[int]:
         """
-        Check if any work rows are in the cache, and if so, call _update_local_entry_from_cache
-        to update the local `from_cache` record.
+        Check work rows against the cache and return the rows with cached results.
 
         Each H_row in the work order is compared against the full cache array in a vectorized
         manner (one NumPy operation per field across all cache rows) rather than iterating over
         cache rows one at a time.  A set tracks already-matched rows for O(1) membership tests.
         """
         self.cache_timer = Timer()
+        matches = []
+        entries = []
         # worker_id == 0 means an uninitialised (blank) slot; filter those out.
         # H_row 0 is a valid row index so we cannot use >= 0 as the sentinel.
-        seen_rows: set[int] = set(self.from_cache["H_row"][self.from_cache["worker_id"] > 0])
+        seen_rows: set[int] = (
+            set(self.from_cache["H_row"][self.from_cache["worker_id"] > 0]) if self.from_cache is not None else set()
+        )
         with self.cache_timer:
             for work_row in Work["libE_info"]["H_rows"]:  # used to compare H entries against the cache
                 if work_row in seen_rows:
                     continue
                 match_idx = self._find_cache_match(work_row, cache, new_dtype)
                 if match_idx >= 0:
-                    self._update_local_entry_from_cache(cache[match_idx], work_row, new_dtype, w, dtype_with_idx)
+                    entries.append(
+                        self._update_local_entry_from_cache(cache[match_idx], work_row, new_dtype, w, dtype_with_idx)
+                    )
+                    matches.append(work_row)
                     seen_rows.add(work_row)
+        if entries:
+            new_entries = np.concatenate(entries)
+            self.from_cache = new_entries if self.from_cache is None else np.concatenate((self.from_cache, new_entries))
+            self.cache_hit = True
+        return matches
 
     def _update_state_from_cache(self, Work: dict, work_rows: npt.NDArray, w: int, new_dtype: np.dtype) -> None:
         """Retrieve saved cache from history, create local record-array qof matching cache entries.
@@ -518,14 +528,7 @@ class Manager:
         # our local record resembles the cache, but additionally with the worker_id and H_row from the alloc_f
         dtype_with_idx = np.dtype(cache.dtype.descr + np.dtype([("H_row", int), ("worker_id", int)]).descr)
 
-        # initialize or grow the local record, then call _cache_scan to fill it
-        if self.from_cache is None:
-            self.from_cache = np.zeros(len(work_rows), dtype=dtype_with_idx)
-        else:
-            self.from_cache = np.append(self.from_cache, np.zeros(len(work_rows), dtype=dtype_with_idx))
-
-        # populates the local record
-        self._cache_scan(cache, Work, w, dtype_with_idx, new_dtype)
+        return self._cache_scan(cache, Work, w, dtype_with_idx, new_dtype)
 
     def _send_work_order(self, Work: dict, w: int) -> None:
         """Sends an allocation function order to a worker"""
@@ -534,8 +537,9 @@ class Manager:
         work_rows = Work["libE_info"]["H_rows"]
         new_dtype = [(name, self.hist.H.dtype.fields[name][0]) for name in Work["H_fields"]]
 
+        cached_rows = set()
         if self.use_cache and Work["tag"] == EVAL_SIM_TAG and len(work_rows) and self.hist.cache_set:
-            self._update_state_from_cache(Work, work_rows, w, new_dtype)
+            cached_rows = set(self._update_state_from_cache(Work, work_rows, w, new_dtype))
 
         if self.resources:
             self._set_resources(Work, w)
@@ -553,21 +557,23 @@ class Manager:
             logger.debug(f"Manager sending {work_name} work to worker {w}. Rows {extract_H_ranges(Work) or None}")
 
         if len(work_rows):
-
-            if self.cache_hit:
-                work_rows = [row for row in work_rows if row not in self.from_cache["H_row"]]
-                if (
-                    all([i in self.from_cache["H_row"] for i in work_rows]) and Work["tag"] == EVAL_SIM_TAG
-                ):  # if all rows in work_rows are found in cache
+            if cached_rows:
+                work_rows = [row for row in work_rows if row not in cached_rows]
+                if not work_rows and Work["tag"] == EVAL_SIM_TAG:
                     logger.debug("Manager skipping sending *all* work to worker %s due to cache", w)
                     return
+                Work_to_send = Work.copy()
+                Work_to_send["libE_info"] = Work["libE_info"].copy()
+                Work_to_send["libE_info"]["H_rows"] = work_rows
+            else:
+                Work_to_send = Work
 
             H_to_be_sent = np.empty(len(work_rows), dtype=new_dtype)
             for i, row in enumerate(work_rows):
                 H_to_be_sent[i] = repack_fields(self.hist.H[Work["H_fields"]][row])
 
             if Work["tag"] in [EVAL_SIM_TAG, PERSIS_STOP]:  # inclusion of PERSIS_STOP for final_gen_send
-                self.wcomms[w].send(Work["tag"], Work)
+                self.wcomms[w].send(Work["tag"], Work_to_send)
             self.wcomms[w].send(0, H_to_be_sent)
 
     def _update_state_on_alloc(self, Work: dict, w: int):
@@ -611,7 +617,7 @@ class Manager:
         # Process messages from the cache
         if self.cache_hit:
             self.cache_hit = False
-            for w in self.from_cache["worker_id"]:
+            for w in np.unique(self.from_cache["worker_id"]):
                 if w > 0:  # actual cache entry - not blank. assuming w0 gets no sim work
                     self._handle_msg_from_worker(persis_info, w, process_cache=True)
             self.from_cache = None
@@ -732,9 +738,14 @@ class Manager:
                 calc_msg = f"""{enum_desc} {calc_id}: {"sim"} {self.cache_timer}"""
                 calc_msg += f" Status: {calc_status_strings[CACHE_RETRIEVE]}"
                 logging.getLogger(LogConfig.config.stats_name).info(calc_msg)  # libE_stats
+                self.hist.update_history_f(D_recv, self.kill_canceled_sims)
+                outstanding = self.hist.H["sim_started"] & ~self.hist.H["sim_ended"] & (self.hist.H["sim_worker"] == w)
+                if not np.any(outstanding):
+                    self.W[w]["active"] = 0
+                    self._freeup_resources(w)
             else:
                 logger.debug(f"Manager received data message from worker {w}")
-            self._update_state_on_worker_msg(persis_info, D_recv, w)
+                self._update_state_on_worker_msg(persis_info, D_recv, w)
 
     def _kill_cancelled_sims(self) -> None:
         """Send kill signals to any sims marked as cancel_requested"""

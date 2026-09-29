@@ -600,7 +600,7 @@ class LibeSpecs(BaseModel):
     cache_long_sims: bool | None = False
     """
     Cache simulation results with runtimes >1s to disk. Subsequent runs with an
-    identical configuration (specs, callables, H0) will access this cache.
+    identical configuration (specs, callable code and state, VOCS, H0) will access this cache.
 
     Upon the generator creating points already in the cache, those points will be skipped from
     being sent for evaluation. Instead the corresponding cached results are retrieved and returned
@@ -609,6 +609,18 @@ class LibeSpecs(BaseModel):
     The cache is saved in ``cache_dir``.  When ``cache_name`` is ``None``, the filename is
     automatically derived from a SHA-256 hash of the full ensemble configuration.
     """
+
+    cache_tolerances: dict[str, float] = Field(default_factory=dict)
+    """
+    Absolute tolerances for matching cached simulation inputs, keyed by field name.
+    Fields not listed here use exact numeric matching; relative tolerance is always zero.
+    """
+
+    @field_validator("cache_tolerances")
+    def check_cache_tolerances(cls, value):
+        if any(not np.isfinite(tol) or tol < 0 for tol in value.values()):
+            raise ValueError("cache_tolerances values must be finite and non-negative")
+        return value
 
     cache_dir: str | Path | None = str(Path.home() / ".cache" / "libensemble")
     """

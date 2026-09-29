@@ -249,7 +249,7 @@ def libE(
     # Inject spec hash and auto-generate cache name when not explicitly provided.
     libE_specs["_spec_hash"] = spec_hash
     if libE_specs.get("cache_long_sims") and not libE_specs.get("cache_name"):
-        libE_specs["cache_name"] = f".libe_cache_{spec_hash[:16]}"
+        libE_specs["cache_name"] = f".libe_cache_{spec_hash}"
 
     # Restore objects that don't survive serialization via model_dump
     if hasattr(ensemble.sim_specs, "simulator") and ensemble.sim_specs.simulator is not None:

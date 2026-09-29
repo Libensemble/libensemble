@@ -13,6 +13,8 @@ The number of concurrent evaluations of the objective function will be 4-1=3.
 # TESTSUITE_COMMS: mpi local
 # TESTSUITE_NPROCS: 2 4
 
+import shutil
+import tempfile
 import time
 
 import numpy as np
@@ -32,10 +34,19 @@ def sim_f(In):
     return Out
 
 
+def changed_sim_f(In):
+    Out = np.zeros(1, dtype=[("f", float)])
+    time.sleep(1.1)
+    Out["f"] = np.linalg.norm(In) + 1
+    return Out
+
+
 if __name__ == "__main__":
     nworkers, is_manager, libE_specs, _ = parse_args()
     libE_specs["cache_long_sims"] = True
-    libE_specs["cache_dir"] = "."
+    cache_dir = tempfile.mkdtemp(prefix="libe_cache_test_")
+    libE_specs["cache_dir"] = cache_dir
+    libE_specs["cache_name"] = "cache_sims_test"
 
     sim_specs = {
         "sim_f": sim_f,
@@ -65,9 +76,33 @@ if __name__ == "__main__":
         print("\nlibEnsemble with random sampling has generated enough points")
         save_libE_output(H, persis_info, __file__, nworkers)
 
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs, libE_specs=libE_specs)
+    H_cached, persis_info, flag = libE(
+        sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs, libE_specs=libE_specs
+    )
 
     if is_manager:
-        # better way of seeing "long" sims not actually taking so long (because of cache?)
-        durations = H["sim_ended_time"] - H["sim_started_time"]
-        assert any((durations < 1.1) & (durations != -np.inf))
+        completed = H["sim_ended"] & H_cached["sim_ended"]
+        assert np.array_equal(H["x"][completed], H_cached["x"][completed])
+        assert np.array_equal(H["f"][completed], H_cached["f"][completed]), (
+            H["x"][completed],
+            H["f"][completed],
+            H_cached["f"][completed],
+        )
+        assert np.allclose(H_cached["f"][completed], np.linalg.norm(H_cached["x"][completed], axis=1))
+        durations = H_cached["sim_ended_time"][completed] - H_cached["sim_started_time"][completed]
+        assert len(durations) == exit_criteria["sim_max"]
+        assert np.all(durations < 1.0)
+
+    changed_specs = dict(sim_specs)
+    changed_specs["sim_f"] = changed_sim_f
+    H_changed, persis_info, flag = libE(
+        changed_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs, libE_specs=libE_specs
+    )
+
+    if is_manager:
+        completed = H_changed["sim_ended"]
+        assert np.allclose(H_changed["f"][completed], np.linalg.norm(H_changed["x"][completed], axis=1) + 1)
+        durations = H_changed["sim_ended_time"][completed] - H_changed["sim_started_time"][completed]
+        assert len(durations) == exit_criteria["sim_max"]
+        assert np.all(durations > 1.0)
+        shutil.rmtree(cache_dir)
