@@ -10,7 +10,7 @@ The number of concurrent evaluations of the objective function will be 4-1=3.
 """
 
 # Do not change these lines - they are parsed by run-tests.sh
-# TESTSUITE_COMMS: mpi local
+# TESTSUITE_COMMS: mpi local threads
 # TESTSUITE_NPROCS: 2 4
 
 import shutil
@@ -69,6 +69,7 @@ if __name__ == "__main__":
 
     exit_criteria = {"sim_max": 11}
 
+    # Baseline evaluations
     H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs, libE_specs=libE_specs)
 
     if is_manager:
@@ -76,10 +77,12 @@ if __name__ == "__main__":
         print("\nlibEnsemble with random sampling has generated enough points")
         save_libE_output(H, persis_info, __file__, nworkers)
 
+    # Run same workflow with cached sims.
     H_cached, persis_info, flag = libE(
         sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs, libE_specs=libE_specs
     )
 
+    # Check cached sims are used (i.e., sims are not re-evaluated).
     if is_manager:
         completed = H["sim_ended"] & H_cached["sim_ended"]
         assert np.array_equal(H["x"][completed], H_cached["x"][completed])
@@ -89,10 +92,13 @@ if __name__ == "__main__":
             H_cached["f"][completed],
         )
         assert np.allclose(H_cached["f"][completed], np.linalg.norm(H_cached["x"][completed], axis=1))
+
+        # Check cached sims have lower durations than new sims.
         durations = H_cached["sim_ended_time"][completed] - H_cached["sim_started_time"][completed]
         assert len(durations) == exit_criteria["sim_max"]
         assert np.all(durations < 1.0)
 
+    # Change the sim. Check cached sims are not used (i.e., sims are re-evaluated).
     changed_specs = dict(sim_specs)
     changed_specs["sim_f"] = changed_sim_f
     H_changed, persis_info, flag = libE(
@@ -101,7 +107,10 @@ if __name__ == "__main__":
 
     if is_manager:
         completed = H_changed["sim_ended"]
+        # Sim values are correct after changing sim_f.
         assert np.allclose(H_changed["f"][completed], np.linalg.norm(H_changed["x"][completed], axis=1) + 1)
+
+        # Check no cached sims. Normal sim durations.
         durations = H_changed["sim_ended_time"][completed] - H_changed["sim_started_time"][completed]
         assert len(durations) == exit_criteria["sim_max"]
         assert np.all(durations > 1.0)
