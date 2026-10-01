@@ -129,6 +129,7 @@ linkcheck_ignore = [
     r"https?://www\.mpich\.org/.*",
     r"https://www\.sfu\.ca/~ssurjano/camel6\.html",
     r"https://github\.com/Libensemble/libensemble/blob/.*",
+    r"https://img\.shields\.io/conda/v/conda-forge/libensemble",
 ]
 
 autodoc_pydantic_model_show_json = False
