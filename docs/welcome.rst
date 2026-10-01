@@ -6,7 +6,7 @@
   .. image:: https://img.shields.io/pypi/v/libensemble.svg?color=blue
     :target: https://pypi.org/project/libensemble
 
-  .. image:: https://img.shields.io/conda/v/conda-forge/libensemble?color=blue
+  .. image:: https://img.shields.io/conda/v/conda-forge/libensemble
     :target: https://anaconda.org/conda-forge/libensemble
 
   .. image:: https://img.shields.io/spack/v/py-libensemble?color=blue
