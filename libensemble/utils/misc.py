@@ -13,28 +13,37 @@ import numpy as np
 import numpy.typing as npt
 
 
-def _stable_value(value):
+def _stable_value(value, _seen=None):
     """Convert configuration and callable state to deterministic JSON data."""
-    if value is None or isinstance(value, (bool, int, float, str)):
-        return value
-    if isinstance(value, bytes):
-        return {"bytes": value.hex()}
-    if isinstance(value, np.ndarray):
-        return {"dtype": value.dtype.str, "shape": value.shape, "data": _stable_value(value.tolist())}
-    if isinstance(value, np.generic):
-        return _stable_value(value.item())
-    if isinstance(value, dict):
-        return {str(key): _stable_value(value[key]) for key in sorted(value, key=str)}
-    if isinstance(value, (list, tuple)):
-        return [_stable_value(item) for item in value]
-    if hasattr(value, "model_dump"):
-        return _stable_value(value.model_dump(mode="python", by_alias=True, exclude_none=False))
-    if hasattr(value, "__dict__"):
-        return {
-            "type": f"{type(value).__module__}.{type(value).__qualname__}",
-            "state": _stable_value(vars(value)),
-        }
-    return {"type": f"{type(value).__module__}.{type(value).__qualname__}"}
+    if _seen is None:
+        _seen = set()
+    obj_id = id(value)
+    if obj_id in _seen:
+        return {"type": f"{type(value).__module__}.{type(value).__qualname__}", "state": "<cyclic>"}
+    _seen.add(obj_id)
+    try:
+        if value is None or isinstance(value, (bool, int, float, str)):
+            return value
+        if isinstance(value, bytes):
+            return {"bytes": value.hex()}
+        if isinstance(value, np.ndarray):
+            return {"dtype": value.dtype.str, "shape": value.shape, "data": _stable_value(value.tolist(), _seen)}
+        if isinstance(value, np.generic):
+            return _stable_value(value.item(), _seen)
+        if isinstance(value, dict):
+            return {str(key): _stable_value(value[key], _seen) for key in sorted(value, key=str)}
+        if isinstance(value, (list, tuple)):
+            return [_stable_value(item, _seen) for item in value]
+        if hasattr(value, "model_dump"):
+            return _stable_value(value.model_dump(mode="python", by_alias=True, exclude_none=False), _seen)
+        if hasattr(value, "__dict__"):
+            return {
+                "type": f"{type(value).__module__}.{type(value).__qualname__}",
+                "state": _stable_value(vars(value), _seen),
+            }
+        return {"type": f"{type(value).__module__}.{type(value).__qualname__}"}
+    finally:
+        _seen.discard(obj_id)
 
 
 def _callable_identity(obj) -> dict:
