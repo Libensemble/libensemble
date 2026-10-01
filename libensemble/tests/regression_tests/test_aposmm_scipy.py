@@ -54,8 +54,6 @@ if __name__ == "__main__":
         variables={
             "x0": [-3, 3],
             "x1": [-2, 2],
-            "x0_on_cube": [0, 1],
-            "x1_on_cube": [0, 1],
         },
         objectives={"f": "MINIMIZE"},
     )
@@ -65,7 +63,6 @@ if __name__ == "__main__":
         max_active_runs=6,
         variables_mapping={
             "x": ["x0", "x1"],
-            "x_on_cube": ["x0_on_cube", "x1_on_cube"],
             "f": ["f"],
         },
         initial_sample_size=100,

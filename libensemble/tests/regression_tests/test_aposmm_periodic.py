@@ -45,15 +45,12 @@ if __name__ == "__main__":
         variables={
             "x0": [0, 2 * np.pi],
             "x1": [-np.pi / 2, 3 * np.pi / 2],
-            "x0_on_cube": [0, 1],
-            "x1_on_cube": [0, 1],
         },
         objectives={"f": "MINIMIZE"},
     )
 
     variables_mapping = {
         "x": ["x0", "x1"],
-        "x_on_cube": ["x0_on_cube", "x1_on_cube"],
         "f": ["f"],
     }
 
@@ -86,10 +83,10 @@ if __name__ == "__main__":
         minima = np.array([[0.25, 0.75], [0.75, 0.25]])
         tol = 2e-4
 
-        for x in H["x_on_cube"][min_ids]:
+        for x in aposmm.export()[0]["x_on_cube"][min_ids]:
             print(x)
             print(np.linalg.norm(x - minima[0]))
             print(np.linalg.norm(x - minima[1]), flush=True)
 
-        for x in H["x_on_cube"][min_ids]:
+        for x in aposmm.export()[0]["x_on_cube"][min_ids]:
             assert np.linalg.norm(x - minima[0]) < tol or np.linalg.norm(x - minima[1]) < tol

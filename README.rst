@@ -169,7 +169,7 @@ Resources
    :alt: libEnsemble
 .. |PyPI| image:: https://img.shields.io/pypi/v/libensemble.svg?color=blue
    :target: https://pypi.org/project/libensemble
-.. |Conda| image:: https://img.shields.io/conda/v/conda-forge/libensemble?color=blue
+.. |Conda| image:: https://img.shields.io/conda/v/conda-forge/libensemble
    :target: https://anaconda.org/conda-forge/libensemble
 .. |Spack| image:: https://img.shields.io/spack/v/py-libensemble?color=blue
    :target: https://packages.spack.io/package.html?name=py-libensemble

@@ -121,13 +121,13 @@ a ``VOCS`` object:
         workflow = Ensemble(parse_args=True)
 
         vocs = VOCS(
-            variables={"x1": [-2, 2], "x2": [-1, 1], "x1_on_cube": [-2, 2], "x2_on_cube": [-1, 1]},
+            variables={"x1": [-2, 2], "x2": [-1, 1]},
             objectives={"f": "MINIMIZE"},
         )
 
-Notice the addition of ``x1_on_cube`` and ``x2_on_cube``. APOSMM requires variables scaled to the unit cube internally. By defining both sets of variables, APOSMM can translate between our actual domain and its internal domain.
+APOSMM scales variables to the unit cube internally. Users only need to define the variables in their original domain.
 
-Now, configure APOSMM. Because APOSMM internally uses variables named ``x``, ``x_on_cube``, and an objective named ``f``, we must map our ``VOCS`` fields to these internal names using ``variables_mapping``:
+Now, configure APOSMM. APOSMM internally uses ``x`` and ``x_on_cube`` coordinates and an objective named ``f``. Only the public variables and objective need to be mapped:
 
 .. code-block:: python
     :linenos:
@@ -135,7 +135,7 @@ Now, configure APOSMM. Because APOSMM internally uses variables named ``x``, ``x
         aposmm = APOSMM(
             vocs,
             max_active_runs=workflow.nworkers,
-            variables_mapping={"x": ["x1", "x2"], "x_on_cube": ["x1_on_cube", "x2_on_cube"], "f": ["f"]},
+            variables_mapping={"x": ["x1", "x2"], "f": ["f"]},
             initial_sample_size=100,
             localopt_method="scipy_Nelder-Mead",
             opt_return_codes=[0],

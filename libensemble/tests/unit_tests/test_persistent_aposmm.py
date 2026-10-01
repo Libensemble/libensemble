@@ -224,12 +224,11 @@ def test_asktell_with_persistent_aposmm():
 
     libensemble.gen_funcs.rc.aposmm_optimizers = "scipy"
 
-    variables = {"core": [-3, 3], "edge": [-2, 2], "core_on_cube": [0, 1], "edge_on_cube": [0, 1]}
+    variables = {"core": [-3, 3], "edge": [-2, 2]}
     objectives = {"energy": "MINIMIZE"}
 
     variables_mapping = {
         "x": ["core", "edge"],
-        "x_on_cube": ["core_on_cube", "edge_on_cube"],
         "f": ["energy"],
     }
 
@@ -258,14 +257,13 @@ def test_asktell_errors():
 
     import libensemble.gen_funcs
     from libensemble.gen_classes import APOSMM
-    from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
 
     libensemble.gen_funcs.rc.aposmm_optimizers = "scipy"
 
-    variables = {"core": [-3, 3], "edge": [-2, 2], "core_on_cube": [0, 1], "edge_on_cube": [0, 1]}
+    variables = {"core": [-3, 3], "edge": [-2, 2]}
     objectives = {"energy": "MINIMIZE"}
 
-    bad_mapping = {
+    variables_mapping = {
         "x": ["core", "edge"],
         "f": ["energy"],
     }
@@ -277,48 +275,13 @@ def test_asktell_errors():
         constants={"alpha": 0.55},
         observables={"o1"},
     )
-
     with pytest.raises(ValueError):
         APOSMM(
             vocs,
             max_active_runs=6,
-            variables_mapping=bad_mapping,
+            variables_mapping={"x": ["missing"], "f": ["energy"]},
             initial_sample_size=100,
-            sample_points=np.round(minima, 1),
-            localopt_method="scipy_Nelder-Mead",
-            opt_return_codes=[0],
-            nu=1e-8,
-            mu=1e-8,
-            dist_to_bound_multiple=0.01,
         )
-        pytest.fail("Should have raised error for bad mapping")
-
-    bad_mapping = {
-        "x": ["core", "edge"],
-        "x_on_cube": ["core_on_cube", "edge_on_cube", "blah"],
-        "f": ["energy"],
-    }
-
-    with pytest.raises(ValueError):
-        APOSMM(
-            vocs,
-            max_active_runs=6,
-            variables_mapping=bad_mapping,
-            initial_sample_size=100,
-            sample_points=np.round(minima, 1),
-            localopt_method="scipy_Nelder-Mead",
-            opt_return_codes=[0],
-            nu=1e-8,
-            mu=1e-8,
-            dist_to_bound_multiple=0.01,
-        )
-        pytest.fail("Should have raised error for bad mapping")
-
-    variables_mapping = {
-        "x": ["core", "edge"],
-        "x_on_cube": ["core_on_cube", "edge_on_cube"],
-        "f": ["energy"],
-    }
 
     vocs = VOCS(variables=variables, objectives=objectives)
 
@@ -398,12 +361,11 @@ def test_asktell_ingest_first():
 
     n = 2
 
-    variables = {"core": [-3, 3], "edge": [-2, 2], "core_on_cube": [0, 1], "edge_on_cube": [0, 1]}
+    variables = {"core": [-3, 3], "edge": [-2, 2]}
     objectives = {"energy": "MINIMIZE"}
 
     variables_mapping = {
         "x": ["core", "edge"],
-        "x_on_cube": ["core_on_cube", "edge_on_cube"],
         "f": ["energy"],
     }
 
@@ -422,13 +384,10 @@ def test_asktell_ingest_first():
         dist_to_bound_multiple=0.01,
     )
 
-    # local_H["x_on_cube"][-num_pts:] = (pts - lb) / (ub - lb)
     initial_sample = [
         {
             "core": minima[i][0],
             "edge": minima[i][1],
-            "core_on_cube": (minima[i][0] - variables["core"][0]) / (variables["core"][1] - variables["core"][0]),
-            "edge_on_cube": (minima[i][1] - variables["edge"][0]) / (variables["edge"][1] - variables["edge"][0]),
             "energy": six_hump_camel_func(np.array([minima[i][0], minima[i][1]])),
         }
         for i in range(6)
@@ -480,12 +439,11 @@ def test_asktell_consecutive_during_sample():
 
     libensemble.gen_funcs.rc.aposmm_optimizers = "scipy"
 
-    variables = {"core": [-3, 3], "edge": [-2, 2], "core_on_cube": [0, 1], "edge_on_cube": [0, 1]}
+    variables = {"core": [-3, 3], "edge": [-2, 2]}
     objectives = {"energy": "MINIMIZE"}
 
     variables_mapping = {
         "x": ["core", "edge"],
-        "x_on_cube": ["core_on_cube", "edge_on_cube"],
         "f": ["energy"],
     }
 
@@ -555,12 +513,11 @@ def _run_aposmm_export_test(variables_mapping):
     from gest_api.vocs import VOCS
 
     from libensemble.gen_classes import APOSMM
+    from libensemble.specs import GenSpecs
 
     variables = {
         "core": [-3, 3],
         "edge": [-2, 2],
-        "core_on_cube": [0, 1],
-        "edge_on_cube": [0, 1],
     }
     objectives = {"energy": "MINIMIZE"}
 
@@ -576,9 +533,10 @@ def _run_aposmm_export_test(variables_mapping):
         mu=1e-8,
         dist_to_bound_multiple=0.01,
     )
-    # Test basic export before finalize
+    specs = GenSpecs(generator=aposmm, vocs=vocs)
+    assert "x_on_cube" not in [field[0] for field in specs.outputs]
+    assert "x_on_cube" not in specs.persis_in
     H, _, _ = aposmm.export()
-    print(f"Export before finalize: {H}")  # Debug
     assert H is None  # Should be None before finalize
     # Test export after suggest/ingest cycle
     sample = aposmm.suggest(5)
@@ -591,6 +549,7 @@ def _run_aposmm_export_test(variables_mapping):
     H, _, _ = aposmm.export()
     if H is not None:
         assert "x" in H.dtype.names and H["x"].ndim == 2
+        assert "x_on_cube" in H.dtype.names and H["x_on_cube"].ndim == 2
         assert "f" in H.dtype.names and H["f"].ndim == 1
 
     # Test export with vocs_field_names
@@ -618,18 +577,311 @@ def _run_aposmm_export_test(variables_mapping):
 def test_aposmm_export():
     """Test APOSMM export function with different options"""
 
-    # Test with full variables_mapping
-    full_mapping = {
+    mapping = {"x": ["core", "edge"], "f": ["energy"]}
+    _run_aposmm_export_test(mapping)
+
+
+@pytest.mark.extra
+def test_aposmm_no_x_mapping():
+    """Test APOSMM raises ValueError when no variables mapped to 'x'."""
+
+    from gest_api.vocs import VOCS
+
+    import libensemble.gen_funcs
+    from libensemble.gen_classes import APOSMM
+
+    libensemble.gen_funcs.rc.aposmm_optimizers = "scipy"
+
+    variables = {"core": [-3, 3], "edge": [-2, 2]}
+    objectives = {"energy": "MINIMIZE"}
+
+    vocs = VOCS(variables=variables, objectives=objectives)
+
+    with pytest.raises(ValueError, match="requires at least one variable mapped to 'x'"):
+        APOSMM(
+            vocs,
+            max_active_runs=6,
+            initial_sample_size=6,
+            variables_mapping={"x": [], "f": ["energy"]},
+        )
+
+
+@pytest.mark.extra
+def test_aposmm_components_in_kwargs():
+    """Test that 'components' in kwargs adds 'fvec' to persis_in."""
+
+    from gest_api.vocs import VOCS
+
+    import libensemble.gen_funcs
+    from libensemble.gen_classes import APOSMM
+
+    libensemble.gen_funcs.rc.aposmm_optimizers = "scipy"
+
+    variables = {"core": [-3, 3], "edge": [-2, 2]}
+    objectives = {"energy": "MINIMIZE"}
+
+    variables_mapping = {
         "x": ["core", "edge"],
-        "x_on_cube": ["core_on_cube", "edge_on_cube"],
         "f": ["energy"],
     }
-    _run_aposmm_export_test(full_mapping)
-    # Test with just x_on_cube mapping (should auto-map x and f)
-    minimal_mapping = {
-        "x_on_cube": ["core_on_cube", "edge_on_cube"],
+
+    vocs = VOCS(variables=variables, objectives=objectives)
+
+    my_aposmm = APOSMM(
+        vocs,
+        max_active_runs=6,
+        initial_sample_size=6,
+        variables_mapping=variables_mapping,
+        localopt_method="scipy_Nelder-Mead",
+        components=2,
+    )
+    assert "fvec" in my_aposmm.gen_specs["persis_in"]
+
+
+@pytest.mark.extra
+def test_aposmm_remove_internal_coordinates_none():
+    """Test _remove_internal_coordinates handles None input."""
+
+    from gest_api.vocs import VOCS
+
+    import libensemble.gen_funcs
+    from libensemble.gen_classes import APOSMM
+
+    libensemble.gen_funcs.rc.aposmm_optimizers = "scipy"
+
+    variables = {"core": [-3, 3], "edge": [-2, 2]}
+    objectives = {"energy": "MINIMIZE"}
+
+    variables_mapping = {
+        "x": ["core", "edge"],
+        "f": ["energy"],
     }
-    _run_aposmm_export_test(minimal_mapping)
+
+    vocs = VOCS(variables=variables, objectives=objectives)
+
+    my_aposmm = APOSMM(
+        vocs,
+        max_active_runs=6,
+        initial_sample_size=6,
+        variables_mapping=variables_mapping,
+    )
+    assert my_aposmm._remove_internal_coordinates(None) is None
+
+
+@pytest.mark.extra
+def test_aposmm_remove_internal_coordinates_no_fields():
+    """Test _remove_internal_coordinates returns same array when no internal fields to remove."""
+
+    from gest_api.vocs import VOCS
+
+    import libensemble.gen_funcs
+    from libensemble.gen_classes import APOSMM
+
+    libensemble.gen_funcs.rc.aposmm_optimizers = "scipy"
+
+    variables = {"core": [-3, 3], "edge": [-2, 2]}
+    objectives = {"energy": "MINIMIZE"}
+
+    variables_mapping = {
+        "x": ["core", "edge"],
+        "f": ["energy"],
+    }
+
+    vocs = VOCS(variables=variables, objectives=objectives)
+
+    my_aposmm = APOSMM(
+        vocs,
+        max_active_runs=6,
+        initial_sample_size=6,
+        variables_mapping=variables_mapping,
+    )
+    dtype = [("x", float, 2), ("f", float)]
+    results = np.zeros(3, dtype=dtype)
+    output = my_aposmm._remove_internal_coordinates(results)
+    assert output is results
+
+
+@pytest.mark.extra
+def test_aposmm_add_internal_coordinates_none_or_empty():
+    """Test _add_internal_coordinates handles None or empty input."""
+
+    from gest_api.vocs import VOCS
+
+    import libensemble.gen_funcs
+    from libensemble.gen_classes import APOSMM
+
+    libensemble.gen_funcs.rc.aposmm_optimizers = "scipy"
+
+    variables = {"core": [-3, 3], "edge": [-2, 2]}
+    objectives = {"energy": "MINIMIZE"}
+
+    variables_mapping = {
+        "x": ["core", "edge"],
+        "f": ["energy"],
+    }
+
+    vocs = VOCS(variables=variables, objectives=objectives)
+
+    my_aposmm = APOSMM(
+        vocs,
+        max_active_runs=6,
+        initial_sample_size=6,
+        variables_mapping=variables_mapping,
+    )
+    assert my_aposmm._add_internal_coordinates(None) is None
+    assert my_aposmm._add_internal_coordinates(np.array([])) is not None
+
+
+@pytest.mark.extra
+def test_aposmm_add_internal_coordinates_missing_x():
+    """Test _add_internal_coordinates raises ValueError when 'x' missing after mapping."""
+
+    from gest_api.vocs import VOCS
+
+    import libensemble.gen_funcs
+    from libensemble.gen_classes import APOSMM
+
+    libensemble.gen_funcs.rc.aposmm_optimizers = "scipy"
+
+    variables = {"core": [-3, 3], "edge": [-2, 2]}
+    objectives = {"energy": "MINIMIZE"}
+
+    vocs = VOCS(variables=variables, objectives=objectives)
+
+    my_aposmm = APOSMM(
+        vocs,
+        max_active_runs=6,
+        initial_sample_size=6,
+        variables_mapping={"f": ["energy"]},
+    )
+    dtype = [("energy", float)]
+    results = np.zeros(3, dtype=dtype)
+    with pytest.raises(ValueError, match="must include the 'x' variable"):
+        my_aposmm._add_internal_coordinates(results)
+
+
+@pytest.mark.extra
+def test_aposmm_add_internal_coordinates_with_internal_vocs_fields():
+    """Test _add_internal_coordinates removes internal vocs fields during ingest."""
+
+    from gest_api.vocs import VOCS
+
+    import libensemble.gen_funcs
+    from libensemble.gen_classes import APOSMM
+
+    libensemble.gen_funcs.rc.aposmm_optimizers = "scipy"
+
+    variables = {"core": [-3, 3], "edge": [-2, 2]}
+    objectives = {"energy": "MINIMIZE"}
+
+    variables_mapping = {
+        "x": ["core", "edge"],
+        "f": ["energy"],
+        "x_on_cube": ["extra"],
+    }
+
+    vocs = VOCS(variables=variables, objectives=objectives)
+
+    my_aposmm = APOSMM(
+        vocs,
+        max_active_runs=6,
+        initial_sample_size=6,
+        variables_mapping=variables_mapping,
+    )
+    # Results with already-mapped 'x' and 'f', plus an internal vocs field 'extra'
+    dtype = [("x", float, 2), ("f", float), ("extra", float, 2)]
+    results = np.zeros(3, dtype=dtype)
+    results["x"] = [[-1.0, -1.0], [0.0, 0.0], [1.0, 1.0]]
+    results["f"] = [1.0, 2.0, 3.0]
+    results["extra"] = [[0.0, 0.0], [0.5, 0.5], [1.0, 1.0]]
+
+    output = my_aposmm._add_internal_coordinates(results)
+    # The 'extra' field should be stripped, 'x_on_cube' should be added
+    assert "extra" not in output.dtype.names
+    assert "x_on_cube" in output.dtype.names
+
+
+@pytest.mark.extra
+def test_aposmm_internal_slot_in_data_with_id():
+    """Test _slot_in_data with _id field handling."""
+
+    from gest_api.vocs import VOCS
+
+    import libensemble.gen_funcs
+    from libensemble.gen_classes import APOSMM
+
+    libensemble.gen_funcs.rc.aposmm_optimizers = "scipy"
+
+    variables = {"core": [-3, 3], "edge": [-2, 2]}
+    objectives = {"energy": "MINIMIZE"}
+
+    variables_mapping = {
+        "x": ["core", "edge"],
+        "f": ["energy"],
+    }
+
+    vocs = VOCS(variables=variables, objectives=objectives)
+
+    my_aposmm = APOSMM(
+        vocs,
+        max_active_runs=6,
+        initial_sample_size=10,
+        variables_mapping=variables_mapping,
+        localopt_method="scipy_Nelder-Mead",
+    )
+    dtype = [("_id", int), ("core", float), ("edge", float), ("energy", float)]
+    results = np.zeros(3, dtype=dtype)
+    results["_id"] = [10, 11, 12]
+    results["core"] = [-1.0, 0.0, 1.0]
+    results["edge"] = [-1.0, 0.0, 1.0]
+    results["energy"] = [1.0, 2.0, 3.0]
+
+    # Set up the ingest buffer
+    my_aposmm._ingest_buf = np.zeros(10, dtype=[("sim_id", int), ("core", float), ("edge", float), ("energy", float)])
+    my_aposmm._slot_in_data(results)
+    assert list(my_aposmm._ingest_buf["sim_id"][:3]) == [10, 11, 12]
+
+
+@pytest.mark.extra
+def test_aposmm_periodic_vocs():
+    """Test APOSMM with periodic variables."""
+
+    from gest_api.vocs import VOCS
+
+    import libensemble.gen_funcs
+    from libensemble.gen_classes import APOSMM
+
+    libensemble.gen_funcs.rc.aposmm_optimizers = "scipy"
+
+    variables = {"core": [-3, 3], "edge": [-2, 2]}
+    objectives = {"energy": "MINIMIZE"}
+
+    variables_mapping = {
+        "x": ["core", "edge"],
+        "f": ["energy"],
+    }
+
+    vocs = VOCS(variables=variables, objectives=objectives)
+
+    my_aposmm = APOSMM(
+        vocs,
+        max_active_runs=6,
+        initial_sample_size=6,
+        variables_mapping=variables_mapping,
+        localopt_method="scipy_Nelder-Mead",
+        periodic=True,
+    )
+    dtype = [("core", float), ("edge", float), ("energy", float)]
+    results = np.zeros(3, dtype=dtype)
+    results["core"] = [-3.0, 0.0, 3.0]
+    results["edge"] = [-2.0, 0.0, 2.0]
+    results["energy"] = [1.0, 2.0, 3.0]
+
+    output = my_aposmm._add_internal_coordinates(results)
+    # x_on_cube should be wrapped due to periodic
+    assert "x_on_cube" in output.dtype.names
+    # core=3.0 maps to x_on_cube=1.0, then wrapped to 0.0 with periodic
+    assert output["x_on_cube"][2][0] == 0.0
 
 
 if __name__ == "__main__":
@@ -642,3 +894,12 @@ if __name__ == "__main__":
     test_asktell_consecutive_during_sample()
     test_asktell_errors()
     test_aposmm_export()
+    test_aposmm_no_x_mapping()
+    test_aposmm_components_in_kwargs()
+    test_aposmm_remove_internal_coordinates_none()
+    test_aposmm_remove_internal_coordinates_no_fields()
+    test_aposmm_add_internal_coordinates_none_or_empty()
+    test_aposmm_add_internal_coordinates_missing_x()
+    test_aposmm_add_internal_coordinates_with_internal_vocs_fields()
+    test_aposmm_internal_slot_in_data_with_id()
+    test_aposmm_periodic_vocs()

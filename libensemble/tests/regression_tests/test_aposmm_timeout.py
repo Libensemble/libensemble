@@ -45,8 +45,6 @@ if __name__ == "__main__":
         variables={
             "x0": [0, 2 * np.pi],
             "x1": [-np.pi / 2, 3 * np.pi / 2],
-            "x0_on_cube": [0, 1],
-            "x1_on_cube": [0, 1],
         },
         objectives={"f": "MINIMIZE"},
     )
@@ -57,7 +55,6 @@ if __name__ == "__main__":
         initial_sample_size=100,
         variables_mapping={
             "x": ["x0", "x1"],
-            "x_on_cube": ["x0_on_cube", "x1_on_cube"],
             "f": ["f"],
         },
         localopt_method="LN_BOBYQA",
