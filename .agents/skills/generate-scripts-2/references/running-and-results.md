@@ -44,7 +44,11 @@ Exit flags commonly mean:
 - `2`: manager wall-clock timeout
 - `3`: process outside the MPI communicator
 
-Treat nonzero flags as non-success unless the workflow intentionally expects them.
+Treat nonzero flags as non-success unless the workflow intentionally expects them. A
+worker/simulator exception may cause `ensemble.run()` itself to raise rather than return a
+flag. In that case, post-run manager code does not execute and a requested `save_output()`
+basename is not produced. With `save_H_and_persis_on_abort=True`, libEnsemble writes an
+automatic abort checkpoint; report its actual path rather than claiming the requested one.
 
 ## Checkpointing and restart
 
@@ -101,9 +105,12 @@ if ensemble.is_manager:
     ensemble.save_output("run_results", append_attrs=False)
 ```
 
-`save_output` saves History and persistent information. With `append_attrs=False`, the
-provided History basename is preserved; default attribute suffixes otherwise alter it.
-Guard custom reporting, plots, and extra writes with `ensemble.is_manager`.
+`save_output` saves History and persistent information. With `append_attrs=False`, no run
+attribute suffix is added, but libEnsemble still reduces the argument to a short basename:
+it drops directories/extensions and strips a leading portion through `test_`. Avoid names
+containing `test_` when the literal filename matters, capture the returned History path,
+and report that actual path. Guard custom reporting, plots, and extra writes with
+`ensemble.is_manager`.
 
 When loading a saved NumPy History:
 

@@ -3,8 +3,10 @@ name: generate-scripts-2
 description: Generate self-contained, modern libEnsemble 2.x workflows for sampling, optimization, external applications, and HPC resources
 ---
 
-Generate runnable libEnsemble 2.x scripts from the user's requirements. Use only the
-standardized gest-api/VOCS interfaces described here. Do not depend on access to the
+Generate runnable libEnsemble 2.x scripts from the user's requirements. Resolve every
+`references/...` path relative to this loaded `SKILL.md`; never assume the skill lives at a
+specific `.claude`, `.agents`, or repository path. Use only the standardized gest-api/VOCS
+interfaces described here. Do not depend on access to the
 libEnsemble repository and do not emit legacy `libE()`, `gen_f`, `sim_f`, bare-spec
 dictionary, or explicit allocation-function patterns.
 
@@ -14,7 +16,8 @@ dictionary, or explicit allocation-function patterns.
    termination budget, parallelism, generator intent, simulator interface, dependencies,
    files, and resources. Ask only questions whose answers materially change the script.
    Never invent bounds, objective direction, executable paths, output parsing, or HPC
-   resource requirements.
+   resource requirements. Missing values block execution, not necessarily generation:
+   produce a clearly marked scaffold when its structure is still useful and safe.
 
 2. Read `references/generator-selection.md`. Preserve a user-specified gest-api generator
    and its VOCS. Otherwise choose the least-complex suitable generator, preferring
@@ -44,7 +47,9 @@ dictionary, or explicit allocation-function patterns.
 6. Validate the generated files against `references/intake-and-validation.md`. In
    particular, verify exact names across VOCS, simulator inputs/returns, generator
    mappings, executable registration/submission, parser output, and result analysis.
-   Run a syntax/import check when tools are available.
+   Run a syntax/import check when tools are available. For built-in adapter generators,
+   also reject ambiguous field mappings such as a scalar VOCS variable named `x` in a
+   multi-variable problem unless an explicit tested mapping resolves the collision.
 
 7. Summarize generated files, generator choice, variables/bounds, objectives and
    directions, batch size, workers, stopping criteria, dependencies, and application
@@ -60,6 +65,8 @@ dictionary, or explicit allocation-function patterns.
 9. If execution is approved, read `references/running-and-results.md`, run the smallest
    useful validation first, fix actionable failures, and report only completed, finite
    results. Do not claim a `.npy` result exists unless `save_output()` ran successfully.
+   Treat an exception raised from `ensemble.run()` separately: manager-only code after the
+   call will not execute, though libEnsemble may write its own abort checkpoint.
 
 ## Non-negotiable defaults
 

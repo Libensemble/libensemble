@@ -44,6 +44,13 @@ Treat VOCS as the schema shared by generation, simulation, and results.
   includes the declared constant values (or wrap the generator to add them), then verify the
   simulator receives them. Do not generate constants as variables.
 - `MINIMIZE` and `MAXIMIZE` are not interchangeable.
+- For `LibensembleGenerator` adapters (including built-in `UniformSample` and
+  `LatinHypercubeSample`), internal `x` normally maps to all VOCS variables. If a
+  multi-variable VOCS itself contains a scalar variable named `x`, automatic mapping can
+  collide with that field and produce shape errors. Rename that History/VOCS field (for
+  example `x` to `x0`) and explicitly tell the user. Do not invent an ad hoc pure generator
+  merely to preserve the name, and do not assume `variables_mapping` can make one History
+  field simultaneously scalar and vector. Never emit the ambiguous case unchecked.
 - For adapter-based generators, verify every `variables_mapping` target and order.
 - Avoid protected History names such as `sim_id`, `sim_started`, `sim_ended`, `sim_worker`,
   `gen_worker`, `gen_informed`, timing fields, and `kill_sent` for user outputs.
@@ -69,13 +76,17 @@ libraries. Do not silently replace a requested generator because its package is 
 - Fixed-worker scripts do not advertise `-n` or `--comms` CLI arguments.
 - The registered `app_name` exactly matches `submit(app_name=...)`.
 - Executable and copied input paths exist or are conspicuous placeholders.
-- External app arguments and parser agree with the application's real interface.
+- External app arguments and parser agree with the application's real interface. Validate
+  the exact token list produced by plain whitespace splitting; quotes in `app_args` are not
+  removed or honored.
 - Every simulation has isolated files when concurrent tasks write fixed filenames.
 - Timeout handling terminates the application; failures are not reported as valid minima.
 - MPI process/GPU requests fit each worker's assigned resource sets.
 - Postprocessing runs only on the manager and filters `sim_ended` plus finite values.
-- `save_output()` is present before promising a saved History file, and partial results are
-  saved before raising/reporting a timeout or nonzero exit flag.
+- `save_output()` is present before promising a saved History file. For a returned nonzero
+  exit flag, save before raising/reporting it. For exceptions raised inside `run()`, code
+  after `run()` cannot save; rely on `save_H_and_persis_on_abort=True` or choose a compatible
+  fault-tolerant simulator policy, and describe the resulting filename behavior accurately.
 - Syntax and imports are checked when an environment is available.
 
 ## Placeholder policy

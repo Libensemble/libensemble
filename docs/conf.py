@@ -1,6 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-#
 # liEensemble documentation build configuration file, created by
 # sphinx-quickstart on Fri Aug 18 11:52:31 2017.
 #
@@ -22,7 +19,8 @@ import sys
 from datetime import datetime
 from unittest.mock import MagicMock
 
-exec(open("../libensemble/version.py").read())
+with open("../libensemble/version.py") as f:
+    __version__ = f.read()
 
 
 class Mock(MagicMock):
@@ -135,9 +133,9 @@ linkcheck_ignore = [
 autodoc_pydantic_model_show_json = False
 
 extlinks = {
-    "duref": ("http://docutils.sourceforge.net/docs/ref/rst/" "restructuredtext.html#%s", ""),
-    "durole": ("http://docutils.sourceforge.net/docs/ref/rst/" "roles.html#%s", ""),
-    "dudir": ("http://docutils.sourceforge.net/docs/ref/rst/" "directives.html#%s", ""),
+    "duref": ("http://docutils.sourceforge.net/docs/ref/rst/", "restructuredtext.html#%s", ""),
+    "durole": ("http://docutils.sourceforge.net/docs/ref/rst/", "roles.html#%s", ""),
+    "dudir": ("http://docutils.sourceforge.net/docs/ref/rst/", "directives.html#%s", ""),
 }
 
 # Add any paths that contain templates here, relative to this directory.
@@ -160,7 +158,7 @@ latex_doc = "latex_index"
 
 # General information about the project.
 project = "libEnsemble"
-copyright = str(datetime.now().year) + " Argonne National Laboratory"
+copyright = str(datetime.now("UTC").year) + " Argonne National Laboratory"
 author = "Jeffrey Larson, Stephen Hudson, Stefan M. Wild, David Bindel and John-Luke Navarro"
 today_fmt = "%B %-d, %Y"
 
@@ -195,10 +193,11 @@ todo_include_todos = False
 # Evaluate most references and links for correctness - but many are incorrect
 nitpicky = True
 nitpick_ignore = []
-for line in open("nitpicky"):
-    if line.strip() == "" or line.startswith("#"):
-        continue
-    dtype, target = line.split(None, 1)
+with open("nitpicky") as f:
+    for line in f:
+        if line.strip() == "" or line.startswith("#"):
+            continue
+        dtype, target = line.split(None, 1)
     target = target.strip()
     nitpick_ignore.append((dtype, target))
 

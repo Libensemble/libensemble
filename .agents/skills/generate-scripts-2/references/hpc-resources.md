@@ -81,6 +81,13 @@ History metadata.
 `platform_specs`, or `MPIExecutor(custom_info={"mpi_runner": "srun"})` may select a runner.
 Valid launch behavior is system-specific; confirm it with site documentation.
 
+Unknown site details generally block execution and a finalized scheduler script, not a
+useful Python scaffold. When the solver interface, parser, or stopping criterion is unknown,
+produce a clearly non-runnable scaffold with loud placeholders and list those blockers.
+Let `MPIExecutor()` and resource detection remain automatic rather than inventing a runner
+or topology. Omit explicit process/GPU geometry until it is validated. Generate the Slurm
+script separately only after scheduler-specific values are known.
+
 Do not guess:
 
 - scheduler account, queue/partition, walltime, node count;
@@ -91,7 +98,9 @@ Do not guess:
 
 ## Scheduler script guidance
 
-Generate a scheduler script only when requested and machine facts are supplied. Request
+Generate a finalized scheduler script only when requested and machine facts are supplied.
+A visibly incomplete template is acceptable if the user requested planning, provided every
+unknown directive/module is a loud placeholder and it is labeled non-runnable. Request
 nodes/resources in scheduler directives, then put per-simulation process/GPU geometry in
 libEnsemble resource requests or `MPIExecutor.submit()`. On systems with nested job steps,
 overly restrictive per-task scheduler directives can prevent child launches.

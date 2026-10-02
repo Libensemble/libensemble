@@ -63,10 +63,20 @@ ensemble = Ensemble(
 )
 ```
 
-`app_args` is split into tokens as an argument string, not interpreted as a shell script.
-Do not rely on pipes, redirects, shell expansion, or shell quoting to preserve embedded
-whitespace. Put complex or whitespace-bearing values in an input file when possible.
-Prefer explicit stdout/stderr filenames and application-specific parsing.
+`app_args` is tokenized with plain whitespace splitting (`app_args.split()`). Quotes are
+passed as literal characters; they neither group tokens nor preserve embedded whitespace.
+Do not put a `sh -c`/`bash -c` program, pipes, redirects, shell expansion, or quoted values
+in `app_args`. Instead use one of these safe designs:
+
+1. register the real application and pass only whitespace-free option/value tokens;
+2. write complex values to an input file in the simulation directory; or
+3. if the user explicitly requires shell syntax, create/register a separate wrapper script
+   whose positional arguments are simple tokens. Do not claim the exact inline shell
+   invocation can be represented when it cannot.
+
+Before emitting a workflow, compute the expected `app_args.split()` token list and verify it
+matches the target application's argv. Prefer explicit stdout/stderr filenames and
+application-specific parsing.
 A `wait()` timeout does not kill the process automatically, so kill it before re-raising.
 For manager cancellation responsiveness, use `executor.polling_loop(...,
 poll_manager=True)` and require its result to represent successful completion.
@@ -75,11 +85,15 @@ A standardized dict simulator cannot directly return a legacy calculation-status
 Choose and document one failure policy:
 
 - **Fail fast:** raise as above. With default exception handling, one bad evaluation may
-  terminate the ensemble.
+  terminate the ensemble before `run()` returns, so manager-side `save_output()` after
+  `run()` will not execute. Keep `save_H_and_persis_on_abort=True` (the default) for an
+  automatic abort checkpoint and do not promise the requested save basename on this path.
 - **Fault tolerant:** after terminating the task, return NaN objective(s) plus a declared
   user status output. Use this only when the generator tolerates non-finite observations,
   and exclude failed status/NaN rows during analysis.
 
+Do not wrap `ensemble.run()` in `finally: ensemble.save_output(...)` unless verified that
+History was assigned; `Ensemble.run()` assigns `ensemble.H` only after `libE()` returns.
 Do not turn a failed process into a plausible objective. For cancellation-responsive
 execution, `executor.polling_loop(task, timeout=..., poll_manager=True)` returns a status;
 compare it with `WORKER_DONE` from `libensemble.message_numbers` and apply the chosen policy

@@ -1,7 +1,11 @@
 # Canonical modern patterns
 
 Use these complete patterns without repository access. Adapt names and values; do not copy
-sample values when the user supplied different requirements.
+sample values when the user supplied different requirements. With built-in adapter
+samplers, avoid a scalar VOCS variable named `x` when other variables are present: internal
+vector field `x` is automatically mapped to all variables and can collide with it. Rename
+that field (for example `x0`) and disclose the change; do not substitute an untested custom
+generator just to preserve the ambiguous name.
 
 ## Built-in sampling and Python simulator
 
@@ -42,7 +46,8 @@ if __name__ == "__main__":
     if ensemble.is_manager:
         completed = H[H["sim_ended"]]
         finite = completed[np.isfinite(completed["f"])]
-        ensemble.save_output("sampling_results", append_attrs=False)
+        history_path = ensemble.save_output("sampling_results", append_attrs=False)
+        print(f"Saved History to {history_path}")
         if len(finite):
             best = finite[np.argmin(finite["f"])]
             print(f"Best: x0={best['x0']}, x1={best['x1']}, f={best['f']}")
@@ -92,7 +97,8 @@ if __name__ == "__main__":
     )
     H, _, flag = ensemble.run(sim_max=len(points))
     if ensemble.is_manager:
-        ensemble.save_output("preloaded_results", append_attrs=False)
+        history_path = ensemble.save_output("preloaded_results", append_attrs=False)
+        print(f"Saved History to {history_path}")
         if flag != 0:
             raise RuntimeError(f"libEnsemble exited with flag {flag}; partial results saved")
 ```
@@ -112,6 +118,7 @@ from gest_api.vocs import VOCS
 
 class RandomGenerator(Generator):
     def __init__(self, vocs: VOCS, seed: int = 1):
+        self.vocs = vocs
         self.rng = np.random.default_rng(seed)
         super().__init__(vocs)
 
@@ -135,6 +142,7 @@ class RandomGenerator(Generator):
         pass
 ```
 
+This is a generator fragment to combine with the complete calling-script pattern above.
 A custom adaptive generator uses `ingest(calc_in)` to update state from completed records.
 Do not use this example for discrete/categorical/vector variables without implementing
 sampling for their actual VOCS variable classes.
@@ -162,7 +170,10 @@ does not make every algorithm support them.
 
 Keep a small pure-Python simulator in the calling script. Put substantial parsing,
 application control, or domain logic in an existing simulator module when one exists.
-Create a new module only when separation is needed. Resolve configurable paths at runtime
+Create a new module only when separation is needed. When rerunning in the same location,
+use a new `ensemble_dir_path`, remove/archive the old workflow directory with user approval,
+or intentionally set `reuse_output_dir=True`; a nonempty existing ensemble directory causes
+startup failure by design. Resolve configurable paths at runtime
 from CLI/config/environment or relative to `Path(__file__)`, then convert them to absolute
 paths for registration/copying. Output filenames inside simulation directories may be
 relative.
