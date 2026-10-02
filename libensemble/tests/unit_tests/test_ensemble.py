@@ -2,7 +2,25 @@ import sys
 
 import numpy as np
 
-from libensemble.utils.misc import specs_dump
+from libensemble.utils.misc import _stable_value, specs_dump
+
+
+def test_stable_value_handles_cyclic_references():
+    """Objects whose __dict__ contains back-references must not cause
+    infinite recursion in _stable_value (e.g. Ax optimizer objects)."""
+
+    class Node:
+        pass
+
+    a = Node()
+    b = Node()
+    a.partner = b
+    b.partner = a  # circular reference
+
+    result = _stable_value(a)
+    assert "type" in result
+    partner = result["state"]["partner"]
+    assert partner["state"]["partner"]["state"] == "<cyclic>"
 
 
 def test_ensemble_init():

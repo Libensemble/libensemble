@@ -2,11 +2,207 @@
 Misc internal functions
 """
 
+import hashlib
+import inspect
+import json
+import marshal
 from itertools import chain, groupby
 from operator import itemgetter
 
 import numpy as np
 import numpy.typing as npt
+
+
+def _stable_value(value, _seen=None):
+    """Convert configuration and callable state to deterministic JSON data."""
+    if _seen is None:
+        _seen = set()
+    obj_id = id(value)
+    if obj_id in _seen:
+        return {"type": f"{type(value).__module__}.{type(value).__qualname__}", "state": "<cyclic>"}
+    _seen.add(obj_id)
+    try:
+        if value is None or isinstance(value, (bool, int, float, str)):
+            return value
+        if isinstance(value, bytes):
+            return {"bytes": value.hex()}
+        if isinstance(value, np.ndarray):
+            return {"dtype": value.dtype.str, "shape": value.shape, "data": _stable_value(value.tolist(), _seen)}
+        if isinstance(value, np.generic):
+            return _stable_value(value.item(), _seen)
+        if isinstance(value, dict):
+            return {str(key): _stable_value(value[key], _seen) for key in sorted(value, key=str)}
+        if isinstance(value, (list, tuple)):
+            return [_stable_value(item, _seen) for item in value]
+        if hasattr(value, "model_dump"):
+            return _stable_value(value.model_dump(mode="python", by_alias=True, exclude_none=False), _seen)
+        if hasattr(value, "__dict__"):
+            return {
+                "type": f"{type(value).__module__}.{type(value).__qualname__}",
+                "state": _stable_value(vars(value), _seen),
+            }
+        return {"type": f"{type(value).__module__}.{type(value).__qualname__}"}
+    finally:
+        _seen.discard(obj_id)
+
+
+def _callable_identity(obj) -> dict:
+    """Describe callable code and state without relying on repr memory addresses."""
+    target = obj.__func__ if inspect.ismethod(obj) else obj
+    code = getattr(target, "__code__", None)
+    call_method = getattr(type(obj), "__call__", None) if not inspect.isfunction(obj) else None
+    method_code = getattr(call_method, "__code__", None)
+    sources = []
+    for source_target in (obj, type(obj)):
+        try:
+            sources.append(inspect.getsource(source_target))
+        except (TypeError, OSError):
+            continue
+    closure = getattr(target, "__closure__", None)
+    globals_dict = getattr(target, "__globals__", {})
+    global_names = getattr(code, "co_names", ())
+    global_state = {}
+    for global_name in global_names:
+        if global_name in globals_dict:
+            global_value = globals_dict[global_name]
+            if inspect.ismodule(global_value) or inspect.isbuiltin(global_value):
+                continue
+            if callable(global_value):
+                global_code = getattr(global_value, "__code__", None)
+                global_state[global_name] = {
+                    "source": (
+                        _stable_value(inspect.getsource(global_value)) if inspect.isfunction(global_value) else None
+                    ),
+                    "code": marshal.dumps(global_code).hex() if global_code is not None else None,
+                }
+            else:
+                global_state[global_name] = _stable_value(global_value)
+    methods = {}
+    if not inspect.isfunction(obj) and not inspect.ismethod(obj):
+        for method_name, method in inspect.getmembers(type(obj), predicate=callable):
+            method_code = getattr(method, "__code__", None)
+            if method_code is not None:
+                methods[method_name] = marshal.dumps(method_code).hex()
+    identity = {
+        "name": f"{type(obj).__module__}.{type(obj).__qualname__}",
+        "source": sources,
+        "code": marshal.dumps(code).hex() if code is not None else None,
+        "call_code": marshal.dumps(method_code).hex() if method_code is not None else None,
+        "methods": methods,
+        "partial": (
+            {
+                "func": _callable_identity(obj.func),
+                "args": _stable_value(obj.args),
+                "keywords": _stable_value(obj.keywords),
+            }
+            if hasattr(obj, "func") and hasattr(obj, "args") and hasattr(obj, "keywords")
+            else None
+        ),
+        "defaults": _stable_value(getattr(target, "__defaults__", None)),
+        "kwdefaults": _stable_value(getattr(target, "__kwdefaults__", None)),
+        "closure": _stable_value([cell.cell_contents for cell in closure]) if closure else None,
+        "globals": global_state,
+        "state": _stable_value(getattr(obj, "__dict__", {})),
+    }
+    return identity
+
+
+def compute_config_hash(
+    sim_specs,
+    gen_specs,
+    alloc_specs=None,
+    libE_specs=None,
+    exit_criteria=None,
+    H0=None,
+) -> str:
+    """Compute a deterministic SHA-256 hash of the full ensemble configuration.
+
+    All Pydantic spec models are dumped to stable dictionaries.  Callables
+    (``sim_f``, ``gen_f``, ``simulator``, ``generator``, ``alloc_f``) are
+    replaced with their source code (or ``module.name`` fallback) so that
+    code changes invalidate the cache.  ``H0`` data is also included.
+
+    Parameters
+    ----------
+    sim_specs : SimSpecs
+    gen_specs : GenSpecs | None
+    alloc_specs : AllocSpecs
+    libE_specs : LibeSpecs
+    exit_criteria : ExitCriteria
+    H0 : numpy.ndarray | None
+
+    Returns
+    -------
+    str
+        64-character hex digest.
+    """
+    spec_dicts: dict = {}
+
+    def _dump(spec, **kwargs):
+        return spec.model_dump(**kwargs)
+
+    def _dump_or_empty(spec, **kwargs):
+        return _dump(spec, **kwargs) if spec is not None else {}
+
+    spec_dicts["sim"] = _dump(sim_specs, by_alias=True, exclude_none=True, exclude_defaults=True)
+    spec_dicts["gen"] = _dump_or_empty(gen_specs, by_alias=True, exclude_none=True, exclude_defaults=True)
+    spec_dicts["alloc"] = _dump_or_empty(alloc_specs, by_alias=True, exclude_none=True, exclude_defaults=True)
+    spec_dicts["exit"] = _dump_or_empty(exit_criteria, by_alias=True, exclude_none=True)
+
+    libE_dict = _dump_or_empty(libE_specs, by_alias=True, exclude_none=True, exclude_defaults=True)
+    for key in ("cache_long_sims", "cache_dir", "cache_name", "cache_tolerances"):
+        libE_dict.pop(key, None)
+    spec_dicts["libE"] = libE_dict
+
+    _strip_raw_objects(spec_dicts)
+    _add_callable_sources(spec_dicts, sim_specs, gen_specs, alloc_specs)
+    if getattr(sim_specs, "vocs", None) is not None:
+        spec_dicts["sim_vocs"] = _stable_value(sim_specs.vocs)
+    if getattr(gen_specs, "vocs", None) is not None:
+        spec_dicts["gen_vocs"] = _stable_value(gen_specs.vocs)
+
+    # Hash H0 data
+    if H0 is not None and len(H0):
+        H0_data = {"dtype": H0.dtype.descr, "data": _stable_value(H0.tolist())}
+        spec_dicts["H0_hash"] = hashlib.sha256(json.dumps(H0_data, sort_keys=True, default=str).encode()).hexdigest()
+
+    serialized = json.dumps(spec_dicts, sort_keys=True, default=str)
+    return hashlib.sha256(serialized.encode()).hexdigest()
+
+
+_RAW_OBJECT_FIELDS = {
+    "sim": {"sim_f", "simulator", "vocs"},
+    "gen": {"gen_f", "generator", "vocs"},
+    "alloc": {"alloc_f"},
+}
+
+
+def _strip_raw_objects(spec_dicts):
+    """Remove object-typed fields from dumped spec dicts.
+
+    These are handled separately via source extraction to avoid
+    non-deterministic memory-address-based serialization.
+    """
+    for key, fields in _RAW_OBJECT_FIELDS.items():
+        if key in spec_dicts:
+            for field in fields:
+                spec_dicts[key].pop(field, None)
+
+
+def _add_callable_sources(spec_dicts, sim_specs, gen_specs, alloc_specs):
+    """Extract callable code and state and store it in spec_dicts."""
+    for spec_name, spec, field in [
+        ("sim", sim_specs, "sim_f"),
+        ("sim", sim_specs, "simulator"),
+        ("gen", gen_specs, "gen_f"),
+        ("gen", gen_specs, "generator"),
+        ("alloc", alloc_specs, "alloc_f"),
+    ]:
+        if spec is None:
+            continue
+        obj = getattr(spec, field, None)
+        if obj is not None:
+            spec_dicts[f"{spec_name}_source_{field}"] = _callable_identity(obj)
 
 
 def extract_H_ranges(Work: dict) -> str:
