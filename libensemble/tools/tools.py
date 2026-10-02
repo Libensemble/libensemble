@@ -65,8 +65,7 @@ _USER_CALC_DIR_WARNING = (
 
 def _get_shortname(basename):
     script_name = os.path.splitext(os.path.basename(basename))[0]
-    short_name = script_name.split("test_", 1).pop()
-    return short_name
+    return script_name.removeprefix("test_")
 
 
 # =================== save libE output to pickle and np ========================
@@ -108,7 +107,9 @@ def save_libE_output(
     basename  : :obj:`str`
 
         Name of user-calling script (or user chosen name) to prefix output files.
-        The convention is to send __file__ from user calling script.
+        The convention is to send __file__ from user calling script. A leading
+        ``test_`` is removed from the filename stem, but occurrences elsewhere
+        in the name are preserved.
 
     nworkers: :obj:`int`
 
