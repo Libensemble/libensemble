@@ -9,100 +9,21 @@ generator just to preserve the ambiguous name.
 
 ## Built-in sampling and Python simulator
 
-```python
-import numpy as np
-from gest_api.vocs import VOCS
+Use the runnable `examples/local_sampling.py` as the canonical full script. It uses
+`LatinHypercubeSample` for one complete initial design, a pure-Python simulator, finite
+result filtering, and manager-only output saving. Adapt variable names, bounds, objective,
+worker count, and simulation budget to the user's requirements. Do not copy its sample
+values as if they were user requirements.
 
-from libensemble import Ensemble
-from libensemble.gen_classes.sampling import UniformSample
-from libensemble.specs import GenSpecs, LibeSpecs, SimSpecs
-
-
-def simulate(inputs: dict, **kwargs) -> dict:
-    x0 = inputs["x0"]
-    x1 = inputs["x1"]
-    return {"f": x0**2 + x1**2}
-
-
-if __name__ == "__main__":
-    vocs = VOCS(
-        variables={"x0": [-3.0, 3.0], "x1": [-2.0, 2.0]},
-        objectives={"f": "MINIMIZE"},
-    )
-
-    ensemble = Ensemble(
-        sim_specs=SimSpecs(simulator=simulate, vocs=vocs),
-        gen_specs=GenSpecs(
-            generator=UniformSample(vocs, random_seed=1),
-            vocs=vocs,
-            initial_batch_size=4,
-            batch_size=4,
-        ),
-        libE_specs=LibeSpecs(comms="local", nworkers=4, safe_mode=True),
-    )
-
-    H, _, flag = ensemble.run(sim_max=100)
-
-    if ensemble.is_manager:
-        completed = H[H["sim_ended"]]
-        finite = completed[np.isfinite(completed["f"])]
-        history_path = ensemble.save_output("sampling_results", append_attrs=False)
-        print(f"Saved History to {history_path}")
-        if len(finite):
-            best = finite[np.argmin(finite["f"])]
-            print(f"Best: x0={best['x0']}, x1={best['x1']}, f={best['f']}")
-        if flag != 0:
-            raise RuntimeError(f"libEnsemble exited with flag {flag}; partial results saved")
-```
-
-Use `LatinHypercubeSample` from the same module for a space-filling batch. Each separate
-LHS `suggest()` call forms a separate Latin hypercube; use one initial batch equal to the
-full design size when global stratification matters.
-
-`initial_batch_size` controls the first request; `batch_size` controls later requests.
-Sampling ignores feedback, so either synchronous or asynchronous delivery is acceptable.
+Each `LatinHypercubeSample.suggest()` call forms a separate Latin hypercube. Use one initial
+batch equal to the full design size when global stratification across the whole sample
+matters. `initial_batch_size` controls the first request; `batch_size` controls later
+requests. Sampling ignores feedback, so either synchronous or asynchronous delivery is
+acceptable.
 
 ## Preloaded points
 
-```python
-from gest_api.vocs import VOCS
-
-from libensemble import Ensemble
-from libensemble.gen_classes import PreloadedSampleGenerator
-from libensemble.specs import GenSpecs, LibeSpecs, SimSpecs
-
-
-def simulate(inputs: dict, **kwargs) -> dict:
-    return {"f": inputs["x0"] ** 2 + inputs["x1"] ** 2}
-
-
-if __name__ == "__main__":
-    points = [
-        {"x0": -1.0, "x1": 0.5},
-        {"x0": 0.0, "x1": 0.0},
-        {"x0": 1.0, "x1": 0.5},
-    ]
-    vocs = VOCS(
-        variables={"x0": [-3.0, 3.0], "x1": [-2.0, 2.0]},
-        objectives={"f": "MINIMIZE"},
-    )
-
-    ensemble = Ensemble(
-        sim_specs=SimSpecs(simulator=simulate, vocs=vocs),
-        gen_specs=GenSpecs(
-            generator=PreloadedSampleGenerator(points, vocs=vocs, batch_size=2),
-            vocs=vocs,
-        ),
-        libE_specs=LibeSpecs(comms="local", nworkers=2, safe_mode=True),
-    )
-    H, _, flag = ensemble.run(sim_max=len(points))
-    if ensemble.is_manager:
-        history_path = ensemble.save_output("preloaded_results", append_attrs=False)
-        print(f"Saved History to {history_path}")
-        if flag != 0:
-            raise RuntimeError(f"libEnsemble exited with flag {flag}; partial results saved")
-```
-
+Use the runnable `examples/preloaded_points.py` as the canonical complete example.
 `PreloadedSampleGenerator` accepts a list of dictionaries or a NumPy structured array and
 returns an empty suggestion after exhaustion. Use it instead of a pre-generated-work
 allocator. Ensure every point has the simulator's required variable fields and any VOCS

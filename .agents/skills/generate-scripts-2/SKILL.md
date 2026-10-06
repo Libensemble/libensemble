@@ -25,14 +25,11 @@ dictionary, or explicit allocation-function patterns.
    ecosystems. Read `references/aposmm.md` or `references/external-generators.md` when
    applicable. Check that every non-core package is installed before relying on it.
 
-3. Read `references/canonical-patterns.md` and generate an `Ensemble`-based script with:
-   - `VOCS` imported from `gest_api.vocs`
-   - typed `SimSpecs`, `GenSpecs`, and `LibeSpecs`
-   - a generator object supplied with `GenSpecs(generator=..., vocs=...)`
-   - a dict simulator supplied with `SimSpecs(simulator=..., vocs=...)`
-   - `if __name__ == "__main__":`
-   - termination criteria passed directly to `ensemble.run(...)`
-   - manager-only reporting and output saving, including partial results on timeout
+3. Read `references/canonical-patterns.md`. For a basic Python simulator, adapt
+   `examples/local_sampling.py`. For an existing set of points, adapt
+   `examples/preloaded_points.py`. Keep the complete script structure: `Ensemble`, VOCS,
+   typed `SimSpecs`/`GenSpecs`/`LibeSpecs`, `generator=` and `simulator=`, a main guard,
+   explicit `ensemble.run(...)` stopping criteria, and manager-only result reporting/saving.
 
 4. For an executable, read `references/executors-and-files.md`. Use `Executor` for a
    normal subprocess and `MPIExecutor` only when the application itself needs an MPI or
@@ -91,7 +88,9 @@ dictionary, or explicit allocation-function patterns.
 Read only what the request needs; all paths are relative to this skill directory.
 
 - `references/intake-and-validation.md` — requirements and final checks
-- `references/canonical-patterns.md` — complete modern local templates
+- `examples/local_sampling.py` — runnable built-in sampling workflow
+- `examples/preloaded_points.py` — runnable workflow for evaluating supplied points
+- `references/canonical-patterns.md` — adaptation guidance and generator/VOCS pitfalls
 - `references/generator-selection.md` — generator decision table and batch behavior
 - `references/aposmm.md` — standardized APOSMM configuration
 - `references/external-generators.md` — Xopt, Optimas, and gpCAM

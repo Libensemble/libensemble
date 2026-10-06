@@ -16,11 +16,11 @@
 #
 import os
 import sys
-from datetime import datetime
+from datetime import datetime, timezone
+from runpy import run_path
 from unittest.mock import MagicMock
 
-with open("../libensemble/version.py") as f:
-    __version__ = f.read()
+__version__ = run_path(os.path.join(os.path.dirname(__file__), "../libensemble/version.py"))["__version__"]
 
 
 class Mock(MagicMock):
@@ -133,9 +133,9 @@ linkcheck_ignore = [
 autodoc_pydantic_model_show_json = False
 
 extlinks = {
-    "duref": ("http://docutils.sourceforge.net/docs/ref/rst/", "restructuredtext.html#%s", ""),
-    "durole": ("http://docutils.sourceforge.net/docs/ref/rst/", "roles.html#%s", ""),
-    "dudir": ("http://docutils.sourceforge.net/docs/ref/rst/", "directives.html#%s", ""),
+    "duref": ("http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html#%s", ""),
+    "durole": ("http://docutils.sourceforge.net/docs/ref/rst/roles.html#%s", ""),
+    "dudir": ("http://docutils.sourceforge.net/docs/ref/rst/directives.html#%s", ""),
 }
 
 # Add any paths that contain templates here, relative to this directory.
@@ -158,7 +158,7 @@ latex_doc = "latex_index"
 
 # General information about the project.
 project = "libEnsemble"
-copyright = str(datetime.now("UTC").year) + " Argonne National Laboratory"
+copyright = str(datetime.now(timezone.utc).year) + " Argonne National Laboratory"
 author = "Jeffrey Larson, Stephen Hudson, Stefan M. Wild, David Bindel and John-Luke Navarro"
 today_fmt = "%B %-d, %Y"
 
@@ -198,8 +198,8 @@ with open("nitpicky") as f:
         if line.strip() == "" or line.startswith("#"):
             continue
         dtype, target = line.split(None, 1)
-    target = target.strip()
-    nitpick_ignore.append((dtype, target))
+        target = target.strip()
+        nitpick_ignore.append((dtype, target))
 
 # -- Options for HTML output ----------------------------------------------
 
