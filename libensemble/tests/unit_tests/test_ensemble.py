@@ -23,6 +23,36 @@ def test_stable_value_handles_cyclic_references():
     assert partner["state"]["partner"]["state"] == "<cyclic>"
 
 
+def test_save_output_preserves_embedded_test_prefix(tmp_path, monkeypatch):
+    from libensemble.ensemble import Ensemble
+    from libensemble.specs import LibeSpecs
+
+    ensemble = Ensemble(libE_specs=LibeSpecs(comms="local", nworkers=1))
+    ensemble.H = np.zeros(1, dtype=[("sim_ended", bool)])
+    ensemble.persis_info = {}
+
+    monkeypatch.chdir(tmp_path)
+    output_path = ensemble.save_output("sampling_retest_renamed.py", append_attrs=False)
+
+    assert output_path == "sampling_retest_renamed.npy"
+    assert (tmp_path / "sampling_retest_renamed.npy").is_file()
+    assert (tmp_path / "sampling_retest_renamed.pickle").is_file()
+
+
+def test_save_output_strips_only_leading_test_prefix(tmp_path, monkeypatch):
+    from libensemble.ensemble import Ensemble
+    from libensemble.specs import LibeSpecs
+
+    ensemble = Ensemble(libE_specs=LibeSpecs(comms="local", nworkers=1))
+    ensemble.H = np.zeros(1, dtype=[("sim_ended", bool)])
+    ensemble.persis_info = {}
+
+    monkeypatch.chdir(tmp_path)
+    output_path = ensemble.save_output("test_sampling.py", append_attrs=False)
+
+    assert output_path == "sampling.npy"
+
+
 def test_ensemble_init():
     """testing init attrs"""
     from libensemble.ensemble import Ensemble

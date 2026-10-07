@@ -486,23 +486,20 @@ class Ensemble:
         if self._libE_specs:
             self._libE_specs.nworkers = value
 
-    def save_output(self, basename: str, append_attrs: bool = True):
+    def save_output(self, basename: str, append_attrs: bool = True) -> str | None:
         """
         Writes out History array and persis_info to files.
-        If using a ``workflow_dir_path`` in ``libE_specs``, will place with specified filename in that directory.
+        If using a ``workflow_dir_path`` in ``libE_specs``, will place the files in that directory.
 
-        Parameters
-        ----------
+        The basename is reduced to its filename stem. A leading ``test_`` is removed to
+        preserve the calling-script convention, while occurrences elsewhere are retained.
+        If ``append_attrs`` is true, run attributes are appended to the stem.
 
-        Format: ``<basename>_results_History_length=<length>_evals=<Completed evals>_ranks=<nworkers>``
-
-        To have the filename be only the basename, set ``append_attrs=False``
-
-        Format: ``<basename>_results_History_length=<length>_evals=<Completed evals>_ranks=<nworkers>``
+        Returns the History filename on the manager and ``None`` on other ranks.
         """
         if self.is_manager:
             if getattr(self.libE_specs, "workflow_dir_path", False):
-                save_libE_output(
+                return save_libE_output(
                     self.H,
                     self.persis_info,
                     basename,
@@ -510,5 +507,5 @@ class Ensemble:
                     dest_path=self.libE_specs.workflow_dir_path,
                     append_attrs=append_attrs,
                 )
-            else:
-                save_libE_output(self.H, self.persis_info, basename, self.nworkers, append_attrs=append_attrs)
+            return save_libE_output(self.H, self.persis_info, basename, self.nworkers, append_attrs=append_attrs)
+        return None
