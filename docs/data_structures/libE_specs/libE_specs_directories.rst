@@ -1,7 +1,7 @@
 Directories
 ===========
 
-:doc:`Introduction <libE_specs>` || :doc:`General <libE_specs_general>` || **Directories** || :doc:`Profiling <libE_specs_profiling>` || :doc:`History <libE_specs_history>` || :doc:`Resources <libE_specs_resources>`
+:doc:`Introduction <libE_specs>` || :doc:`General <libE_specs_general>` || **Directories** || :doc:`Profiling <libE_specs_profiling>` || :doc:`History <libE_specs_history>` || :doc:`Resources <libE_specs_resources>` || :doc:`Cache <libE_specs_cache>`
 
 .. tab-set::
 

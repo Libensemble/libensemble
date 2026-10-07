@@ -1,7 +1,7 @@
 Resources
 =========
 
-:doc:`Introduction <libE_specs>` || :doc:`General <libE_specs_general>` || :doc:`Directories <libE_specs_directories>` || :doc:`Profiling <libE_specs_profiling>` || :doc:`History <libE_specs_history>` || **Resources**
+:doc:`Introduction <libE_specs>` || :doc:`General <libE_specs_general>` || :doc:`Directories <libE_specs_directories>` || :doc:`Profiling <libE_specs_profiling>` || :doc:`History <libE_specs_history>` || **Resources** || :doc:`Cache <libE_specs_cache>`
 
 **disable_resource_manager** [bool] = ``False``:
     Disable the built-in resource manager, including automatic resource detection

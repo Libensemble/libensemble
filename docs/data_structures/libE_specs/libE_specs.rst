@@ -1,6 +1,6 @@
 .. _datastruct-libe-specs:
 
-**Introduction** || :doc:`General <libE_specs_general>` || :doc:`Directories <libE_specs_directories>` || :doc:`Profiling <libE_specs_profiling>` || :doc:`History <libE_specs_history>` || :doc:`Resources <libE_specs_resources>`
+**Introduction** || :doc:`General <libE_specs_general>` || :doc:`Directories <libE_specs_directories>` || :doc:`Profiling <libE_specs_profiling>` || :doc:`History <libE_specs_history>` || :doc:`Resources <libE_specs_resources>` || :doc:`Cache <libE_specs_cache>`
 
 LibE Specs
 ==========
@@ -21,6 +21,7 @@ libEnsemble is primarily customized by setting options within a ``LibeSpecs`` in
     libE_specs_profiling
     libE_specs_history
     libE_specs_resources
+    libE_specs_cache
 
 .. dropdown:: Complete Class API
 

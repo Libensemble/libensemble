@@ -1,7 +1,7 @@
 Profiling
 =========
 
-:doc:`Introduction <libE_specs>` || :doc:`General <libE_specs_general>` || :doc:`Directories <libE_specs_directories>` || **Profiling** || :doc:`History <libE_specs_history>` || :doc:`Resources <libE_specs_resources>`
+:doc:`Introduction <libE_specs>` || :doc:`General <libE_specs_general>` || :doc:`Directories <libE_specs_directories>` || **Profiling** || :doc:`History <libE_specs_history>` || :doc:`Resources <libE_specs_resources>` || :doc:`Cache <libE_specs_cache>`
 
 **profile** [bool] = ``False``:
     Profile manager and worker logic using ``cProfile``.
