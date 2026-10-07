@@ -57,8 +57,8 @@ if __name__ == "__main__":
 
     passed = False
     for attempt in range(2):
-        workflow = Ensemble(parse_args=True)
-        if workflow.is_manager:
+        ensemble = Ensemble(parse_args=True)
+        if ensemble.is_manager:
             start_time = time()
 
         aposmm = APOSMM(
@@ -77,17 +77,17 @@ if __name__ == "__main__":
             dist_to_bound_multiple=0.5,
         )
 
-        workflow.gen_specs = GenSpecs(
+        ensemble.gen_specs = GenSpecs(
             generator=aposmm,
             vocs=vocs,
             initial_batch_size=100,
         )
 
-        workflow.sim_specs = SimSpecs(simulator=six_hump_camel_func, vocs=vocs)
-        H, _, _ = workflow.run(sim_max=3000, wallclock_max=600)
+        ensemble.sim_specs = SimSpecs(simulator=six_hump_camel_func, vocs=vocs)
+        H, _, _ = ensemble.run(sim_max=3000, wallclock_max=600)
 
         run_passed = False
-        if workflow.is_manager:
+        if ensemble.is_manager:
             print(f"[Manager]: Run {attempt + 1} results:", H[H["local_min"]]["x"])
             print("[Manager]: Time taken =", time() - start_time, flush=True)
 
@@ -98,7 +98,7 @@ if __name__ == "__main__":
                 print(np.min(distances, initial=np.inf), flush=True)
                 run_passed = run_passed and np.any(distances < tol)
 
-        if workflow.libE_specs.comms == "mpi":
+        if ensemble.libE_specs.comms == "mpi":
             from mpi4py import MPI
 
             run_passed = MPI.COMM_WORLD.bcast(run_passed, root=0)
@@ -107,7 +107,7 @@ if __name__ == "__main__":
             passed = True
             break
 
-    if workflow.is_manager:
+    if ensemble.is_manager:
         print("[Manager]:", H[np.where(H["local_min"])]["x"])
         print("[Manager]: Time taken =", time() - start_time, flush=True)
 

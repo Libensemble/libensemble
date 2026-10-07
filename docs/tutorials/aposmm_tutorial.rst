@@ -118,7 +118,7 @@ a ``VOCS`` object:
     :linenos:
 
     if __name__ == "__main__":
-        workflow = Ensemble(parse_args=True)
+        ensemble = Ensemble(parse_args=True)
 
         vocs = VOCS(
             variables={"x1": [-2, 2], "x2": [-1, 1]},
@@ -134,14 +134,14 @@ Now, configure APOSMM. APOSMM internally uses ``x`` and ``x_on_cube`` coordinate
 
         aposmm = APOSMM(
             vocs,
-            max_active_runs=workflow.nworkers,
+            max_active_runs=ensemble.nworkers,
             variables_mapping={"x": ["x1", "x2"], "f": ["f"]},
             initial_sample_size=100,
             localopt_method="scipy_Nelder-Mead",
             opt_return_codes=[0],
         )
 
-        workflow.gen_specs = GenSpecs(
+        ensemble.gen_specs = GenSpecs(
             generator=aposmm,
             vocs=vocs,
             batch_size=5,
@@ -155,11 +155,11 @@ Finally, we configure the simulation function, exit criteria, and run the workfl
 .. code-block:: python
     :linenos:
 
-        workflow.sim_specs = SimSpecs(simulator=six_hump_camel_func, vocs=vocs)
+        ensemble.sim_specs = SimSpecs(simulator=six_hump_camel_func, vocs=vocs)
 
-        H, _, _ = workflow.run(sim_max=2000)
+        H, _, _ = ensemble.run(sim_max=2000)
 
-        if workflow.is_manager:
+        if ensemble.is_manager:
             # We can map our variables back to an array for easy printing
             minima = [[row["x1"], row["x2"]] for row in H if row["local_min"]]
             print("Minima:", minima)

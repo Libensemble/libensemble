@@ -61,15 +61,15 @@ if __name__ == "__main__":
         vocs=vocs,
     )
 
-    workflow = Ensemble(
+    ensemble = Ensemble(
         libE_specs=libE_specs,
         sim_specs=sim_specs,
         gen_specs=gen_specs,
     )
 
-    H, _, _ = workflow.run(sim_max=6)
+    H, _, _ = ensemble.run(sim_max=6)
 
     # Perform the run
-    if workflow.is_manager:
-        workflow.save_output(__file__)
+    if ensemble.is_manager:
+        ensemble.save_output(__file__)
         print(f"Completed {len(H)} simulations")

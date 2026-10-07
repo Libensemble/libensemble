@@ -94,16 +94,16 @@ The simulator is a simple callable function that takes a dictionary of inputs an
 
     alloc_specs = AllocSpecs(alloc_f=alloc_f)
 
-    workflow = Ensemble(
+    ensemble = Ensemble(
         libE_specs=libE_specs,
         sim_specs=sim_specs,
         alloc_specs=alloc_specs,
         gen_specs=gen_specs,
     )
 
-    H, _, _ = workflow.run(sim_max=12)
+    H, _, _ = ensemble.run(sim_max=12)
 
-    if workflow.is_manager:
+    if ensemble.is_manager:
         print(f"Completed {len(H)} simulations")
         print(H[["x1", "x2", "y1", "c1"]])
         assert np.array_equal(H["y1"], H["x2"])
@@ -151,16 +151,16 @@ Reset generator and change to libEnsemble-style simulator:
         vocs=vocs,
     )
 
-    workflow = Ensemble(
+    ensemble = Ensemble(
         libE_specs=libE_specs,
         sim_specs=sim_specs,
         alloc_specs=alloc_specs,
         gen_specs=gen_specs,
     )
 
-    H, _, _ = workflow.run(sim_max=12)
+    H, _, _ = ensemble.run(sim_max=12)
 
-    if workflow.is_manager:
+    if ensemble.is_manager:
         print(f"Completed {len(H)} simulations")
         print(H[["x1", "x2", "y1", "c1"]])
         assert np.array_equal(H["y1"], H["x2"])

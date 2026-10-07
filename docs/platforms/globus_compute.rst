@@ -72,12 +72,12 @@ This mode supports both the :ref:`gest-api simulator format<datastruct-sim-specs
 
     libE_specs = LibeSpecs(nworkers=4)  # up to 4 concurrent GC tasks
 
-    workflow = Ensemble(
+    ensemble = Ensemble(
         sim_specs=sim_specs,
         gen_specs=gen_specs,
         libE_specs=libE_specs,
     )
-    H, _, _ = workflow.run(sim_max=20)
+    H, _, _ = ensemble.run(sim_max=20)
 
 Users can also define ``Executor`` instances within their remote simulator
 functions and submit MPI applications normally, as long as libEnsemble and

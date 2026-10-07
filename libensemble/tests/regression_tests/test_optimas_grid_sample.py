@@ -72,16 +72,16 @@ if __name__ == "__main__":
         vocs=vocs,
     )
 
-    workflow = Ensemble(
+    ensemble = Ensemble(
         libE_specs=libE_specs,
         sim_specs=sim_specs,
         gen_specs=gen_specs,
     )
 
-    H, _, _ = workflow.run(sim_max=n_evals)
+    H, _, _ = ensemble.run(sim_max=n_evals)
 
     # Perform the run
-    if workflow.is_manager:
+    if ensemble.is_manager:
         print(f"Completed {len(H)} simulations")
 
         # Get generated points.

@@ -69,16 +69,16 @@ if __name__ == "__main__":
 
     alloc_specs = AllocSpecs(alloc_f=alloc_f)
 
-    workflow = Ensemble(
+    ensemble = Ensemble(
         libE_specs=libE_specs,
         sim_specs=sim_specs,
         alloc_specs=alloc_specs,
         gen_specs=gen_specs,
     )
 
-    H, _, _ = workflow.run(sim_max=20)
+    H, _, _ = ensemble.run(sim_max=20)
 
-    if workflow.is_manager:
+    if ensemble.is_manager:
         print(f"Completed {len(H)} simulations")
         assert len(H) >= 8, f"Expected at least 8 sims, got {len(H)}"
         print("Test passed")

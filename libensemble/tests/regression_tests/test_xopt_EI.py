@@ -84,16 +84,16 @@ if __name__ == "__main__":
         vocs=vocs,
     )
 
-    workflow = Ensemble(
+    ensemble = Ensemble(
         libE_specs=libE_specs,
         sim_specs=sim_specs,
         gen_specs=gen_specs,
     )
 
-    H, _, _ = workflow.run(sim_max=20)
+    H, _, _ = ensemble.run(sim_max=20)
 
     # Perform the run
-    if workflow.is_manager:
+    if ensemble.is_manager:
         print(f"Completed {len(H)} simulations")
         assert np.array_equal(H["y1"], H["x2"])
         assert np.array_equal(H["c1"], H["x1"])

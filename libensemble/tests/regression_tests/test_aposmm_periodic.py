@@ -39,7 +39,7 @@ def periodic_func(x):
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
-    workflow = Ensemble(parse_args=True)
+    ensemble = Ensemble(parse_args=True)
 
     vocs = VOCS(
         variables={
@@ -66,16 +66,16 @@ if __name__ == "__main__":
         print=True,
     )
 
-    workflow.gen_specs = GenSpecs(
+    ensemble.gen_specs = GenSpecs(
         generator=aposmm,
         vocs=vocs,
         initial_batch_size=100,
     )
-    workflow.sim_specs = SimSpecs(simulator=periodic_func, vocs=vocs)
+    ensemble.sim_specs = SimSpecs(simulator=periodic_func, vocs=vocs)
 
-    H, _, _ = workflow.run(sim_max=1000)
+    H, _, _ = ensemble.run(sim_max=1000)
 
-    if workflow.is_manager:
+    if ensemble.is_manager:
         min_ids = np.where(H["local_min"])
 
         # The minima are known on this test problem. If the above [lb, ub] domain is

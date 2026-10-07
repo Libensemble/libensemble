@@ -41,7 +41,7 @@ def periodic_func(x):
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
-    workflow = Ensemble(parse_args=True)
+    ensemble = Ensemble(parse_args=True)
 
     vocs = VOCS(
         variables={
@@ -66,23 +66,23 @@ if __name__ == "__main__":
         dist_to_bound_multiple=0,
     )
 
-    workflow.gen_specs = GenSpecs(
+    ensemble.gen_specs = GenSpecs(
         generator=aposmm,
         vocs=vocs,
         initial_batch_size=100,
     )
-    workflow.sim_specs = SimSpecs(simulator=periodic_func, vocs=vocs)
-    workflow.libE_specs = LibeSpecs(abort_on_exception=False)
+    ensemble.sim_specs = SimSpecs(simulator=periodic_func, vocs=vocs)
+    ensemble.libE_specs = LibeSpecs(abort_on_exception=False)
 
     exception_raised = False
     try:
-        workflow.run(sim_max=1000)
+        ensemble.run(sim_max=1000)
     except Exception:
-        if workflow.is_manager:
+        if ensemble.is_manager:
             exception_raised = True
 
-    if workflow.is_manager:
-        if workflow.libE_specs.comms == "mpi":
+    if ensemble.is_manager:
+        if ensemble.libE_specs.comms == "mpi":
             from mpi4py import MPI
 
             if exception_raised:

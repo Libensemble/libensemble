@@ -43,9 +43,9 @@ def six_hump_camel_func(x):
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
-    workflow = Ensemble(parse_args=True)
+    ensemble = Ensemble(parse_args=True)
 
-    if workflow.is_manager:
+    if ensemble.is_manager:
         start_time = time()
 
     n = 2
@@ -74,17 +74,17 @@ if __name__ == "__main__":
         dist_to_bound_multiple=0.01,
     )
 
-    workflow.gen_specs = GenSpecs(
+    ensemble.gen_specs = GenSpecs(
         generator=aposmm,
         vocs=vocs,
         initial_batch_size=100,
     )
 
-    workflow.sim_specs = SimSpecs(simulator=six_hump_camel_func, vocs=vocs)
+    ensemble.sim_specs = SimSpecs(simulator=six_hump_camel_func, vocs=vocs)
 
-    H, _, _ = workflow.run(sim_max=1000)
+    H, _, _ = ensemble.run(sim_max=1000)
 
-    if workflow.is_manager:
+    if ensemble.is_manager:
         print("[Manager]:", H[np.where(H["local_min"])]["x"])
         print("[Manager]: Time taken =", time() - start_time, flush=True)
 

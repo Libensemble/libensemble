@@ -39,7 +39,7 @@ def periodic_func(x):
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
-    workflow = Ensemble(parse_args=True)
+    ensemble = Ensemble(parse_args=True)
 
     vocs = VOCS(
         variables={
@@ -64,16 +64,16 @@ if __name__ == "__main__":
         print=True,
     )
 
-    workflow.gen_specs = GenSpecs(
+    ensemble.gen_specs = GenSpecs(
         generator=aposmm,
         vocs=vocs,
         initial_batch_size=100,
     )
-    workflow.sim_specs = SimSpecs(simulator=periodic_func, vocs=vocs)
+    ensemble.sim_specs = SimSpecs(simulator=periodic_func, vocs=vocs)
 
     # Setting a very high sim_max and a short wallclock_max so timeout will occur
-    H, _, flag = workflow.run(sim_max=50000, wallclock_max=5)
+    H, _, flag = ensemble.run(sim_max=50000, wallclock_max=5)
 
-    if workflow.is_manager:
+    if ensemble.is_manager:
         assert flag == 2, "Test should have timed out"
         assert np.any(H["local_min"]), "Expected at least one local minimum to be found"

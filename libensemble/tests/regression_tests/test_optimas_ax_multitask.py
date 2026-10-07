@@ -85,20 +85,20 @@ if __name__ == "__main__":
             vocs=vocs,
         )
 
-        workflow = Ensemble(
+        ensemble = Ensemble(
             libE_specs=libE_specs,
             sim_specs=sim_specs,
             gen_specs=gen_specs,
             H0=H0,
         )
 
-        H, _, _ = workflow.run(sim_max=15)
+        H, _, _ = ensemble.run(sim_max=15)
 
         if run_num == 0:
             H0 = H
-            workflow.save_output("multitask_first_pass", append_attrs=False)  # Allows restart only run
+            ensemble.save_output("multitask_first_pass", append_attrs=False)  # Allows restart only run
 
-        if workflow.is_manager:
+        if ensemble.is_manager:
             if run_num == 1:
-                workflow.save_output("multitask_with_H0")
+                ensemble.save_output("multitask_with_H0")
                 print(f"Second run completed: {len(H)} simulations")

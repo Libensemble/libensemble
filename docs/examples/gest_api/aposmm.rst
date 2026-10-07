@@ -12,8 +12,8 @@ APOSMM with libEnsemble
 
 .. literalinclude:: ../../../libensemble/tests/regression_tests/test_aposmm_nlopt.py
     :linenos:
-    :start-at:        workflow = Ensemble(parse_args=True)
-    :end-before:         H, _, _ = workflow.run
+    :start-at:        ensemble = Ensemble(parse_args=True)
+    :end-before:         H, _, _ = ensemble.run
 
 APOSMM standalone
 ^^^^^^^^^^^^^^^^^
