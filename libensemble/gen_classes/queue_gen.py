@@ -61,19 +61,34 @@ class QueueGenerator(Generator):
         assert len(self.vocs.variable_names), "VOCS must contain variables."
 
     def __getstate__(self):
-        # This generator is only ever meant to run in-process, on the manager
-        # (see QueueService's gen_on_worker guard below). However, under
-        # libE_specs["comms"] = "local" (multiprocessing), gen_specs -
-        # including this generator instance - is still pickled to spawn every
-        # *sim*-only worker process, even though they never touch it. Drop the
-        # live Queue objects (which hold unpicklable threading.Lock state)
-        # so that pickling doesn't crash; those workers never use them.
+        # This generator shares plain queue.Queue objects directly with an
+        # external producer living in *this* process, so it must keep running
+        # in-process (QueueService enforces this via a gen_on_worker guard,
+        # but QueueGenerator can also be wired up directly, bypassing that
+        # check). Under libE_specs["comms"] = "local" (multiprocessing),
+        # gen_specs - including this generator instance - is still pickled to
+        # spawn every *sim*-only worker process, even though they never touch
+        # it. Drop the live Queue objects (which hold unpicklable
+        # threading.Lock state) so that pickling doesn't crash; those sim
+        # workers never use them. If gen_on_worker=True sends this generator
+        # to a worker that's actually expected to call suggest()/ingest(),
+        # the guards below raise a clear error instead of an AttributeError.
         state = self.__dict__.copy()
         state["input_queue"] = None
         state["output_queue"] = None
         return state
 
+    def _check_queues(self) -> None:
+        if self.input_queue is None or self.output_queue is None:
+            raise RuntimeError(
+                "QueueGenerator has no queues in this process. This generator must run "
+                "on the manager (do not set libE_specs['gen_on_worker'] = True), since its "
+                "queues are plain in-memory objects shared with the external producer and "
+                "are not available in a separate worker process."
+            )
+
     def suggest(self, num_points: Optional[int]) -> List[dict]:
+        self._check_queues()
         if self._shutdown_seen:
             return []
         n = num_points or 1
@@ -98,6 +113,7 @@ class QueueGenerator(Generator):
         return items
 
     def ingest(self, results: List[dict]) -> None:
+        self._check_queues()
         for r in results:
             self.output_queue.put(r)
 
@@ -145,7 +161,7 @@ class QueueService:
         # external producer's process - it must run on the manager (the
         # default), not a spawned worker, which wouldn't have access to the
         # same queue objects (and whose copy would be stripped of them, see
-        # QueueGenerator.__getstate__).
+        # QueueGenerator.__getstate__/_check_queues).
         assert not getattr(
             libE_specs, "gen_on_worker", False
         ), "QueueGenerator must run on the manager; do not set libE_specs['gen_on_worker'] = True."
