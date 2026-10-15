@@ -16,6 +16,7 @@ Usage:
                          input_queue=in_q, output_queue=out_q)
     in_q.put({"x": 0.5})  # external producer feeds work
 """
+
 import threading
 import time
 from queue import Empty, Queue
@@ -23,7 +24,6 @@ from typing import Any, List, Optional
 
 from gest_api import Generator
 from gest_api.vocs import VOCS
-
 
 _SHUTDOWN = object()  # sentinel: external producer signals "no more work"
 
@@ -59,6 +59,19 @@ class QueueGenerator(Generator):
 
     def _validate_vocs(self, vocs: VOCS) -> None:
         assert len(self.vocs.variable_names), "VOCS must contain variables."
+
+    def __getstate__(self):
+        # This generator is only ever meant to run in-process, on the manager
+        # (see QueueService's gen_on_worker guard below). However, under
+        # libE_specs["comms"] = "local" (multiprocessing), gen_specs -
+        # including this generator instance - is still pickled to spawn every
+        # *sim*-only worker process, even though they never touch it. Drop the
+        # live Queue objects (which hold unpicklable threading.Lock state)
+        # so that pickling doesn't crash; those workers never use them.
+        state = self.__dict__.copy()
+        state["input_queue"] = None
+        state["output_queue"] = None
+        return state
 
     def suggest(self, num_points: Optional[int]) -> List[dict]:
         if self._shutdown_seen:
@@ -127,6 +140,15 @@ class QueueService:
     ):
         from libensemble import Ensemble
         from libensemble.specs import GenSpecs
+
+        # QueueGenerator shares plain queue.Queue objects directly with the
+        # external producer's process - it must run on the manager (the
+        # default), not a spawned worker, which wouldn't have access to the
+        # same queue objects (and whose copy would be stripped of them, see
+        # QueueGenerator.__getstate__).
+        assert not getattr(
+            libE_specs, "gen_on_worker", False
+        ), "QueueGenerator must run on the manager; do not set libE_specs['gen_on_worker'] = True."
 
         # final_gen_send must be True for QueueGenerator — otherwise the last
         # batch of completed sims is never ingested and never reaches the
