@@ -68,17 +68,20 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info, l
     gen_count = support.count_persis_gens()
     Work = {}
 
-    # Asynchronous return to generator
-    async_return = user.get("async_return", False) and sum(H["sim_ended"]) >= initial_batch_size
+    # Asynchronous return to generator.
+    # Use the manager-maintained counter instead of re-scanning the full H array.
+    async_return = user.get("async_return", False) and libE_info["sim_ended_count"] >= initial_batch_size
 
     if gen_count < persis_info.get("num_gens_started", 0):
         # When a persistent worker is done, trigger a shutdown (returning exit condition of 1)
         return Work, persis_info, 1
 
-    # Give evaluated results back to a running persistent gen
+    # Give evaluated results back to a running persistent gen.
+    # Compute the sim_ended & ~gen_informed mask once; AND with per-worker gen_inds inside the loop.
+    pending_sim = H["sim_ended"] & ~H["gen_informed"]
     for wid in support.avail_worker_ids(persistent=EVAL_GEN_TAG, active_recv=active_recv_gen):
         gen_inds = H["gen_worker"] == wid
-        returned_but_not_given = np.logical_and.reduce((H["sim_ended"], ~H["gen_informed"], gen_inds))
+        returned_but_not_given = pending_sim & gen_inds
         if np.any(returned_but_not_given):
             if async_return or support.all_sim_ended(H, gen_inds):
                 point_ids = np.where(returned_but_not_given)[0]

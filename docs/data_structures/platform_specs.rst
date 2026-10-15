@@ -90,10 +90,26 @@ E.g., in the command line or batch submission script:
 
     export LIBE_PLATFORM="perlmutter_g"
 
+.. note::
+
+    The ``flux`` platform configures the :doc:`MPI Executor <../executor/ex_mpi>`
+    to launch applications by subprocessing ``flux run``. This is independent
+    of the :doc:`Flux Executor <../executor/ex_flux>`, which instead submits
+    jobs directly to Flux via its Python API bindings.
+
 .. _known-platforms:
 
 Known Platforms List
 --------------------
+
+.. autopydantic_model:: libensemble.resources.platforms.FluxAllocation
+    :model-show-validator-members: False
+    :model-show-validator-summary: False
+    :model-show-field-summary: False
+    :field-list-validators: False
+    :field-show-required: False
+    :field-show-default: False
+    :field-show-alias: False
 
 .. dropdown:: ``Known_platforms``
     :open:

@@ -4,7 +4,7 @@ Runs libEnsemble testing the MPI Runners command creation.
 Execute via one of the following commands (e.g. 3 workers):
    mpiexec -np 4 python test_mpi_runners.py
    python test_mpi_runners.py --nworkers 3
-   python test_mpi_runners.py --nworkers 3 --comms tcp
+   python test_mpi_runners.py --nworkers 3 --comms threads
 
 The number of concurrent evaluations of the objective function will be 4-1=3.
 """
@@ -24,7 +24,7 @@ logger.set_level("INFO")
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local
-# TESTSUITE_NPROCS: 2 4
+# TESTSUITE_NPROCS: 4
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":

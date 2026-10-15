@@ -28,7 +28,7 @@ from libensemble.gen_funcs.persistent_fd_param_finder import fd_param_finder as 
 # Import libEnsemble items for this test
 from libensemble.sim_funcs.noisy_vector_mapping import func_wrapper as sim_f
 from libensemble.sim_funcs.noisy_vector_mapping import noisy_function
-from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, SimSpecs
+from libensemble.specs import AllocSpecs, GenSpecs, SimSpecs
 
 if __name__ == "__main__":
     x0 = np.array([1.23, 4.56])  # point about which we are calculating finite difference parameters
@@ -58,16 +58,16 @@ if __name__ == "__main__":
             },
         ),
         alloc_specs=AllocSpecs(alloc_f=alloc_f),
-        exit_criteria=ExitCriteria(gen_max=1000),
     )
     fd_test.persis_info = {}
 
     shutil.copy("./scripts_used_by_reg_tests/ECnoise.m", "./")
 
-    H, persis_info, _ = fd_test.run()
+    gen_max = 1000
+    H, persis_info, _ = fd_test.run(gen_max=gen_max)
 
     if fd_test.is_manager:
-        assert len(H) < fd_test.exit_criteria.gen_max, "Problem didn't stop early, which should have been the case."
+        assert len(H) < gen_max, "Problem didn't stop early, which should have been the case."
         assert np.all(persis_info[0]["Fnoise"] > 0), "gen_f didn't find noise for all F_i components."
 
         fd_test.save_output(__file__)

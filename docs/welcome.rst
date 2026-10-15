@@ -6,7 +6,7 @@
   .. image:: https://img.shields.io/pypi/v/libensemble.svg?color=blue
     :target: https://pypi.org/project/libensemble
 
-  .. image:: https://img.shields.io/conda/v/conda-forge/libensemble?color=blue
+  .. image:: https://img.shields.io/conda/v/conda-forge/libensemble
     :target: https://anaconda.org/conda-forge/libensemble
 
   .. image:: https://img.shields.io/spack/v/py-libensemble?color=blue
@@ -17,8 +17,8 @@
   .. image:: https://github.com/Libensemble/libensemble/actions/workflows/extra.yml/badge.svg?branch=main
     :target: https://github.com/Libensemble/libensemble/actions
 
-  .. image:: https://codecov.io/github/Libensemble/libensemble/graph/badge.svg
-    :target: https://codecov.io/github/Libensemble/libensemble
+  .. image:: https://app.codecov.io/github/Libensemble/libensemble/graph/badge.svg
+    :target: https://app.codecov.io/github/Libensemble/libensemble
 
   .. image:: https://readthedocs.org/projects/libensemble/badge/?maxAge=2592000
     :target: https://libensemble.readthedocs.org/en/latest/

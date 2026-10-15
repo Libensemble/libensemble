@@ -96,10 +96,9 @@ Now grab an interactive session on one node::
 Then in the session run::
 
     export LIBE_PLATFORM="perlmutter_g"
-    python run_libe_forces.py -n 5
+    python run_libe_forces.py -n 4
 
-This places the generator on the first worker and runs simulations on the
-others (each simulation using one GPU).
+The workers will each run simualations with one GPU each.
 
 To see GPU usage, ssh into the node you are on in another window and run::
 
@@ -189,7 +188,7 @@ Additional Information
 
 See the NERSC Perlmutter_ docs for more information about Perlmutter.
 
-.. _conda: https://conda.io/en/latest/
+.. _conda: https://docs.conda.io/en/latest/
 .. _mpi4py: https://mpi4py.readthedocs.io/en/stable/
 .. _NERSC: https://www.nersc.gov/
 .. _option to srun: https://docs.nersc.gov/systems/perlmutter/running-jobs/#single-gpu-tasks-in-parallel

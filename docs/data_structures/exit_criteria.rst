@@ -3,6 +3,12 @@
 Exit Criteria
 =============
 
+.. warning::
+
+    ExitCriteria as a standalone parameter is **deprecated** as of libEnsemble 2.0
+    and will be **removed in 2.1**. Pass exit criteria directly to ``Ensemble.run()`` instead:
+    ``ensemble.run(sim_max=100)`` or ``ensemble.run(sim_max=100, wallclock_max=3600)``.
+
 The following criteria (or termination tests) can be used to configure when to stop a workflow.
 
 Can be constructed and passed to libEnsemble as a Python class or a dictionary.

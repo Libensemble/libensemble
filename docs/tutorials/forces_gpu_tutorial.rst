@@ -308,6 +308,6 @@ where ``SLURM_EXACT`` is set to help prevent resource conflicts on each node.
 .. _forces_gpu: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/scaling_tests/forces/forces_gpu
 .. _forces_gpu_var_resources: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/scaling_tests/forces/forces_gpu_var_resources/run_libe_forces.py
 .. _forces_multi_app: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/scaling_tests/forces/forces_multi_app/run_libe_forces.py
-.. _Frontier: https://youtu.be/H2fmbZ6DnVc
+.. _Frontier: https://www.youtube.com/watch?v=H2fmbZ6DnVc&feature=youtu.be
 .. _Perlmutter: https://www.youtube.com/watch?v=Av8ctYph7-Y
-.. _Polaris: https://youtu.be/Ff0dYYLQzoU
+.. _Polaris: https://www.youtube.com/watch?v=Ff0dYYLQzoU&feature=youtu.be

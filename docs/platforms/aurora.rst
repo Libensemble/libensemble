@@ -56,8 +56,8 @@ simulations for each worker:
 
 .. code-block:: python
 
-    # Instruct libEnsemble to exit after this many simulations
-    ensemble.exit_criteria = ExitCriteria(sim_max=nsim_workers * 2)
+    # Run ensemble; exit after this many simulations
+    ensemble.run(sim_max=nsim_workers * 2)
 
 Now grab an interactive session on two nodes (or use the batch script at
 ``../submission_scripts/submit_pbs_aurora.sh``)::
@@ -135,5 +135,5 @@ exception of different compiler options and numbers of workers (because the
 numbers of GPUs on a node differs).
 
 .. _ALCF: https://www.alcf.anl.gov/
-.. _Aurora: https://www.alcf.anl.gov/support-center/aurorasunspot/getting-started-aurora
-.. _demonstration: https://youtu.be/H2fmbZ6DnVc
+.. _Aurora: https://docs.alcf.anl.gov/aurora/getting-started-on-aurora/
+.. _demonstration: https://www.youtube.com/watch?v=H2fmbZ6DnVc&feature=youtu.be

@@ -50,7 +50,7 @@ class MPIExecutor(Executor):
         .. parsed-literal::
 
             **'mpi_runner'** [string]:
-                Select runner: `'mpich'`, `'openmpi'`, `'aprun'`, `'srun'`, `'jsrun'`, `'custom'`
+                Select runner: `'mpich'`, `'openmpi'`, `'aprun'`, `'srun'`, `'jsrun'`, `'flux'`, `'custom'`
                 All except `'custom'` relate to runner classes in libEnsemble.
                 Custom allows user to define their own run-lines but without parsing
                 arguments or making use of auto-resources.

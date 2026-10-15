@@ -5,14 +5,14 @@ evaluation of an existing set of points.
 Execute via one of the following commands (e.g. 3 workers):
    mpiexec -np 4 python test_evaluate_existing_sample.py
    python test_evaluate_existing_sample.py --nworkers 3
-   python test_evaluate_existing_sample.py --nworkers 3 --comms tcp
+   python test_evaluate_existing_sample.py --nworkers 3 --comms threads
 
 The number of concurrent evaluations of the objective function will be 4-1=3.
 """
 
 # Do not change these lines - they are parsed by run-tests.sh
-# TESTSUITE_COMMS: mpi local tcp
-# TESTSUITE_NPROCS: 2 4
+# TESTSUITE_COMMS: mpi local threads
+# TESTSUITE_NPROCS: 4
 
 import numpy as np
 
@@ -21,7 +21,7 @@ from libensemble import Ensemble
 from libensemble.alloc_funcs.give_pregenerated_work import give_pregenerated_sim_work as alloc_f
 from libensemble.sim_funcs.borehole import borehole as sim_f
 from libensemble.sim_funcs.borehole import gen_borehole_input
-from libensemble.specs import AllocSpecs, ExitCriteria, SimSpecs
+from libensemble.specs import AllocSpecs, SimSpecs
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
@@ -36,8 +36,7 @@ if __name__ == "__main__":
     sampling.H0 = H0
     sampling.sim_specs = SimSpecs(sim_f=sim_f, inputs=["x"], out=[("f", float)])
     sampling.alloc_specs = AllocSpecs(alloc_f=alloc_f)
-    sampling.exit_criteria = ExitCriteria(sim_max=len(H0))
-    sampling.run()
+    sampling.run(sim_max=len(H0))
 
     if sampling.is_manager:
         assert len(sampling.H) == len(H0)

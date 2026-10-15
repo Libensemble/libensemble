@@ -5,7 +5,7 @@ function.
 Execute via one of the following commands (e.g. 3 workers):
    mpiexec -np 4 python test_persistent_uniform_sampling.py
    python test_persistent_uniform_sampling.py --nworkers 3
-   python test_persistent_uniform_sampling.py --nworkers 3 --comms tcp
+   python test_persistent_uniform_sampling.py --nworkers 3 --comms threads
 
 When running with the above commands, the number of concurrent evaluations of
 the objective function will be 2, as one of the three workers will be the
@@ -14,7 +14,7 @@ persistent generator.
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local
-# TESTSUITE_NPROCS: 3 4
+# TESTSUITE_NPROCS: 4
 
 import sys
 

@@ -19,6 +19,7 @@ bugfix
 calc
 cancelled
 Cancelling
+Capitan
 chwirut
 COBYLA
 comms
@@ -159,6 +160,7 @@ str
 subprocess
 subprocessed
 subprocesses
+subprocessing
 symlinks
 tasmanian
 th

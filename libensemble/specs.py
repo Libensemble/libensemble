@@ -1,13 +1,12 @@
-import random
 import warnings
 from pathlib import Path
 
+import numpy as np
 import pydantic
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens
 from libensemble.utils.validators import (
-    check_any_workers_and_disable_rm_if_tcp,
     check_exit_criteria,
     check_H0,
     check_input_dir_exists,
@@ -329,6 +328,11 @@ class GenSpecs(BaseModel):
                     persis_in_fields.extend(list(obj.keys()))
             self.persis_in = persis_in_fields
 
+        internal_fields = getattr(self.generator, "internal_fields", []) if self.generator is not None else []
+        self.persis_in[:] = [field for field in self.persis_in if field not in internal_fields]
+        if self.inputs:
+            self.inputs[:] = [field for field in self.inputs if field not in internal_fields]
+
         # Set inputs: same as persis_in for gest-api generators (needed for H0 ingestion)
         if not self.inputs and self.generator is not None:
             self.inputs = self.persis_in
@@ -339,9 +343,24 @@ class GenSpecs(BaseModel):
             for attr in ["variables", "constants"]:
                 if obj := getattr(self.vocs, attr, None):
                     for name, field in obj.items():
+                        if name in internal_fields:
+                            continue
                         dtype = _get_dtype(field, name)
                         out_fields.append(_convert_dtype_to_output_tuple(name, dtype))
             self.outputs = out_fields
+
+        if self.outputs:
+            self.outputs[:] = [field for field in self.outputs if field[0] not in internal_fields]
+
+        # Merge in additional public fields returned by the generator.
+        if self.generator is not None and hasattr(self.generator, "gen_specs"):
+            internal_fields = getattr(self.generator, "internal_fields", [])
+            gen_out = self.generator.gen_specs.get("out", [])
+            existing_names = {f[0] for f in self.outputs}
+            for field in gen_out:
+                if field[0] not in internal_fields and field[0] not in existing_names:
+                    self.outputs.append(field)
+                    existing_names.add(field[0])
 
         # Add _id field if generator returns_id is True
         if self.generator is not None and getattr(self.generator, "returns_id", False):
@@ -353,6 +372,24 @@ class GenSpecs(BaseModel):
                 self.persis_in = []
             if "_id" not in self.persis_in:
                 self.persis_in.append("_id")
+
+        # Set user["lb"]/["ub"] from VOCS continuous variables (for legacy generators
+        # that read bounds from gen_specs["user"]). Skip variables without a ``.domain``
+        # attribute (e.g., DiscreteVariable). Do not overwrite user-provided values.
+        if self.user is None:
+            self.user = {}
+        if "lb" not in self.user or "ub" not in self.user:
+            lbs, ubs = [], []
+            for _name, var in (getattr(self.vocs, "variables", None) or {}).items():
+                domain = getattr(var, "domain", None)
+                if domain is not None and len(domain) == 2:
+                    lbs.append(domain[0])
+                    ubs.append(domain[1])
+            if lbs:
+                if "lb" not in self.user:
+                    self.user["lb"] = np.array(lbs, dtype=float)
+                if "ub" not in self.user:
+                    self.user["ub"] = np.array(ubs, dtype=float)
 
         return self
 
@@ -426,13 +463,13 @@ class LibeSpecs(BaseModel):
 
     comms: str | None = "mpi"
     """
-    Manager/Worker communications mode. ``'mpi'``, ``'local'``, ``'threads'``, or ``'tcp'``
+    Manager/Worker communications mode. ``'mpi'``, ``'local'``, or ``'threads'``.
     If ``nworkers`` is specified, then ``local`` comms will be used unless a parallel MPI
     environment is detected.
     """
 
     nworkers: int | None = 0
-    """ Number of worker processes in ``"local"``, ``"threads"``, or ``"tcp"``."""
+    """ Number of worker processes in ``"local"`` or ``"threads"``."""
 
     gen_on_worker: bool = False
     """ Instructs libEnsemble to run generator functions on a worker rank.
@@ -578,6 +615,43 @@ class LibeSpecs(BaseModel):
     Forms the base of a generator directory.
     """
 
+    cache_long_sims: bool | None = False
+    """
+    Cache simulation results with runtimes >1s to disk. Subsequent runs with an
+    identical configuration (specs, callable code and state, VOCS, H0) will access this cache.
+
+    Upon the generator creating points already in the cache, those points will be skipped from
+    being sent for evaluation. Instead the corresponding cached results are retrieved and returned
+    to the generator.
+
+    The cache is saved in ``cache_dir``.  When ``cache_name`` is ``None``, the filename is
+    automatically derived from a SHA-256 hash of the full ensemble configuration.
+    """
+
+    cache_tolerances: dict[str, float] = Field(default_factory=dict)
+    """
+    Absolute tolerances for matching cached simulation inputs, keyed by field name.
+    Fields not listed here use exact numeric matching; relative tolerance is always zero.
+    """
+
+    @field_validator("cache_tolerances")
+    def check_cache_tolerances(cls, value):
+        if any(not np.isfinite(tol) or tol < 0 for tol in value.values()):
+            raise ValueError("cache_tolerances values must be finite and non-negative")
+        return value
+
+    cache_dir: str | Path | None = str(Path.home() / ".cache" / "libensemble")
+    """
+    The directory to store the cache file. Defaults to `~/.cache/libensemble`.
+    """
+
+    cache_name: str | None = None
+    """
+    The name of the cache file. Stored in cache_dir.
+    When ``None`` and ``cache_long_sims`` is ``True``, a name is automatically
+    derived from a SHA-256 hash of the full ensemble configuration.
+    """
+
     calc_dir_id_width: int | None = 4
     """
     The width of the numerical ID component of a calculation directory name. Leading
@@ -603,10 +677,6 @@ class LibeSpecs(BaseModel):
     @model_validator(mode="before")
     def set_default_comms(cls, values):
         return set_default_comms(cls, values)
-
-    @model_validator(mode="after")
-    def check_any_workers_and_disable_rm_if_tcp(self):
-        return check_any_workers_and_disable_rm_if_tcp(self)
 
     @model_validator(mode="after")
     def enable_save_H_when_every_K(self):
@@ -689,28 +759,6 @@ class LibeSpecs(BaseModel):
 
     live_data: object | None = None
     """ Add a live data capture object (e.g., for plotting). """
-
-    workers: list[str] | None = []
-    """ TCP Only: A list of worker hostnames. """
-
-    ip: str | None = None
-    """ TCP Only: IP address for Manager's system. """
-
-    port: int | None = 0
-    """ TCP Only: Port number for Manager's system. """
-
-    authkey: str | None = f"libE_auth_{random.randrange(99999)}"
-    """ TCP Only: Authkey for Manager's system."""
-
-    workerID: int | None = None
-    """ TCP Only: Worker ID number assigned to the new process. """
-
-    worker_cmd: list[str] | None = []
-    """
-    TCP Only: Split string corresponding to worker/client Python process invocation. Contains
-    a local Python path, user script, and manager/server format-fields for ``manager_ip``,
-    ``manager_port``, ``authkey``, and ``workerID``. ``nworkers`` is specified normally.
-    """
 
     final_gen_send: bool | None = False
     """

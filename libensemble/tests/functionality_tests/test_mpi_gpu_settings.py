@@ -42,7 +42,6 @@ persistent generator.
 # TESTSUITE_NPROCS: 4 7
 
 import os
-import sys
 import warnings
 
 import numpy as np
@@ -67,9 +66,6 @@ if __name__ == "__main__":
     nworkers, is_manager, libE_specs, _ = parse_args()
     libE_specs["num_resource_sets"] = nworkers  # Persistent gen does not need resources
     libE_specs["use_workflow_dir"] = True  # Only a place for Open MPI machinefiles
-
-    if libE_specs["comms"] == "tcp":
-        sys.exit("This test only runs with MPI or local -- aborting...")
 
     # Get paths for applications to run
     six_hump_camel_app = six_hump_camel.__file__

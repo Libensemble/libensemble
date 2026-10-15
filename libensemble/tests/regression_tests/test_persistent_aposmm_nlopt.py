@@ -4,7 +4,7 @@ Runs libEnsemble with APOSMM with the NLopt local optimizer.
 Execute via one of the following commands (e.g. 3 workers):
    mpiexec -np 4 python test_persistent_aposmm_nlopt.py
    python test_persistent_aposmm_nlopt.py --nworkers 3
-   python test_persistent_aposmm_nlopt.py --nworkers 3 --comms tcp
+   python test_persistent_aposmm_nlopt.py --nworkers 3 --comms threads
 
 When running with the above commands, the number of concurrent evaluations of
 the objective function will be 2, as one of the three workers will be the
@@ -12,7 +12,7 @@ persistent generator.
 """
 
 # Do not change these lines - they are parsed by run-tests.sh
-# TESTSUITE_COMMS: local mpi tcp
+# TESTSUITE_COMMS: local mpi threads
 # TESTSUITE_NPROCS: 3
 # TESTSUITE_EXTRA: true
 
@@ -81,10 +81,16 @@ if __name__ == "__main__":
 
     alloc_specs = {"alloc_f": alloc_f}
 
-    exit_criteria = {"sim_max": 2000}
+    exit_criteria = {"sim_max": 3000}
 
     # Perform the run
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs, libE_specs=libE_specs)
+    H, persis_info, flag = libE(
+        sim_specs,
+        gen_specs,
+        exit_criteria,
+        alloc_specs=alloc_specs,
+        libE_specs=libE_specs,
+    )
 
     if is_manager:
         print("[Manager]:", H[np.where(H["local_min"])]["x"])

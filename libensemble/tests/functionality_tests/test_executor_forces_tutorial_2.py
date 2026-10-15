@@ -1,13 +1,13 @@
 import os
 import sys
 
-import numpy as np
 from forces_simf import run_forces  # Sim func from current dir
+from gest_api.vocs import VOCS
 
 from libensemble import Ensemble, logger
 from libensemble.executors import MPIExecutor
 from libensemble.gen_funcs.persistent_sampling import persistent_uniform as gen_f
-from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
+from libensemble.specs import GenSpecs, LibeSpecs, SimSpecs
 
 logger.set_level("DEBUG")
 
@@ -39,6 +39,8 @@ if __name__ == "__main__":
         outputs=[("energy", float)],
     )
 
+    vocs = VOCS(variables={"nparticles": [1000, 3000]}, objectives={"energy": "MINIMIZE"})
+
     ensemble.gen_specs = GenSpecs(
         gen_f=gen_f,
         inputs=[],  # No input when starting persistent generator
@@ -46,18 +48,12 @@ if __name__ == "__main__":
         outputs=[("x", float, (1,))],
         initial_batch_size=nsim_workers,
         async_return=True,
-        user={
-            "lb": np.array([1000]),  # min particles
-            "ub": np.array([3000]),  # max particles
-        },
+        vocs=vocs,
     )  # gen_specs_end_tag
 
     # Starts one persistent generator. Simulated values are returned in batch.
 
-    # Instruct libEnsemble to exit after this many simulations
-    ensemble.exit_criteria = ExitCriteria(sim_max=8)
-
-    # Run ensemble
-    ensemble.run()
+    # Run ensemble; exit after this many simulations
+    ensemble.run(sim_max=8)
 
     ensemble.save_output(__file__)

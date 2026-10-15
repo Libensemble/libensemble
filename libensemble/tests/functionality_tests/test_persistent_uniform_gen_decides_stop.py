@@ -5,7 +5,7 @@ stop a run.
 Execute via one of the following commands (e.g. 3 workers):
    mpiexec -np 5 python test_persistent_uniform_gen_decides_stop.py
    python test_persistent_uniform_gen_decides_stop.py --nworkers 4
-   python test_persistent_uniform_gen_decides_stop.py --nworkers 4 --comms tcp
+   python test_persistent_uniform_gen_decides_stop.py --nworkers 4 --comms threads
 
 The number of concurrent evaluations of the objective function with 2 gens will be 2:
 5 - 1 manager - 2 persistent gens = 2.

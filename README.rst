@@ -54,7 +54,7 @@ and an exit condition.
 
     from libensemble import Ensemble
     from libensemble.gen_classes.sampling import UniformSample
-    from libensemble.specs import LibeSpecs, SimSpecs, GenSpecs, ExitCriteria
+    from libensemble.specs import LibeSpecs, SimSpecs, GenSpecs
 
 
     def six_hump_camel_func(calc_in: dict):
@@ -97,18 +97,15 @@ and an exit condition.
             batch_size=50,
         )
 
-        exit_criteria = ExitCriteria(sim_max=100)
-
         # Create ensemble
         ensemble = Ensemble(
             libE_specs=libE_specs,
             sim_specs=sim_specs,
             gen_specs=gen_specs,
-            exit_criteria=exit_criteria,
         )
 
         # Run ensemble
-        ensemble.run()
+        ensemble.run(sim_max=100)
 
         ensemble.save_output(__file__)
         print("Some output data:\n", ensemble.H[["x0", "x1", "f"]][:10])
@@ -144,7 +141,6 @@ Resources
 
 - Ask questions or report issues on GitHub_.
 - Email ``libEnsemble@lists.mcs.anl.gov`` to request `libEnsemble Slack page`_.
-- Join the `libEnsemble mailing list`_ for updates about new releases.
 
 **Further Information:**
 
@@ -173,14 +169,14 @@ Resources
    :alt: libEnsemble
 .. |PyPI| image:: https://img.shields.io/pypi/v/libensemble.svg?color=blue
    :target: https://pypi.org/project/libensemble
-.. |Conda| image:: https://img.shields.io/conda/v/conda-forge/libensemble?color=blue
+.. |Conda| image:: https://img.shields.io/conda/v/conda-forge/libensemble
    :target: https://anaconda.org/conda-forge/libensemble
 .. |Spack| image:: https://img.shields.io/spack/v/py-libensemble?color=blue
    :target: https://packages.spack.io/package.html?name=py-libensemble
 .. |Tests| image:: https://github.com/Libensemble/libensemble/actions/workflows/extra.yml/badge.svg?branch=main
    :target: https://github.com/Libensemble/libensemble/actions
-.. |Coverage| image:: https://codecov.io/github/Libensemble/libensemble/graph/badge.svg
-   :target: https://codecov.io/github/Libensemble/libensemble
+.. |Coverage| image:: https://app.codecov.io/github/Libensemble/libensemble/graph/badge.svg
+   :target: https://app.codecov.io/github/Libensemble/libensemble
 .. |Docs| image:: https://readthedocs.org/projects/libensemble/badge/?maxAge=2592000
    :target: https://libensemble.readthedocs.org/en/latest/
    :alt: Documentation Status
@@ -195,28 +191,27 @@ Resources
 .. _conda-forge: https://conda-forge.org/
 .. _Contributions: https://github.com/Libensemble/libensemble/blob/main/CONTRIBUTING.rst
 .. _docs: https://libensemble.readthedocs.io/en/main/advanced_installation.html
-.. _gest-api: https://gest-api.readthedocs.io
+.. _gest-api: https://gest-api.readthedocs.io/en/latest/
 .. _GitHub: https://github.com/Libensemble/libensemble
-.. _libEnsemble mailing list: https://lists.mcs.anl.gov/mailman/listinfo/libensemble
 .. _libEnsemble Slack page: https://libensemble.slack.com
 .. _MPICH: http://www.mpich.org/
 .. _mpmath: http://mpmath.org/
 .. _PyPI: https://pypi.org
 .. _Quickstart: https://libensemble.readthedocs.io/en/main/introduction.html
-.. _ReadtheDocs: http://libensemble.readthedocs.org/
+.. _ReadtheDocs: https://libensemble.readthedocs.io/en/latest/
 .. _regression tests: https://github.com/Libensemble/libensemble/tree/main/libensemble/tests/regression_tests
 
 .. |Inline Example| image:: https://colab.research.google.com/assets/colab-badge.svg
-  :target:  http://colab.research.google.com/github/Libensemble/libensemble/blob/develop/examples/readme_notebook.ipynb
+  :target:  https://colab.research.google.com/github/Libensemble/libensemble/blob/develop/examples/readme_notebook.ipynb
 
 .. |Simple Ensemble| image:: https://colab.research.google.com/assets/colab-badge.svg
-  :target:  http://colab.research.google.com/github/Libensemble/libensemble/blob/develop/examples/tutorials/simple_sine/sine_tutorial_notebook.ipynb
+  :target:  https://colab.research.google.com/github/Libensemble/libensemble/blob/develop/examples/tutorials/simple_sine/sine_tutorial_notebook.ipynb
 
 .. |Ensemble with an MPI application| image:: https://colab.research.google.com/assets/colab-badge.svg
-  :target:  http://colab.research.google.com/github/Libensemble/libensemble/blob/develop/examples/tutorials/forces_with_executor/forces_tutorial_notebook.ipynb
+  :target:  https://colab.research.google.com/github/Libensemble/libensemble/blob/develop/examples/tutorials/forces_with_executor/forces_tutorial_notebook.ipynb
 
 .. |Optimization example| image:: https://colab.research.google.com/assets/colab-badge.svg
-  :target:  http://colab.research.google.com/github/Libensemble/libensemble/blob/develop/examples/tutorials/aposmm/aposmm_tutorial_notebook.ipynb
+  :target:  https://colab.research.google.com/github/Libensemble/libensemble/blob/develop/examples/tutorials/aposmm/aposmm_tutorial_notebook.ipynb
 
 .. |Surrogate Modeling| image:: https://colab.research.google.com/assets/colab-badge.svg
   :target:  https://colab.research.google.com/github/Libensemble/libensemble/blob/develop/examples/tutorials/gpcam_surrogate_model/gpcam.ipynb

@@ -28,8 +28,6 @@ persistent generator.
 # TESTSUITE_COMMS: mpi local
 # TESTSUITE_NPROCS: 5
 
-import sys
-
 import numpy as np
 
 from libensemble.executors.mpi_executor import MPIExecutor
@@ -57,9 +55,6 @@ if __name__ == "__main__":
     libE_specs["ensemble_dir_path"] = "./ensemble_GPU_gen_resources_w" + str(nworkers)
     libE_specs["reuse_output_dir"] = True
     dry_run = True
-
-    if libE_specs["comms"] == "tcp":
-        sys.exit("This test only runs with MPI or local -- aborting...")
 
     # Get paths for applications to run
     six_hump_camel_app = six_hump_camel.__file__

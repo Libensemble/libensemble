@@ -79,10 +79,10 @@ class PersistentSupport:
             if not isinstance(Work, dict):
                 self.comm.push_to_buffer(tag, Work)
                 return tag, Work, None
-            # PERSIS_STOP with a Work dict (final_gen_send path): if there are
-            # no rows pending, manager skipped the second send — return now
-            # rather than blocking on a recv that will never complete.
             if not len(Work.get("libE_info", {}).get("H_rows", [])):
+                # PERSIS_STOP with a Work dict (final_gen_send path): if there are
+                # no rows pending, the manager sends only this meta-message - return
+                # now rather than blocking on a recv() for rows that will never come.
                 return tag, Work, None
         else:
             logger.debug(f"Persistent {self.calc_str} received work request from manager")

@@ -4,7 +4,7 @@ Runs libEnsemble with Surmise calibration test.
 Execute via one of the following commands (e.g. 3 workers):
    mpiexec -np 4 python test_persistent_surmise_calib.py
    python test_persistent_surmise_calib.py --nworkers 3
-   python test_persistent_surmise_calib.py --nworkers 3 --comms tcp
+   python test_persistent_surmise_calib.py --nworkers 3 --comms threads
 
 When running with the above commands, the number of concurrent evaluations of
 the objective function will be 2, as one of the three workers will be the
@@ -22,10 +22,12 @@ in the libEnsemble documentation.
 """
 
 # Do not change these lines - they are parsed by run-tests.sh
-# TESTSUITE_COMMS: mpi local tcp
-# TESTSUITE_NPROCS: 3 4
+# TESTSUITE_COMMS: mpi local threads
+# TESTSUITE_NPROCS: 4
 # TESTSUITE_EXTRA: true
 # TESTSUITE_OS_SKIP: OSX
+# TESTSUITE_TIER: slow
+# TESTSUITE_FEATURES: external surmise
 
 # Requires:
 #   Install Surmise package
@@ -40,7 +42,7 @@ from libensemble.gen_funcs.persistent_surmise_calib import surmise_calib as gen_
 # Import libEnsemble items for this test
 from libensemble.sim_funcs.surmise_test_function import borehole as sim_f
 from libensemble.sim_funcs.surmise_test_function import tstd2theta
-from libensemble.specs import ExitCriteria, GenSpecs, SimSpecs
+from libensemble.specs import GenSpecs, SimSpecs
 from libensemble.tools import parse_args
 
 
@@ -98,11 +100,10 @@ def run_surmise_calib():
             async_return=True,
             active_recv_gen=True,
         ),
-        exit_criteria=ExitCriteria(sim_max=max_evals),
     )
 
     # Perform the run
-    H, _, _ = test.run()
+    H, _, _ = test.run(sim_max=max_evals)
 
     if test.is_manager:
         print("Cancelled sims", H["sim_id"][H["cancel_requested"]])

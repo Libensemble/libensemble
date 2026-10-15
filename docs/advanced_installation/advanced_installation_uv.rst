@@ -1,7 +1,7 @@
 uv
 ==
 
-`Advanced Installation <advanced_installation.html>`__ \|\| `pip <advanced_installation_pip.html>`__ \|\| **uv** \|\| `pixi <advanced_installation_pixi.html>`__ \|\| `conda <advanced_installation_conda.html>`__ \|\| `Spack <advanced_installation_spack.html>`__
+:doc:`Advanced Installation <advanced_installation>` || :doc:`pip <advanced_installation_pip>` || **uv** || :doc:`pixi <advanced_installation_pixi>` || :doc:`conda <advanced_installation_conda>` || :doc:`Spack <advanced_installation_spack>`
 
 To install the latest PyPI_ release via uv_::
 

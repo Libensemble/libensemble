@@ -4,14 +4,14 @@ Runs libEnsemble with Latin hypercube sampling on a simple 1D problem
 Execute via one of the following commands (e.g. 3 workers):
    mpiexec -np 4 python test_1d_sampling.py
    python test_1d_sampling.py --nworkers 3
-   python test_1d_sampling.py --nworkers 3 --comms tcp
+   python test_1d_sampling.py --nworkers 3 --comms threads
 
 The number of concurrent evaluations of the objective function will be 4-1=3.
 """
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local
-# TESTSUITE_NPROCS: 2 4
+# TESTSUITE_NPROCS: 4
 
 import numpy as np
 
@@ -55,7 +55,13 @@ if __name__ == "__main__":
 
     exit_criteria = {"gen_max": 501}
 
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs, libE_specs=libE_specs)
+    H, persis_info, flag = libE(
+        sim_specs,
+        gen_specs,
+        exit_criteria,
+        alloc_specs=alloc_specs,
+        libE_specs=libE_specs,
+    )
 
     if is_manager:
         assert len(H) >= 501

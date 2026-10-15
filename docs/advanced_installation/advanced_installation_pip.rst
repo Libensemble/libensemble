@@ -1,7 +1,7 @@
 pip
 ===
 
-`Advanced Installation <advanced_installation.html>`__ \|\| **pip** \|\| `uv <advanced_installation_uv.html>`__ \|\| `pixi <advanced_installation_pixi.html>`__ \|\| `conda <advanced_installation_conda.html>`__ \|\| `Spack <advanced_installation_spack.html>`__
+:doc:`Advanced Installation <advanced_installation>` || **pip** || :doc:`uv <advanced_installation_uv>` || :doc:`pixi <advanced_installation_pixi>` || :doc:`conda <advanced_installation_conda>` || :doc:`Spack <advanced_installation_spack>`
 
 To install the latest PyPI_ release::
 

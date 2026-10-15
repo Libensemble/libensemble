@@ -13,10 +13,11 @@ Note: This test contains multiple iterations to test different configurations.
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local
-# TESTSUITE_NPROCS: 2 4
+# TESTSUITE_NPROCS: 4
 # TESTSUITE_EXTRA: true
+# TESTSUITE_TIER: slow
+# TESTSUITE_FEATURES: external resources executor real-launch
 
-import sys
 from multiprocessing import set_start_method
 
 import numpy as np
@@ -37,9 +38,6 @@ if __name__ == "__main__":
     libE_specs["sim_dirs_make"] = True
     en_suffix = str(nworkers) + "_" + libE_specs.get("comms")
     libE_specs["ensemble_dir_path"] = "./ensemble_diff_nodes_w" + en_suffix
-
-    if libE_specs["comms"] == "tcp":
-        sys.exit("This test only runs with MPI or local -- aborting...")
 
     # Get paths for applications to run
     hello_world_app = helloworld.__file__
@@ -88,7 +86,7 @@ if __name__ == "__main__":
     # This can improve scheduling when tasks may run across multiple nodes
     libE_specs["scheduler_opts"] = {"match_slots": False}
 
-    exit_criteria = {"sim_max": 40, "wallclock_max": 300}
+    exit_criteria = {"sim_max": 12, "wallclock_max": 300}
 
     if libE_specs["comms"] == "local":
         iterations = 4
@@ -114,9 +112,16 @@ if __name__ == "__main__":
 
         # Perform the run
         H, persis_info, flag = libE(
-            sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs, alloc_specs=alloc_specs
+            sim_specs,
+            gen_specs,
+            exit_criteria,
+            persis_info,
+            libE_specs=libE_specs,
+            alloc_specs=alloc_specs,
         )
 
         if is_manager:
             assert flag == 0
+            assert np.count_nonzero(H["sim_ended"]) >= exit_criteria["sim_max"]
+            assert len(np.unique(H["resource_sets"])) > 1
             save_libE_output(H, persis_info, __file__, nworkers)

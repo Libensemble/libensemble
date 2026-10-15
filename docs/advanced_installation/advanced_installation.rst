@@ -1,14 +1,14 @@
 Advanced Installation
 =====================
 
-`pip <advanced_installation_pip.html>`__ \|\| `uv <advanced_installation_uv.html>`__ \|\| `pixi <advanced_installation_pixi.html>`__ \|\| `conda <advanced_installation_conda.html>`__ \|\| `Spack <advanced_installation_spack.html>`__
+:doc:`pip <advanced_installation_pip>` || :doc:`uv <advanced_installation_uv>` || :doc:`pixi <advanced_installation_pixi>` || :doc:`conda <advanced_installation_conda>` || :doc:`Spack <advanced_installation_spack>`
 
 libEnsemble can be installed from ``pip``, ``uv``, ``pixi``, ``Conda``, or ``Spack``.
 
 libEnsemble requires the following dependencies, which are typically
 automatically installed alongside libEnsemble:
 
-* Python_       ``>= 3.11``
+* Python_       ``>= 3.12``
 * NumPy_        ``>= 1.21``
 * psutil_       ``>= 5.9.4``
 * `pydantic`_   ``>= 2``
@@ -31,11 +31,22 @@ Further recommendations for selected HPC systems are given in the
 Globus Compute
 --------------
 
-`Globus Compute`_ may be installed optionally to submit simulation function instances to remote Globus Compute endpoints.
+`Globus Compute`_ may be installed optionally to submit simulation function
+instances to remote Globus Compute endpoints::
+
+    pip install globus-compute-sdk
+
+This is an optional dependency; libEnsemble operates normally without it.
+If Globus Compute is not installed and a ``globus_compute_endpoint`` is
+configured, libEnsemble will warn and fall back to local execution.
+
+See :ref:`Globus Compute - Remote User Functions<globus_compute_ref>` for
+usage, and the :doc:`GlobusComputeExecutor API reference</executor/ex_globus_compute>`
+for the full executor interface.
 
 .. _Globus Compute: https://www.globus.org/compute
-.. _Python: http://www.python.org
-.. _NumPy: http://www.numpy.org
+.. _Python: https://www.python.org/
+.. _NumPy: https://numpy.org/
 .. _psutil: https://pypi.org/project/psutil/
-.. _pydantic: https://docs.pydantic.dev/1.10/
+.. _pydantic: https://pydantic.dev/docs/validation/latest/get-started/
 .. _gest-api: https://github.com/campa-consortium/gest-api

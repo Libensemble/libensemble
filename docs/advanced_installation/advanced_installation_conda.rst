@@ -1,7 +1,7 @@
 conda
 =====
 
-`Advanced Installation <advanced_installation.html>`__ \|\| `pip <advanced_installation_pip.html>`__ \|\| `uv <advanced_installation_uv.html>`__ \|\| `pixi <advanced_installation_pixi.html>`__ \|\| **conda** \|\| `Spack <advanced_installation_spack.html>`__
+:doc:`Advanced Installation <advanced_installation>` || :doc:`pip <advanced_installation_pip>` || :doc:`uv <advanced_installation_uv>` || :doc:`pixi <advanced_installation_pixi>` || **conda** || :doc:`Spack <advanced_installation_spack>`
 
 Install libEnsemble with Conda_ from the conda-forge channel::
 

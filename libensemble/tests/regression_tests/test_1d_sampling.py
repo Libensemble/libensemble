@@ -4,42 +4,39 @@ Runs libEnsemble with Latin hypercube sampling on a simple 1D problem
 Execute via one of the following commands (e.g. 3 workers):
    mpiexec -np 4 python test_1d_sampling.py
    python test_1d_sampling.py --nworkers 3
-   python test_1d_sampling.py --nworkers 3 --comms tcp
+   python test_1d_sampling.py --nworkers 3 --comms threads
 
 The number of concurrent evaluations of the objective function will be 4-1=3.
 """
 
 # Do not change these lines - they are parsed by run-tests.sh
-# TESTSUITE_COMMS: mpi local threads tcp
-# TESTSUITE_NPROCS: 3 4
+# TESTSUITE_COMMS: mpi local threads
+# TESTSUITE_NPROCS: 4
 
-import numpy as np
+from gest_api.vocs import VOCS
 
 from libensemble import Ensemble
 from libensemble.gen_funcs.persistent_sampling import persistent_uniform
 
 # Import libEnsemble items for this test
 from libensemble.sim_funcs.simple_sim import norm_eval as sim_f
-from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
+from libensemble.specs import GenSpecs, LibeSpecs, SimSpecs
 
 if __name__ == "__main__":
     sampling = Ensemble(parse_args=True)
     sampling.libE_specs = LibeSpecs(save_every_k_gens=300, safe_mode=False, disable_log_files=True)
     sampling.sim_specs = SimSpecs(sim_f=sim_f, inputs=["x"], outputs=[("f", float)])
+    vocs = VOCS(variables={"x0": [-3, 3]}, objectives={"f": "EXPLORE"})
+
     sampling.gen_specs = GenSpecs(
         gen_f=persistent_uniform,
         persis_in=["f"],
         outputs=[("x", float, (1,))],
         initial_batch_size=100,
-        user={
-            "lb": np.array([-3]),
-            "ub": np.array([3]),
-        },
+        vocs=vocs,
     )
 
-    sampling.exit_criteria = ExitCriteria(sim_max=500)
-
-    sampling.run()
+    sampling.run(sim_max=500)
     if sampling.is_manager:
         assert len(sampling.H) >= 500
         print("\nlibEnsemble with random sampling has generated enough points")

@@ -105,7 +105,7 @@ libEnsemble classes, APOSMM, and our simulator callable:
     from libensemble import Ensemble
     from libensemble.gen_classes import APOSMM
     from gest_api.vocs import VOCS
-    from libensemble.specs import SimSpecs, GenSpecs, ExitCriteria
+    from libensemble.specs import SimSpecs, GenSpecs
 
 APOSMM supports a wide variety of external optimizers. The ``rc.aposmm_optimizers``
 statement above indicates to APOSMM which optimization method package to use,
@@ -121,13 +121,13 @@ a ``VOCS`` object:
         workflow = Ensemble(parse_args=True)
 
         vocs = VOCS(
-            variables={"x1": [-2, 2], "x2": [-1, 1], "x1_on_cube": [-2, 2], "x2_on_cube": [-1, 1]},
+            variables={"x1": [-2, 2], "x2": [-1, 1]},
             objectives={"f": "MINIMIZE"},
         )
 
-Notice the addition of ``x1_on_cube`` and ``x2_on_cube``. APOSMM requires variables scaled to the unit cube internally. By defining both sets of variables, APOSMM can translate between our actual domain and its internal domain.
+APOSMM scales variables to the unit cube internally. Users only need to define the variables in their original domain.
 
-Now, configure APOSMM. Because APOSMM internally uses variables named ``x``, ``x_on_cube``, and an objective named ``f``, we must map our ``VOCS`` fields to these internal names using ``variables_mapping``:
+Now, configure APOSMM. APOSMM internally uses ``x`` and ``x_on_cube`` coordinates and an objective named ``f``. Only the public variables and objective need to be mapped:
 
 .. code-block:: python
     :linenos:
@@ -135,7 +135,7 @@ Now, configure APOSMM. Because APOSMM internally uses variables named ``x``, ``x
         aposmm = APOSMM(
             vocs,
             max_active_runs=workflow.nworkers,
-            variables_mapping={"x": ["x1", "x2"], "x_on_cube": ["x1_on_cube", "x2_on_cube"], "f": ["f"]},
+            variables_mapping={"x": ["x1", "x2"], "f": ["f"]},
             initial_sample_size=100,
             localopt_method="scipy_Nelder-Mead",
             opt_return_codes=[0],
@@ -156,9 +156,8 @@ Finally, we configure the simulation function, exit criteria, and run the workfl
     :linenos:
 
         workflow.sim_specs = SimSpecs(simulator=six_hump_camel_func, vocs=vocs)
-        workflow.exit_criteria = ExitCriteria(sim_max=2000)
 
-        H, _, _ = workflow.run()
+        H, _, _ = workflow.run(sim_max=2000)
 
         if workflow.is_manager:
             # We can map our variables back to an array for easy printing
@@ -209,4 +208,4 @@ can be found in libEnsemble's `WarpX Scaling Test`_.
 .. _Six-Hump Camel function: https://www.sfu.ca/~ssurjano/camel6.html
 .. _WarpX Scaling Test: https://github.com/Libensemble/libe-community-examples/tree/main/warpx
 .. |Open in Colab| image:: https://colab.research.google.com/assets/colab-badge.svg
-  :target:  http://colab.research.google.com/github/Libensemble/libensemble/blob/develop/examples/tutorials/aposmm/aposmm_tutorial_notebook.ipynb
+  :target:  https://colab.research.google.com/github/Libensemble/libensemble/blob/develop/examples/tutorials/aposmm/aposmm_tutorial_notebook.ipynb

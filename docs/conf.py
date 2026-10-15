@@ -1,6 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-#
 # liEensemble documentation build configuration file, created by
 # sphinx-quickstart on Fri Aug 18 11:52:31 2017.
 #
@@ -19,10 +16,11 @@
 #
 import os
 import sys
-from datetime import datetime
+from datetime import datetime, timezone
+from runpy import run_path
 from unittest.mock import MagicMock
 
-exec(open("../libensemble/version.py").read())
+__version__ = run_path(os.path.join(os.path.dirname(__file__), "../libensemble/version.py"))["__version__"]
 
 
 class Mock(MagicMock):
@@ -31,7 +29,7 @@ class Mock(MagicMock):
         return MagicMock()
 
 
-autodoc_mock_imports = ["ax", "gpcam", "IPython", "matplotlib", "pandas", "scipy", "surmise"]
+autodoc_mock_imports = ["ax", "globus_compute_sdk", "gpcam", "IPython", "matplotlib", "pandas", "scipy", "surmise"]
 
 MOCK_MODULES = [
     "argparse",
@@ -118,12 +116,26 @@ intersphinx_mapping = {
     "community": ("https://libensemble.readthedocs.io/projects/libe-community-examples/en/latest/", None)
 }
 
+# These hosts reject automated requests from Sphinx linkcheck with HTTP 403.
+linkcheck_ignore = [
+    r"https://(docs|www)\.(alcf|lcrc)\.anl\.gov/.*",
+    r"https://www\.mcs\.anl\.gov/.*",
+    r"https://link\.aps\.org/.*",
+    r"https://libensemble\.slack\.com(?:/.*)?$",
+    r"https://software\.intel\.com/.*",
+    r"https://stackoverflow\.com/.*",
+    r"https?://www\.mpich\.org/.*",
+    r"https://www\.sfu\.ca/~ssurjano/camel6\.html",
+    r"https://github\.com/Libensemble/libensemble/blob/.*",
+    r"https://img\.shields\.io/conda/v/conda-forge/libensemble",
+]
+
 autodoc_pydantic_model_show_json = False
 
 extlinks = {
-    "duref": ("http://docutils.sourceforge.net/docs/ref/rst/" "restructuredtext.html#%s", ""),
-    "durole": ("http://docutils.sourceforge.net/docs/ref/rst/" "roles.html#%s", ""),
-    "dudir": ("http://docutils.sourceforge.net/docs/ref/rst/" "directives.html#%s", ""),
+    "duref": ("http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html#%s", ""),
+    "durole": ("http://docutils.sourceforge.net/docs/ref/rst/roles.html#%s", ""),
+    "dudir": ("http://docutils.sourceforge.net/docs/ref/rst/directives.html#%s", ""),
 }
 
 # Add any paths that contain templates here, relative to this directory.
@@ -135,7 +147,7 @@ bibtex_bibfiles = ["references.bib"]
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
 #
-# source_suffix = ['.rst', '.md']
+# source_suffix = ['.md', '.rst']
 source_suffix = ".rst"
 
 # The master toctree document.
@@ -146,7 +158,7 @@ latex_doc = "latex_index"
 
 # General information about the project.
 project = "libEnsemble"
-copyright = str(datetime.now().year) + " Argonne National Laboratory"
+copyright = str(datetime.now(timezone.utc).year) + " Argonne National Laboratory"
 author = "Jeffrey Larson, Stephen Hudson, Stefan M. Wild, David Bindel and John-Luke Navarro"
 today_fmt = "%B %-d, %Y"
 
@@ -181,12 +193,13 @@ todo_include_todos = False
 # Evaluate most references and links for correctness - but many are incorrect
 nitpicky = True
 nitpick_ignore = []
-for line in open("nitpicky"):
-    if line.strip() == "" or line.startswith("#"):
-        continue
-    dtype, target = line.split(None, 1)
-    target = target.strip()
-    nitpick_ignore.append((dtype, target))
+with open("nitpicky") as f:
+    for line in f:
+        if line.strip() == "" or line.startswith("#"):
+            continue
+        dtype, target = line.split(None, 1)
+        target = target.strip()
+        nitpick_ignore.append((dtype, target))
 
 # -- Options for HTML output ----------------------------------------------
 
@@ -205,12 +218,12 @@ html_theme = "furo"
 html_favicon = "./images/libE_logo_circle.png"
 html_title = "libEnsemble"
 
-# Theme options are theme-specific and customize the look and feel of a theme
+# Theme options are theme-specific and customize the look and feel of the theme
 # further.  For a list of options available for each theme, see the
 # documentation.
 #
 html_theme_options = {
-    "announcement": "<em>libEnsemble v2.0 is released, with many new features and changes.</em>",
+    "announcement": "<em>libEnsemble v2.0 is pending, with many new features and changes.</em>",
     "source_repository": "https://github.com/Libensemble/libensemble/",
     "source_branch": "main",
     "source_directory": "docs/",

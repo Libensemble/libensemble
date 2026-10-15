@@ -17,8 +17,6 @@ logger = logging.getLogger(__name__)
 class Runner:
     @classmethod
     def from_specs(cls, specs):
-        if len(specs.get("globus_compute_endpoint", "")) > 0:
-            return GlobusComputeRunner(specs)
         if specs.get("threaded"):
             return ThreadRunner(specs)
         if (generator := specs.get("generator")) is not None:
@@ -65,36 +63,6 @@ class Runner:
                 "Perhaps you meant to set `SimSpecs.simulator` instead of `SimSpecs.sim_f`?"
             )
         return out
-
-
-class GlobusComputeRunner(Runner):
-    def __init__(self, specs):
-        super().__init__(specs)
-        self.globus_compute_executor = self._get_globus_compute_executor()(endpoint_id=specs["globus_compute_endpoint"])
-        self.globus_compute_fid = self.globus_compute_executor.register_function(self.f)
-
-    def _get_globus_compute_executor(self):
-        try:
-            from globus_compute_sdk import Executor
-        except ModuleNotFoundError:
-            logger.warning("Globus Compute use detected but Globus Compute not importable. Is it installed?")
-            logger.warning("Running function evaluations normally on local resources.")
-            return None
-        else:
-            return Executor
-
-    def _result(self, calc_in: npt.NDArray, persis_info: dict, libE_info: dict) -> (npt.NDArray, dict, int | None):
-        from libensemble.worker import Worker
-
-        libE_info["comm"] = None  # 'comm' object not pickle-able
-        Worker._set_executor(0, None)  # ditto for executor
-
-        args = self._truncate_args(calc_in, persis_info, libE_info)
-        task_fut = self.globus_compute_executor.submit_to_registered_function(self.globus_compute_fid, args)
-        return task_fut.result()
-
-    def shutdown(self) -> None:
-        self.globus_compute_executor.shutdown()
 
 
 class ThreadRunner(Runner):
@@ -174,8 +142,7 @@ class StandardGenRunner(Runner):
             }
             if sample_method not in samplers:
                 raise ValueError(
-                    f"Unknown initial_sample_method: {sample_method!r}. "
-                    f"Supported: {list(samplers.keys())}"
+                    f"Unknown initial_sample_method: {sample_method!r}. " f"Supported: {list(samplers.keys())}"
                 )
             sampler = samplers[sample_method](vocs=self.specs.get("vocs"))
         else:
@@ -234,13 +201,19 @@ class StandardGenRunner(Runner):
 
 class LibensembleGenRunner(StandardGenRunner):
     def _get_initial_suggest(self, libE_info) -> npt.NDArray:
-        """Get initial batch from generator based on generator type"""
+        """Get initial batch from a LibensembleGenerator.
+
+        LibensembleGenerator.suggest_numpy emits VOCS-field-named structured arrays
+        (e.g. x0/x1, energy). The manager-side history expects mapped fields (x, f)
+        unless the user explicitly requested otherwise.
+        """
         initial_batch = self.specs.get("initial_batch_size") or self.specs.get("batch_size") or libE_info["batch_size"]
         H_out = self.gen.suggest_numpy(initial_batch)
-        return H_out
+        return map_numpy_array(H_out, mapping=getattr(self.gen, "variables_mapping", {}))
 
     def _get_points_updates(self, batch_size: int) -> (npt.NDArray, list):
         numpy_out = self.gen.suggest_numpy(batch_size)
+        numpy_out = map_numpy_array(numpy_out, mapping=getattr(self.gen, "variables_mapping", {}))
         if callable(getattr(self.gen, "suggest_updates", None)):
             updates = self.gen.suggest_updates()
         else:
@@ -248,10 +221,10 @@ class LibensembleGenRunner(StandardGenRunner):
         return numpy_out, updates
 
     def _convert_ingest(self, x: npt.NDArray) -> list:
-        self.gen.ingest_numpy(x)
+        self.gen.ingest_numpy(unmap_numpy_array(x, mapping=getattr(self.gen, "variables_mapping", {})))
 
     def _convert_initial_ingest(self, x: npt.NDArray) -> list:
-        self.gen.ingest_numpy(x)
+        self.gen.ingest_numpy(unmap_numpy_array(x, mapping=getattr(self.gen, "variables_mapping", {})))
 
 
 class LibensembleGenThreadRunner(StandardGenRunner):

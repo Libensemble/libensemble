@@ -8,7 +8,7 @@ PETSc is imported at global level.
 Execute via one of the following commands (e.g., 3 workers):
    mpiexec -np 4 python test_persistent_aposmm_tao_nm.py
    python test_with_app_persistent_aposmm_tao_nm.py --nworkers 3
-   python test_with_app_persistent_aposmm_tao_nm.py --nworkers 3 --comms tcp
+   python test_with_app_persistent_aposmm_tao_nm.py --nworkers 3 --comms threads
 
 When running with the above commands, the number of concurrent evaluations of
 the objective function will be 2, since one of the three workers will be the

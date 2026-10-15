@@ -41,6 +41,8 @@ TASK_FAILED_TO_START = 34  # Calc had tasks that failed to start
 WORKER_DONE = 35  # Calculation was successful
 # last_calc_status_rst_tag
 CALC_EXCEPTION = 36  # Reserved: Automatically used if user_f raised an exception
+CACHE_RETRIEVE = 40  # Manager retrieved sim from cache
+
 
 MAN_KILL_SIGNALS = [MAN_SIGNAL_FINISH, MAN_SIGNAL_KILL]
 
@@ -57,6 +59,7 @@ calc_status_strings = {
     TASK_FAILED_TO_START: "Task Failed to start",
     WORKER_DONE: "Completed",
     CALC_EXCEPTION: "Exception occurred",
+    CACHE_RETRIEVE: "Retrieved from cache",
     None: "Unknown Status",
 }
 # last_calc_status_string_rst_tag

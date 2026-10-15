@@ -5,7 +5,7 @@ asynchronously
 Execute via one of the following commands (e.g. 3 workers):
    mpiexec -np 4 python test_persistent_uniform_sampling_async.py
    python test_persistent_uniform_sampling_async.py --nworkers 3
-   python test_persistent_uniform_sampling_async.py --nworkers 3 --comms tcp
+   python test_persistent_uniform_sampling_async.py --nworkers 3 --comms threads
 
 When running with the above commands, the number of concurrent evaluations of
 the objective function will be 2, as one of the three workers will be the
@@ -13,12 +13,13 @@ persistent generator.
 """
 
 # Do not change these lines - they are parsed by run-tests.sh
-# TESTSUITE_COMMS: mpi local tcp
+# TESTSUITE_COMMS: mpi local threads
 # TESTSUITE_NPROCS: 4
 
 import sys
 
 import numpy as np
+from gest_api.vocs import VOCS
 
 from libensemble.gen_funcs.persistent_sampling import persistent_uniform as gen_f
 
@@ -44,19 +45,18 @@ if __name__ == "__main__":
         "user": {"uniform_random_pause_ub": 0.5},
     }
 
+    vocs = VOCS(variables={"x0": [-3, 3], "x1": [-2, 2]}, objectives={"f": "EXPLORE"})
+
     gen_specs = {
         "gen_f": gen_f,
         "persis_in": ["f", "x", "sim_id"],
         "out": [("x", float, (n,))],
         "initial_batch_size": nworkers,
         "async_return": True,
-        "user": {
-            "lb": np.array([-3, -2]),
-            "ub": np.array([3, 2]),
-        },
+        "vocs": vocs,
     }
 
-    exit_criteria = {"gen_max": 100, "wallclock_max": 300}
+    exit_criteria = {"gen_max": 10, "wallclock_max": 300}
 
     # Perform the run
     H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, libE_specs=libE_specs)

@@ -1,23 +1,24 @@
 """
 Runs libEnsemble in order to test the ability of an allocation function to
 cancel long-running simulations. In this case, the simulation has a run-time
-in seconds that is drawn uniformly from [0,10] and any time the allocation
-function is called and a sim_id has been evaluated for more than 5 seconds,
+in seconds that is drawn uniformly from [0,60] and any time the allocation
+function is called and a sim_id has been evaluated for more than 0.1 seconds,
 it is cancelled.
 
 Execute via one of the following commands (e.g. 3 workers):
    mpiexec -np 4 python test_cancel_in_alloc.py
    python test_cancel_in_alloc.py --nworkers 3
-   python test_cancel_in_alloc.py --nworkers 3 --comms tcp
+   python test_cancel_in_alloc.py --nworkers 3 --comms threads
 
 The number of concurrent evaluations of the objective function will be 4-1=3.
 """
 
 # Do not change these lines - they are parsed by run-tests.sh
-# TESTSUITE_COMMS: mpi local tcp
+# TESTSUITE_COMMS: mpi local threads
 # TESTSUITE_NPROCS: 4
 
 import numpy as np
+from gest_api.vocs import VOCS
 
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
@@ -36,33 +37,38 @@ if __name__ == "__main__":
         "sim_f": sim_f,
         "in": ["x"],
         "out": [("f", float)],
-        "user": {"uniform_random_pause_ub": 10},
+        "user": {"uniform_random_pause_ub": 2},  # sleep ensures sims are still running when cancel fires
     }
+
+    vocs = VOCS(variables={"x0": [-3, 3], "x1": [-2, 2]}, objectives={"f": "EXPLORE"})
 
     gen_specs = {
         "gen_f": gen_f,
         "in": ["sim_id"],
         "out": [("x", float, (2,))],
-        "batch_size": 5,
+        "batch_size": nworkers,
         "num_active_gens": 1,
-        "user": {
-            "lb": np.array([-3, -2]),
-            "ub": np.array([3, 2]),
-        },
+        "vocs": vocs,
     }
 
     alloc_specs = {
         "alloc_f": give_sim_work_first,
         "user": {
-            "cancel_sims_time": 3,
+            "cancel_sims_time": 0.1,  # fires on first alloc call after dispatch, before any sim can return
             "batch_mode": False,
         },
     }
 
-    exit_criteria = {"sim_max": 10, "wallclock_max": 300}
+    exit_criteria = {"sim_max": nworkers * 2, "wallclock_max": 30}
 
     # Perform the run
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, libE_specs=libE_specs, alloc_specs=alloc_specs)
+    H, persis_info, flag = libE(
+        sim_specs,
+        gen_specs,
+        exit_criteria,
+        libE_specs=libE_specs,
+        alloc_specs=alloc_specs,
+    )
 
     if is_manager:
         test = np.any(H["cancel_requested"]) and np.any(H["kill_sent"])

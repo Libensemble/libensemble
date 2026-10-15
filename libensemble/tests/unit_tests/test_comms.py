@@ -134,6 +134,7 @@ def test_comm_logging():
     with comms.QCommProcess(worker_main, nworkers=2) as mgr_comm:
         msg = mgr_comm.recv()
         assert isinstance(msg[0], logging.LogRecord)
+        assert mgr_comm.recv() == ("Done!",)
 
 
 if __name__ == "__main__":

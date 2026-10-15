@@ -2,7 +2,55 @@ import sys
 
 import numpy as np
 
-from libensemble.utils.misc import specs_dump
+from libensemble.utils.misc import _stable_value, specs_dump
+
+
+def test_stable_value_handles_cyclic_references():
+    """Objects whose __dict__ contains back-references must not cause
+    infinite recursion in _stable_value (e.g. Ax optimizer objects)."""
+
+    class Node:
+        pass
+
+    a = Node()
+    b = Node()
+    a.partner = b
+    b.partner = a  # circular reference
+
+    result = _stable_value(a)
+    assert "type" in result
+    partner = result["state"]["partner"]
+    assert partner["state"]["partner"]["state"] == "<cyclic>"
+
+
+def test_save_output_preserves_embedded_test_prefix(tmp_path, monkeypatch):
+    from libensemble.ensemble import Ensemble
+    from libensemble.specs import LibeSpecs
+
+    ensemble = Ensemble(libE_specs=LibeSpecs(comms="local", nworkers=1))
+    ensemble.H = np.zeros(1, dtype=[("sim_ended", bool)])
+    ensemble.persis_info = {}
+
+    monkeypatch.chdir(tmp_path)
+    output_path = ensemble.save_output("sampling_retest_renamed.py", append_attrs=False)
+
+    assert output_path == "sampling_retest_renamed.npy"
+    assert (tmp_path / "sampling_retest_renamed.npy").is_file()
+    assert (tmp_path / "sampling_retest_renamed.pickle").is_file()
+
+
+def test_save_output_strips_only_leading_test_prefix(tmp_path, monkeypatch):
+    from libensemble.ensemble import Ensemble
+    from libensemble.specs import LibeSpecs
+
+    ensemble = Ensemble(libE_specs=LibeSpecs(comms="local", nworkers=1))
+    ensemble.H = np.zeros(1, dtype=[("sim_ended", bool)])
+    ensemble.persis_info = {}
+
+    monkeypatch.chdir(tmp_path)
+    output_path = ensemble.save_output("test_sampling.py", append_attrs=False)
+
+    assert output_path == "sampling.npy"
 
 
 def test_ensemble_init():
@@ -42,7 +90,7 @@ def test_full_workflow():
     from libensemble.ensemble import Ensemble
     from libensemble.gen_funcs.sampling import latin_hypercube_sample
     from libensemble.sim_funcs.simple_sim import norm_eval
-    from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
+    from libensemble.specs import AllocSpecs, GenSpecs, LibeSpecs, SimSpecs
 
     LS = LibeSpecs(comms="local", nworkers=4)
 
@@ -60,11 +108,10 @@ def test_full_workflow():
                 "ub": np.array([3]),
             },
         ),
-        exit_criteria=ExitCriteria(gen_max=101),
         alloc_specs=AllocSpecs(alloc_f=give_sim_work_first),
     )
 
-    ens.run()
+    ens.run(gen_max=101)
     if ens.is_manager:
         assert len(ens.H) >= 101
 
@@ -72,7 +119,7 @@ def test_full_workflow():
     ens.libE_specs.dry_run = True
     flag = 1
     try:
-        ens.run()
+        ens.run(gen_max=101)
     except SystemExit:
         flag = 0
     assert not flag, "Ensemble didn't exit after specifying dry_run"
@@ -85,7 +132,7 @@ def test_flakey_workflow():
     from libensemble.ensemble import Ensemble
     from libensemble.gen_funcs.sampling import latin_hypercube_sample
     from libensemble.sim_funcs.simple_sim import norm_eval
-    from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
+    from libensemble.specs import GenSpecs, LibeSpecs, SimSpecs
 
     LS = LibeSpecs(comms="local", nworkers=4)
 
@@ -102,10 +149,9 @@ def test_flakey_workflow():
                     "ub": np.array([3]),
                 },
             ),
-            exit_criteria=ExitCriteria(gen_max=101),
         )
         ens.sim_specs.inputs = (["x"],)  # note trailing comma
-        ens.run()
+        ens.run(gen_max=101)
     except ValidationError:
         flag = 0
 
@@ -137,28 +183,27 @@ def test_ensemble_specs_update_libE_specs():
 
 
 def test_ensemble_prevent_comms_overwrite():
-    """Test that libE_specs is updated as expected with .attribute setting"""
+    """Test that the configured communication method cannot be changed."""
     from libensemble.ensemble import Ensemble
     from libensemble.specs import LibeSpecs
 
     ensemble = Ensemble(
-        libE_specs=LibeSpecs(comms="mpi"),
+        libE_specs=LibeSpecs(comms="local", nworkers=4),
     )
-
     flag = 1
     try:
-        ensemble.libE_specs = LibeSpecs(comms="local")
+        ensemble.libE_specs = LibeSpecs(comms="threads")
     except ValueError:
         flag = 0
 
-    assert not flag, "UserWarning should've been raised upon trying to overwrite comms"
+    assert not flag, "should not be able to overwrite comms through the property setter"
 
     # test that dot-notation is also disallowed, upon trying .run()
     # TODO: This may not be possible
     flag = 1
-    ensemble = Ensemble()
+    ensemble = Ensemble(libE_specs=LibeSpecs(comms="local", nworkers=4))
     try:
-        ensemble.libE_specs.comms = "mpi"
+        ensemble.libE_specs.comms = "threads"
         ensemble.run()
     except ValueError:
         flag = 0
@@ -185,13 +230,13 @@ def test_local_comms_without_nworkers():
 def test_ready_missing_sim_callable():
     """ready() should flag a missing sim callable."""
     from libensemble.ensemble import Ensemble
-    from libensemble.specs import ExitCriteria, LibeSpecs, SimSpecs
+    from libensemble.specs import LibeSpecs, SimSpecs
 
     e = Ensemble(
         libE_specs=LibeSpecs(comms="local", nworkers=4),
         sim_specs=SimSpecs(),  # no sim_f or simulator
-        exit_criteria=ExitCriteria(sim_max=10),
     )
+    e._exit_criteria.sim_max = 10  # set directly to avoid deprecation warning
     ok, issues = e.ready()
     assert not ok, "Should not be ready without a sim callable"
     assert any("sim_f" in msg for msg in issues), f"Expected sim_f mention in issues: {issues}"
@@ -201,12 +246,12 @@ def test_ready_missing_exit_criteria():
     """ready() should flag an exit_criteria with no stop condition."""
     from libensemble.ensemble import Ensemble
     from libensemble.sim_funcs.simple_sim import norm_eval
-    from libensemble.specs import ExitCriteria, LibeSpecs, SimSpecs
+    from libensemble.specs import LibeSpecs, SimSpecs
 
     e = Ensemble(
         libE_specs=LibeSpecs(comms="local", nworkers=4),
         sim_specs=SimSpecs(sim_f=norm_eval),
-        exit_criteria=ExitCriteria(),  # nothing set
+        # no exit criteria set — _exit_criteria defaults to ExitCriteria() with nothing set
     )
     ok, issues = e.ready()
     assert not ok, "Should not be ready with no exit condition"
@@ -217,15 +262,14 @@ def test_ready_missing_nworkers_local():
     """ready() should flag local comms without nworkers."""
     from libensemble.ensemble import Ensemble
     from libensemble.sim_funcs.simple_sim import norm_eval
-    from libensemble.specs import ExitCriteria, LibeSpecs, SimSpecs
+    from libensemble.specs import LibeSpecs, SimSpecs
 
-    # Bypass the constructor ValueError by using mpi comms first,
-    # then patch to local after construction.
+    # Start valid, then bypass assignment validation to exercise ready().
     e = Ensemble(
-        libE_specs=LibeSpecs(comms="mpi"),
+        libE_specs=LibeSpecs(comms="local", nworkers=1),
         sim_specs=SimSpecs(sim_f=norm_eval),
-        exit_criteria=ExitCriteria(sim_max=10),
     )
+    e._exit_criteria.sim_max = 10  # set directly to avoid deprecation warning
     # Manually force comms=local and nworkers=0 on the internal specs object
     e._libE_specs.comms = "local"
     e._nworkers = 0
@@ -240,14 +284,14 @@ def test_ready_field_mismatch():
     """ready() should flag when sim_specs.inputs requests fields not in gen_specs.outputs."""
     from libensemble.ensemble import Ensemble
     from libensemble.sim_funcs.simple_sim import norm_eval
-    from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
+    from libensemble.specs import GenSpecs, LibeSpecs, SimSpecs
 
     e = Ensemble(
         libE_specs=LibeSpecs(comms="local", nworkers=4),
         sim_specs=SimSpecs(sim_f=norm_eval, inputs=["x", "z"]),
         gen_specs=GenSpecs(outputs=[("x", float, (1,))]),  # missing "z"
-        exit_criteria=ExitCriteria(sim_max=10),
     )
+    e._exit_criteria.sim_max = 10  # set directly to avoid deprecation warning
     ok, issues = e.ready()
     assert not ok, "Should not be ready with mismatched gen/sim fields"
     assert any("z" in msg for msg in issues), f"Expected missing field 'z' in issues: {issues}"
@@ -257,17 +301,275 @@ def test_ready_happy_path():
     """ready() should return (True, []) for a fully configured ensemble."""
     from libensemble.ensemble import Ensemble
     from libensemble.sim_funcs.simple_sim import norm_eval
-    from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
+    from libensemble.specs import GenSpecs, LibeSpecs, SimSpecs
 
     e = Ensemble(
         libE_specs=LibeSpecs(comms="local", nworkers=4),
         sim_specs=SimSpecs(sim_f=norm_eval, inputs=["x"], outputs=[("f", float)]),
         gen_specs=GenSpecs(outputs=[("x", float, (1,))]),
-        exit_criteria=ExitCriteria(sim_max=10),
     )
+    e._exit_criteria.sim_max = 10  # set directly to avoid deprecation warning
     ok, issues = e.ready()
     assert ok, f"Should be ready but got issues: {issues}"
     assert issues == [], f"Issues should be empty but got: {issues}"
+
+
+def test_gen_specs_vocs_populates_user_bounds():
+    """GenSpecs should populate user['lb']/['ub'] from VOCS continuous variables."""
+    from gest_api.vocs import VOCS
+
+    from libensemble.specs import GenSpecs
+
+    vocs = VOCS(variables={"x0": [-3, 3], "x1": [-2, 2], "x2": [-1, 1], "x3": [-1, 1]}, objectives={"f": "EXPLORE"})
+    gs = GenSpecs(vocs=vocs)
+    assert "lb" in gs.user, "lb should be populated in user from VOCS"
+    assert "ub" in gs.user, "ub should be populated in user from VOCS"
+    assert isinstance(gs.user["lb"], np.ndarray), "lb should be a numpy array"
+    assert isinstance(gs.user["ub"], np.ndarray), "ub should be a numpy array"
+    assert np.array_equal(gs.user["lb"], np.array([-3, -2, -1, -1]))
+    assert np.array_equal(gs.user["ub"], np.array([3, 2, 1, 1]))
+
+
+def test_gen_specs_vocs_does_not_overwrite_user_bounds():
+    """GenSpecs should not overwrite user-provided lb/ub when vocs is also given."""
+    from gest_api.vocs import VOCS
+
+    from libensemble.specs import GenSpecs
+
+    vocs = VOCS(variables={"x0": [-3, 3], "x1": [-2, 2]}, objectives={"f": "EXPLORE"})
+    explicit_lb = np.array([0.0, 0.0])
+    explicit_ub = np.array([1.0, 1.0])
+    gs = GenSpecs(vocs=vocs, user={"lb": explicit_lb, "ub": explicit_ub})
+    assert np.array_equal(gs.user["lb"], explicit_lb), "Explicit lb should be preserved"
+    assert np.array_equal(gs.user["ub"], explicit_ub), "Explicit ub should be preserved"
+
+
+def test_gen_specs_vocs_partial_user_bounds():
+    """GenSpecs should fill in only the missing one of lb/ub if user supplies just one."""
+    from gest_api.vocs import VOCS
+
+    from libensemble.specs import GenSpecs
+
+    vocs = VOCS(variables={"x0": [-3, 3], "x1": [-2, 2]}, objectives={"f": "EXPLORE"})
+    explicit_lb = np.array([0.0, 0.0])
+    gs = GenSpecs(vocs=vocs, user={"lb": explicit_lb})
+    assert np.array_equal(gs.user["lb"], explicit_lb), "Explicit lb should be preserved"
+    assert "ub" in gs.user, "ub should be populated from VOCS"
+    assert np.array_equal(gs.user["ub"], np.array([3, 2]))
+
+
+def test_gen_specs_no_vocs_leaves_user_empty():
+    """Without VOCS, GenSpecs.user should remain empty by default."""
+    from libensemble.specs import GenSpecs
+
+    gs = GenSpecs(outputs=[("x", float, (1,))])
+    assert "lb" not in gs.user, "lb should not be auto-populated without VOCS"
+    assert "ub" not in gs.user, "ub should not be auto-populated without VOCS"
+
+
+def test_gen_specs_vocs_satisfies_legacy_user_params():
+    """VOCS-populated user bounds should satisfy legacy gen_f consumers like
+    persistent_uniform (which require lb/ub to be numpy arrays and uses len(lb)
+    for dimension)."""
+    from gest_api.vocs import VOCS
+
+    from libensemble.gen_funcs.persistent_sampling import _get_user_params
+    from libensemble.specs import GenSpecs
+
+    vocs = VOCS(variables={"x0": [-3, 3], "x1": [-2, 2]}, objectives={"f": "EXPLORE"})
+    gs = GenSpecs(vocs=vocs, initial_batch_size=10)
+
+    # Convert to dict shape that _get_user_params expects
+    gs_dict = {"initial_batch_size": gs.initial_batch_size, "user": gs.user}
+    b, n, lb, ub = _get_user_params(gs_dict["user"], gs_dict)
+    assert b == 10
+    assert n == 2
+    assert isinstance(lb, np.ndarray) and lb.dtype == float
+    assert isinstance(ub, np.ndarray) and ub.dtype == float
+    assert np.array_equal(lb, np.array([-3.0, -2.0]))
+    assert np.array_equal(ub, np.array([3.0, 2.0]))
+
+
+def test_gen_specs_vocs_integer_domain_yields_float_array():
+    """Integer-valued VOCS domains should still produce float dtype lb/ub arrays."""
+    from gest_api.vocs import VOCS
+
+    from libensemble.specs import GenSpecs
+
+    vocs = VOCS(variables={"x0": [0, 10], "x1": [-5, 5]}, objectives={"f": "EXPLORE"})
+    gs = GenSpecs(vocs=vocs)
+    assert gs.user["lb"].dtype == float, "lb should be float dtype even for integer-domain variables"
+    assert gs.user["ub"].dtype == float, "ub should be float dtype even for integer-domain variables"
+
+
+def test_run_sim_max_kwarg():
+    """run(sim_max=10) should evaluate exactly 10 simulations."""
+    from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
+    from libensemble.ensemble import Ensemble
+    from libensemble.gen_funcs.sampling import latin_hypercube_sample
+    from libensemble.sim_funcs.simple_sim import norm_eval
+    from libensemble.specs import AllocSpecs, GenSpecs, LibeSpecs, SimSpecs
+
+    ens = Ensemble(
+        libE_specs=LibeSpecs(comms="local", nworkers=4),
+        sim_specs=SimSpecs(sim_f=norm_eval, inputs=["x"], outputs=[("f", float)]),
+        gen_specs=GenSpecs(
+            gen_f=latin_hypercube_sample,
+            outputs=[("x", float, (1,))],
+            persis_in=["f"],
+            batch_size=5,
+            user={"lb": np.array([-3]), "ub": np.array([3])},
+        ),
+        alloc_specs=AllocSpecs(alloc_f=give_sim_work_first),
+    )
+    ens.run(sim_max=10)
+    if ens.is_manager:
+        sim_count = int(np.sum(ens.H["sim_ended"]))
+        assert sim_count == 10, f"Expected 10 sims but got {sim_count}"
+
+
+def test_run_chaining():
+    """Two run(sim_max=N) calls should chain H0, doubling total."""
+    from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
+    from libensemble.ensemble import Ensemble
+    from libensemble.gen_funcs.sampling import latin_hypercube_sample
+    from libensemble.sim_funcs.simple_sim import norm_eval
+    from libensemble.specs import AllocSpecs, GenSpecs, LibeSpecs, SimSpecs
+
+    ens = Ensemble(
+        libE_specs=LibeSpecs(comms="local", nworkers=4),
+        sim_specs=SimSpecs(sim_f=norm_eval, inputs=["x"], outputs=[("f", float)]),
+        gen_specs=GenSpecs(
+            gen_f=latin_hypercube_sample,
+            outputs=[("x", float, (1,))],
+            persis_in=["f"],
+            batch_size=5,
+            user={"lb": np.array([-3]), "ub": np.array([3])},
+        ),
+        alloc_specs=AllocSpecs(alloc_f=give_sim_work_first),
+    )
+    ens.run(sim_max=10)
+    h1_ended = int(np.sum(ens.H["sim_ended"])) if ens.is_manager else 0
+    ens.run(sim_max=10)
+    if ens.is_manager:
+        total_ended = int(np.sum(ens.H["sim_ended"]))
+        assert total_ended == h1_ended + 10, f"Expected {h1_ended + 10} sims ended but got {total_ended}"
+        assert ens.H0 is ens.H, "H0 should reference the latest H"
+
+
+def test_run_sim_max_merge():
+    """run() kwargs should merge with existing exit_criteria, not replace."""
+    from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
+    from libensemble.ensemble import Ensemble
+    from libensemble.gen_funcs.sampling import latin_hypercube_sample
+    from libensemble.sim_funcs.simple_sim import norm_eval
+    from libensemble.specs import AllocSpecs, GenSpecs, LibeSpecs, SimSpecs
+
+    # Must have full sim/gen specs so run() actually works
+    ens = Ensemble(
+        libE_specs=LibeSpecs(comms="local", nworkers=4),
+        sim_specs=SimSpecs(sim_f=norm_eval, inputs=["x"], outputs=[("f", float)]),
+        gen_specs=GenSpecs(
+            gen_f=latin_hypercube_sample,
+            outputs=[("x", float, (1,))],
+            persis_in=["f"],
+            batch_size=5,
+            user={"lb": np.array([-3]), "ub": np.array([3])},
+        ),
+        alloc_specs=AllocSpecs(alloc_f=give_sim_work_first),
+    )
+    ens._exit_criteria.sim_max = 100  # set directly to avoid deprecation warning
+    ens.run(sim_max=10)
+    # stored exit_criteria should still have sim_max=100
+    assert ens.exit_criteria.sim_max == 100, f"Expected sim_max=100 but got {ens.exit_criteria.sim_max}"
+
+
+def test_exit_criteria_deprecation_init():
+    """Passing ExitCriteria to Ensemble() should emit a deprecation warning."""
+    import warnings
+
+    from libensemble._deprecation import LibEnsembleDeprecationWarning
+    from libensemble.ensemble import Ensemble
+    from libensemble.specs import ExitCriteria
+
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        Ensemble(exit_criteria=ExitCriteria(sim_max=10))
+    deprecations = [x for x in w if issubclass(x.category, LibEnsembleDeprecationWarning)]
+    assert len(deprecations) >= 1, "Expected at least one LibEnsembleDeprecationWarning"
+
+
+def test_exit_criteria_deprecation_setter():
+    """Setting ensemble.exit_criteria = ExitCriteria(...) should emit a deprecation warning."""
+    import warnings
+
+    from libensemble._deprecation import LibEnsembleDeprecationWarning
+    from libensemble.ensemble import Ensemble
+    from libensemble.specs import ExitCriteria, LibeSpecs
+
+    ens = Ensemble(libE_specs=LibeSpecs(comms="local", nworkers=4))
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        ens.exit_criteria = ExitCriteria(sim_max=10)
+    deprecations = [x for x in w if issubclass(x.category, LibEnsembleDeprecationWarning)]
+    assert len(deprecations) >= 1, "Expected at least one LibEnsembleDeprecationWarning"
+
+
+def test_run_auto_settings():
+    """final_gen_send and reuse_output_dir should only be set from the second run() call onward."""
+    from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
+    from libensemble.ensemble import Ensemble
+    from libensemble.gen_funcs.sampling import latin_hypercube_sample
+    from libensemble.sim_funcs.simple_sim import norm_eval
+    from libensemble.specs import AllocSpecs, GenSpecs, LibeSpecs, SimSpecs
+
+    ens = Ensemble(
+        libE_specs=LibeSpecs(comms="local", nworkers=4),
+        sim_specs=SimSpecs(sim_f=norm_eval, inputs=["x"], outputs=[("f", float)]),
+        gen_specs=GenSpecs(
+            gen_f=latin_hypercube_sample,
+            outputs=[("x", float, (1,))],
+            persis_in=["f"],
+            batch_size=5,
+            user={"lb": np.array([-3]), "ub": np.array([3])},
+        ),
+        alloc_specs=AllocSpecs(alloc_f=give_sim_work_first),
+    )
+    # First run: final_gen_send must NOT be set (this is not a substep run)
+    ens.run(sim_max=10)
+    assert not ens.libE_specs.final_gen_send, "final_gen_send should not be set on the first run()"
+    # Second run: now in substep mode, final_gen_send should be activated
+    ens.run(sim_max=10)
+    assert ens.libE_specs.final_gen_send is True
+    assert ens.libE_specs.reuse_output_dir is True
+
+
+def test_h0_chaining_plain_run():
+    """H0 should be updated to H after a plain run() call."""
+    from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
+    from libensemble.ensemble import Ensemble
+    from libensemble.gen_funcs.sampling import latin_hypercube_sample
+    from libensemble.sim_funcs.simple_sim import norm_eval
+    from libensemble.specs import AllocSpecs, GenSpecs, LibeSpecs, SimSpecs
+
+    ens = Ensemble(
+        libE_specs=LibeSpecs(comms="local", nworkers=4),
+        sim_specs=SimSpecs(sim_f=norm_eval, inputs=["x"], outputs=[("f", float)]),
+        gen_specs=GenSpecs(
+            gen_f=latin_hypercube_sample,
+            outputs=[("x", float, (1,))],
+            persis_in=["f"],
+            batch_size=5,
+            user={"lb": np.array([-3]), "ub": np.array([3])},
+        ),
+        alloc_specs=AllocSpecs(alloc_f=give_sim_work_first),
+    )
+    assert ens.H0 is None, "H0 should be None before first run"
+    ens.run(sim_max=5)
+    if ens.is_manager:
+        assert ens.H0 is not None, "H0 should be set after run"
+        sim_count = int(np.sum(ens.H0["sim_ended"]))
+        assert sim_count == 5, f"Expected 5 sims but got {sim_count}"
 
 
 if __name__ == "__main__":
@@ -283,3 +585,16 @@ if __name__ == "__main__":
     test_ready_missing_nworkers_local()
     test_ready_field_mismatch()
     test_ready_happy_path()
+    test_gen_specs_vocs_populates_user_bounds()
+    test_gen_specs_vocs_does_not_overwrite_user_bounds()
+    test_gen_specs_vocs_partial_user_bounds()
+    test_gen_specs_no_vocs_leaves_user_empty()
+    test_gen_specs_vocs_satisfies_legacy_user_params()
+    test_gen_specs_vocs_integer_domain_yields_float_array()
+    test_run_sim_max_kwarg()
+    test_run_chaining()
+    test_run_sim_max_merge()
+    test_exit_criteria_deprecation_init()
+    test_exit_criteria_deprecation_setter()
+    test_run_auto_settings()
+    test_h0_chaining_plain_run()

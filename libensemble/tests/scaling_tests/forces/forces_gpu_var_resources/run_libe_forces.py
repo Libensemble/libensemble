@@ -29,7 +29,7 @@ from libensemble import Ensemble
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.executors import MPIExecutor
 from libensemble.gen_funcs.persistent_sampling_var_resources import uniform_sample_with_var_gpus as gen_f
-from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
+from libensemble.specs import AllocSpecs, GenSpecs, LibeSpecs, SimSpecs
 
 if __name__ == "__main__":
     # Initialize MPI Executor
@@ -83,15 +83,13 @@ if __name__ == "__main__":
         },
     )
 
-    # Instruct libEnsemble to exit after this many simulations.
-    ensemble.exit_criteria = ExitCriteria(sim_max=8)
-
-    # Run ensemble
-    ensemble.run()
+    # Run ensemble; exit after this many simulations
+    sim_max = 8
+    ensemble.run(sim_max=sim_max)
 
     if ensemble.is_manager:
         # Note, this will change if changing sim_max, nworkers, lb, ub, etc.
-        if ensemble.exit_criteria.sim_max == 8:
+        if sim_max == 8:
             chksum = np.sum(ensemble.H["energy"])
             assert np.isclose(chksum, 96288744.35136001), f"energy check sum is {chksum}"
             print("Checksum passed")

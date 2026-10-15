@@ -20,27 +20,27 @@
 .. _libE_specs: https://libensemble.readthedocs.io/en/main/data_structures/libE_specs.html
 .. _manuscript: https://arxiv.org/abs/2104.08322
 .. _mock: https://pypi.org/project/mock
-.. _mpi4py: https://bitbucket.org/mpi4py/mpi4py
+.. _mpi4py: https://mpi4py.readthedocs.io/en/stable/
 .. _MPICH: http://www.mpich.org/
 .. _mpmath: http://mpmath.org/
 .. _NLopt documentation: https://nlopt.readthedocs.io/en/latest/NLopt_Installation/
 .. _nlopt: https://nlopt.readthedocs.io/en/latest/
-.. _NumPy: http://www.numpy.org
+.. _NumPy: https://numpy.org/
 .. _OPAL: http://amas.web.psi.ch/docs/opal/opal_user_guide-1.6.0.pdf
 .. _petsc4py: https://bitbucket.org/petsc/petsc4py
-.. _PETSc/TAO: http://www.mcs.anl.gov/petsc
+.. _PETSc/TAO: https://www.mcs.anl.gov/petsc/
 .. _poster: https://figshare.com/articles/libEnsemble_A_Python_Library_for_Dynamic_Ensemble-Based_Computations/12559520
 .. _PSI/J: https://exaworks.org/psij
 .. _psi-j-python: https://github.com/ExaWorks/psi-j-python
 .. _psutil: https://pypi.org/project/psutil/
-.. _pydantic: https://pydantic-docs.helpmanual.io/
+.. _pydantic: https://pydantic.dev/docs/validation/latest/get-started/
 .. _PyPI: https://pypi.org
 .. _pytest-cov: https://pypi.org/project/pytest-cov/
 .. _pytest-timeout: https://pypi.org/project/pytest-timeout/
 .. _pytest: https://pypi.org/project/pytest/
-.. _Python: http://www.python.org
+.. _Python: https://www.python.org/
 .. _Quickstart: https://libensemble.readthedocs.io/en/main/introduction.html
-.. _ReadtheDocs: http://libensemble.readthedocs.org/
+.. _ReadtheDocs: https://libensemble.readthedocs.io/en/latest/
 .. _SciPy: http://www.scipy.org
 .. _scipy.optimize: https://docs.scipy.org/doc/scipy/reference/optimize.html
 .. _setuptools: https://setuptools.pypa.io/en/latest/
@@ -52,6 +52,6 @@
 .. _Tasmanian: https://github.com/ORNL/Tasmanian
 .. _tqdm: https://tqdm.github.io/
 .. _user guide: https://libensemble.readthedocs.io/en/latest/programming_libE.html
-.. _VTMOP: https://github.com/Libensemble/libe-community-examples#vtmop
+.. _VTMOP: https://libensemble.readthedocs.io/projects/libe-community-examples/en/latest/generators.html#vtmop-link
 .. _WarpX: https://warpx.readthedocs.io/en/latest/
 .. _xsdk: https://xsdk.info

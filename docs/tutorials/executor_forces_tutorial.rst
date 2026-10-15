@@ -90,8 +90,8 @@ exit after running eight simulations, and finally we :doc:`run<../libe_module>` 
 .. literalinclude:: ../../libensemble/tests/functionality_tests/test_executor_forces_tutorial.py
     :language: python
     :linenos:
-    :start-at: Instruct libEnsemble
-    :end-at: ensemble.run()
+    :start-at: # Run ensemble; exit after this many simulations
+    :end-at: ensemble.run(sim_max=8)
     :lineno-start: 55
 
 Exercise
@@ -467,4 +467,4 @@ to generator and simulator functions.
 .. _forces_simple_with_input_file: https://github.com/Libensemble/libensemble/tree/main/libensemble/tests/scaling_tests/forces/forces_simple_with_input_file
 .. _GitHub: https://github.com/Libensemble/libensemble/issues
 .. |Open in Colab| image:: https://colab.research.google.com/assets/colab-badge.svg
-  :target:  http://colab.research.google.com/github/Libensemble/libensemble/blob/develop/examples/tutorials/forces_with_executor/forces_tutorial_notebook.ipynb
+  :target:  https://colab.research.google.com/github/Libensemble/libensemble/blob/develop/examples/tutorials/forces_with_executor/forces_tutorial_notebook.ipynb

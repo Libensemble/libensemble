@@ -1,7 +1,7 @@
 4. Script
 =========
 
-`Introduction <local_sine_tutorial.html>`__ \|\| `1. Getting started <local_sine_tutorial_1.html>`__ \|\| `2. Generator <local_sine_tutorial_2.html>`__ \|\| `3. Simulator <local_sine_tutorial_3.html>`__ \|\| **4. Script** \|\| `5. Next steps <local_sine_tutorial_5.html>`__
+:doc:`Introduction <local_sine_tutorial>` || :doc:`1. Getting started <local_sine_tutorial_1>` || :doc:`2. Generator <local_sine_tutorial_2>` || :doc:`3. Simulator <local_sine_tutorial_3>` || **4. Script** || :doc:`5. Next steps <local_sine_tutorial_5>`
 
 Now lets write the script that configures our generator and simulator
 functions and starts libEnsemble.
@@ -33,15 +33,15 @@ functions to expect.
     :start-at: gen_specs = GenSpecs
     :end-at: sim_specs_end_tag
 
-We then specify the circumstances where
-libEnsemble should stop execution in :ref:`ExitCriteria<datastruct-exit-criteria>`.
+We then specify when libEnsemble should stop execution by passing the
+termination criterion directly to :meth:`Ensemble.run<libensemble.ensemble.Ensemble.run>`.
 
 .. literalinclude:: ../../../libensemble/tests/functionality_tests/test_local_sine_tutorial.py
     :language: python
     :linenos:
     :lineno-start: 26
-    :start-at: exit_criteria = ExitCriteria
-    :end-at: exit_criteria = ExitCriteria
+    :start-at: ensemble = Ensemble
+    :end-at: ensemble.run
 
 Now we're ready to write our libEnsemble :doc:`libE<../../programming_libE>`
 function call. :ref:`ensemble.H<funcguides-history>` is the final version of

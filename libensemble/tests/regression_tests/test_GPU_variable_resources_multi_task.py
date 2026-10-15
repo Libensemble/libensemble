@@ -45,7 +45,7 @@ from libensemble.gen_funcs.persistent_sampling_var_resources import uniform_samp
 # Import libEnsemble items for this test
 from libensemble.sim_funcs import six_hump_camel
 from libensemble.sim_funcs.var_resources import gpu_variable_resources_from_gen as sim_f
-from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
+from libensemble.specs import GenSpecs, LibeSpecs, SimSpecs
 
 # logger.set_level("DEBUG")  # For testing the test
 
@@ -63,7 +63,7 @@ if __name__ == "__main__":
         num_resource_sets=gpu_test.nworkers - 1,
         resource_info={"cores_on_node": (32, 64), "gpus_on_node": 4},
         sim_dirs_make=True,
-        ensemble_dir_path="./ensemble_GPU_variable_multi_task_w" + str(nworkers),
+        ensemble_dir_path="./ensemble_GPU_variable_multi_task_w" + str(nworkers) + str(gpu_test.libE_specs.comms),
     )
 
     gpu_test.sim_specs = SimSpecs(
@@ -87,10 +87,8 @@ if __name__ == "__main__":
         },
     )
 
-    gpu_test.exit_criteria = ExitCriteria(sim_max=40, wallclock_max=300)
-
     if gpu_test.ready():
-        gpu_test.run()
+        gpu_test.run(sim_max=10, wallclock_max=300)
 
     if gpu_test.is_manager:
         assert gpu_test.flag == 0

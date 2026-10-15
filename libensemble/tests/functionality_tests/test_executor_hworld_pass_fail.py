@@ -4,7 +4,7 @@ Runs libEnsemble testing the executor functionality.
 Execute via one of the following commands (e.g. 3 workers):
    mpiexec -np 4 python test_executor_hworld.py
    python test_executor_hworld.py --nworkers 3
-   python test_executor_hworld.py --nworkers 3 --comms tcp
+   python test_executor_hworld.py --nworkers 3 --comms threads
 
 The number of concurrent evaluations of the objective function will be 4-1=3.
 """
@@ -13,6 +13,7 @@ import multiprocessing
 import os
 
 import numpy as np
+from gest_api.vocs import VOCS
 
 import libensemble.sim_funcs.six_hump_camel as six_hump_camel
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
@@ -21,15 +22,20 @@ from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
 from libensemble.libE import libE
 
 # Import libEnsemble items for this test
-from libensemble.message_numbers import TASK_FAILED, WORKER_DONE, WORKER_KILL_ON_ERR, WORKER_KILL_ON_TIMEOUT
+from libensemble.message_numbers import (
+    TASK_FAILED,
+    WORKER_DONE,
+    WORKER_KILL_ON_ERR,
+    WORKER_KILL_ON_TIMEOUT,
+)
 from libensemble.sim_funcs.executor_hworld import executor_hworld as sim_f
 from libensemble.tests.regression_tests.common import build_simfunc
 from libensemble.tools import parse_args
 
 # Do not change these lines - they are parsed by run-tests.sh
-# TESTSUITE_COMMS: mpi local tcp
+# TESTSUITE_COMMS: mpi local threads
 # TESTSUITE_OS_SKIP: OSX WIN
-# TESTSUITE_NPROCS: 2 3 4
+# TESTSUITE_NPROCS: 3 4
 # TESTSUITE_OMPI_SKIP: true
 # TESTSUITE_EXTRA: true
 
@@ -46,15 +52,15 @@ if __name__ == "__main__":
     if cores_all_tasks > logical_cores:
         disable_resource_manager = True
         mess_resources = "Oversubscribing - Resource manager disabled"
-    elif libE_specs.get("comms", False) == "tcp":
-        disable_resource_manager = True
-        mess_resources = "TCP comms does not support resource management. Resource manager disabled"
     else:
         disable_resource_manager = False
         mess_resources = "Resource manager enabled"
 
     if is_manager:
         print(f"\nCores req: {cores_all_tasks} Cores avail: {logical_cores}\n  {mess_resources}\n")
+
+    libE_specs["cache_long_sims"] = True
+    libE_specs["cache_name"] = "executor_hworld_" + str(nworkers) + "_" + libE_specs.get("comms")
 
     sim_app = "./my_simtask.x"
     if not os.path.isfile(sim_app):
@@ -73,15 +79,14 @@ if __name__ == "__main__":
         "user": {"cores": cores_per_task},
     }
 
+    vocs = VOCS(variables={"x0": [-3, 3], "x1": [-2, 2]}, objectives={"f": "EXPLORE"})
+
     gen_specs = {
         "gen_f": gen_f,
         "in": ["sim_id"],
         "out": [("x", float, (2,))],
         "batch_size": nworkers,
-        "user": {
-            "lb": np.array([-3, -2]),
-            "ub": np.array([3, 2]),
-        },
+        "vocs": vocs,
     }
 
     # num sim_ended_count conditions in executor_hworld
@@ -92,19 +97,31 @@ if __name__ == "__main__":
     }
 
     # Perform the run
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs, libE_specs=libE_specs)
+    H, persis_info, flag = libE(
+        sim_specs,
+        gen_specs,
+        exit_criteria,
+        alloc_specs=alloc_specs,
+        libE_specs=libE_specs,
+    )
 
     if is_manager:
         print("\nChecking expected task status against Workers ...\n")
 
         calc_status_list_in = np.asarray(
-            [WORKER_DONE, WORKER_KILL_ON_ERR, WORKER_DONE, WORKER_KILL_ON_TIMEOUT, TASK_FAILED]
+            [
+                WORKER_DONE,
+                WORKER_KILL_ON_ERR,
+                WORKER_DONE,
+                WORKER_KILL_ON_TIMEOUT,
+                TASK_FAILED,
+            ]
         )
         calc_status_list = np.repeat(calc_status_list_in, nworkers)
 
         # For debug
         print(f"Expecting: {calc_status_list}")
-        print("Received:  {H['cstat']}\n")
+        print(f"Received:  {H['cstat']}\n")
 
         assert np.array_equal(H["cstat"], calc_status_list), "Error - unexpected calc status. Received: " + str(
             H["cstat"]

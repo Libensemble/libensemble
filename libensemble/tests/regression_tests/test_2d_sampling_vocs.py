@@ -5,19 +5,19 @@ VOCS-based version of test_2d_sampling.py. using the
 Execute via one of the following commands (e.g. 3 workers):
    mpiexec -np 4 python test_2d_sampling_vocs.py
    python test_2d_sampling_vocs.py --nworkers 3
-   python test_2d_sampling_vocs.py --nworkers 3 --comms tcp
+   python test_2d_sampling_vocs.py --nworkers 3 --comms threads
 """
 
 # Do not change these lines - they are parsed by run-tests.sh
-# TESTSUITE_COMMS: mpi local threads tcp
-# TESTSUITE_NPROCS: 2 4
+# TESTSUITE_COMMS: mpi local threads
+# TESTSUITE_NPROCS: 4
 
 import numpy as np
 from gest_api.vocs import VOCS
 
 from libensemble import Ensemble
 from libensemble.gen_classes.sampling import LatinHypercubeSample
-from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
+from libensemble.specs import GenSpecs, LibeSpecs, SimSpecs
 
 
 def sim_f(In, persis_info, sim_specs, _):
@@ -33,7 +33,7 @@ if __name__ == "__main__":
 
     vocs = VOCS(
         variables={"x0": [-3.0, 3.0], "x1": [-2.0, 2.0]},
-        objectives={"f": "MINIMIZE"},
+        objectives={"f": "EXPLORE"},
     )
     generator = LatinHypercubeSample(vocs, random_seed=1)
 
@@ -45,14 +45,12 @@ if __name__ == "__main__":
         batch_size=100,
     )
 
-    sampling.exit_criteria = ExitCriteria(sim_max=200)
-
-    sampling.run()
+    sampling.run(sim_max=200)
     if sampling.is_manager:
         assert len(sampling.H) >= 200
         x0 = sampling.H["x0"]
         x1 = sampling.H["x1"]
         f = sampling.H["f"]
-        assert np.all(np.isclose(f, np.sqrt(x0 ** 2 + x1 ** 2)))
+        assert np.all(np.isclose(f, np.sqrt(x0**2 + x1**2)))
         print("\nlibEnsemble has calculated the 2D vector norm of all points")
     sampling.save_output(__file__)

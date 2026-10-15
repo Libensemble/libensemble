@@ -156,9 +156,7 @@ class UniformSampleWithVariableResources(LibensembleGenerator):
        path was tested with the default alloc.
     """
 
-    def __init__(
-        self, vocs: VOCS, max_resource_sets: int, random_seed: int = 1, *args, **kwargs
-    ):
+    def __init__(self, vocs: VOCS, max_resource_sets: int, random_seed: int = 1, *args, **kwargs):
         super().__init__(vocs, *args, **kwargs)
         self.rng = np.random.default_rng(random_seed)
         self.max_rsets = max_resource_sets

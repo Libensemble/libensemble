@@ -90,7 +90,7 @@ class Platform(BaseModel):
     - ``"option_gpus_per_node"``: Expresses GPUs per node on MPI runner command line.
     - ``"option_gpus_per_task"``: Expresses GPUs per task on MPI runner command line.
 
-    With the exception of "runner_default", the :attr:`gpu_setting_name`
+    With the exception of "runner_default", the :attr:`Platform.gpu_setting_name`
     attribute is also required when this attribute is set.
 
     If "gpu_setting_type" is not provided (same as ``runner_default``) and the
@@ -230,6 +230,20 @@ class Polaris(Platform):
     scheduler_match_slots: bool = True
 
 
+class FluxAllocation(Platform):
+    """Platform configuration for running inside a Flux allocation.
+
+    This is a generic Flux configuration. For specific systems using Flux
+    (e.g., LLNL El Capitan), you may want to create a more specific platform
+    class with cores_per_node and gpus_per_node set appropriately.
+    """
+
+    mpi_runner: str = "flux"
+    runner_name: str = "flux"
+    gpu_setting_type: str = "runner_default"
+    scheduler_match_slots: bool = False
+
+
 class Known_platforms(BaseModel):
     """A list of platforms with known configurations.
 
@@ -271,6 +285,7 @@ class Known_platforms(BaseModel):
     aurora: Aurora = Aurora()
     generic_rocm: GenericROCm = GenericROCm()
     frontier: Frontier = Frontier()
+    flux: FluxAllocation = FluxAllocation()
     lumi: Lumi = Lumi()
     lumi_g: LumiGPU = LumiGPU()
     perlmutter: Perlmutter = Perlmutter()

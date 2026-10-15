@@ -6,14 +6,14 @@ using external gest_api compatible generators.
 Execute via one of the following commands (e.g. 3 workers):
    mpiexec -np 4 python test_asktell_sampling_external_gen.py
    python test_asktell_sampling_external_gen.py --nworkers 3 --comms local
-   python test_asktell_sampling_external_gen.py --nworkers 3 --comms tcp
+   python test_asktell_sampling_external_gen.py --nworkers 3 --comms threads
 
 The number of concurrent evaluations of the objective function will be 3.
 """
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local
-# TESTSUITE_NPROCS: 2 4
+# TESTSUITE_NPROCS: 4
 
 import numpy as np
 from gest_api.vocs import VOCS
@@ -22,7 +22,7 @@ from libensemble import Ensemble
 
 # from libensemble.gen_classes.external.sampling import UniformSampleArray
 from libensemble.gen_classes.external.sampling import UniformSample
-from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
+from libensemble.specs import GenSpecs, LibeSpecs, SimSpecs
 
 # Import libEnsemble items for this test
 
@@ -75,17 +75,14 @@ if __name__ == "__main__":
             vocs=vocs,
         )
 
-        exit_criteria = ExitCriteria(gen_max=201)
-
         ensemble = Ensemble(
             parse_args=True,
             sim_specs=sim_specs,
             gen_specs=gen_specs,
-            exit_criteria=exit_criteria,
             libE_specs=libE_specs,
         )
 
-        ensemble.run()
+        ensemble.run(gen_max=201)
 
         if ensemble.is_manager:
             print(ensemble.H[["sim_id", "x0", "x1", "f"]][:10])
