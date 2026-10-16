@@ -54,6 +54,10 @@ jobs:
   coverage:
     if: "! github.event.pull_request.draft"
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3]
     services:
       redis:
         image: redis:7
@@ -78,12 +82,90 @@ jobs:
         run: pixi run -e py312e ./install/install_minq.sh
       - name: Install gpCAM
         run: pixi run -e py312e pip install gpcam==8.1.13
-      - name: Run canonical coverage suite
-        run: pixi run -e py312e ./libensemble/tests/run_tests.py -l -m -e --coverage --fail-fast --durations 25
-      - name: Upload coverage reports to Codecov
+      - name: Run coverage suite (shard 0 - unit + regression slice)
+        if: matrix.shard == 0
+        run: >-
+          pixi run -e py312e ./libensemble/tests/run_tests.py -l -m -e
+          --coverage --fail-fast --durations 25
+          --shard 0/4 --timings-json timings-coverage-0.json
+      - name: Run coverage suite (shards 1-3 - regression slice only)
+        if: matrix.shard != 0
+        run: >-
+          pixi run -e py312e ./libensemble/tests/run_tests.py -r -l -m -e
+          --coverage --fail-fast --durations 25
+          --shard ${{ matrix.shard }}/4 --timings-json timings-coverage-${{ matrix.shard }}.json
+      - name: Stage coverage files
+        if: always()
+        run: |
+          mkdir -p cov_staging
+          find libensemble/tests -type f \( -name ".cov*" -o -name ".coverage*" \) -exec cp --parents {} cov_staging/ \; 2>/dev/null || echo "no .cov files in libensemble/tests"
+          find . -maxdepth 1 -name "timings-coverage-*.json" -exec cp {} cov_staging/ \; 2>/dev/null || true
+          echo "Staged files:"; find cov_staging -type f | head -n 50; echo "---"; du -sh cov_staging 2>/dev/null || true
+      - name: Upload coverage data
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-data-${{ matrix.shard }}
+          path: cov_staging/
+          include-hidden-files: true
+          if-no-files-found: warn
+      - name: Upload timings
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-timings-${{ matrix.shard }}
+          path: timings-coverage-${{ matrix.shard }}.json
+          if-no-files-found: ignore
+
+  coverage-combine:
+    if: always() && !cancelled() && needs.coverage.result != 'skipped'
+    needs: coverage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          lfs: true
+      - uses: prefix-dev/setup-pixi@v0.11.0
+        with:
+          pixi-version: v0.69.0
+          cache: true
+          frozen: true
+          environments: py312e
+      - uses: actions/download-artifact@v7
+        with:
+          pattern: coverage-data-*
+          path: _coverage_data
+          merge-multiple: true
+      - name: Combine coverage reports
+        run: |
+          echo "Downloaded artifacts:"; find _coverage_data -type f | head -n 80
+          echo "--- restoring to libensemble/tests ---"
+          mkdir -p libensemble/tests
+          find _coverage_data -type f \( -name ".cov*" -o -name ".coverage*" \) -exec cp {} libensemble/tests/ \; 2>/dev/null || true
+          echo "Files in libensemble/tests:"; ls -lh libensemble/tests/.cov* 2>&1 | head -n 80; find libensemble/tests -name ".cov*" | head -n 80
+          (cd libensemble/tests && pixi run -e py312e coverage combine)
+          ls -lh libensemble/tests/.cov_merge_out* libensemble/tests/.coverage 2>&1 | head -n 20
+          (cd libensemble/tests && pixi run -e py312e coverage xml -o coverage.xml)
+          (cd libensemble/tests && pixi run -e py312e coverage report --skip-covered | tail -n 80)
+          echo "coverage.xml size:"; ls -lh libensemble/tests/coverage.xml
+      - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v7
+        with:
+          files: libensemble/tests/coverage.xml
+          fail_ci_if_error: true
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+      - name: Upload final timing artifacts
+        if: always()
+        uses: actions/download-artifact@v7
+        with:
+          pattern: coverage-timings-*
+          path: _timings
+          merge-multiple: true
+      - name: Merge and display timings
+        if: always()
+        run: |
+          find _timings -name "*.json" -exec cat {} \; 2>/dev/null | head -c 2000 || echo "no timings"
 
   external:
     runs-on: ubuntu-latest
