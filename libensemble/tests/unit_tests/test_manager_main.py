@@ -66,15 +66,7 @@ def test_term_test_3():
     assert mgr.term_test()
 
 
-<<<<<<< HEAD
 def test_send_work_order_persis_stop_empty_rows():
-    # Regression test: a PERSIS_STOP work order with zero H_rows (e.g. final_gen_send
-    # with nothing left to forward to a persistent gen) must still send the meta-message.
-def test_send_work_order_persis_stop_empty_rows():
-    # Regression test: a PERSIS_STOP work order with zero H_rows (e.g. final_gen_send
-    # with nothing left to forward to a persistent gen) must still send the meta-message.
-    # Otherwise, a persistent worker blocked in PersistentSupport.recv() waiting on this
-    # message hangs forever, since nothing would ever be sent to it.
     hist, sim_specs, gen_specs, exit_criteria, al = setup.hist_setup2()
     final_libE_specs = dict(libE_specs, final_gen_send=True)
     fake_wcomm = FakeComm()
@@ -88,7 +80,7 @@ def test_send_work_order_persis_stop_empty_rows():
     }
     mgr._send_work_order(work, 1)
 
-    assert len(fake_wcomm.sent) == 1, "Expected the PERSIS_STOP meta-message to be sent even with zero H_rows"
+    assert len(fake_wcomm.sent) == 1
     tag, sent_work = fake_wcomm.sent[0]
     assert tag == PERSIS_STOP
     assert len(sent_work["libE_info"]["H_rows"]) == 0
@@ -136,6 +128,10 @@ def test_run_rejects_idle_allocator_without_service_mode():
 
     with pytest.raises(man.LoggedException, match="alloc_f did not return any work"):
         man.Manager.run(mgr, {})
+
+
+if __name__ == "__main__":
+    test_term_test_1()
     test_term_test_2()
     test_term_test_3()
     test_send_work_order_persis_stop_empty_rows()
