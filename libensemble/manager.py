@@ -418,6 +418,9 @@ class Manager:
         If rsets are not assigned, then assign using default mapping
         """
         resource_manager = self.resources.resource_manager  # type: ignore
+        if resource_manager is None:
+            return
+
         rset_req = Work["libE_info"].get("rset_team")
 
         if rset_req is None:
