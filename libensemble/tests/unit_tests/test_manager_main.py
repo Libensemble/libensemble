@@ -67,6 +67,10 @@ def test_term_test_3():
 
 
 def test_send_work_order_persis_stop_empty_rows():
+    # Regression test: a PERSIS_STOP work order with zero H_rows (e.g. final_gen_send
+    # with nothing left to forward to a persistent gen) must still send the meta-message.
+    # Otherwise, a persistent worker blocked in PersistentSupport.recv() waiting on this
+    # message hangs forever, since nothing would ever be sent to it.
     hist, sim_specs, gen_specs, exit_criteria, al = setup.hist_setup2()
     final_libE_specs = dict(libE_specs, final_gen_send=True)
     fake_wcomm = FakeComm()
