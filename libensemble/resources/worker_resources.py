@@ -198,6 +198,7 @@ class WorkerResources(RSetResources):
         self.matching_slots = True
         self.slot_count = None
         self.slots_on_node = None
+        self.gpu_ids_on_node = None
         self.local_node_count = len(self.local_nodelist)
         self.set_slot_count()
         self.gen_nprocs = None
@@ -252,6 +253,23 @@ class WorkerResources(RSetResources):
         """
         os.environ[env_var] = self.get_slots_as_string(multiplier, delimiter)
 
+    def get_gpu_ids_as_string(self, delimiter=",", limit=None):
+        """Returns physical GPU IDs for the worker's assigned GPU resource sets."""
+        if self.gpu_ids_on_node is None:
+            logger.warning("GPU IDs on node are None when requested as a string")
+            return None
+        gpu_ids = []
+        for gpu_id in self.gpu_ids_on_node:
+            if gpu_id >= 0:
+                gpu_ids.extend(range(gpu_id * self.gpus_per_rset_per_node, (gpu_id + 1) * self.gpus_per_rset_per_node))
+        gpu_ids = list(OrderedDict.fromkeys(gpu_ids))
+        if limit is not None:
+            gpu_ids = gpu_ids[:limit]
+        if self.tiles_per_gpu > 1:
+            ntiles = self.tiles_per_gpu
+            gpu_ids = [f"{i // ntiles}.{i % ntiles}" for i in gpu_ids]
+        return delimiter.join(map(str, gpu_ids))
+
     def set_env_to_gpus(self, env_var=None, delimiter=","):
         """Sets the given environment variable to GPUs
 
@@ -276,7 +294,7 @@ class WorkerResources(RSetResources):
         """
         assert self.matching_slots, f"Cannot assign GPUs to non-matching slots per node {self.slots}"
         if self.doihave_gpus():
-            env_value = self.get_slots_as_string(multiplier=self.gpus_per_rset_per_node, limit=self.gen_ngpus)
+            env_value = self.get_gpu_ids_as_string(limit=self.gen_ngpus)
             if env_var is None:
                 if self.platform_info is not None:
                     if self.platform_info.get("gpu_setting_type") == "env":
@@ -315,6 +333,9 @@ class WorkerResources(RSetResources):
                 self.split_list,
                 self.rsets_per_node,
             )
+            self.gpu_ids_on_node = WorkerResources.get_local_gpu_ids(
+                self.rset_team, self.all_rsets, self.split_list, self.local_nodelist[0] if self.local_nodelist else None
+            )
             self.set_slot_count()
             self.local_node_count = len(self.local_nodelist)
 
@@ -345,6 +366,15 @@ class WorkerResources(RSetResources):
             self.matching_slots = True if all_match else False
             self.slots_on_node = first_node_slots if self.matching_slots else None
             self.slot_count = first_len if self.even_slots else None
+
+    @staticmethod
+    def get_local_gpu_ids(rset_team: list[int], all_rsets, split_list, node) -> list[int]:
+        """Return physical GPU IDs on the worker's first local node."""
+        return [
+            int(all_rsets["gpu_id"][rset])
+            for rset in rset_team
+            if all_rsets["gpus"][rset] and (node is None or split_list[rset][0] == node)
+        ]
 
     @staticmethod
     def get_local_nodelist(

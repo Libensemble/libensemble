@@ -1,6 +1,7 @@
 import os
 import socket
 
+from libensemble.executors.mpi_runner import MPICH_MPIRunner
 from libensemble.resources.env_resources import EnvResources
 from libensemble.resources.mpi_resources import create_machinefile
 from libensemble.resources.resources import GlobalResources, Resources, ResourcesException
@@ -780,12 +781,19 @@ def test_machinefile_from_resources():
     os.remove("machinefile")
 
 
-def _setup_wresources_gpus(ngpus):
+def _setup_wresources_gpus(ngpus, gpu_sharing_factor=1, num_resource_sets=None, gpus_per_group=None):
     """Set up worker resources with a given number of GPUs"""
     os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = "knl-[0020,0036]"
 
     resource_info = {"nodelist_env_slurm": "LIBE_RESOURCES_TEST_NODE_LIST", "gpus_on_node": ngpus}
-    libE_specs = {"resource_info": resource_info, "dedicated_mode": False}
+    libE_specs = {
+        "resource_info": resource_info,
+        "dedicated_mode": False,
+        "gpu_sharing_factor": gpu_sharing_factor,
+        "gpus_per_group": gpus_per_group,
+    }
+    if num_resource_sets is not None:
+        libE_specs["num_resource_sets"] = num_resource_sets
     gresources = GlobalResources(libE_specs)
     nworkers = 8
     workerID = 2  # Does not matter as using set_rset_team
@@ -913,6 +921,40 @@ def test_wresources_set_gpus_by_platform_gpu_tiles():
         _check_set_env_to_gpus(wresources, "LIBE_TEST_GPUS_1", exp_out[i])
         os.environ.pop("LIBE_TEST_GPUS_1", None)
     del wresources
+
+
+def test_wresources_set_gpus_with_sharing():
+    wresources = _setup_wresources_gpus(4, gpu_sharing_factor=2, num_resource_sets=16)
+
+    assert wresources.total_num_gpu_rsets == 16
+    assert list(wresources.all_rsets["gpu_id"]) == [0, 1, 2, 3, 0, 1, 2, 3] * 2
+    assert list(wresources.all_rsets["gpu_share"]) == ([0] * 4 + [1] * 4) * 2
+
+    wresources.set_rset_team([0, 1, 4, 5])
+    wresources.set_env_to_gpus("LIBE_TEST_GPUS_1")
+    assert os.environ["LIBE_TEST_GPUS_1"] == "0,1"
+    os.environ.pop("LIBE_TEST_GPUS_1")
+
+
+def test_gpu_sharing_executor_env_mapping():
+    wresources = _setup_wresources_gpus(4, gpu_sharing_factor=2, num_resource_sets=16)
+    wresources.set_rset_team([4])
+
+    class Task:
+        def _add_to_env(self, name, value):
+            self.env = {name: value}
+
+    task = Task()
+    MPICH_MPIRunner()._set_gpu_env_var(wresources, task, 1, "CUDA_VISIBLE_DEVICES")
+    assert task.env == {"CUDA_VISIBLE_DEVICES": "0"}
+
+
+def test_gpu_sharing_mapping_with_gpu_groups():
+    wresources = _setup_wresources_gpus(4, gpu_sharing_factor=2, num_resource_sets=16, gpus_per_group=2)
+
+    assert list(wresources.all_rsets["slot"]) == [0, 1] * 8
+    assert list(wresources.all_rsets["gpu_id"]) == [0, 1, 2, 3, 0, 1, 2, 3] * 2
+    assert list(wresources.all_rsets["gpu_share"]) == ([0] * 4 + [1] * 4) * 2
 
 
 def test_wresources_set_gpus_x2():
