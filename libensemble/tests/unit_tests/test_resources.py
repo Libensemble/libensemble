@@ -927,10 +927,10 @@ def test_wresources_set_gpus_with_sharing():
     wresources = _setup_wresources_gpus(4, gpu_sharing_factor=2, num_resource_sets=16)
 
     assert wresources.total_num_gpu_rsets == 16
-    assert list(wresources.all_rsets["gpu_id"]) == [0, 1, 2, 3, 0, 1, 2, 3] * 2
-    assert list(wresources.all_rsets["gpu_share"]) == ([0] * 4 + [1] * 4) * 2
+    assert list(wresources.all_rsets["gpu_id"]) == [0, 0, 1, 1, 2, 2, 3, 3] * 2
+    assert list(wresources.all_rsets["gpu_share"]) == [0, 1, 0, 1, 0, 1, 0, 1] * 2
 
-    wresources.set_rset_team([0, 1, 4, 5])
+    wresources.set_rset_team([0, 1, 2, 3])
     wresources.set_env_to_gpus("LIBE_TEST_GPUS_1")
     assert os.environ["LIBE_TEST_GPUS_1"] == "0,1"
     os.environ.pop("LIBE_TEST_GPUS_1")
@@ -938,7 +938,7 @@ def test_wresources_set_gpus_with_sharing():
 
 def test_gpu_sharing_executor_env_mapping():
     wresources = _setup_wresources_gpus(4, gpu_sharing_factor=2, num_resource_sets=16)
-    wresources.set_rset_team([4])
+    wresources.set_rset_team([1])
 
     class Task:
         def _add_to_env(self, name, value):
@@ -952,9 +952,9 @@ def test_gpu_sharing_executor_env_mapping():
 def test_gpu_sharing_mapping_with_gpu_groups():
     wresources = _setup_wresources_gpus(4, gpu_sharing_factor=2, num_resource_sets=16, gpus_per_group=2)
 
-    assert list(wresources.all_rsets["slot"]) == [0, 1] * 8
-    assert list(wresources.all_rsets["gpu_id"]) == [0, 1, 2, 3, 0, 1, 2, 3] * 2
-    assert list(wresources.all_rsets["gpu_share"]) == ([0] * 4 + [1] * 4) * 2
+    assert list(wresources.all_rsets["slot"]) == [0, 1, 2, 3] * 4
+    assert list(wresources.all_rsets["gpu_id"]) == [0, 0, 1, 1, 2, 2, 3, 3] * 2
+    assert list(wresources.all_rsets["gpu_share"]) == [0, 1, 0, 1, 0, 1, 0, 1] * 2
 
 
 def test_wresources_set_gpus_x2():

@@ -797,11 +797,12 @@ class LibeSpecs(BaseModel):
     allocated this many processors for applications launched via the MPIExecutor.
     """
 
-    gen_num_gpus: int | None = 0
+    gen_num_gpus: int | float | None = 0
     """
     The default number of GPUs required by generators. Unless overridden by
     the equivalent `persis_info` settings, generators will be allocated this
     many GPUs.
+    Supports fractional values when ``gpu_sharing_factor > 1``.
     """
 
     gpus_per_group: int | None = None

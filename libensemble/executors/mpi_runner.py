@@ -188,7 +188,12 @@ class MPIRunner:
                 nnodes = wresources.local_node_count
 
         if ngpus is not None:
-            gpus_req_per_node = ngpus // nnodes
+            import math
+
+            try:
+                gpus_req_per_node = math.ceil(float(ngpus) / nnodes)
+            except Exception:
+                gpus_req_per_node = ngpus // nnodes
             if gpus_req_per_node > gpus_avail_per_node:
                 logger.info(f"Asked for more GPUs per node than available - max is {gpus_avail_per_node}")
             gpus_per_node = min(gpus_req_per_node, gpus_avail_per_node)
@@ -247,7 +252,12 @@ class MPIRunner:
                 proc_min_nodes = (nprocs + procs_on_node - 1) // procs_on_node
             if ngpus:
                 gpus_on_node = len(set(wresources.gpu_ids_on_node))
-                gpu_min_nodes = (ngpus + gpus_on_node - 1) // gpus_on_node
+                import math
+
+                try:
+                    gpu_min_nodes = math.ceil(float(ngpus) / gpus_on_node) if gpus_on_node else 1
+                except Exception:
+                    gpu_min_nodes = (ngpus + gpus_on_node - 1) // gpus_on_node
 
             min_nodes = max(proc_min_nodes, gpu_min_nodes)
             nnodes = min(min_nodes, total_nodes)

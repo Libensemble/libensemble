@@ -74,8 +74,12 @@ class RSetResources:
         )
         if gpus_avail_per_node:
             gpu_positions = RSetResources.get_gpu_positions(self.split_list)
-            self.all_rsets["gpu_id"] = np.where(self.all_rsets["gpus"], gpu_positions % gpus_avail_per_node, -1)
-            self.all_rsets["gpu_share"] = np.where(self.all_rsets["gpus"], gpu_positions // gpus_avail_per_node, -1)
+            self.all_rsets["gpu_id"] = np.where(
+                self.all_rsets["gpus"],
+                (gpu_positions // self.gpu_sharing_factor) % gpus_avail_per_node,
+                -1,
+            )
+            self.all_rsets["gpu_share"] = np.where(self.all_rsets["gpus"], gpu_positions % self.gpu_sharing_factor, -1)
 
         self.total_num_gpu_rsets = np.count_nonzero(self.all_rsets["gpus"])
         self.total_num_nongpu_rsets = np.count_nonzero(~self.all_rsets["gpus"])
@@ -111,8 +115,9 @@ class RSetResources:
         node = split_list[0]
 
         for i in range(len(split_list)):
-            # still break on new node if gpus_per_group is set
-            if split_list[i] != node or slot == gpus_per_group:
+            # break on new node or when group size reached (account for sharing)
+            group_threshold = gpus_per_group * gpu_sharing_factor if gpus_per_group is not None else None
+            if split_list[i] != node or slot == group_threshold:
                 node = split_list[i]
                 group += 1
                 slot = 0
