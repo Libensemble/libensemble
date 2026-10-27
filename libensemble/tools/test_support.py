@@ -204,7 +204,10 @@ def check_gpu_setting(task, assert_setting=True, print_setting=False, resources=
 
     # Get expected numbers
     if cmd_line:
-        expected_nums = _safe_min(len(set(wresources.gpu_ids_on_node)), wresources.gen_ngpus)
+        expected_nums = _safe_min(
+            len(set(wresources.gpu_ids_on_node)) * wresources.gpus_per_rset_per_node,
+            wresources.gen_ngpus,
+        )
         if gpus_per_task:
             stype = "runline option: gpus per task"
             expected_nums //= int(ppn)
