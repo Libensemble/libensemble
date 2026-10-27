@@ -174,7 +174,7 @@ class MPIRunner:
 
         # gpus per node for this worker.
         if wresources.doihave_gpus():
-            gpus_avail_per_node = len(set(wresources.gpu_ids_on_node))
+            gpus_avail_per_node = len(set(wresources.gpu_ids_on_node)) * wresources.gpus_per_rset_per_node
         else:
             gpus_avail_per_node = 0
 
@@ -251,7 +251,7 @@ class MPIRunner:
             if nprocs:
                 proc_min_nodes = (nprocs + procs_on_node - 1) // procs_on_node
             if ngpus:
-                gpus_on_node = len(set(wresources.gpu_ids_on_node))
+                gpus_on_node = len(set(wresources.gpu_ids_on_node)) * wresources.gpus_per_rset_per_node
                 import math
 
                 try:
