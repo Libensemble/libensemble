@@ -211,8 +211,12 @@ def check_gpu_setting(task, assert_setting=True, print_setting=False, resources=
         if gpus_per_task:
             stype = "runline option: gpus per task"
             expected_nums //= int(ppn)
+            if isinstance(expected_nums, float) and expected_nums.is_integer():
+                expected_nums = int(expected_nums)
         else:
             stype = "runline option: gpus per node"
+            if isinstance(expected_nums, float) and expected_nums.is_integer():
+                expected_nums = int(expected_nums)
         expected_nums = expected_nums if _set_gpus(task, wresources) else None
         if expected_nums is not None:
             expected = _get_expected_output(expected_setting, expected_nums)
