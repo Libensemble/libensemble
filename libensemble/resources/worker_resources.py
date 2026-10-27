@@ -264,6 +264,12 @@ class WorkerResources(RSetResources):
                 gpu_ids.extend(range(gpu_id * self.gpus_per_rset_per_node, (gpu_id + 1) * self.gpus_per_rset_per_node))
         gpu_ids = list(OrderedDict.fromkeys(gpu_ids))
         if limit is not None:
+            try:
+                import math
+
+                limit = math.ceil(float(limit))
+            except Exception:
+                pass
             gpu_ids = gpu_ids[:limit]
         if self.tiles_per_gpu > 1:
             ntiles = self.tiles_per_gpu
