@@ -1024,7 +1024,7 @@ def _setup_resources_sharing_for_alloc(gpu_sharing_factor=2, num_resource_sets=1
     """Create mocked Resources for AllocSupport fractional tests.
 
     Mocks a 2-node SLURM nodelist with 4 GPUs/node and sf=2, yielding
-    8 GPU shares per node (16 total). Returns the ResourceManager that
+    8 GPU shares per node (16 total). Returns the ``Resources`` object that
     AllocSupport will use to convert fractional ``num_gpus`` to shares via
     ``ceil(num_gpus*sf/gpus_per_rset)``.
     """
@@ -1040,7 +1040,7 @@ def _setup_resources_sharing_for_alloc(gpu_sharing_factor=2, num_resource_sets=1
     # Instantiate Resources and its ResourceManager (holds RSetResources)
     res = Resources(libE_specs=libE_specs, top_level_dir=os.getcwd())
     res.set_resource_manager(num_workers=8)
-    return res.resource_manager
+    return res
 
 
 def test_alloc_support_fractional():
@@ -1059,8 +1059,8 @@ def test_alloc_support_fractional():
     Uses a lightweight ``AllocSupport`` instantiation with a mocked
     ``Resources`` object to avoid a full ensemble run.
     """
-    # Use a mocked 16-rset manager with sf=2 (gpus_per_rset=1)
-    res_mgr = _setup_resources_sharing_for_alloc()
+    # Use a mocked 16-rset Resources with sf=2 (gpus_per_rset=1)
+    res = _setup_resources_sharing_for_alloc()
     from libensemble.tools.alloc_support import AllocSupport
 
     # Minimal worker array needed by AllocSupport
@@ -1071,10 +1071,10 @@ def test_alloc_support_fractional():
     H = np.zeros(2, dtype=[("num_gpus", float), ("num_procs", int)])
     H["num_gpus"] = [0.5, 1.5]
     H["num_procs"] = [1, 1]
-    support = AllocSupport(W, manage_resources=True, libE_info=libE_info, user_resources=Resources.resources)
-    # Inject mocked Resources with resource_manager
-    support.resources = type("obj", (), {"resource_manager": res_mgr, "resources": True})()
-    support.sched = ResourceScheduler(user_resources=res_mgr, sched_opts={"gpu_packing": "pack"})
+    # Pass the mocked Resources directly (avoid global Resources.resources=None issue)
+    support = AllocSupport(W, manage_resources=True, libE_info=libE_info, user_resources=res)
+    # Override scheduler to enforce pack policy for deterministic shares
+    support.sched = ResourceScheduler(user_resources=res.resource_manager, sched_opts={"gpu_packing": "pack"})
     # 0.5 GPUs * sf2 / gpus_per_rset1 => ceil(1) = 1 share
     nsets, use_gpus = support._req_resources_sim(libE_info, user_params, H, [0])
     assert nsets == 1 and use_gpus is True and libE_info["num_gpus"] == 0.5
