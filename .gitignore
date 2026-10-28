@@ -18,6 +18,8 @@ x.log
 *.csv
 *.DS_Store
 
+IBCDFO
+
 .vscode
 build/
 
