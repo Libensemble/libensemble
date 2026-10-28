@@ -834,6 +834,62 @@ def test_select_rsets_for_gpu_group_pack_spread():
     assert len(set(sched_pack.resources.rsets[sel_rem]["gpu_id"])) == 2
 
 
+def test_select_rsets_fragmented_remainder():
+    """Covers fragmented-remainder path in ``_select_rsets_for_gpu_group``.
+
+    This is the ``else`` branch at ``scheduler.py:256-269`` which was
+    previously uncovered. It triggers when only *partial* GPUs are available
+    — no single physical GPU has enough free shares to satisfy ``rem`` — so
+    the remainder must be assembled from fragments across multiple GPUs.
+
+    * **Only partial GPUs:** with ``sf=4``, ``need=3`` (``whole=0, rem=3``) and
+      bins of size ``1,2,1`` no candidate satisfies ``len>=rem``; the method
+      fragments ``rem`` across GPUs. ``pack`` picks smallest bins first,
+      ``spread`` picks largest first — both are verified.
+    * **Whole + fragmented rem:** ``need=7`` (``whole=1, rem=3``) consumes one
+      fully-free GPU (4 shares) then fragments the remaining 3 as above.
+    * **Error:** fragmented capacity insufficient (need 3 but only 2 free)
+      correctly raises ``InsufficientFreeResources``.
+    """
+    # Use sf=4 so rem can be 3 and fragmentation is observable (sf=2 never fragments)
+    res4, _ = _setup_resources_sharing(gpu_sharing_factor=4, num_resource_sets=32)
+    sched_pack = ResourceScheduler(user_resources=res4, sched_opts={"gpu_packing": "pack"})
+    sched_spread = ResourceScheduler(user_resources=res4, sched_opts={"gpu_packing": "spread"})
+
+    # Fragmented remainder only: need=3, whole=0, rem=3, max bin size 2 <3 → no candidates
+    bins_frag = {1: {0: [0], 1: [4, 5], 2: [8]}}  # lens 1,2,1
+    sel_pack = sched_pack._select_rsets_for_gpu_group(1, 3, bins_frag)
+    # pack sorts by (len, gid): (1,0)->[0], (1,2)->[8], (2,1)->[4] => [0,8,4] sorted
+    assert sel_pack == [0, 4, 8]
+    sel_spread = sched_spread._select_rsets_for_gpu_group(1, 3, bins_frag)
+    # spread sorts by (-len, gid): (2,1)->[4,5] (take 2), (1,0)->[0] (take 1) => [4,5,0] sorted
+    assert sel_spread == [0, 4, 5]
+
+    # Whole + fragmented remainder: need=7 → whole=1 (4 shares), rem=3 fragmented
+    bins_whole_frag = {1: {0: [0, 1, 2, 3], 1: [4], 2: [8], 3: [12, 13]}}
+    sel_pack2 = sched_pack._select_rsets_for_gpu_group(1, 7, bins_whole_frag)
+    # whole picks gid 0 (fully free): [0,1,2,3], remainder fragments 1,1,2 → [4,8,12] (pack order)
+    assert sel_pack2 == [0, 1, 2, 3, 4, 8, 12]
+    sel_spread2 = sched_spread._select_rsets_for_gpu_group(1, 7, bins_whole_frag)
+    # spread picks largest remainder first: gid3 (2) then gid1 (1)
+    assert sel_spread2 == [0, 1, 2, 3, 4, 12, 13]
+
+    # Error path: not enough fragmented capacity for rem
+    bins_insufficient = {1: {0: [0], 1: [4]}}  # total 2 < rem 3
+    try:
+        sched_pack._select_rsets_for_gpu_group(1, 3, bins_insufficient)
+        assert False, "should raise InsufficientFreeResources"
+    except InsufficientFreeResources:
+        pass
+    # Also whole+rem insufficient: whole consumes 4, only 1 left but need 3
+    bins_whole_insuf = {1: {0: [0, 1, 2, 3], 1: [4]}}
+    try:
+        sched_pack._select_rsets_for_gpu_group(1, 7, bins_whole_insuf)
+        assert False, "should raise InsufficientFreeResources"
+    except InsufficientFreeResources:
+        pass
+
+
 def test_assign_gpu_sharing_resources():
     """Unit + integration coverage for ``_assign_gpu_sharing_resources``.
 
