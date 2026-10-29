@@ -98,8 +98,7 @@ jobs:
         if: always()
         run: |
           mkdir -p cov_staging
-          find libensemble/tests -type f \( -name ".cov*" -o -name ".coverage*" \) -exec cp --parents {} cov_staging/ \; 2>/dev/null || echo "no .cov files in libensemble/tests"
-          find . -maxdepth 1 -name "timings-coverage-*.json" -exec cp {} cov_staging/ \; 2>/dev/null || true
+          find libensemble/tests -type f \( -name ".cov_*" -o -name ".coverage*" \) ! -name ".cov_merge_out*" -exec cp --parents {} cov_staging/ \; 2>/dev/null || echo "no .cov files in libensemble/tests"
           echo "Staged files:"; find cov_staging -type f | head -n 50; echo "---"; du -sh cov_staging 2>/dev/null || true
       - name: Upload coverage data
         if: always()
@@ -141,9 +140,19 @@ jobs:
           echo "Downloaded artifacts:"; find _coverage_data -type f | head -n 80
           echo "--- restoring to libensemble/tests ---"
           mkdir -p libensemble/tests
-          find _coverage_data -type f \( -name ".cov*" -o -name ".coverage*" \) -exec cp {} libensemble/tests/ \; 2>/dev/null || true
-          echo "Files in libensemble/tests:"; ls -lh libensemble/tests/.cov* 2>&1 | head -n 80; find libensemble/tests -name ".cov*" | head -n 80
-          (cd libensemble/tests && pixi run -e py312e coverage combine)
+          if [ -d _coverage_data/libensemble ]; then
+            if command -v rsync >/dev/null 2>&1; then
+              rsync -a _coverage_data/libensemble/ libensemble/
+            else
+              cp -a _coverage_data/libensemble/tests/. libensemble/tests/ 2>/dev/null || true
+              cp -rn _coverage_data/libensemble/* libensemble/ 2>/dev/null || true
+            fi
+          else
+            find _coverage_data -type f \( -name ".cov_*" -o -name ".coverage*" \) ! -name ".cov_merge_out*" -exec cp --parents {} . \; 2>/dev/null || true
+          fi
+          echo "Files in libensemble/tests:"; ls -lh libensemble/tests/.cov* 2>&1 | head -n 80; find libensemble/tests -name ".cov_*" | head -n 80
+          echo "Top-level .coveragerc:"; cat libensemble/tests/.coveragerc | head -n 10; ls -lh libensemble/tests/.coveragerc
+          (cd libensemble/tests && COV_FILES=$(find . -type f \( -name ".cov_*" -o -name ".coverage*" \) ! -name ".cov_merge_out*" | tr '\n' ' ') && if [ -z "$COV_FILES" ]; then echo "No coverage files found to combine"; find . -type f | head -n 50; exit 1; fi && echo "Combining coverage files:" && echo "$COV_FILES" | tr ' ' '\n' | head -n 50 && pixi run -e py312e coverage combine $COV_FILES)
           ls -lh libensemble/tests/.cov_merge_out* libensemble/tests/.coverage 2>&1 | head -n 20
           (cd libensemble/tests && pixi run -e py312e coverage xml -o coverage.xml)
           (cd libensemble/tests && pixi run -e py312e coverage report --skip-covered | tail -n 80)
