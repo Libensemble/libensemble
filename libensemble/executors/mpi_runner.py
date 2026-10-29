@@ -124,8 +124,8 @@ class MPIRunner:
     def _set_gpu_env_var(self, wresources, task, gpus_per_node, gpus_env):
         """Add GPU environment variable setting to the tasks environment"""
         jassert(wresources.matching_slots, f"Cannot assign CPUs/GPUs to non-matching slots per node {wresources.slots}")
-        slot_list = wresources.get_slots_as_string(multiplier=wresources.gpus_per_rset_per_node, limit=gpus_per_node)
-        task._add_to_env(gpus_env, slot_list)
+        gpu_list = wresources.get_gpu_ids_as_string(limit=gpus_per_node)
+        task._add_to_env(gpus_env, gpu_list)
 
     def _local_runner_set_gpus(self, task, wresources, extra_args, gpus_per_node, ppn):
         """Set default GPU setting for MPI runner"""
@@ -133,6 +133,8 @@ class MPIRunner:
         arg_type = self.default_gpu_arg_type
         if arg_type is not None:
             gpu_value = gpus_per_node // ppn if arg_type == "option_gpus_per_task" else gpus_per_node
+            if isinstance(gpu_value, float) and gpu_value.is_integer():
+                gpu_value = int(gpu_value)
             gpu_setting_name = self.default_gpu_args[arg_type]
             jassert(gpu_setting_name is not None, f"No default gpu_setting_name for {arg_type}")
             extra_args = self._set_gpu_cli_option(wresources, extra_args, gpu_setting_name, gpu_value)
@@ -174,7 +176,7 @@ class MPIRunner:
 
         # gpus per node for this worker.
         if wresources.doihave_gpus():
-            gpus_avail_per_node = wresources.slot_count * wresources.gpus_per_rset_per_node
+            gpus_avail_per_node = len(set(wresources.gpu_ids_on_node)) * wresources.gpus_per_rset_per_node
         else:
             gpus_avail_per_node = 0
 
@@ -188,7 +190,12 @@ class MPIRunner:
                 nnodes = wresources.local_node_count
 
         if ngpus is not None:
-            gpus_req_per_node = ngpus // nnodes
+            import math
+
+            try:
+                gpus_req_per_node = math.ceil(float(ngpus) / nnodes)
+            except Exception:
+                gpus_req_per_node = ngpus // nnodes
             if gpus_req_per_node > gpus_avail_per_node:
                 logger.info(f"Asked for more GPUs per node than available - max is {gpus_avail_per_node}")
             gpus_per_node = min(gpus_req_per_node, gpus_avail_per_node)
@@ -218,6 +225,8 @@ class MPIRunner:
 
         elif gpu_setting_type in ["option_gpus_per_node", "option_gpus_per_task"]:
             gpu_value = gpus_per_node // ppn if gpu_setting_type == "option_gpus_per_task" else gpus_per_node
+            if isinstance(gpu_value, float) and gpu_value.is_integer():
+                gpu_value = int(gpu_value)
             gpu_setting_name = self.platform_info.get("gpu_setting_name", self._get_default_arg(gpu_setting_type))
             extra_args = self._set_gpu_cli_option(wresources, extra_args, gpu_setting_name, gpu_value)
 
@@ -246,8 +255,13 @@ class MPIRunner:
             if nprocs:
                 proc_min_nodes = (nprocs + procs_on_node - 1) // procs_on_node
             if ngpus:
-                gpus_on_node = wresources.slot_count * wresources.gpus_per_rset_per_node
-                gpu_min_nodes = (ngpus + gpus_on_node - 1) // gpus_on_node
+                gpus_on_node = len(set(wresources.gpu_ids_on_node)) * wresources.gpus_per_rset_per_node
+                import math
+
+                try:
+                    gpu_min_nodes = math.ceil(float(ngpus) / gpus_on_node) if gpus_on_node else 1
+                except Exception:
+                    gpu_min_nodes = (ngpus + gpus_on_node - 1) // gpus_on_node
 
             min_nodes = max(proc_min_nodes, gpu_min_nodes)
             nnodes = min(min_nodes, total_nodes)

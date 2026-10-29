@@ -778,6 +778,18 @@ class LibeSpecs(BaseModel):
     If not set, resources will be divided evenly by the number of workers.
     """
 
+    gpu_sharing_factor: int = 1
+    """
+    Number of logical GPU shares available for each physical GPU.
+    A value of 1 preserves exclusive GPU allocation.
+    """
+
+    @field_validator("gpu_sharing_factor")
+    def check_gpu_sharing_factor(cls, value):
+        if value < 1:
+            raise ValueError("gpu_sharing_factor must be at least 1")
+        return value
+
     gen_num_procs: int | None = 0
     """
     The default number of processors (MPI ranks) required by generators. Unless
@@ -785,11 +797,12 @@ class LibeSpecs(BaseModel):
     allocated this many processors for applications launched via the MPIExecutor.
     """
 
-    gen_num_gpus: int | None = 0
+    gen_num_gpus: int | float | None = 0
     """
     The default number of GPUs required by generators. Unless overridden by
     the equivalent `persis_info` settings, generators will be allocated this
     many GPUs.
+    Supports fractional values when ``gpu_sharing_factor > 1``.
     """
 
     gpus_per_group: int | None = None
