@@ -134,7 +134,7 @@ jobs:
           cache: true
           frozen: true
           environments: py312e
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@v8
         with:
           pattern: coverage-data-*
           path: _coverage_data
@@ -160,7 +160,7 @@ jobs:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       - name: Upload final timing artifacts
         if: always()
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           pattern: coverage-timings-*
           path: _timings
