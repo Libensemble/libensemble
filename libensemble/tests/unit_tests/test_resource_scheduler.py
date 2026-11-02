@@ -965,8 +965,7 @@ def test_assign_gpu_sharing_fallbacks():
       ``check_params`` failure causes ``continue`` without updating
       ``max_even``.
     * **332** – fallback ``max_even`` update when product matches but
-      feasible still insufficient.
-    * **334** – final ``raise`` when no feasible groups found after loop.
+      feasible still insufficient (final ``334`` raise removed as unreachable).
     """
     # 303: split2fit=False with feasible < required should raise at 303
     # Need outer sorted check to pass (both groups have >=5 free) but feasible fails due to fragmentation
@@ -1075,15 +1074,10 @@ def test_assign_gpu_sharing_fallbacks():
     ResourceScheduler.get_sorted_lens = orig_sorted_class
     sched_2node.calc_even_split_uneven_groups = orig_calc
 
-    # Hit 334: final raise after loop when no feasible found (mock all infeasible)
-    # This is defensive; to hit 334 we need loop to exit without feasible but without hitting 313/322
-    # We force by making feasible always False and having enough groups so increment never exceeds max,
-    # but loop will eventually increment beyond max and hit 313, not 334. So 334 may be unreachable
-    # in current logic – we document as defensive and leave uncovered.
+    # 334 was defensive unreachable (while exits only when feasible>=req) and has been removed.
     sched_mock._can_group_satisfy_gpu = lambda g, need, bins: False
     sched_mock.calc_even_split_uneven_groups = orig_calc
     try:
-        # This will hit 313 or 322, which is the realistic fallback, not 334
         sched_mock.assign_resources(rsets_req=8, use_gpus=True)
     except InsufficientFreeResources:
         pass
