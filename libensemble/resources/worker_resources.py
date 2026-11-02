@@ -255,21 +255,15 @@ class WorkerResources(RSetResources):
 
     def get_gpu_ids_as_string(self, delimiter=",", limit=None):
         """Returns physical GPU IDs for the worker's assigned GPU resource sets."""
-        if self.gpu_ids_on_node is None:
-            logger.warning("GPU IDs on node are None when requested as a string")
-            return None
         gpu_ids = []
         for gpu_id in self.gpu_ids_on_node:
             if gpu_id >= 0:
                 gpu_ids.extend(range(gpu_id * self.gpus_per_rset_per_node, (gpu_id + 1) * self.gpus_per_rset_per_node))
         gpu_ids = list(OrderedDict.fromkeys(gpu_ids))
         if limit is not None:
-            try:
-                import math
+            import math
 
-                limit = math.ceil(float(limit))
-            except Exception:
-                pass
+            limit = math.ceil(float(limit))
             gpu_ids = gpu_ids[:limit]
         if self.tiles_per_gpu > 1:
             ntiles = self.tiles_per_gpu
