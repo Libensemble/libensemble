@@ -80,7 +80,7 @@ jobs:
           -A "-W error" --no-coverage --fail-fast --durations 25
           --timings-json timings-${{ matrix.comms }}.json
       - name: Upload timings
-        if: always()
+        if: always() && env.ACT != 'true'
         uses: actions/upload-artifact@v7
         with:
           name: core-${{ matrix.comms }}-timings

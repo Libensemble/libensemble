@@ -44,7 +44,7 @@ jobs:
           --tier core --no-coverage --fail-fast --durations 25
           --timings-json timings-core-${{ matrix.comms }}.json
       - name: Upload timings
-        if: always()
+        if: always() && env.ACT != 'true'
         uses: actions/upload-artifact@v7
         with:
           name: complete-core-${{ matrix.comms }}-timings
@@ -113,7 +113,7 @@ jobs:
           include-hidden-files: true
           if-no-files-found: warn
       - name: Upload timings
-        if: always()
+        if: always() && env.ACT != 'true'
         uses: actions/upload-artifact@v7
         with:
           name: coverage-timings-${{ matrix.shard }}
@@ -200,7 +200,7 @@ jobs:
           --shard ${{ matrix.shard }}/2
           --timings-json timings-external-${{ matrix.shard }}.json
       - name: Upload timings
-        if: always()
+        if: always() && env.ACT != 'true'
         uses: actions/upload-artifact@v7
         with:
           name: external-${{ matrix.shard }}-timings
@@ -227,7 +227,7 @@ jobs:
           --tier slow --no-coverage --fail-fast --durations 25
           --timings-json timings-slow.json
       - name: Upload timings
-        if: always()
+        if: always() && env.ACT != 'true'
         uses: actions/upload-artifact@v7
         with:
           name: slow-test-timings
