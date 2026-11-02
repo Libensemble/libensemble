@@ -330,8 +330,6 @@ class ResourceScheduler:
                 # fallback: increment groups
                 if len(feasible) < num_groups_req:
                     max_even = sorted_lengths[num_groups_req - 1] if num_groups_req <= len(sorted_lengths) else 0
-        if len(feasible) < num_groups_req:
-            raise InsufficientFreeResources
         cand_groups = feasible[:num_groups_req]
         rset_team = []
         for g in cand_groups:
