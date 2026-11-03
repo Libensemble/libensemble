@@ -79,18 +79,18 @@ class Application:
 
     def __init__(
         self,
-        full_path: str,
+        full_path: str | os.PathLike[str],
         name: str | None = None,
         calc_type: str | None = "sim",
         desc: str | None = None,
         pyobj: Any | None = None,
-        precedent: str = "",
+        precedent: str | os.PathLike[str] = "",
     ) -> None:
         """Instantiates a new Application instance."""
-        self.full_path = full_path
+        self.full_path = os.fspath(full_path)
         self.calc_type = calc_type
-        self.calc_dir, self.exe = os.path.split(full_path)
-        self.precedent = precedent
+        self.calc_dir, self.exe = os.path.split(self.full_path)
+        self.precedent = os.fspath(precedent) if precedent else ""
 
         if self.exe.endswith(".py"):
             if not precedent:
