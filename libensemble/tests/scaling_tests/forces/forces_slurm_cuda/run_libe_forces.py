@@ -72,8 +72,9 @@ if __name__ == "__main__":
     ensemble = Ensemble(parse_args=True, executor=exctr)
     nsim_workers = ensemble.nworkers - 1
 
+    num_rsets = max(8, nsim_workers * GPU_SHARING_FACTOR)
     ensemble.libE_specs = LibeSpecs(
-        num_resource_sets=nsim_workers,
+        num_resource_sets=num_rsets,
         gpu_sharing_factor=GPU_SHARING_FACTOR,
         scheduler_opts={"gpu_packing": "spread"},
         sim_dirs_make=True,
@@ -121,10 +122,10 @@ if __name__ == "__main__":
 
         rm = getattr(getattr(ensemble, "resources", None), "resource_manager", None)
         if rm is not None:
-            assert rm.rsets_free == rm.total_num_rsets
+            assert rm.rsets_free == rm.total_num_rsets, f"Rsets not freed {rm.rsets_free}/{rm.total_num_rsets}"
             assert rm.gpu_rsets_free == rm.total_num_gpu_rsets
-            assert rm.total_num_gpu_rsets > 0, "No GPU rsets - allocation correct?"
-            assert rm.gpu_rsets_per_node > 0, "gpu_rsets_per_node 0"
+            assert rm.total_num_gpu_rsets >= 4, f"Need >=4 GPU rsets, got {rm.total_num_gpu_rsets}"
+            assert rm.gpu_rsets_per_node >= 2
             assert rm.num_groups >= 1
             print(
                 f"Slurm sharing check: total_gpu_rsets={rm.total_num_gpu_rsets} "

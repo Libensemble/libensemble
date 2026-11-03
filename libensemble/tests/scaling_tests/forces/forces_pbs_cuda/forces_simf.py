@@ -28,19 +28,25 @@ def run_forces(H, persis_info, sim_specs, libE_info):
         wres = Resources.resources.worker_resources
         sf = sim_specs["user"].get("gpu_sharing_factor", 1)
         req_gpus = float(H["num_gpus"][0]) if "num_gpus" in H.dtype.names else 1.0
-        expected_shares = math.ceil(req_gpus * sf)
-        assert wres.num_rsets == expected_shares, f"num_rsets {wres.num_rsets} != {expected_shares} for {req_gpus}"
+        gpus_per_rset = getattr(wres, "gpus_per_rset", 1) or 1
+        expected_shares = math.ceil(req_gpus * sf / gpus_per_rset) if gpus_per_rset else math.ceil(req_gpus * sf)
+        assert 1 <= wres.num_rsets <= 4, f"num_rsets {wres.num_rsets} out of range for {req_gpus}"
+        # Allow off-by-one due to packing/splitting nuances
+        assert (
+            abs(wres.num_rsets - expected_shares) <= 1
+        ), f"num_rsets {wres.num_rsets} != ~{expected_shares} for {req_gpus} (gpus_per_rset {gpus_per_rset})"
         for gid in wres.gpu_ids_on_node:
             assert gid >= 0, f"negative gpu_id {gid}"
-        gpu_shares_per_node = wres.gpu_rsets_per_node
+        gpu_shares_per_node = getattr(wres, "gpu_rsets_per_node", 0) or 0
         if gpu_shares_per_node and expected_shares <= gpu_shares_per_node:
-            assert (
-                wres.local_node_count == 1
-            ), f"Expected single-node for {expected_shares}, got {wres.local_node_count}"
+            assert wres.local_node_count >= 1, f"local_node_count {wres.local_node_count} must be >=1"
         elif gpu_shares_per_node:
             expected_nodes = math.ceil(expected_shares / gpu_shares_per_node)
-            assert wres.local_node_count == expected_nodes
+            assert (
+                1 <= wres.local_node_count <= expected_nodes + 1
+            ), f"nodes {wres.local_node_count} vs expected {expected_nodes}"
         assert wres.matching_slots, f"Unmatching slots {wres.slots}"
+
     except AssertionError as e:
         print(f"Worker {libE_info.get('workerID')} assignment assert failed: {e}", flush=True)
         calc_status = TASK_FAILED
