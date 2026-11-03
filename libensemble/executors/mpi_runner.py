@@ -275,6 +275,11 @@ class MPIRunner:
 
         def adjust_resource(n_units, units_attr, units_name):
             if n_units is not None and nnodes:
+                # Don't adjust fractional GPU requests (gpu_sharing_factor)
+                # e.g. 0.5/1.5 GPUs -> 1/3 shares should not be rounded to 1.0/2.0 for even split
+                if isinstance(n_units, float) and not n_units.is_integer():
+                    if getattr(wresources, "gpu_sharing_factor", 1) > 1:
+                        return n_units
                 mod_n_units = n_units % nnodes
                 if mod_n_units != 0:
                     try_n_units = n_units + (nnodes - mod_n_units)
