@@ -154,38 +154,20 @@ class AllocSupport:
             )
         else:
             num_rsets_req = 1
-        if "num_gpus" in H.dtype.names:
-            gpus_per_rset = self.resources.resource_manager.gpus_per_rset
-            gpu_sharing_factor = getattr(self.resources.resource_manager, "gpu_sharing_factor", 1)
-            if gpu_sharing_factor > 1 and self.resources:
-                max_gpus = float(np.max(H[H_rows]["num_gpus"]))
-                if max_gpus > 0:
-                    use_gpus = True
-                    shares_needed = (
-                        math.ceil(max_gpus * gpu_sharing_factor / gpus_per_rset)
-                        if gpus_per_rset
-                        else math.ceil(max_gpus * gpu_sharing_factor)
-                    )
-                    user_params.append(shares_needed)
-                    libE_info["num_gpus"] = max_gpus
-                    num_rsets_req_for_gpus = shares_needed
-                else:
-                    libE_info["num_gpus"] = max_gpus
-                    num_rsets_req_for_gpus = 0
-            else:
-                num_rsets_req_for_gpus = AllocSupport._convert_rows_to_rsets(
-                    libE_info, user_params, H, H_rows, gpus_per_rset, "num_gpus"
-                )
-                if num_rsets_req_for_gpus > 0:
-                    use_gpus = True
+        if "num_gpus" in H.dtype.names and self.resources:
+            max_gpus = np.max(H[H_rows]["num_gpus"])
+            num_rsets_req_for_gpus = self._convert_gpus_to_rsets(libE_info, user_params, max_gpus)
+            if num_rsets_req_for_gpus > 0:
+                use_gpus = True
             num_rsets_req = max(num_rsets_req, num_rsets_req_for_gpus)
         return num_rsets_req, use_gpus
 
     def _req_resources_gen(self, libE_info, user_params):
         """Determine required resources for a gen work unit"""
+        # We could also have libE_specs defaults (gen_num_procs, gen_num_gpus) - passed by libE_info
         use_gpus = None
         num_rsets_req = self.persis_info.get("gen_resources", 0)
-        use_gpus = self.persis_info.get("gen_use_gpus", None)
+        use_gpus = self.persis_info.get("gen_use_gpus", None)  # can be overwritten below
         if not num_rsets_req:
             gen_nprocs = self.persis_info.get("gen_num_procs", self.def_gen_num_procs)
             if gen_nprocs and self.resources:
@@ -195,31 +177,27 @@ class AllocSupport:
                 )
             gen_ngpus = self.persis_info.get("gen_num_gpus", self.def_gen_num_gpus)
             if gen_ngpus and self.resources:
-                gpus_per_rset = self.resources.resource_manager.gpus_per_rset
-                gpu_sharing_factor = getattr(self.resources.resource_manager, "gpu_sharing_factor", 1)
-                if gpu_sharing_factor > 1:
-                    gpus_val = float(gen_ngpus)
-                    if gpus_val > 0:
-                        use_gpus = True
-                        shares_needed = (
-                            math.ceil(gpus_val * gpu_sharing_factor / gpus_per_rset)
-                            if gpus_per_rset
-                            else math.ceil(gpus_val * gpu_sharing_factor)
-                        )
-                        user_params.append(shares_needed)
-                        libE_info["num_gpus"] = gpus_val
-                        num_rsets_req_for_gpus = shares_needed
-                    else:
-                        libE_info["num_gpus"] = gpus_val
-                        num_rsets_req_for_gpus = 0
-                else:
-                    num_rsets_req_for_gpus = AllocSupport._convert_to_rsets(
-                        libE_info, user_params, gpus_per_rset, gen_ngpus, "num_gpus"
-                    )
-                    if num_rsets_req_for_gpus > 0:
-                        use_gpus = True
+                num_rsets_req_for_gpus = self._convert_gpus_to_rsets(libE_info, user_params, gen_ngpus)
+                if num_rsets_req_for_gpus > 0:
+                    use_gpus = True
                 num_rsets_req = max(num_rsets_req, num_rsets_req_for_gpus)
         return num_rsets_req, use_gpus
+
+    def _convert_gpus_to_rsets(self, libE_info, user_params, num_gpus):
+        """Convert a GPU request to resource sets, accounting for ``gpu_sharing_factor``.
+
+        With sharing, each resource set holds one GPU share, so a request for ``num_gpus``
+        (possibly fractional) needs ``ceil(num_gpus * gpu_sharing_factor)`` shares.
+        ``libE_info["num_gpus"]`` always records the requested number of GPUs.
+        """
+        rm = self.resources.resource_manager
+        num_gpus = AllocSupport._normalize_units(num_gpus)
+        if rm.gpu_sharing_factor > 1:
+            shares = math.ceil(num_gpus * rm.gpu_sharing_factor)
+            num_rsets_req = AllocSupport._convert_to_rsets({}, user_params, rm.gpus_per_rset, shares, "num_gpus")
+            libE_info["num_gpus"] = num_gpus
+            return num_rsets_req
+        return AllocSupport._convert_to_rsets(libE_info, user_params, rm.gpus_per_rset, num_gpus, "num_gpus")
 
     def _update_rset_team(self, libE_info, wid, H=None, H_rows=None):
         """Add rset_team to libE_info."""
@@ -425,24 +403,26 @@ class AllocSupport:
         return H_fields
 
     @staticmethod
+    def _normalize_units(value):
+        """Return value as an int if it is a whole number, else as a float"""
+        value = float(value)
+        return int(value) if value.is_integer() else value
+
+    @staticmethod
     def _convert_rows_to_rsets(libE_info, user_params, H, H_rows, units_per_rset, units_str):
         """Convert num_procs & num_gpus requirements to resource sets for sim functions"""
-        max_num_units = float(np.max(H[H_rows][units_str]))
+        max_num_units = np.max(H[H_rows][units_str])
         num_rsets_req = AllocSupport._convert_to_rsets(libE_info, user_params, units_per_rset, max_num_units, units_str)
         return num_rsets_req
 
     @staticmethod
     def _convert_to_rsets(libE_info, user_params, units_per_rset, num_units, units_str):
         """Convert num_procs & num_gpus requirements to resource sets"""
+        num_units = AllocSupport._normalize_units(num_units)
         user_params.append(num_units)
         if num_units > 0:
             try:
-                if isinstance(num_units, float) and not num_units.is_integer():
-                    num_rsets_req = math.ceil(num_units / units_per_rset)
-                else:
-                    num_rsets_req = math.ceil(float(num_units) / units_per_rset) if units_per_rset else 0
-                    if float(num_units).is_integer() and isinstance(units_per_rset, int):
-                        num_rsets_req = int(num_units) // units_per_rset + (int(num_units) % units_per_rset > 0)
+                num_rsets_req = int(-(-num_units // units_per_rset))
             except ZeroDivisionError:
                 raise InsufficientResourcesError(
                     f"There are zero {units_str} per resource set (worker). Use fewer workers or more resources"

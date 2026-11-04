@@ -1106,10 +1106,36 @@ def test_alloc_support_fractional():
     support2.persis_info = {"gen_num_gpus": 1.5}
     nsets5, _ = support2._req_resources_gen(libE_info, user_params)
     assert nsets5 == 3
+    # Whole-number requests are passed on as ints
+    assert libE_info["num_gpus"] == 1.5
+    libE_info = {}
+    support2.persis_info = {"gen_num_gpus": 2.0}
+    support2._req_resources_gen(libE_info, user_params)
+    assert type(libE_info["num_gpus"]) is int and libE_info["num_gpus"] == 2
+
+
+def test_convert_to_rsets_keeps_ints():
+    """Whole-number procs/GPUs from float or numpy History fields stay ints in libE_info."""
+    from libensemble.tools.alloc_support import AllocSupport
+
+    H = np.zeros(2, dtype=[("num_procs", int), ("num_gpus", float)])
+    H["num_procs"] = [4, 3]
+    H["num_gpus"] = [2.0, 1.0]
+    for field, per_rset, exp_rsets, exp_units in [("num_procs", 2, 2, 4), ("num_gpus", 2, 1, 2)]:
+        libE_info, user_params = {}, []
+        nrsets = AllocSupport._convert_rows_to_rsets(libE_info, user_params, H, [0, 1], per_rset, field)
+        assert nrsets == exp_rsets and type(nrsets) is int
+        assert libE_info[field] == exp_units and type(libE_info[field]) is int
+        assert type(user_params[0]) is int
+    # Fractional values remain floats and round up
+    libE_info = {}
+    assert AllocSupport._convert_to_rsets(libE_info, [], 1, 1.5, "num_gpus") == 2
+    assert libE_info["num_gpus"] == 1.5
 
 
 if __name__ == "__main__":
     setup_standalone_run()
+    test_convert_to_rsets_keeps_ints()
 
     test_get_global_nodelist_frm_slurm()
     test_get_global_nodelist_frm_slurm_suffix()
