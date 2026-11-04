@@ -281,6 +281,7 @@ class Manager:
             self.scheduler_opts = gresource.update_scheduler_opts(self.scheduler_opts)
             if self.resources.resource_manager is not None and self.resources.resource_manager.rsets_sizing_msg:
                 logger.info(self.resources.resource_manager.rsets_sizing_msg)
+            self._check_gpu_sharing(gresource)
 
         for wrk in self.W:
             if wrk["worker_id"] in self.libE_specs.get("gen_workers", []):
@@ -296,6 +297,20 @@ class Manager:
                 "Ensemble directory already existed and wasn't empty.",
                 "To reuse ensemble dir, set libE_specs['reuse_output_dir'] = True",
                 e,
+            )
+
+    def _check_gpu_sharing(self, gresource) -> None:
+        """Warn about gpu_sharing_factor configurations that will not share GPUs as intended"""
+        sf = gresource.gpu_sharing_factor
+        if sf <= 1:
+            return
+        if not gresource.gpus_avail_per_node:
+            logger.manager_warning(f"gpu_sharing_factor={sf} is set, but no GPUs were detected. It will be ignored.")
+        elif "num_gpus" not in self.hist.H.dtype.names and not self.gen_num_gpus:
+            logger.manager_warning(
+                f"gpu_sharing_factor={sf} is set, but tasks do not request GPUs. For best GPU utilization, "
+                "tasks should request GPUs via a 'num_gpus' field in gen_specs['out'] (or 'gen_num_gpus' "
+                "for generators). Without GPU requests, tasks are not placed by GPU share and GPUs may be underused."
             )
 
     # --- Termination logic routines
