@@ -2,11 +2,13 @@ import os
 import socket
 
 import numpy as np
+import pytest
 
 from libensemble.executors.mpi_runner import MPICH_MPIRunner
 from libensemble.resources.env_resources import EnvResources
 from libensemble.resources.mpi_resources import create_machinefile
 from libensemble.resources.resources import GlobalResources, Resources, ResourcesException
+from libensemble.resources.rset_resources import RSetResourcesException
 from libensemble.resources.scheduler import ResourceScheduler
 from libensemble.resources.worker_resources import ResourceManager, WorkerResources
 
@@ -1030,7 +1032,11 @@ def _setup_resources_sharing_for_alloc(gpu_sharing_factor=2, num_resource_sets=1
     """
     # Mock a 2-node SLURM nodelist; no real hardware needed
     os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = "knl-[0020,0036]"
-    resource_info = {"nodelist_env_slurm": "LIBE_RESOURCES_TEST_NODE_LIST", "gpus_on_node": 4}
+    resource_info = {
+        "nodelist_env_slurm": "LIBE_RESOURCES_TEST_NODE_LIST",
+        "gpus_on_node": 4,
+        "cores_on_node": (64, 64),
+    }
     libE_specs = {
         "resource_info": resource_info,
         "dedicated_mode": False,  # keep libEnsemble ranks out of the nodelist
@@ -1114,6 +1120,47 @@ def test_alloc_support_fractional():
     assert type(libE_info["num_gpus"]) is int and libE_info["num_gpus"] == 2
 
 
+def _sharing_resource_manager(gpu_sharing_factor, num_resource_sets=None, num_workers=4, cores=64):
+    os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = "knl-[0020,0036]"
+    libE_specs = {
+        "resource_info": {
+            "nodelist_env_slurm": "LIBE_RESOURCES_TEST_NODE_LIST",
+            "gpus_on_node": 4,
+            "cores_on_node": (cores, cores),
+        },
+        "dedicated_mode": False,
+        "gpu_sharing_factor": gpu_sharing_factor,
+        "num_resource_sets": num_resource_sets,
+    }
+    res = Resources(libE_specs=libE_specs, top_level_dir=os.getcwd())
+    res.set_resource_manager(num_workers=num_workers)
+    return res.resource_manager
+
+
+def test_gpu_sharing_default_num_resource_sets():
+    """Without num_resource_sets, sharing gives one rset per GPU share, independent of workers."""
+    rm = _sharing_resource_manager(gpu_sharing_factor=2)
+    assert rm.total_num_rsets == 16  # 2 nodes x 4 GPUs x 2 shares
+    assert list(rm.rsets["gpu_id"][:8]) == [0, 0, 1, 1, 2, 2, 3, 3]
+    assert rm.procs_per_rset == 8
+
+    rm = _sharing_resource_manager(gpu_sharing_factor=1)
+    assert rm.total_num_rsets == 4  # unchanged: one per worker
+
+    # Explicit values that cover all shares are respected (extra rsets have no GPUs)
+    rm = _sharing_resource_manager(gpu_sharing_factor=2, num_resource_sets=20)
+    assert rm.total_num_rsets == 20
+    assert rm.total_num_gpu_rsets == 16
+
+
+def test_gpu_sharing_rset_errors():
+    """Explicit num_resource_sets too small for all shares, or zero cores per rset, raises."""
+    with pytest.raises(RSetResourcesException, match="at least 16"):
+        _sharing_resource_manager(gpu_sharing_factor=2, num_resource_sets=8)
+    with pytest.raises(RSetResourcesException, match="CPU cores"):
+        _sharing_resource_manager(gpu_sharing_factor=8, cores=16)
+
+
 def test_convert_to_rsets_keeps_ints():
     """Whole-number procs/GPUs from float or numpy History fields stay ints in libE_info."""
     from libensemble.tools.alloc_support import AllocSupport
@@ -1136,6 +1183,8 @@ def test_convert_to_rsets_keeps_ints():
 if __name__ == "__main__":
     setup_standalone_run()
     test_convert_to_rsets_keeps_ints()
+    test_gpu_sharing_default_num_resource_sets()
+    test_gpu_sharing_rset_errors()
 
     test_get_global_nodelist_frm_slurm()
     test_get_global_nodelist_frm_slurm_suffix()

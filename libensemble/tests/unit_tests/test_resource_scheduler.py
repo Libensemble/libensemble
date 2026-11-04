@@ -669,7 +669,7 @@ def _setup_resources_sharing(gpu_sharing_factor=2, gpus_per_group=None, sched_op
     """Create a mocked 2-node, 4-GPU/node resource set for helper tests.
 
     Mocks SLURM nodelist ``knl-[0020,0036]`` (2 nodes) with
-    ``gpus_on_node=4`` and ``cores_on_node=(32,64)``-equivalent layout via
+    ``gpus_on_node=4`` and ``cores_on_node=(64, 64)`` via
     ``ResourceInfo``. With ``gpu_sharing_factor=2`` each physical GPU is
     split into 2 logical shares, yielding ``8`` GPU shares per node and
     ``16`` total for the default ``num_resource_sets=16`` (``8`` per node).
@@ -691,7 +691,11 @@ def _setup_resources_sharing(gpu_sharing_factor=2, gpus_per_group=None, sched_op
     """
     # Mock a 2-node SLURM nodelist; no real hardware needed
     os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = "knl-[0020,0036]"
-    resource_info = {"nodelist_env_slurm": "LIBE_RESOURCES_TEST_NODE_LIST", "gpus_on_node": 4}
+    resource_info = {
+        "nodelist_env_slurm": "LIBE_RESOURCES_TEST_NODE_LIST",
+        "gpus_on_node": 4,
+        "cores_on_node": (64, 64),
+    }
     libE_specs = {
         "resource_info": resource_info,
         "dedicated_mode": False,  # keep libEnsemble ranks out of the nodelist
@@ -789,7 +793,11 @@ def test_gpu_sharing_remainder_on_single_gpu():
     """
     os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = "knl-[0020]"
     libE_specs = {
-        "resource_info": {"nodelist_env_slurm": "LIBE_RESOURCES_TEST_NODE_LIST", "gpus_on_node": 2},
+        "resource_info": {
+            "nodelist_env_slurm": "LIBE_RESOURCES_TEST_NODE_LIST",
+            "gpus_on_node": 2,
+            "cores_on_node": (64, 64),
+        },
         "dedicated_mode": False,
         "gpu_sharing_factor": 4,
         "num_resource_sets": 8,
@@ -821,7 +829,11 @@ def test_gpu_sharing_matching_slots_across_nodes():
 
     res = Resources(
         libE_specs={
-            "resource_info": {"nodelist_env_slurm": "LIBE_RESOURCES_TEST_NODE_LIST", "gpus_on_node": 4},
+            "resource_info": {
+                "nodelist_env_slurm": "LIBE_RESOURCES_TEST_NODE_LIST",
+                "gpus_on_node": 4,
+                "cores_on_node": (64, 64),
+            },
             "dedicated_mode": False,
             "gpu_sharing_factor": 2,
             "num_resource_sets": 16,
@@ -847,7 +859,11 @@ def test_gpu_sharing_split2fit():
     """Requests that do not fit on one node are split over more nodes if allowed."""
     os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = "knl-[0020,0036,0040]"
     libE_specs = {
-        "resource_info": {"nodelist_env_slurm": "LIBE_RESOURCES_TEST_NODE_LIST", "gpus_on_node": 4},
+        "resource_info": {
+            "nodelist_env_slurm": "LIBE_RESOURCES_TEST_NODE_LIST",
+            "gpus_on_node": 4,
+            "cores_on_node": (64, 64),
+        },
         "dedicated_mode": False,
         "gpu_sharing_factor": 2,
         "num_resource_sets": 24,
