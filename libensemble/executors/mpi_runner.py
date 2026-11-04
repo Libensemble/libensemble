@@ -1,5 +1,6 @@
 import argparse
 import logging
+import math
 
 from libensemble.executors.executor import jassert
 from libensemble.resources import mpi_resources
@@ -133,8 +134,6 @@ class MPIRunner:
         arg_type = self.default_gpu_arg_type
         if arg_type is not None:
             gpu_value = gpus_per_node // ppn if arg_type == "option_gpus_per_task" else gpus_per_node
-            if isinstance(gpu_value, float) and gpu_value.is_integer():
-                gpu_value = int(gpu_value)
             gpu_setting_name = self.default_gpu_args[arg_type]
             jassert(gpu_setting_name is not None, f"No default gpu_setting_name for {arg_type}")
             extra_args = self._set_gpu_cli_option(wresources, extra_args, gpu_setting_name, gpu_value)
@@ -190,12 +189,7 @@ class MPIRunner:
                 nnodes = wresources.local_node_count
 
         if ngpus is not None:
-            import math
-
-            try:
-                gpus_req_per_node = math.ceil(float(ngpus) / nnodes)
-            except Exception:
-                gpus_req_per_node = ngpus // nnodes
+            gpus_req_per_node = ngpus // nnodes if isinstance(ngpus, int) else math.ceil(ngpus / nnodes)
             if gpus_req_per_node > gpus_avail_per_node:
                 logger.info(f"Asked for more GPUs per node than available - max is {gpus_avail_per_node}")
             gpus_per_node = min(gpus_req_per_node, gpus_avail_per_node)
@@ -225,8 +219,6 @@ class MPIRunner:
 
         elif gpu_setting_type in ["option_gpus_per_node", "option_gpus_per_task"]:
             gpu_value = gpus_per_node // ppn if gpu_setting_type == "option_gpus_per_task" else gpus_per_node
-            if isinstance(gpu_value, float) and gpu_value.is_integer():
-                gpu_value = int(gpu_value)
             gpu_setting_name = self.platform_info.get("gpu_setting_name", self._get_default_arg(gpu_setting_type))
             extra_args = self._set_gpu_cli_option(wresources, extra_args, gpu_setting_name, gpu_value)
 
@@ -256,12 +248,7 @@ class MPIRunner:
                 proc_min_nodes = (nprocs + procs_on_node - 1) // procs_on_node
             if ngpus:
                 gpus_on_node = len(set(wresources.gpu_ids_on_node)) * wresources.gpus_per_rset_per_node
-                import math
-
-                try:
-                    gpu_min_nodes = math.ceil(float(ngpus) / gpus_on_node) if gpus_on_node else 1
-                except Exception:
-                    gpu_min_nodes = (ngpus + gpus_on_node - 1) // gpus_on_node
+                gpu_min_nodes = math.ceil(ngpus / gpus_on_node) if gpus_on_node else 1
 
             min_nodes = max(proc_min_nodes, gpu_min_nodes)
             nnodes = min(min_nodes, total_nodes)
@@ -275,11 +262,9 @@ class MPIRunner:
 
         def adjust_resource(n_units, units_attr, units_name):
             if n_units is not None and nnodes:
-                # Don't adjust fractional GPU requests (gpu_sharing_factor)
-                # e.g. 0.5/1.5 GPUs -> 1/3 shares should not be rounded to 1.0/2.0 for even split
+                # Fractional GPU requests are rounded up per node in _assign_gpus
                 if isinstance(n_units, float) and not n_units.is_integer():
-                    if getattr(wresources, "gpu_sharing_factor", 1) > 1:
-                        return n_units
+                    return n_units
                 mod_n_units = n_units % nnodes
                 if mod_n_units != 0:
                     try_n_units = n_units + (nnodes - mod_n_units)

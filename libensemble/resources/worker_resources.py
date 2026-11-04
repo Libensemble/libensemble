@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import math
 import os
 from collections import Counter, OrderedDict
 from typing import TYPE_CHECKING
@@ -254,17 +255,21 @@ class WorkerResources(RSetResources):
         os.environ[env_var] = self.get_slots_as_string(multiplier, delimiter)
 
     def get_gpu_ids_as_string(self, delimiter=",", limit=None):
-        """Returns physical GPU IDs for the worker's assigned GPU resource sets."""
+        """Returns physical GPU IDs for the worker's assigned GPU resource sets.
+
+        :param delimiter: Optional str. Delimiter for output string.
+        :param limit: Optional int or float. Maximum GPUs (a fractional limit is rounded up).
+        """
+        if self.gpu_ids_on_node is None:
+            logger.warning("GPU IDs on node is None when requested as a string")
+            return None
         gpu_ids = []
         for gpu_id in self.gpu_ids_on_node:
             if gpu_id >= 0:
                 gpu_ids.extend(range(gpu_id * self.gpus_per_rset_per_node, (gpu_id + 1) * self.gpus_per_rset_per_node))
         gpu_ids = list(OrderedDict.fromkeys(gpu_ids))
         if limit is not None:
-            import math
-
-            limit = math.ceil(float(limit))
-            gpu_ids = gpu_ids[:limit]
+            gpu_ids = gpu_ids[: math.ceil(limit)]
         if self.tiles_per_gpu > 1:
             ntiles = self.tiles_per_gpu
             gpu_ids = [f"{i // ntiles}.{i % ntiles}" for i in gpu_ids]
