@@ -279,6 +279,8 @@ class Manager:
         if self.resources is not None:
             gresource = self.resources.glob_resources
             self.scheduler_opts = gresource.update_scheduler_opts(self.scheduler_opts)
+            if self.resources.resource_manager is not None and self.resources.resource_manager.rsets_sizing_msg:
+                logger.info(self.resources.resource_manager.rsets_sizing_msg)
 
         for wrk in self.W:
             if wrk["worker_id"] in self.libE_specs.get("gen_workers", []):
@@ -1116,15 +1118,11 @@ class Manager:
                             if self._service_idle_start is None:
                                 self._service_idle_start = time.time()
                             elif time.time() - self._service_idle_start > idle_timeout:
-                                logger.info(
-                                    f"service_mode idle for {idle_timeout}s with no work, exiting"
-                                )
+                                logger.info(f"service_mode idle for {idle_timeout}s with no work, exiting")
                                 break
                         time.sleep(0.1)
                         continue
-                    raise AssertionError(
-                        "alloc_f did not return any work, although all workers are idle."
-                    )
+                    raise AssertionError("alloc_f did not return any work, although all workers are idle.")
                 # work was dispatched OR workers active OR terminating — reset idle clock
                 self._service_idle_start = None
         except WorkerException as e:

@@ -78,12 +78,12 @@ if __name__ == "__main__":
     exctr = MPIExecutor()
     exctr.register_app(full_path=six_hump_camel_app, app_name="six_hump_camel")
 
-    # Ensemble setup: parse --nworkers/--comms, ensure enough rsets for fractional tasks
+    # Ensemble setup: parse --nworkers/--comms
     gpu_test = Ensemble(parse_args=True, executor=exctr)
     nworkers = gpu_test.nworkers
-    nsets = max(gpu_test.nworkers - 1, 8)  # need >=8 shares to host max 4-share task
+    # num_resource_sets is not set: with gpu_sharing_factor=2 it defaults to one
+    # resource set per GPU share (4 GPUs x 2 shares = 8 per node)
     gpu_test.libE_specs = LibeSpecs(
-        num_resource_sets=nsets,
         resource_info={"cores_on_node": (32, 64), "gpus_on_node": 4},
         gpu_sharing_factor=2,
         scheduler_opts={"gpu_packing": "pack"},
