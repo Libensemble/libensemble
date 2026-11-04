@@ -1161,6 +1161,30 @@ def test_gpu_sharing_rset_errors():
         _sharing_resource_manager(gpu_sharing_factor=8, cores=16)
 
 
+def test_gpu_sharing_manager_warnings(monkeypatch):
+    """The manager warns if sharing is set but tasks don't request GPUs, or no GPUs exist."""
+    from types import SimpleNamespace
+
+    import libensemble.manager as manager_mod
+
+    warnings = []
+    monkeypatch.setattr(manager_mod.logger, "manager_warning", lambda msg: warnings.append(msg))
+
+    def check(sf, gpus, fields, gen_num_gpus=0):
+        warnings.clear()
+        H = np.zeros(1, dtype=[(f, float) for f in fields])
+        mgr = SimpleNamespace(hist=SimpleNamespace(H=H), gen_num_gpus=gen_num_gpus)
+        gres = SimpleNamespace(gpu_sharing_factor=sf, gpus_avail_per_node=gpus)
+        manager_mod.Manager._check_gpu_sharing(mgr, gres)
+        return list(warnings)
+
+    assert check(1, 4, ["x"]) == []
+    assert check(2, 4, ["x", "num_gpus"]) == []
+    assert check(2, 4, ["x"], gen_num_gpus=0.5) == []
+    assert "should request GPUs" in check(2, 4, ["x", "num_procs"])[0]
+    assert "no GPUs were detected" in check(2, 0, ["x", "num_gpus"])[0]
+
+
 def test_convert_to_rsets_keeps_ints():
     """Whole-number procs/GPUs from float or numpy History fields stay ints in libE_info."""
     from libensemble.tools.alloc_support import AllocSupport
