@@ -791,6 +791,9 @@ def _setup_wresources_gpus(ngpus, gpu_sharing_factor=1, num_resource_sets=None, 
     os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = "knl-[0020,0036]"
 
     resource_info = {"nodelist_env_slurm": "LIBE_RESOURCES_TEST_NODE_LIST", "gpus_on_node": ngpus}
+    if gpu_sharing_factor > 1:
+        # Sharing needs at least one core per rset, so don't depend on the host's core count
+        resource_info["cores_on_node"] = (64, 64)
     libE_specs = {
         "resource_info": resource_info,
         "dedicated_mode": False,
