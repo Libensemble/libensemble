@@ -775,13 +775,26 @@ class LibeSpecs(BaseModel):
     num_resource_sets: int | None = 0
     """
     Total number of resource sets. Resources will be divided into this number.
-    If not set, resources will be divided evenly by the number of workers.
+    If not set, resources will be divided evenly by the number of workers, or,
+    if ``gpu_sharing_factor > 1``, into one resource set per GPU share.
     """
 
     gpu_sharing_factor: int = 1
     """
-    Number of logical GPU shares available for each physical GPU.
-    A value of 1 preserves exclusive GPU allocation.
+    Number of tasks that may share each GPU. For example, ``2`` lets two tasks
+    requesting ``num_gpus=0.5`` run on the same GPU at the same time, and ``4``
+    allows requests in steps of a quarter GPU. The default of ``1`` gives each
+    task exclusive use of its GPUs.
+
+    Tasks should request GPUs via a ``num_gpus`` field in ``gen_specs["out"]``
+    (or ``gen_num_gpus``). Requests are rounded up to the nearest share. Any part
+    of a request smaller than a whole GPU is placed on a single GPU.
+
+    Tasks sharing a GPU are not isolated from each other: they share its memory
+    and compute. Use a factor that suits the memory needs of your tasks.
+
+    If ``num_resource_sets`` is not set, it defaults to one resource set per
+    GPU share (``nodes * gpus_per_node * gpu_sharing_factor``).
     """
 
     @field_validator("gpu_sharing_factor")
@@ -802,7 +815,8 @@ class LibeSpecs(BaseModel):
     The default number of GPUs required by generators. Unless overridden by
     the equivalent `persis_info` settings, generators will be allocated this
     many GPUs.
-    Supports fractional values when ``gpu_sharing_factor > 1``.
+    Fractional values (e.g., ``0.5``) share a GPU when ``gpu_sharing_factor > 1``,
+    and are otherwise rounded up to whole GPUs.
     """
 
     gpus_per_group: int | None = None

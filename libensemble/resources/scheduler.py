@@ -59,10 +59,10 @@ class ResourceScheduler:
                 Default: True
 
             "gpu_packing" [String]:
-                GPU share packing strategy when ``gpu_sharing_factor > 1``.
-                "pack" (default) co-locates fractional tasks on the most-occupied GPU
-                to preserve fully-free GPUs for exclusive tasks. "spread" distributes
-                across least-occupied GPUs.
+                Where to place tasks that use part of a GPU when ``gpu_sharing_factor > 1``.
+                "pack" fills partly used GPUs and nodes first, keeping whole GPUs free for
+                larger tasks. "spread" prefers the least used GPUs and nodes, giving tasks
+                more room.
                 Default: "pack"
         """
 
