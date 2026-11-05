@@ -24,12 +24,9 @@ if __name__ == "__main__":
     # Parse number of workers, comms type, etc. from arguments
     ensemble = Ensemble(parse_args=True, executor=exctr)
 
-    nsim_workers = ensemble.nworkers - 1  # One worker is for persistent generator
+    nsim_workers = ensemble.nworkers  # Generator runs on the manager, so all workers can run simulations
 
-    # Persistent gen does not need resources
-    ensemble.libE_specs = LibeSpecs(
-        num_resource_sets=nsim_workers, sim_dirs_make=True, ensemble_dir_path="./test_executor_forces_tutorial"
-    )
+    ensemble.libE_specs = LibeSpecs(sim_dirs_make=True, ensemble_dir_path="./test_executor_forces_tutorial")
 
     ensemble.sim_specs = SimSpecs(
         sim_f=run_forces,

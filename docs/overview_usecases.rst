@@ -91,13 +91,9 @@ Glossary
     launching external programs for execution using the Executor.
 
   * **Resource Manager**: libEnsemble module that detects
-    (or is provided with) available resources (e.g., a list of nodes). *Resource sets* are
-    divided among workers and can be dynamically reassigned.
+    (or is provided with) available resources (e.g., nodes, cores, and GPUs) and
+    divides them among workers. Resources can be dynamically reassigned, for example
+    when the generator requests a number of processors or GPUs for each simulation.
 
-  * **Resource Set**: The smallest unit of resources that can be assigned (and
-    dynamically reassigned) to workers. By default this is the provisioned resources
-    divided by the number of workers. It can also be set explicitly using the ``num_resource_sets`` ``libE_specs`` option.
-
-  * **Slot**: Resource sets enumerated on a node (starting from zero). If
-    a resource set spans multiple nodes, each node is considered to have slot
-    zero.
+  * **Slot**: A partition of a node assigned to a worker, numbered from zero on each
+    node. See the :doc:`resource manager overview<resource_manager/overview>`.

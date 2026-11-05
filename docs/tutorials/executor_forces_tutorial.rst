@@ -18,8 +18,8 @@ the result.
 This tutorial uses libEnsemble's :doc:`MPI Executor<../executor/ex_index>`,
 which automatically detects available MPI runners and resources.
 
-This example also uses a persistent generator. This generator runs on a
-worker throughout the ensemble, producing new simulation parameters as requested.
+This example also uses a persistent generator. This generator runs on the
+manager throughout the ensemble, producing new simulation parameters as requested.
 
 Getting Started
 ---------------
@@ -60,17 +60,19 @@ The last line in the above codeblock initializes the ensemble. The :meth:`parse_
 parameter is used to read `comms` and `nworkers` from the command line. This sets
 the respective `libE_specs` options.
 
-Next, we will add basic configuration for the ensemble. As one worker will run a persistent
-generator, we calculate the number of workers that need resources to run simulations.
-We also set `sim_dirs_make` so that a directory is created for each simulation. This
-helps organize output and also helps prevent workers from overwriting previous results.
+Next, we will add basic configuration for the ensemble. The generator runs on the
+manager by default, so every worker is available to run simulations. We set
+``sim_dirs_make`` so that a directory is created for each simulation. This helps
+organize output and also helps prevent workers from overwriting previous results.
+Resources are divided among workers automatically.
 
-.. literalinclude:: ../../libensemble/tests/functionality_tests/test_executor_forces_tutorial.py
-    :language: python
-    :linenos:
-    :start-at: nsim_workers = ensemble.nworkers
-    :end-at: )
-    :lineno-start: 28
+.. code-block:: python
+
+    nsim_workers = ensemble.nworkers  # Generator runs on the manager, so all workers can run simulations
+
+    ensemble.libE_specs = LibeSpecs(
+        sim_dirs_make=True,
+    )
 
 Next we define the :ref:`sim_specs<datastruct-sim-specs>` and
 :ref:`gen_specs<datastruct-gen-specs>`. Recall that these are used to specify
@@ -394,13 +396,11 @@ The calling script then specifies the templated input file as follows.
 .. code-block:: python
     :linenos:
     :lineno-start: 30
-    :emphasize-lines: 1,7,14
+    :emphasize-lines: 1,6,13
 
     input_file = "forces_input"
 
-    # Persistent gen does not need resources
     ensemble.libE_specs = LibeSpecs(
-        num_resource_sets=nsim_workers,
         sim_dirs_make=True,
         sim_dir_copy_files=[input_file],
     )
@@ -414,13 +414,13 @@ The calling script then specifies the templated input file as follows.
 
 .. Note sphinx does not adjust for lineno-start
 
-Line 36 tells the templated input file to be copied to each simulation directory.
+Line 35 tells the templated input file to be copied to each simulation directory.
 
 An alternative is to use ``sim_input_dir``, which gives the name of a directory
 that may contain multiple files and will be used as the base of each simulation
 directory.
 
-Line 43 gives the input file name and the name of each parameter to the simulation
+Line 42 gives the input file name and the name of each parameter to the simulation
 function.
 
 Multiple parameters
