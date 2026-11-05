@@ -1,9 +1,15 @@
 import os
 import socket
 
+import numpy as np
+import pytest
+
+from libensemble.executors.mpi_runner import MPICH_MPIRunner
 from libensemble.resources.env_resources import EnvResources
 from libensemble.resources.mpi_resources import create_machinefile
 from libensemble.resources.resources import GlobalResources, Resources, ResourcesException
+from libensemble.resources.rset_resources import RSetResourcesException
+from libensemble.resources.scheduler import ResourceScheduler
 from libensemble.resources.worker_resources import ResourceManager, WorkerResources
 
 
@@ -780,12 +786,22 @@ def test_machinefile_from_resources():
     os.remove("machinefile")
 
 
-def _setup_wresources_gpus(ngpus):
+def _setup_wresources_gpus(ngpus, gpu_sharing_factor=1, num_resource_sets=None, gpus_per_group=None):
     """Set up worker resources with a given number of GPUs"""
     os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = "knl-[0020,0036]"
 
     resource_info = {"nodelist_env_slurm": "LIBE_RESOURCES_TEST_NODE_LIST", "gpus_on_node": ngpus}
-    libE_specs = {"resource_info": resource_info, "dedicated_mode": False}
+    if gpu_sharing_factor > 1:
+        # Sharing needs at least one core per rset, so don't depend on the host's core count
+        resource_info["cores_on_node"] = (64, 64)
+    libE_specs = {
+        "resource_info": resource_info,
+        "dedicated_mode": False,
+        "gpu_sharing_factor": gpu_sharing_factor,
+        "gpus_per_group": gpus_per_group,
+    }
+    if num_resource_sets is not None:
+        libE_specs["num_resource_sets"] = num_resource_sets
     gresources = GlobalResources(libE_specs)
     nworkers = 8
     workerID = 2  # Does not matter as using set_rset_team
@@ -915,6 +931,40 @@ def test_wresources_set_gpus_by_platform_gpu_tiles():
     del wresources
 
 
+def test_wresources_set_gpus_with_sharing():
+    wresources = _setup_wresources_gpus(4, gpu_sharing_factor=2, num_resource_sets=16)
+
+    assert wresources.total_num_gpu_rsets == 16
+    assert list(wresources.all_rsets["gpu_id"]) == [0, 0, 1, 1, 2, 2, 3, 3] * 2
+    assert list(wresources.all_rsets["gpu_share"]) == [0, 1, 0, 1, 0, 1, 0, 1] * 2
+
+    wresources.set_rset_team([0, 1, 2, 3])
+    wresources.set_env_to_gpus("LIBE_TEST_GPUS_1")
+    assert os.environ["LIBE_TEST_GPUS_1"] == "0,1"
+    os.environ.pop("LIBE_TEST_GPUS_1")
+
+
+def test_gpu_sharing_executor_env_mapping():
+    wresources = _setup_wresources_gpus(4, gpu_sharing_factor=2, num_resource_sets=16)
+    wresources.set_rset_team([1])
+
+    class Task:
+        def _add_to_env(self, name, value):
+            self.env = {name: value}
+
+    task = Task()
+    MPICH_MPIRunner()._set_gpu_env_var(wresources, task, 1, "CUDA_VISIBLE_DEVICES")
+    assert task.env == {"CUDA_VISIBLE_DEVICES": "0"}
+
+
+def test_gpu_sharing_mapping_with_gpu_groups():
+    wresources = _setup_wresources_gpus(4, gpu_sharing_factor=2, num_resource_sets=16, gpus_per_group=2)
+
+    assert list(wresources.all_rsets["slot"]) == [0, 1, 2, 3] * 4
+    assert list(wresources.all_rsets["gpu_id"]) == [0, 0, 1, 1, 2, 2, 3, 3] * 2
+    assert list(wresources.all_rsets["gpu_share"]) == [0, 1, 0, 1, 0, 1, 0, 1] * 2
+
+
 def test_wresources_set_gpus_x2():
     wresources = _setup_wresources_gpus(8)
 
@@ -975,8 +1025,193 @@ def test_wresources_set_no_gpus():
     assert "LIBE_TEST_GPUS_1" not in os.environ
 
 
+def _setup_resources_sharing_for_alloc(gpu_sharing_factor=2, num_resource_sets=16):
+    """Create mocked Resources for AllocSupport fractional tests.
+
+    Mocks a 2-node SLURM nodelist with 4 GPUs/node and sf=2, yielding
+    8 GPU shares per node (16 total). Returns the ``Resources`` object that
+    AllocSupport will use to convert fractional ``num_gpus`` to shares via
+    ``ceil(num_gpus*sf/gpus_per_rset)``.
+    """
+    # Mock a 2-node SLURM nodelist; no real hardware needed
+    os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = "knl-[0020,0036]"
+    resource_info = {
+        "nodelist_env_slurm": "LIBE_RESOURCES_TEST_NODE_LIST",
+        "gpus_on_node": 4,
+        "cores_on_node": (64, 64),
+    }
+    libE_specs = {
+        "resource_info": resource_info,
+        "dedicated_mode": False,  # keep libEnsemble ranks out of the nodelist
+        "gpu_sharing_factor": gpu_sharing_factor,
+        "num_resource_sets": num_resource_sets,
+    }
+    # Instantiate Resources and its ResourceManager (holds RSetResources)
+    res = Resources(libE_specs=libE_specs, top_level_dir=os.getcwd())
+    res.set_resource_manager(num_workers=8)
+    return res
+
+
+def test_alloc_support_fractional():
+    """Unit coverage for ``AllocSupport`` fractional ``num_gpus`` handling.
+
+    When ``gpu_sharing_factor>1`` the manager converts a fractional
+    ``num_gpus`` (physical GPUs) to logical shares via
+    ``ceil(num_gpus * sf / gpus_per_rset)``. This test drives:
+
+    * ``_req_resources_sim`` with History rows ``0.5→1 share``, ``1.5→3``,
+      ``2.0→4`` and asserts ``use_gpus`` and ``libE_info[\"num_gpus\"]``.
+    * ``_req_resources_gen`` with ``persis_info[\"gen_num_gpus\"]`` ``0.5``
+      and ``1.5`` (the ``def_gen_num_gpus`` path) likewise mapping to 1 and
+      3 shares.
+
+    Uses a lightweight ``AllocSupport`` instantiation with a mocked
+    ``Resources`` object to avoid a full ensemble run.
+    """
+    # Use a mocked 16-rset Resources with sf=2 (gpus_per_rset=1)
+    res = _setup_resources_sharing_for_alloc()
+    from libensemble.tools.alloc_support import AllocSupport
+
+    # Minimal worker array needed by AllocSupport
+    W = np.zeros(3, dtype=[("persis_state", int), ("active", int)])
+    libE_info = {}
+    user_params: list = []
+    # History with fractional num_gpus: 0.5 and 1.5 physical GPUs
+    H = np.zeros(2, dtype=[("num_gpus", float), ("num_procs", int)])
+    H["num_gpus"] = [0.5, 1.5]
+    H["num_procs"] = [1, 1]
+    # Pass the mocked Resources directly (avoid global Resources.resources=None issue)
+    support = AllocSupport(W, manage_resources=True, libE_info=libE_info, user_resources=res)
+    # Override scheduler to enforce pack policy for deterministic shares
+    support.sched = ResourceScheduler(user_resources=res.resource_manager, sched_opts={"gpu_packing": "pack"})
+    # 0.5 GPUs * sf2 / gpus_per_rset1 => ceil(1) = 1 share
+    nsets, use_gpus = support._req_resources_sim(libE_info, user_params, H, [0])
+    assert nsets == 1 and use_gpus is True and libE_info["num_gpus"] == 0.5
+    user_params = []
+    libE_info = {}
+    # 1.5 GPUs => ceil(3) = 3 shares (1 whole GPU +1 share)
+    nsets2, _ = support._req_resources_sim(libE_info, user_params, H, [1])
+    assert nsets2 == 3
+    user_params = []
+    libE_info = {}
+    # 2.0 GPUs => ceil(4) = 4 shares (2 whole GPUs)
+    H2 = np.zeros(1, dtype=[("num_gpus", float)])
+    H2["num_gpus"] = [2.0]
+    nsets3, _ = support._req_resources_sim(libE_info, user_params, H2, [0])
+    assert nsets3 == 4
+    user_params = []
+    libE_info = {}
+    # Generator path via persis_info gen_num_gpus (0.5 => 1 share)
+    support2 = AllocSupport(
+        W, manage_resources=True, persis_info={"gen_num_gpus": 0.5}, libE_info={}, user_resources=support.resources
+    )
+    support2.resources = support.resources
+    support2.sched = support.sched
+    nsets4, _ = support2._req_resources_gen(libE_info, user_params)
+    assert nsets4 == 1
+    user_params = []
+    libE_info = {}
+    # Generator with 1.5 GPUs => 3 shares
+    support2.persis_info = {"gen_num_gpus": 1.5}
+    nsets5, _ = support2._req_resources_gen(libE_info, user_params)
+    assert nsets5 == 3
+    # Whole-number requests are passed on as ints
+    assert libE_info["num_gpus"] == 1.5
+    libE_info = {}
+    support2.persis_info = {"gen_num_gpus": 2.0}
+    support2._req_resources_gen(libE_info, user_params)
+    assert type(libE_info["num_gpus"]) is int and libE_info["num_gpus"] == 2
+
+
+def _sharing_resource_manager(gpu_sharing_factor, num_resource_sets=None, num_workers=4, cores=64):
+    os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = "knl-[0020,0036]"
+    libE_specs = {
+        "resource_info": {
+            "nodelist_env_slurm": "LIBE_RESOURCES_TEST_NODE_LIST",
+            "gpus_on_node": 4,
+            "cores_on_node": (cores, cores),
+        },
+        "dedicated_mode": False,
+        "gpu_sharing_factor": gpu_sharing_factor,
+        "num_resource_sets": num_resource_sets,
+    }
+    res = Resources(libE_specs=libE_specs, top_level_dir=os.getcwd())
+    res.set_resource_manager(num_workers=num_workers)
+    return res.resource_manager
+
+
+def test_gpu_sharing_default_num_resource_sets():
+    """Without num_resource_sets, sharing gives one rset per GPU share, independent of workers."""
+    rm = _sharing_resource_manager(gpu_sharing_factor=2)
+    assert rm.total_num_rsets == 16  # 2 nodes x 4 GPUs x 2 shares
+    assert list(rm.rsets["gpu_id"][:8]) == [0, 0, 1, 1, 2, 2, 3, 3]
+    assert rm.procs_per_rset == 8
+
+    rm = _sharing_resource_manager(gpu_sharing_factor=1)
+    assert rm.total_num_rsets == 4  # unchanged: one per worker
+
+    # Explicit values that cover all shares are respected (extra rsets have no GPUs)
+    rm = _sharing_resource_manager(gpu_sharing_factor=2, num_resource_sets=20)
+    assert rm.total_num_rsets == 20
+    assert rm.total_num_gpu_rsets == 16
+
+
+def test_gpu_sharing_rset_errors():
+    """Explicit num_resource_sets too small for all shares, or zero cores per rset, raises."""
+    with pytest.raises(RSetResourcesException, match="at least 16"):
+        _sharing_resource_manager(gpu_sharing_factor=2, num_resource_sets=8)
+    with pytest.raises(RSetResourcesException, match="CPU cores"):
+        _sharing_resource_manager(gpu_sharing_factor=8, cores=16)
+
+
+def test_gpu_sharing_manager_warnings(monkeypatch):
+    """The manager warns if sharing is set but tasks don't request GPUs, or no GPUs exist."""
+    from types import SimpleNamespace
+
+    import libensemble.manager as manager_mod
+
+    warnings = []
+    monkeypatch.setattr(manager_mod.logger, "manager_warning", lambda msg: warnings.append(msg))
+
+    def check(sf, gpus, fields, gen_num_gpus=0):
+        warnings.clear()
+        H = np.zeros(1, dtype=[(f, float) for f in fields])
+        mgr = SimpleNamespace(hist=SimpleNamespace(H=H), gen_num_gpus=gen_num_gpus)
+        gres = SimpleNamespace(gpu_sharing_factor=sf, gpus_avail_per_node=gpus)
+        manager_mod.Manager._check_gpu_sharing(mgr, gres)
+        return list(warnings)
+
+    assert check(1, 4, ["x"]) == []
+    assert check(2, 4, ["x", "num_gpus"]) == []
+    assert check(2, 4, ["x"], gen_num_gpus=0.5) == []
+    assert "should request GPUs" in check(2, 4, ["x", "num_procs"])[0]
+    assert "no GPUs were detected" in check(2, 0, ["x", "num_gpus"])[0]
+
+
+def test_convert_to_rsets_keeps_ints():
+    """Whole-number procs/GPUs from float or numpy History fields stay ints in libE_info."""
+    from libensemble.tools.alloc_support import AllocSupport
+
+    H = np.zeros(2, dtype=[("num_procs", int), ("num_gpus", float)])
+    H["num_procs"] = [4, 3]
+    H["num_gpus"] = [2.0, 1.0]
+    for field, per_rset, exp_rsets, exp_units in [("num_procs", 2, 2, 4), ("num_gpus", 2, 1, 2)]:
+        libE_info, user_params = {}, []
+        nrsets = AllocSupport._convert_rows_to_rsets(libE_info, user_params, H, [0, 1], per_rset, field)
+        assert nrsets == exp_rsets and type(nrsets) is int
+        assert libE_info[field] == exp_units and type(libE_info[field]) is int
+        assert type(user_params[0]) is int
+    # Fractional values remain floats and round up
+    libE_info = {}
+    assert AllocSupport._convert_to_rsets(libE_info, [], 1, 1.5, "num_gpus") == 2
+    assert libE_info["num_gpus"] == 1.5
+
+
 if __name__ == "__main__":
     setup_standalone_run()
+    test_convert_to_rsets_keeps_ints()
+    test_gpu_sharing_default_num_resource_sets()
+    test_gpu_sharing_rset_errors()
 
     test_get_global_nodelist_frm_slurm()
     test_get_global_nodelist_frm_slurm_suffix()
@@ -1007,5 +1242,7 @@ if __name__ == "__main__":
     test_wresources_set_gpus_x2()
     test_wresources_set_limit_gpus()
     test_wresources_set_no_gpus()
+
+    test_alloc_support_fractional()
 
     teardown_standalone_run()

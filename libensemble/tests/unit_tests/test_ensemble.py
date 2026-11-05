@@ -65,6 +65,20 @@ def test_ensemble_init():
     assert e.is_manager, "parse_args() didn't populate defaults for class's libE_specs"
 
 
+def test_parse_args_nresource_sets(monkeypatch):
+    """--nresource_sets sets num_resource_sets; otherwise it is left unset."""
+    from libensemble.tools import parse_args
+
+    monkeypatch.setattr(sys, "argv", ["", "--nworkers", "4"])
+    nworkers, _, libE_specs, _ = parse_args()
+    assert nworkers == 4 and libE_specs["comms"] == "local"
+    assert "num_resource_sets" not in libE_specs
+
+    monkeypatch.setattr(sys, "argv", ["", "--nworkers", "4", "--nresource_sets", "8"])
+    nworkers, _, libE_specs, _ = parse_args()
+    assert nworkers == 4 and libE_specs["num_resource_sets"] == 8
+
+
 def test_ensemble_parse_args_false():
     from libensemble.ensemble import Ensemble
     from libensemble.specs import LibeSpecs
@@ -574,6 +588,7 @@ def test_h0_chaining_plain_run():
 
 if __name__ == "__main__":
     test_ensemble_init()
+    test_parse_args_nresource_sets(__import__("pytest").MonkeyPatch())
     test_ensemble_parse_args_false()
     test_full_workflow()
     test_flakey_workflow()

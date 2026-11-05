@@ -13,6 +13,10 @@ logger = logging.getLogger(__name__)
 # logger.setLevel(logging.DEBUG)
 
 
+class RSetResourcesException(Exception):
+    """Resource sets cannot be created for the given configuration."""
+
+
 class RSetResources:
     """A class that creates a fixed mapping of resource sets to the available resources.
 
@@ -33,6 +37,8 @@ class RSetResources:
         ("group", int),  # Group ID this resource set belongs to
         ("slot", int),  # Slot ID this resource set belongs to
         ("gpus", bool),  # Does this resource set have GPUs
+        ("gpu_id", int),  # Physical GPU ID for GPU resource sets
+        ("gpu_share", int),  # Logical share within a physical GPU
         # ('pool', int),    # Pool ID (eg. separate gen/sim resources) - not yet used.
     ]
 
@@ -42,6 +48,8 @@ class RSetResources:
         Determines the compute resources available for each resource set.
 
         Unless resource sets is set explicitly, the number of resource sets is the number of workers.
+        If ``gpu_sharing_factor > 1`` and GPUs are available, the default is instead one resource set
+        per GPU share: ``nodes * gpus_per_node * gpu_sharing_factor``.
 
         Parameters
         ----------
@@ -55,26 +63,65 @@ class RSetResources:
         """
         self.num_workers = num_workers
         self.num_workers_2assign2 = RSetResources.get_workers2assign2(self.num_workers, resources)
-        self.total_num_rsets = resources.num_resource_sets or self.num_workers_2assign2
         self.num_nodes = len(resources.global_nodelist)
+        self.gpu_sharing_factor = resources.gpu_sharing_factor
+        gpus_avail_per_node = resources.gpus_avail_per_node
+        num_gpu_shares_per_node = gpus_avail_per_node * self.gpu_sharing_factor
+        self.rsets_sizing_msg = None
+        self.rsets_sized_by_gpu_sharing = (
+            not resources.num_resource_sets and self.gpu_sharing_factor > 1 and gpus_avail_per_node > 0
+        )
+        if self.rsets_sized_by_gpu_sharing:
+            self.total_num_rsets = self.num_nodes * num_gpu_shares_per_node
+            self.rsets_sizing_msg = (
+                f"gpu_sharing_factor={self.gpu_sharing_factor}: num_resource_sets defaulting to "
+                f"{self.total_num_rsets} ({self.num_nodes} node(s) x {gpus_avail_per_node} GPUs "
+                f"x {self.gpu_sharing_factor} shares)"
+            )
+        else:
+            self.total_num_rsets = resources.num_resource_sets or self.num_workers_2assign2
         self.split_list, self.local_rsets_list = RSetResources.get_partitioned_nodelist(self.total_num_rsets, resources)
         self.nodes_in_rset = len(self.split_list[0])
 
-        gpus_avail_per_node = resources.gpus_avail_per_node
         self.rsets_per_node = RSetResources.get_rsets_on_a_node(self.total_num_rsets, resources)
-        self.gpu_rsets_per_node = min(gpus_avail_per_node, self.rsets_per_node)
+        if self.gpu_sharing_factor > 1 and gpus_avail_per_node:
+            RSetResources.check_gpu_sharing_rsets(
+                self.total_num_rsets, self.num_nodes, self.rsets_per_node, gpus_avail_per_node, self.gpu_sharing_factor
+            )
+        self.gpu_rsets_per_node = min(gpus_avail_per_node * self.gpu_sharing_factor, self.rsets_per_node)
         self.nongpu_rsets_per_node = self.rsets_per_node - self.gpu_rsets_per_node
 
         self.all_rsets = np.zeros(self.total_num_rsets, dtype=RSetResources.rset_dtype)
         self.all_rsets["group"], self.all_rsets["slot"], self.all_rsets["gpus"] = RSetResources.get_group_list(
-            self.split_list, gpus_avail_per_node, resources.gpus_per_group
+            self.split_list, gpus_avail_per_node, resources.gpus_per_group, self.gpu_sharing_factor
         )
+        if gpus_avail_per_node:
+            gpu_positions = RSetResources.get_gpu_positions(self.split_list)
+            self.all_rsets["gpu_id"] = np.where(
+                self.all_rsets["gpus"],
+                (gpu_positions // self.gpu_sharing_factor) % gpus_avail_per_node,
+                -1,
+            )
+            self.all_rsets["gpu_share"] = np.where(self.all_rsets["gpus"], gpu_positions % self.gpu_sharing_factor, -1)
 
         self.total_num_gpu_rsets = np.count_nonzero(self.all_rsets["gpus"])
         self.total_num_nongpu_rsets = np.count_nonzero(~self.all_rsets["gpus"])
 
-        self.gpus_per_rset_per_node = gpus_avail_per_node // self.gpu_rsets_per_node if self.gpu_rsets_per_node else 0
+        if self.gpu_rsets_per_node:
+            self.gpus_per_rset_per_node = (
+                1
+                if self.gpu_sharing_factor > 1
+                else gpus_avail_per_node // min(gpus_avail_per_node, self.rsets_per_node)
+            )
+        else:
+            self.gpus_per_rset_per_node = 0
         self.cores_per_rset_per_node = resources.physical_cores_avail_per_node // self.rsets_per_node
+        if self.cores_per_rset_per_node == 0 and self.gpu_sharing_factor > 1:
+            raise RSetResourcesException(
+                f"gpu_sharing_factor={self.gpu_sharing_factor} gives {self.rsets_per_node} resource sets per node, "
+                f"but there are only {resources.physical_cores_avail_per_node} CPU cores per node. "
+                "Reduce gpu_sharing_factor so that each resource set has at least one core."
+            )
 
         # Oversubsribe
         if self.cores_per_rset_per_node == 0:
@@ -89,24 +136,49 @@ class RSetResources:
         self.procs_per_rset = self.procs_per_rset_per_node * self.nodes_in_rset
 
     @staticmethod
-    def get_group_list(split_list, gpus_per_node=0, gpus_per_group=None):
-        """Return lists of group ids and slot IDs by resource set"""
+    def check_gpu_sharing_rsets(total_num_rsets, num_nodes, rsets_per_node, gpus_per_node, gpu_sharing_factor):
+        """Check that resource sets cover every GPU share on each node"""
+        shares_per_node = gpus_per_node * gpu_sharing_factor
+        if rsets_per_node < shares_per_node:
+            raise RSetResourcesException(
+                f"gpu_sharing_factor={gpu_sharing_factor} with {gpus_per_node} GPUs per node needs "
+                f"{shares_per_node} resource sets per node ({shares_per_node * num_nodes} total on {num_nodes} "
+                f"node(s)), but num_resource_sets={total_num_rsets} gives only {rsets_per_node} per node. "
+                f"Set num_resource_sets to at least {shares_per_node * num_nodes}, or leave it unset."
+            )
+
+    @staticmethod
+    def get_group_list(split_list, gpus_per_node=0, gpus_per_group=None, gpu_sharing_factor=1):
+        """Return group, slot, and GPU lists by resource set"""
         group = 1
         slot = 0
         group_list, slot_list, gpu_list = [], [], []
         node = split_list[0]
 
         for i in range(len(split_list)):
-            # still break on new node if gpus_per_group is set
-            if split_list[i] != node or slot == gpus_per_group:
+            # break on new node or when group size reached (account for sharing)
+            group_threshold = gpus_per_group * gpu_sharing_factor if gpus_per_group is not None else None
+            if split_list[i] != node or slot == group_threshold:
                 node = split_list[i]
                 group += 1
                 slot = 0
             group_list.append(group)
             slot_list.append(slot)
-            gpu_list.append(slot < gpus_per_node)
+            is_gpu = slot < gpus_per_node * gpu_sharing_factor
+            gpu_list.append(is_gpu)
             slot += 1
         return group_list, slot_list, gpu_list
+
+    @staticmethod
+    def get_gpu_positions(split_list):
+        """Return each resource set's node-local position, independent of scheduler groups."""
+        positions = []
+        node_counts = {}
+        for nodes in split_list:
+            node = nodes[0]
+            positions.append(node_counts.get(node, 0))
+            node_counts[node] = positions[-1] + 1
+        return np.asarray(positions)
 
     @staticmethod
     def best_split(a, n):

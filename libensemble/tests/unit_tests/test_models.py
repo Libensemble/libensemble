@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 from gest_api.vocs import VOCS
 from pydantic import ValidationError
 
@@ -94,6 +95,13 @@ def test_libe_specs_invalid():
     except ValidationError:
         flag = 1
     assert flag, "LibeSpecs didn't raise ValidationError on invalid specs"
+
+
+def test_gpu_sharing_factor_validation():
+    assert LibeSpecs().gpu_sharing_factor == 1
+    assert LibeSpecs(gpu_sharing_factor=2).gpu_sharing_factor == 2
+    with pytest.raises(ValueError, match="gpu_sharing_factor must be at least 1"):
+        LibeSpecs(gpu_sharing_factor=0)
 
 
 def test_ensemble_specs():

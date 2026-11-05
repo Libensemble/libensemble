@@ -57,6 +57,13 @@ class ResourceScheduler:
                 Useful if setting an environment variable such as ``CUDA_VISIBLE_DEVICES``
                 to specific slots, which should match over multiple nodes.
                 Default: True
+
+            "gpu_packing" [String]:
+                Where to place tasks that use part of a GPU when ``gpu_sharing_factor > 1``.
+                "pack" fills partly used GPUs and nodes first, keeping whole GPUs free for
+                larger tasks. "spread" prefers the least used GPUs and nodes, giving tasks
+                more room.
+                Default: "pack"
         """
 
         self.resources = user_resources or Resources.resources.resource_manager
@@ -71,6 +78,9 @@ class ResourceScheduler:
         # Process scheduler options
         self.split2fit = sched_opts.get("split2fit", True)
         self.match_slots = sched_opts.get("match_slots", True)
+        self.gpu_packing = sched_opts.get("gpu_packing", "pack")
+        if self.gpu_packing not in ("pack", "spread"):
+            raise ValueError(f"gpu_packing must be 'pack' or 'spread', got {self.gpu_packing!r}")
         self.last_use_gpus = None
 
     def assign_resources(self, rsets_req, use_gpus=None, user_params=[]):
@@ -93,6 +103,10 @@ class ResourceScheduler:
 
         self.check_total_rsets(rsets_req, use_gpus)
         self.log_msg = None  # Log resource messages only when find resources
+
+        if use_gpus and self.resources.gpu_sharing_factor > 1:
+            return self._assign_gpu_sharing_resources(rsets_req, user_params)
+
         num_groups = self.resources.num_groups
 
         max_grpsize = self.resources.rsets_per_node  # assumes even
@@ -178,6 +192,104 @@ class ResourceScheduler:
             f"rset_team found: Req: {rsets_req} rsets. Found: {rset_team} Avail sets {self.avail_rsets_by_group}"
         )
 
+        return rset_team
+
+    def _gpu_bins(self, groups, valid_rsets_by_group):
+        """Return GPU bins of shares whose slots are free in all ``groups``.
+
+        Requiring the same slots in every group gives matching slots, and therefore the
+        same physical GPU IDs, on each node. The GPU index within a group is
+        ``slot // gpu_sharing_factor``.
+
+        Returns ``(bins, slot_maps)``. ``bins`` maps a GPU index to a list of free slots
+        on that GPU. ``slot_maps`` contains a ``slot -> rset`` dictionary for each group.
+        """
+        rsets = self.resources.rsets
+        sf = self.resources.gpu_sharing_factor
+        slot_maps = [{int(rsets[r]["slot"]): r for r in valid_rsets_by_group[g]} for g in groups]
+        bins = {}
+        for slot in sorted(set.intersection(*(set(m) for m in slot_maps))):
+            bins.setdefault(slot // sf, []).append(slot)
+        return bins, slot_maps
+
+    def _pick_from_gpu_bins(self, bins, need):
+        """Pick ``need`` shares from ``bins`` with physical-exclusive semantics.
+
+        Whole GPUs (``need // gpu_sharing_factor``) must be fully free. The remainder
+        must come from a single physical GPU so every share is visible to the task.
+        Returns a list of selected slots, or None if not possible.
+        """
+        sf = self.resources.gpu_sharing_factor
+        whole, rem = divmod(need, sf)
+        fully_free = sorted(gid for gid, slots in bins.items() if len(slots) == sf)
+        if len(fully_free) < whole:
+            return None
+        chosen = fully_free[:whole]
+        selected = [slot for gid in chosen for slot in bins[gid]]
+        if rem:
+            candidates = [(len(p), gid) for gid, p in bins.items() if gid not in chosen and len(p) >= rem]
+            if not candidates:
+                return None
+            sign = 1 if self.gpu_packing == "pack" else -1
+            _, gid = min(candidates, key=lambda c: (sign * c[0], c[1]))
+            selected.extend(bins[gid][:rem])
+        return selected
+
+    def _pick_team_for_groups(self, groups, need, valid_rsets_by_group):
+        """Return an rset team giving ``need`` shares in each group, or None"""
+        group_sets = [groups] if self.match_slots else [[g] for g in groups]
+        team = []
+        for gset in group_sets:
+            bins, slot_maps = self._gpu_bins(gset, valid_rsets_by_group)
+            slots = self._pick_from_gpu_bins(bins, need)
+            if slots is None:
+                return None
+            team.extend(m[slot] for m in slot_maps for slot in slots)
+        return sorted(team)
+
+    def _gpu_share_splits(self, rsets_req, num_groups_req, rsets_per_group, num_groups, user_params):
+        """Yield candidate (rsets_req, num_groups, rsets_per_group) splits in order of preference"""
+        yield rsets_req, num_groups_req, rsets_per_group
+        if self.split2fit:
+            for ngroups in range(num_groups_req + 1, num_groups + 1):
+                if rsets_req % ngroups == 0 and self.check_params(user_params, ngroups):
+                    yield rsets_req, ngroups, rsets_req // ngroups
+
+    def _assign_gpu_sharing_resources(self, rsets_req, user_params):
+        """Physical-exclusive GPU-share-aware assignment with packing"""
+        avail_rsets_by_group = self.get_avail_rsets_by_group()
+        valid_rsets_by_group = self.filter_for_rset_type(avail_rsets_by_group, True)
+        rsets_req, num_groups_req, rsets_per_group = self.calc_req_split(
+            rsets_req, self.resources.gpu_rsets_per_node, self.resources.num_groups, extend=True
+        )
+        sign = 1 if self.gpu_packing == "pack" else -1
+        groups_by_pref = sorted(valid_rsets_by_group, key=lambda g: (sign * len(valid_rsets_by_group[g]), g))
+
+        rset_team = None
+        for rsets_req, ngroups, need in self._gpu_share_splits(
+            rsets_req, num_groups_req, rsets_per_group, self.resources.num_groups, user_params
+        ):
+            groups = []
+            for g in groups_by_pref:
+                if self._pick_team_for_groups(groups + [g], need, valid_rsets_by_group) is not None:
+                    groups.append(g)
+                    if len(groups) == ngroups:
+                        rset_team = self._pick_team_for_groups(groups, need, valid_rsets_by_group)
+                        break
+            if rset_team is not None:
+                break
+        if rset_team is None:
+            raise InsufficientFreeResources
+
+        self.avail_rsets_by_group = self.filter_out_rset_team(avail_rsets_by_group, rset_team)
+        self.rsets_free -= len(rset_team)
+        self.gpu_rsets_free -= len(rset_team)
+        if self.log_msg is not None:
+            logger.debug(self.log_msg)
+        logger.debug(
+            f"rset_team found (gpu-sharing): Req: {rsets_req} rsets. Found: {rset_team}"
+            + f" Avail sets {self.avail_rsets_by_group}"
+        )
         return rset_team
 
     def find_rsets_any_slots(self, valid_rsets_by_group, max_grpsize, rsets_req, ngroups, rsets_per_group):

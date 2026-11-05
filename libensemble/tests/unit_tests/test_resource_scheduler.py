@@ -1,10 +1,13 @@
+import os
 import sys
 import time
 
 import numpy as np
 import pytest
 
+from libensemble.resources.resources import Resources
 from libensemble.resources.scheduler import InsufficientFreeResources, InsufficientResourcesError, ResourceScheduler
+from libensemble.resources.worker_resources import WorkerResources
 
 
 class MyResources:
@@ -24,6 +27,7 @@ class MyResources:
         self.rsets_per_node = self.total_num_rsets // num_groups
         self.gpu_rsets_per_node = min(gpus_per_node, self.rsets_per_node)
         self.nongpu_rsets_per_node = self.rsets_per_node - self.gpu_rsets_per_node
+        self.gpu_sharing_factor = 1
 
         self.even_groups = True
         self.rsets = np.zeros(self.total_num_rsets, dtype=MyResources.rset_dtype)
@@ -661,6 +665,238 @@ def test_schedule_find_gaps_2nodes_withgpus():
     del resources
 
 
+def _setup_resources_sharing(gpu_sharing_factor=2, gpus_per_group=None, sched_opts=None, num_resource_sets=16):
+    """Create a mocked 2-node, 4-GPU/node resource set for helper tests.
+
+    Mocks SLURM nodelist ``knl-[0020,0036]`` (2 nodes) with
+    ``gpus_on_node=4`` and ``cores_on_node=(64, 64)`` via
+    ``ResourceInfo``. With ``gpu_sharing_factor=2`` each physical GPU is
+    split into 2 logical shares, yielding ``8`` GPU shares per node and
+    ``16`` total for the default ``num_resource_sets=16`` (``8`` per node).
+    Returns the ``ResourceManager`` and a ``ResourceScheduler`` bound to it.
+
+    Args:
+        gpu_sharing_factor: Logical shares per physical GPU (default 2).
+        gpus_per_group: Optional cap on GPUs per scheduler group, scaled by
+            ``gpu_sharing_factor`` in ``RSetResources.get_group_list``.
+        sched_opts: Dict of scheduler options, notably ``gpu_packing``
+            ``\"pack\"`` (co-locate fractional shares) or ``\"spread\"``.
+        num_resource_sets: Total rsets to create; ``rsets_per_node`` is
+            derived as ``ceil(num_resource_sets/num_nodes)``.
+
+    Returns:
+        Tuple of (resource_manager, scheduler) ready for direct calls to
+        ``_build_gpu_bins`` etc. Caller is responsible for cleaning the
+        mocked env var if needed.
+    """
+    # Mock a 2-node SLURM nodelist; no real hardware needed
+    os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = "knl-[0020,0036]"
+    resource_info = {
+        "nodelist_env_slurm": "LIBE_RESOURCES_TEST_NODE_LIST",
+        "gpus_on_node": 4,
+        "cores_on_node": (64, 64),
+    }
+    libE_specs = {
+        "resource_info": resource_info,
+        "dedicated_mode": False,  # keep libEnsemble ranks out of the nodelist
+        "gpu_sharing_factor": gpu_sharing_factor,
+        "gpus_per_group": gpus_per_group,
+        "num_resource_sets": num_resource_sets,
+    }
+    # Instantiate Resources and its ResourceManager (holds RSetResources)
+    res = Resources(libE_specs=libE_specs, top_level_dir=os.getcwd())
+    res.set_resource_manager(num_workers=8)
+    # Bind scheduler to the mocked manager
+    sched = ResourceScheduler(user_resources=res.resource_manager, sched_opts=sched_opts or {})
+    return res.resource_manager, sched
+
+
+def _gpu_ids(rm, team):
+    return [int(rm.rsets["gpu_id"][r]) for r in team]
+
+
+def _slots(rm, team):
+    return [int(rm.rsets["slot"][r]) for r in team]
+
+
+def test_gpu_bins():
+    """Bins map each GPU index to its free slots, intersected across groups."""
+    _, sched = _setup_resources_sharing()
+    valid = sched.filter_for_rset_type(sched.get_avail_rsets_by_group(), use_gpus=True)
+    bins, slot_maps = sched._gpu_bins([1], valid)
+    assert bins == {0: [0, 1], 1: [2, 3], 2: [4, 5], 3: [6, 7]}
+    assert slot_maps[0][7] == 7
+
+    # Only slots free in both groups are offered
+    valid[1].remove(0)
+    valid[2].remove(13)  # group 2, slot 5
+    bins, slot_maps = sched._gpu_bins([1, 2], valid)
+    assert bins == {0: [1], 1: [2, 3], 2: [4], 3: [6, 7]}
+    assert slot_maps[1][1] == 9
+
+
+def test_pick_from_gpu_bins():
+    """Whole GPUs must be fully free and the remainder must fit on one GPU."""
+    rm, _ = _setup_resources_sharing(gpu_sharing_factor=4, num_resource_sets=32)
+    pack = ResourceScheduler(user_resources=rm, sched_opts={"gpu_packing": "pack"})
+    spread = ResourceScheduler(user_resources=rm, sched_opts={"gpu_packing": "spread"})
+
+    bins = {0: [0, 1, 2, 3], 1: [5, 6, 7], 2: [9, 10], 3: [12, 13, 14, 15]}
+    assert pack._pick_from_gpu_bins(bins, 4) == [0, 1, 2, 3]  # one whole GPU
+    assert pack._pick_from_gpu_bins(bins, 8) == [0, 1, 2, 3, 12, 13, 14, 15]
+    assert pack._pick_from_gpu_bins(bins, 12) is None  # only two fully free GPUs
+    assert pack._pick_from_gpu_bins(bins, 2) == [9, 10]  # pack: fullest GPU that fits
+    assert spread._pick_from_gpu_bins(bins, 2) == [0, 1]  # spread: emptiest GPU
+    assert pack._pick_from_gpu_bins(bins, 7) == [0, 1, 2, 3, 5, 6, 7]  # whole + remainder
+
+    # Remainder is never split across GPUs, even if enough shares are free in total
+    fragmented = {0: [2, 3], 1: [7], 2: [10]}
+    assert pack._pick_from_gpu_bins(fragmented, 3) is None
+    assert pack._pick_from_gpu_bins(fragmented, 2) == [2, 3]
+
+
+def test_assign_gpu_sharing_resources():
+    """End-to-end allocation with packing policies, whole GPUs, and errors."""
+    gres, sched = _setup_resources_sharing(sched_opts={"gpu_packing": "pack"})
+    assert sched.assign_resources(rsets_req=1, use_gpus=True) == [0]
+    assert sched.assign_resources(rsets_req=1, use_gpus=True) == [1]  # pack onto same GPU
+    assert sched.gpu_rsets_free == 14
+
+    _, sched_spread = _setup_resources_sharing(sched_opts={"gpu_packing": "spread"})
+    t1 = sched_spread.assign_resources(rsets_req=1, use_gpus=True)
+    t2 = sched_spread.assign_resources(rsets_req=1, use_gpus=True)
+    assert sched_spread.resources.rsets["group"][t1[0]] != sched_spread.resources.rsets["group"][t2[0]]
+
+    rm, sched_exc = _setup_resources_sharing()
+    team = sched_exc.assign_resources(rsets_req=4, use_gpus=True)
+    assert len(set(_gpu_ids(rm, team))) == 2  # two whole GPUs
+    team = sched_exc.assign_resources(rsets_req=3, use_gpus=True)
+    assert len(set(_gpu_ids(rm, team))) == 2  # one whole GPU + one share
+
+    with pytest.raises(InsufficientResourcesError):
+        sched_exc.assign_resources(rsets_req=20, use_gpus=True)
+    with pytest.raises(ValueError):
+        ResourceScheduler(user_resources=gres, sched_opts={"gpu_packing": "bad"})
+
+    # gpus_per_group is scaled by the sharing factor (2 GPUs -> 4 shares per group)
+    rm, sched_grp = _setup_resources_sharing(gpus_per_group=2)
+    team = sched_grp.assign_resources(rsets_req=8, use_gpus=True)
+    assert len(team) == 8
+    assert len(set(rm.rsets["group"][team])) == 2
+
+
+def test_gpu_sharing_remainder_on_single_gpu():
+    """A fractional remainder must not be spread over several physical GPUs.
+
+    One node with 2 GPUs and sf=4. After 2 shares on GPU 0 and 3 shares on GPU 1,
+    5 shares are free in total, but no single GPU has 3 free shares.
+    """
+    os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = "knl-[0020]"
+    libE_specs = {
+        "resource_info": {
+            "nodelist_env_slurm": "LIBE_RESOURCES_TEST_NODE_LIST",
+            "gpus_on_node": 2,
+            "cores_on_node": (64, 64),
+        },
+        "dedicated_mode": False,
+        "gpu_sharing_factor": 4,
+        "num_resource_sets": 8,
+    }
+    res = Resources(libE_specs=libE_specs, top_level_dir=os.getcwd())
+    res.set_resource_manager(num_workers=8)
+    rm = res.resource_manager
+    sched = ResourceScheduler(user_resources=rm)
+    assert _gpu_ids(rm, sched.assign_resources(2, use_gpus=True, user_params=[2])) == [0, 0]
+    assert _gpu_ids(rm, sched.assign_resources(3, use_gpus=True, user_params=[3])) == [1, 1, 1]
+    _fail_to_resource(sched, 3, use_gpus=True)
+    assert _gpu_ids(rm, sched.assign_resources(2, use_gpus=True, user_params=[2])) == [0, 0]
+    os.environ.pop("LIBE_RESOURCES_TEST_NODE_LIST", None)
+
+
+def test_gpu_sharing_matching_slots_across_nodes():
+    """Multi-node teams use the same slots, and hence the same GPU IDs, on each node."""
+    rm, sched = _setup_resources_sharing()
+    first = sched.assign_resources(1, use_gpus=True, user_params=[1])
+    assert first == [0]
+    team = sched.assign_resources(12, use_gpus=True, user_params=[12])
+    assert len(team) == 12
+    groups = rm.rsets["group"][team]
+    node1 = [r for r, g in zip(team, groups) if g == 1]
+    node2 = [r for r, g in zip(team, groups) if g == 2]
+    assert _slots(rm, node1) == _slots(rm, node2)
+    assert _gpu_ids(rm, node1) == _gpu_ids(rm, node2)
+    assert 0 not in team
+
+    res = Resources(
+        libE_specs={
+            "resource_info": {
+                "nodelist_env_slurm": "LIBE_RESOURCES_TEST_NODE_LIST",
+                "gpus_on_node": 4,
+                "cores_on_node": (64, 64),
+            },
+            "dedicated_mode": False,
+            "gpu_sharing_factor": 2,
+            "num_resource_sets": 16,
+        },
+        top_level_dir=os.getcwd(),
+    )
+    wres = WorkerResources(8, res.glob_resources, 1)
+    wres.set_rset_team(team)
+    assert wres.matching_slots
+    assert wres.get_gpu_ids_as_string() == "1,2,3"
+
+
+def test_gpu_sharing_no_match_slots():
+    """With match_slots=False each group is filled independently."""
+    rm, sched = _setup_resources_sharing(sched_opts={"match_slots": False})
+    sched.assign_resources(1, use_gpus=True, user_params=[1])
+    team = sched.assign_resources(16 - 2, use_gpus=True, user_params=[14])
+    assert len(team) == 14
+    assert len(set(rm.rsets["group"][team])) == 2
+
+
+def test_gpu_sharing_split2fit():
+    """Requests that do not fit on one node are split over more nodes if allowed."""
+    os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = "knl-[0020,0036,0040]"
+    libE_specs = {
+        "resource_info": {
+            "nodelist_env_slurm": "LIBE_RESOURCES_TEST_NODE_LIST",
+            "gpus_on_node": 4,
+            "cores_on_node": (64, 64),
+        },
+        "dedicated_mode": False,
+        "gpu_sharing_factor": 2,
+        "num_resource_sets": 24,
+    }
+    res = Resources(libE_specs=libE_specs, top_level_dir=os.getcwd())
+    res.set_resource_manager(num_workers=24)
+    rm = res.resource_manager
+
+    # GPU 0 on each node (8 rsets per node) is busy, so no node has 8 free shares
+    rm.assign_rsets([0, 1, 8, 9, 16, 17], 1)
+
+    # 8 shares are split as 4 + 4 on matching slots
+    team = ResourceScheduler(user_resources=rm).assign_resources(8, use_gpus=True, user_params=[8])
+    groups = sorted(set(rm.rsets["group"][team]))
+    assert len(groups) == 2
+    by_group = [[r for r in team if rm.rsets["group"][r] == g] for g in groups]
+    assert _slots(rm, by_group[0]) == _slots(rm, by_group[1])
+
+    # Without split2fit the request fails
+    _fail_to_resource(ResourceScheduler(user_resources=rm, sched_opts={"split2fit": False}), 8, use_gpus=True)
+
+    # 7 shares are extended to 8 (4 + 4), but user_params of 7 cannot be split evenly
+    with pytest.raises(InsufficientFreeResources):
+        ResourceScheduler(user_resources=rm).assign_resources(7, use_gpus=True, user_params=[7])
+
+    # With GPU 1 also busy on nodes 1 and 3, only node 2 has 6 free shares,
+    # so 12 shares split as 4 + 4 + 4 over three nodes
+    rm.assign_rsets([2, 3, 18, 19], 1)
+    team = ResourceScheduler(user_resources=rm).assign_resources(12, use_gpus=True, user_params=[12])
+    assert len(set(rm.rsets["group"][team])) == 3
+    os.environ.pop("LIBE_RESOURCES_TEST_NODE_LIST", None)
+
+
 if __name__ == "__main__":
     test_request_zero_rsets()
     test_too_many_rsets()
@@ -680,3 +916,10 @@ if __name__ == "__main__":
     test_try1node_findon_2_or_4nodes()
     test_large_match_slots()
     test_schedule_find_gaps_2nodes_withgpus()
+    test_gpu_bins()
+    test_pick_from_gpu_bins()
+    test_assign_gpu_sharing_resources()
+    test_gpu_sharing_remainder_on_single_gpu()
+    test_gpu_sharing_matching_slots_across_nodes()
+    test_gpu_sharing_no_match_slots()
+    test_gpu_sharing_split2fit()
