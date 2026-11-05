@@ -19,16 +19,23 @@ Resources
     Legacy. The total number of :ref:`resource sets<legacy-resource-sets>` into
     which resources will be divided. By default, there is one per worker, which
     suits most workflows. If set, dynamic resource assignment is always used.
+    If ``gpu_sharing_factor > 1`` and ``num_resource_sets`` is not set, there
+    is one resource set per GPU share.
+
+**gpu_sharing_factor** [int] = ``1``:
+    Number of tasks that may share each GPU. For example, ``2`` lets two tasks
+    requesting ``num_gpus=0.5`` run on the same GPU. Tasks sharing a GPU share
+    its memory. See :ref:`GPU sharing<gpu-sharing>`.
 
 **gen_num_procs** [int] = ``0``:
     The default number of processors (MPI ranks) required by generators. Unless
     overridden by equivalent ``persis_info`` settings, generators will be allocated
     this many processors for applications launched via the MPIExecutor.
 
-**gen_num_gpus** [int] = ``0``:
+**gen_num_gpus** [int|float] = ``0``:
     The default number of GPUs required by generators. Unless overridden by
     the equivalent ``persis_info`` settings, generators will be allocated this
-    many GPUs.
+    many GPUs. May be fractional when ``gpu_sharing_factor > 1``.
 
 **gpus_per_group** [int]:
     Number of GPUs for each group in the scheduler. This can be used when
