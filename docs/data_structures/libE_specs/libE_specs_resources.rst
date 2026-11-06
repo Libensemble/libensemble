@@ -16,9 +16,9 @@ Resources
     Fields not provided will be auto-detected. Can be set to a :ref:`known platform object<known-platforms>`.
 
 **num_resource_sets** [int]:
-    The total number of resource sets into which resources will be divided.
-    By default resources will be divided by workers (excluding
-    ``zero_resource_workers``).
+    Legacy. The total number of :ref:`resource sets<legacy-resource-sets>` into
+    which resources will be divided. By default, there is one per worker, which
+    suits most workflows. If set, dynamic resource assignment is always used.
 
 **gen_num_procs** [int] = ``0``:
     The default number of processors (MPI ranks) required by generators. Unless

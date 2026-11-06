@@ -24,11 +24,12 @@ if __name__ == "__main__":
     # Parse number of workers, comms type, etc. from arguments
     ensemble = Ensemble(parse_args=True, executor=exctr)
 
-    nsim_workers = ensemble.nworkers - 1  # One worker is for persistent generator
+    nsim_workers = ensemble.nworkers
 
-    # Persistent gen does not need resources
     ensemble.libE_specs = LibeSpecs(
-        num_resource_sets=nsim_workers, sim_dirs_make=True, ensemble_dir_path="./test_executor_forces_tutorial"
+        sim_dirs_make=True,
+        ensemble_dir_path="./test_executor_forces_tutorial",
+        resource_info={"cores_on_node": (nsim_workers, nsim_workers)},
     )
 
     ensemble.sim_specs = SimSpecs(

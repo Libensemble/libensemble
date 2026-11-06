@@ -53,7 +53,9 @@ remaining nodes in the allocation.
     :alt: centralized dedicated mode
     :scale: 30
 
-In calling script:
+In calling script (one worker runs the generator, so resources are divided among
+the other two using the legacy :ref:`num_resource_sets<legacy-resource-sets>`
+option):
 
 .. code-block:: python
     :linenos:

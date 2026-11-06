@@ -105,7 +105,6 @@ to the ``libE_specs`` block in **run_libe_forces.py**:
 .. code-block:: python
 
     ensemble.libE_specs = LibeSpecs(
-        num_resource_sets=nsim_workers,
         sim_dirs_make=True,
         use_tiles_as_gpus=True,
     )
