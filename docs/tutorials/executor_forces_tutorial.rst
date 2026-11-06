@@ -61,18 +61,21 @@ parameter is used to read `comms` and `nworkers` from the command line. This set
 the respective `libE_specs` options.
 
 Next, we will add basic configuration for the ensemble. The generator runs on the
-manager by default, so every worker is available to run simulations. We set
-``sim_dirs_make`` so that a directory is created for each simulation. This helps
-organize output and also helps prevent workers from overwriting previous results.
-Resources are divided among workers automatically.
+manager by default, so every worker is available to run simulations. ``nsim_workers``
+is therefore the total worker count. We set ``sim_dirs_make`` so that a directory
+is created for each simulation. This helps organize output and also helps prevent
+workers from overwriting previous results.
 
-.. code-block:: python
+.. literalinclude:: ../../libensemble/tests/functionality_tests/test_executor_forces_tutorial.py
+    :language: python
+    :linenos:
+    :start-at: nsim_workers = ensemble.nworkers
+    :end-before: ensemble.sim_specs
+    :lineno-start: 27
 
-    nsim_workers = ensemble.nworkers
-
-    ensemble.libE_specs = LibeSpecs(
-        sim_dirs_make=True,
-    )
+The ``resource_info`` override ensures the test has enough cores on small CI
+nodes; on normal systems it can be omitted and resources are divided among
+workers automatically.
 
 Next we define the :ref:`sim_specs<datastruct-sim-specs>` and
 :ref:`gen_specs<datastruct-gen-specs>`. Recall that these are used to specify
@@ -84,7 +87,7 @@ expect, and also to parameterize user functions:
     :linenos:
     :start-at: ensemble.sim_specs = SimSpecs(
     :end-at: gen_specs_end_tag
-    :lineno-start: 37
+    :lineno-start: 35
 
 Next, we set :ref:`exit_criteria<datastruct-exit-criteria>` to
 exit after running eight simulations, and finally we :doc:`run<../libe_module>` the ensemble.
@@ -94,7 +97,7 @@ exit after running eight simulations, and finally we :doc:`run<../libe_module>` 
     :linenos:
     :start-at: # Run ensemble; exit after this many simulations
     :end-at: ensemble.run(sim_max=8)
-    :lineno-start: 55
+    :lineno-start: 51
 
 Exercise
 ^^^^^^^^
@@ -200,7 +203,7 @@ This completes our calling script and simulation function. Run libEnsemble with:
 
     python run_libe_forces.py --nworkers [nworkers]
 
-where ``nworkers`` is one more than the number of concurrent simulations.
+where ``nworkers`` is the number of concurrent simulations.
 
 Output files (including ``forces.stat`` and files containing ``stdout`` and
 ``stderr`` content for each task) should appear in the current working

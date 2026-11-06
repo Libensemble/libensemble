@@ -26,7 +26,11 @@ if __name__ == "__main__":
 
     nsim_workers = ensemble.nworkers
 
-    ensemble.libE_specs = LibeSpecs(sim_dirs_make=True, ensemble_dir_path="./test_executor_forces_tutorial")
+    ensemble.libE_specs = LibeSpecs(
+        sim_dirs_make=True,
+        ensemble_dir_path="./test_executor_forces_tutorial",
+        resource_info={"cores_on_node": (nsim_workers, nsim_workers)},
+    )
 
     ensemble.sim_specs = SimSpecs(
         sim_f=run_forces,
