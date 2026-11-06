@@ -26,7 +26,7 @@ if __name__ == "__main__":
     # Parse number of workers, comms type, etc. from arguments
     ensemble = Ensemble(parse_args=True, executor=exctr)
 
-    nsim_workers = ensemble.nworkers  # Generator runs on the manager, so all workers can run simulations
+    nsim_workers = ensemble.nworkers
 
     ensemble.libE_specs = LibeSpecs(sim_dirs_make=True, ensemble_dir_path="./test_executor_forces_tutorial_2")
 

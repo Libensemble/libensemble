@@ -68,7 +68,7 @@ Resources are divided among workers automatically.
 
 .. code-block:: python
 
-    nsim_workers = ensemble.nworkers  # Generator runs on the manager, so all workers can run simulations
+    nsim_workers = ensemble.nworkers
 
     ensemble.libE_specs = LibeSpecs(
         sim_dirs_make=True,
