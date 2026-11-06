@@ -16,7 +16,7 @@ Resources
     Fields not provided will be auto-detected. Can be set to a :ref:`known platform object<known-platforms>`.
 
 **num_resource_sets** [int]:
-    Advanced. The total number of :ref:`resource sets<advanced-resource-sets>` into
+    Legacy. The total number of :ref:`resource sets<legacy-resource-sets>` into
     which resources will be divided. By default, there is one per worker, which
     suits most workflows. If set, dynamic resource assignment is always used.
 

@@ -178,7 +178,7 @@ and use this information however you want.
     .. note::
         **slots** are the partitions of a node assigned to this worker, numbered
         from zero. If a worker is assigned whole nodes, it has slot zero on each.
-        [:ref:`more details<advanced-resource-sets>`]
+        [:ref:`more details<legacy-resource-sets>`]
 
     Note that if you are on a system that automatically assigns free GPUs on the node,
     then setting ``CUDA_VISIBLE_DEVICES`` is not necessary unless you want to ensure

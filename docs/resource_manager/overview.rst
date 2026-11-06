@@ -109,9 +109,9 @@ To vary generator resources, set ``gen_num_procs`` and ``gen_num_gpus`` in
 support function. Persistent workers keep their resources until they leave
 the persistent state.
 
-.. _advanced-resource-sets:
+.. _legacy-resource-sets:
 
-Advanced: resource sets
+Legacy: resource sets
 -----------------------
 
 Internally, the resource manager divides resources into **resource sets**,

@@ -54,7 +54,7 @@ remaining nodes in the allocation.
     :scale: 30
 
 In calling script (one worker runs the generator, so resources are divided among
-the other two using the advanced :ref:`num_resource_sets<advanced-resource-sets>`
+the other two using the legacy :ref:`num_resource_sets<legacy-resource-sets>`
 option):
 
 .. code-block:: python
