@@ -86,6 +86,7 @@ for local development running individual tests is sufficient.
 - Individual unit tests can be run with ``pixi run -e dev pytest path/to/test_file``.
 - A libEnsemble run typically outputs an ``ensemble.log`` and ``libE_stats.txt`` file in the working directory. Check these files for tracebacks or run statistics.
 - An "ensemble" or "workflow" directory may also be created, often containing per-simulation output directories
+- Do not add tests solely to cover code that proves unreachable after analysis. If a branch/guard/except cannot be hit in production (e.g., defensive `None` checks before `set_rset_team()` or `try/except` around inputs already validated to `int|float|None`), prefer removing the dead code over manufacturing synthetic coverage (e.g., `__index__`/`__float__` tricks or `math.ceil` monkeypatches). Justify removal in the PR/commit.
 
 Modernizing Scripts for libEnsemble 2.0
 ---------------------------------------

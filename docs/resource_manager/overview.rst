@@ -183,5 +183,145 @@ This is only recommended if not mapping slots to devices (e.g., via
 holding four each, they would be split three per node even if ``split2fit``
 is ``False``, as this could otherwise never be scheduled.
 
+ **gpu_packing** [str]:
+    Where to place tasks that use part of a GPU when
+    :ref:`GPU sharing<gpu-sharing>` is enabled. ``"pack"`` fills partly used GPUs
+    and nodes first, keeping whole GPUs free for larger tasks. ``"spread"``
+    prefers the least used GPUs and nodes, giving tasks more room.
+    Default: ``"pack"``
+
+.. _gpu-sharing:
+
+Sharing GPUs between tasks
+--------------------------
+
+Some simulations need only part of a GPU. ``gpu_sharing_factor`` lets several such
+tasks run on the same GPU at once, so a node's GPUs can serve more concurrent
+simulations.
+
+Set the number of tasks that may share each GPU, and have the generator request
+fractional GPUs through the ``num_gpus`` field:
+
+.. code-block:: python
+    :emphasize-lines: 2, 5
+
+    ensemble.libE_specs = LibeSpecs(
+        gpu_sharing_factor=2,  # Up to two tasks per GPU
+    )
+
+    ensemble.gen_specs = GenSpecs(outputs=[("x", float, 2), ("num_gpus", float)], ...)
+
+with the generator setting, for example:
+
+.. code-block:: python
+
+    H_o["num_gpus"] = [0.5, 1.0, 1.5, 2.0]
+
+GPUs are assigned and ``CUDA_VISIBLE_DEVICES`` (or equivalent) is set automatically,
+as with whole-GPU requests. There is no need to set ``num_resource_sets``.
+
+What tasks can request
+^^^^^^^^^^^^^^^^^^^^^^
+
+The sharing factor sets the step size of GPU requests. Requests are rounded up to
+the nearest step.
+
+.. list-table::
+    :header-rows: 1
+
+    * - ``gpu_sharing_factor``
+      - Smallest request
+      - Example requests
+    * - 1 (default)
+      - 1 GPU
+      - 1, 2, 4
+    * - 2
+      - 0.5 GPU
+      - 0.5, 1, 1.5, 2
+    * - 4
+      - 0.25 GPU
+      - 0.25, 0.5, 0.75, 1.25
+
+Requests can mix whole and partial GPUs. Each task gets its whole GPUs to itself.
+The fractional part of a request always comes from one GPU, never split across
+several. For example, with ``gpu_sharing_factor=4``, a task requesting ``0.75`` GPUs
+gets three quarters of one GPU, not shares of two or three different GPUs.
+
+With ``gpu_sharing_factor=2``, a task requesting ``1.5`` GPUs gets one GPU to itself
+and half of a second GPU, which it may share with one other task. It sees two GPUs.
+
+Generators can also use a fraction of a GPU, via ``gen_num_gpus``:
+
+.. code-block:: python
+
+    ensemble.libE_specs = LibeSpecs(gpu_sharing_factor=4, gen_num_gpus=0.25)
+
+Example: a node with four GPUs
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+With ``gpu_sharing_factor=2`` on a node with four GPUs, any of these sets of tasks
+can run at once (using the default ``"pack"`` placement, below):
+
+* Eight tasks requesting ``0.5`` GPUs (two per GPU).
+* Four tasks requesting ``0.5`` GPUs and two requesting ``1`` GPU.
+* Two tasks requesting ``1.5`` GPUs and two requesting ``0.5`` GPUs.
+
+Run with enough workers to cover the concurrency you want. For eight concurrent
+half-GPU tasks per node, use eight workers per node.
+
+Choosing a sharing factor
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Tasks sharing a GPU are not isolated: they share its memory and compute. Choose a
+factor so that this many tasks fit in one GPU's memory at once. For example, with
+40 GB GPUs and tasks needing about 8 GB, a factor of up to ``4`` is safe.
+
+If your platform provides tools such as NVIDIA MPS for better GPU sharing, they can
+be enabled as usual alongside ``gpu_sharing_factor``.
+
+Each task's share of CPU cores also gets smaller: libEnsemble divides each node's
+cores between all GPU shares. For example, on a node with 32 cores and four GPUs,
+a factor of ``2`` gives four cores per share.
+
+Placing partial-GPU tasks
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+By default, tasks using part of a GPU are packed onto GPUs that are already partly
+used, keeping whole GPUs free for larger tasks. To instead spread such tasks over
+the least used GPUs and nodes:
+
+.. code-block:: python
+
+    ensemble.libE_specs = LibeSpecs(
+        gpu_sharing_factor=2,
+        scheduler_opts={"gpu_packing": "spread"},
+    )
+
+Use ``"pack"`` (the default) when tasks of different sizes are mixed. With
+``"spread"``, four half-GPU tasks on a four-GPU node take one share of every GPU,
+so a following task requesting a whole GPU must wait. Use ``"spread"`` when tasks
+are all the same size, or when they compete for memory or bandwidth and should be
+kept apart.
+
+Resource sets and errors
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+When ``gpu_sharing_factor`` is greater than 1 and ``num_resource_sets`` is not set,
+libEnsemble uses one resource set per GPU share and logs a message such as::
+
+    gpu_sharing_factor=2: num_resource_sets defaulting to 16 (2 node(s) x 4 GPUs x 2 shares)
+
+If you do set ``num_resource_sets``, it must provide at least one resource set per
+GPU share on each node (for example, at least ``16`` in the case above). Fewer
+raises an error. More is allowed, with the extra resource sets having no GPUs.
+
+An error is also raised if the factor would leave a resource set with no CPU cores.
+
+libEnsemble warns at startup if ``gpu_sharing_factor`` is set but tasks do not
+request GPUs, or if no GPUs are detected.
+
+For an example, see `test_GPU_sharing_variable_resources.py`_.
+
+.. _test_GPU_sharing_variable_resources.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_GPU_sharing_variable_resources.py
 .. _test_GPU_variable_resources.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_GPU_variable_resources.py
 .. _var_resources.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/sim_funcs/var_resources.py
