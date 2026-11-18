@@ -127,11 +127,14 @@ def main():
         if missing:
             todo.append(x)
     todo = np.array(todo, dtype=float) if todo else np.zeros((0, points.shape[1]))
+    n_need = len(todo)
     if args.max_points:
         todo = todo[: args.max_points]
 
     print(f"case={args.case}  k={np.round(ky_grid, 4).tolist()}  cache={cache_path}")
-    print(f"{len(points)} points in the list, {len(todo)} need work, {len(points) - len(todo)} already cached")
+    print(f"{len(points)} points in the list, {n_need} need work, {len(points) - n_need} already cached")
+    if len(todo) < n_need:
+        print(f"--max-points: evaluating only the first {len(todo)} of the {n_need}")
     if args.dry_run or len(todo) == 0:
         for x in todo[:20]:
             print("  todo:", np.round(x, 6).tolist())

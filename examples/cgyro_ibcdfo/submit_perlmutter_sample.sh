@@ -1,53 +1,105 @@
 #!/bin/bash
-# Perlmutter GPU job for sample_CGYRO.py: evaluate a list of points at chosen wavenumbers.
-# Each point is one CGYRO run on one node, so set -N to the number of workers you want.
-#
-# Top up the fixed-shear cache with k=0.10 (about 205 points, ~20 node-hours):
-#   sbatch -N 13 -q regular -t 04:00:00 \
-#     --export=ALL,CASE=fixed_S,KY=0.10,CACHE=$SCRATCH/cgyro_cache_fixed_S.npy \
-#     submit_perlmutter_sample.sh
-#
-# Smoke test first (4 points, debug queue):
-#   sbatch -N 4 -q debug -t 00:30:00 \
-#     --export=ALL,CASE=fixed_S,KY=0.10,CACHE=$SCRATCH/cgyro_cache_fixed_S.npy,MAXPTS=4 \
-#     submit_perlmutter_sample.sh
-#SBATCH -A YOUR_ACCOUNT
+#SBATCH -A m4865
+# ---- full run: ~205 points at ~6 min each, 13 at a time (also set -N 13 below)
+# #SBATCH --qos=regular
+# #SBATCH --time=4:00:00
+# #SBATCH -N 13
+# ---- smoke test: 4 points (also set MAXPTS=4 below)
+#SBATCH --qos=debug
+#SBATCH --time=0:30:00
+#SBATCH -N 4
+#SBATCH -J Lib_CGYRO
 #SBATCH -C gpu
-#SBATCH -J cgyro_sample
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=jmlarson@anl.gov
 #SBATCH -o slurm-%j.out
 #SBATCH -e slurm-%j.err
 
-MODULES_SCRIPT=/path/to/arash_gx_modules.sh
-CGYRO=/global/cfs/cdirs/m4493/ebelli/gacode/cgyro/src/cgyro
-WRAPPER=/global/cfs/cdirs/m4493/ebelli/gacode/platform/exec/wrap.PERLMUTTER_GPU
-PARSE_CMD="python /global/cfs/cdirs/m4493/ebelli/gacode/cgyro/bin/cgyro_parse.py"
+# Evaluate CGYRO at a fixed list of points for one wavenumber, to top up an
+# existing result cache. One point per worker, one node per point, so the
+# number of workers is the number of nodes requested above.
 
-CASE=${CASE:-fixed_S}
-KY=${KY:-0.10}
-CACHE=${CACHE:?set CACHE to the result cache to read and extend}
-XFROM=${XFROM:-$CACHE}          # by default, top up every point already in the cache
-NWORKERS=${NWORKERS:-$SLURM_JOB_NUM_NODES}
-NMPI=4
-NOMP=4
+echo "========== JOB START =========="
+echo "Date: $(date)"
+echo "Hostname: $(hostname)"
+echo "Working directory: $(pwd)"
+echo "SLURM_JOB_ID: $SLURM_JOB_ID"
+echo "SLURM_NODELIST: $SLURM_NODELIST"
+echo "SLURM_NTASKS: $SLURM_NTASKS"
+echo "SLURM_JOB_NUM_NODES: $SLURM_JOB_NUM_NODES"
+echo "CUDA_VISIBLE_DEVICES: $CUDA_VISIBLE_DEVICES"
+echo "================================"
 
-source $MODULES_SCRIPT
+nmpi=4
+nomp=4
+numa=1
+mpinuma=4
+
+# ---- what to evaluate -------------------------------------------------------
+CASE=fixed_S
+# CASE=variable_S
+KY=0.10
+CACHE=/global/u2/j/jmlarson/gamma_over_KY_feb_5_S_fixed.npy
+# CACHE=/global/u2/j/jmlarson/gamma_over_KY_feb_5.npy
+MAXPTS=4          # smoke test: only this many points. Comment out for the full run.
+NWORKERS=$SLURM_JOB_NUM_NODES
+# -----------------------------------------------------------------------------
+
+echo "Loading modules..."
+source /global/u2/j/jmlarson/research/libensemble/examples/run_libe_CGYRO_inputs_0/arash_gx_modules.sh
+echo "Modules loaded."
+
+echo "Setting up GACODE MPI tool..."
 . $GACODE_ROOT/shared/bin/gacode_mpi_tool
+echo "GACODE setup complete."
 
+let proc_per_node=$CORES_PER_NODE/$nomp
+
+echo "Derived settings:"
+echo "CORES_PER_NODE=$CORES_PER_NODE"
+echo "proc_per_node=$proc_per_node"
+echo "nmpi=$nmpi nomp=$nomp numa=$numa mpinuma=$mpinuma"
+echo "CASE=$CASE KY=$KY NWORKERS=$NWORKERS MAXPTS=${MAXPTS:-all}"
+echo "CACHE=$CACHE"
+
+# Environment variables
 export MPICH_MAX_THREAD_SAFETY=funneled
-export OMP_NUM_THREADS=$NOMP
+export OMP_NUM_THREADS=$nomp
 export OMP_STACKSIZE=400M
 export MPICH_GPU_SUPPORT_ENABLED=1
 export SLURM_CPU_BIND="cores"
 
+echo "Environment variables set:"
+echo "OMP_NUM_THREADS=$OMP_NUM_THREADS"
+echo "OMP_STACKSIZE=$OMP_STACKSIZE"
+echo "MPICH_GPU_SUPPORT_ENABLED=$MPICH_GPU_SUPPORT_ENABLED"
+
+ulimit -c unlimited
+
+# The cache is the only copy of every CGYRO run ever done for this case, so keep
+# a backup before appending to it. Runs only add entries, never change them.
+BACKUP=${CACHE%.npy}.backup_$(date +%Y%m%d_%H%M%S).npy
+cp -p "$CACHE" "$BACKUP" && echo "Backed up cache to $BACKUP"
+
 EXTRA=""
 [ -n "$MAXPTS" ] && EXTRA="--max-points $MAXPTS"
 
-echo "nodes: $SLURM_JOB_NUM_NODES  workers: $NWORKERS  case: $CASE  k: $KY"
-echo "cache: $CACHE"
+echo "========== BEFORE PYTHON =========="
 date
-srun -n 1 python -u sample_CGYRO.py --nworkers $NWORKERS --case $CASE \
-    --cache "$CACHE" --x-from-cache "$XFROM" --ky-grid "$KY" \
-    --cgyro-path $CGYRO --wrapper $WRAPPER --parse-cmd "$PARSE_CMD" \
-    --nmpi $NMPI --nomp $NOMP $EXTRA
-echo "exit code: $?"
+which python
+python --version
+set -x
+
+python -u sample_CGYRO.py -n $NWORKERS --case $CASE \
+    --cache "$CACHE" --x-from-cache "$CACHE" --ky-grid $KY \
+    --cgyro-path $GACODE_ROOT/cgyro/src/cgyro \
+    --wrapper $GACODE_ROOT/platform/exec/wrap.PERLMUTTER_GPU \
+    --parse-cmd "python $GACODE_ROOT/cgyro/bin/cgyro_parse.py" \
+    --nmpi $nmpi --nomp $nomp $EXTRA
+
+EXIT_CODE=$?
+
+set +x
+echo "Python finished with exit code $EXIT_CODE"
+echo "========== JOB END =========="
 date
