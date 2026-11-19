@@ -104,7 +104,9 @@ def main():
 
     # With concurrent k_j runs, libEnsemble's node pinning would put every run on the worker's first node;
     # let Slurm place the job steps within the allocation instead.
-    concurrent_mpi = args.executor == "mpi" and args.kj_concurrency > 1
+    # Not conditioned on the executor, so a local stub run with --kj-concurrency > 1
+    # exercises exactly the configuration used on the cluster.
+    concurrent_kj = args.kj_concurrency > 1
     # One timestamped directory per run, so a restart does not collide with the
     # previous run's output (libEnsemble aborts if the ensemble dir is non-empty).
     from datetime import datetime
@@ -115,9 +117,12 @@ def main():
         ensemble_dir_path="ensemble_" + datetime.now().strftime("%Y_%m_%d__%H_%M_%S"),
         sim_input_dir=str(template_dir),
         platform_specs={"gpu_setting_type": "option_gpus_per_node"},
-        disable_resource_manager=concurrent_mpi,
+        disable_resource_manager=concurrent_kj,
         save_every_k_sims=1,
-        stats_fmt={"show_resource_sets": True, "task_datetime": True},
+        # show_resource_sets dereferences the resource manager, so it must be off
+        # whenever the manager is disabled, or every sim dies with
+        # "'NoneType' object has no attribute 'worker_resources'".
+        stats_fmt={"show_resource_sets": not concurrent_kj, "task_datetime": True},
     )
 
     ensemble.sim_specs = SimSpecs(
