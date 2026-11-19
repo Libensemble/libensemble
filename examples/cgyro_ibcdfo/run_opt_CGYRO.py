@@ -84,29 +84,36 @@ def main():
     from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
     from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
 
+    # With concurrent k_j runs, libEnsemble's node pinning would put every run on the worker's first node;
+    # let Slurm place the job steps within the allocation instead.
+    # Not conditioned on the executor, so a local stub run with --kj-concurrency > 1
+    # exercises exactly the configuration used on the cluster.
+    concurrent_kj = args.kj_concurrency > 1
+
     if args.executor == "mpi":
         exctr = MPIExecutor()
         precedent = args.wrapper or ""
         exctr.register_app(full_path=args.cgyro_path, app_name="cgyro", precedent=precedent)
+        extra_args = f"--cpu_bind=cores,verbose -n {args.nmpi * args.nodes_per_run} -c {args.nomp}"
         submit_kwargs = {
             "app_args": "0",
             "procs_per_node": args.nmpi,
             "num_nodes": args.nodes_per_run,
-            "num_gpus": args.gpus_per_run,
-            "extra_args": f"--cpu_bind=cores,verbose -n {args.nmpi * args.nodes_per_run} -c {args.nomp}",
+            "extra_args": extra_args,
         }
+        if concurrent_kj:
+            # num_gpus routes through MPIRunner._assign_gpus, which dereferences
+            # resources.worker_resources with no None check -- so it cannot be used
+            # while the resource manager is disabled. Ask Slurm for the GPUs directly.
+            submit_kwargs["extra_args"] = f"{extra_args} --gpus-per-node {args.gpus_per_run}"
+        else:
+            submit_kwargs["num_gpus"] = args.gpus_per_run
     else:
         exctr = Executor()
         exctr.register_app(full_path=args.cgyro_path, app_name="cgyro")
         submit_kwargs = {"app_args": "0"}
 
     ensemble = Ensemble(parse_args=True, executor=exctr)
-
-    # With concurrent k_j runs, libEnsemble's node pinning would put every run on the worker's first node;
-    # let Slurm place the job steps within the allocation instead.
-    # Not conditioned on the executor, so a local stub run with --kj-concurrency > 1
-    # exercises exactly the configuration used on the cluster.
-    concurrent_kj = args.kj_concurrency > 1
     # One timestamped directory per run, so a restart does not collide with the
     # previous run's output (libEnsemble aborts if the ensemble dir is non-empty).
     from datetime import datetime

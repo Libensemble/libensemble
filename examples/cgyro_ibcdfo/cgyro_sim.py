@@ -210,6 +210,14 @@ def run_CGYRO_over_KY(H, persis_info, sim_specs, libE_info):
 
     fvec = np.array([r["fout"][1] for r in runs])
     statuses = [r["status"] for r in runs]
+
+    # Every run failing is a configuration problem, not a result. Returning an
+    # all-NaN fvec would let the job "succeed" and feed the optimizer garbage, so
+    # stop here with the first run's reason instead.
+    if not killed and all(s == FAILED for s in statuses):
+        raise RuntimeError(
+            f"all {len(runs)} CGYRO runs failed for x={np.asarray(x).tolist()}; first reason: {runs[0]['msg']}"
+        )
     output = np.zeros(1, dtype=sim_specs["out"])
     output["fvec"][0] = fvec
     output["f"] = np.max(fvec / ky_grid)
