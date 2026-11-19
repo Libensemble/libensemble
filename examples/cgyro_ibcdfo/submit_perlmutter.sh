@@ -1,14 +1,17 @@
 #!/bin/bash
 #SBATCH -A m4865
-# ---- full optimization: ~25-35 evaluations, 13 CGYRO runs each (also set -N 13 below)
+# NOTE: the debug QOS allows at most 8 nodes and 30 minutes, so a 13-node job
+# must go to the regular QOS (QOSMaxNodePerJobLimit otherwise).
+# ---- full optimization: ~25-35 evaluations, 13 CGYRO runs each, one node per k
 # #SBATCH --qos=regular
 # #SBATCH --time=4:00:00
 # #SBATCH -N 13
-# ---- smoke test: ONE evaluation, to check that 13 concurrent CGYRO runs really
-#      land on 13 different nodes (also set SIMMAX=1 below)
+# ---- smoke test: ONE evaluation on 8 nodes, so the 13 k run as 8 then 5. This
+#      checks both that concurrent runs land on different nodes and that the
+#      wave throttling works (also set SIMMAX=1 below)
 #SBATCH --qos=debug
 #SBATCH --time=0:30:00
-#SBATCH -N 13
+#SBATCH -N 8
 #SBATCH -J Lib_CGYRO_opt
 #SBATCH -C gpu
 #SBATCH --mail-type=ALL
