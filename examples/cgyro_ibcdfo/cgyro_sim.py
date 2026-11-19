@@ -198,8 +198,12 @@ def run_CGYRO_over_KY(H, persis_info, sim_specs, libE_info):
 
     for run in runs:
         if not run["cached"] and run["status"] is not None:
+            # x and k are recorded here too: later cost/failure analyses read these
+            # directories directly, without the cache or the libEnsemble history.
             (run["dir"] / "run_status.txt").write_text(
-                f"status = {run['status']}\nattempts = {run['attempts']}\nwall_s = {run['wall']:.1f}\nexit = {run['msg']}\n"
+                f"status = {run['status']}\nattempts = {run['attempts']}\nwall_s = {run['wall']:.1f}\n"
+                f"exit = {run['msg']}\nky = {run['ky']:.5f}\n"
+                f"x = {np.array2string(np.asarray(run['key'], dtype=float), precision=8)}\n"
             )
         if run["status"] is None:
             _fail(run, "not run (worker killed)")

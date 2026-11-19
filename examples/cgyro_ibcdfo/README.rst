@@ -53,6 +53,18 @@ Points whose requested ``k`` values are already cached are skipped, so a rerun a
 no-op and costs nothing. Use ``--dry-run`` to see how much work a command would do before submitting it, and
 ``--max-points`` for a smoke test. ``submit_perlmutter_sample.sh`` wraps this for Slurm.
 
+**Check the environment on a login node before submitting.** The batch job loads a module set that can change
+which Python is first on ``PATH``, and the dependencies (``numpy``, ``jinja2``, ``filelock``, ``libensemble``)
+must be importable by *that* Python. A ``--dry-run`` needs no compute nodes and catches an import error or a
+wrong point count in seconds::
+
+    source /path/to/arash_gx_modules.sh
+    python -m pip install --user filelock       # if the check below reports it missing
+    python sample_CGYRO.py --dry-run --case fixed_S --ky-grid 0.10 \
+        --cache $CACHE --x-from-cache $CACHE --cgyro-path $GACODE_ROOT/cgyro/src/cgyro
+
+The submit script repeats this check and exits before the work starts if anything is missing.
+
 Testing
 -------
 
