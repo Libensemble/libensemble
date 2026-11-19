@@ -168,10 +168,17 @@ def main():
     H0["sim_id"] = np.arange(len(todo))
     H0["sim_started"] = False
 
+    # One timestamped directory per run: reruns are routine here (the queue limit
+    # interrupts long batches), and a fixed name makes libEnsemble abort with
+    # "Ensemble directory already existed and wasn't empty". Keeping them apart
+    # also preserves each run's CGYRO output for later cost analysis.
+    from datetime import datetime
+
     ensemble = Ensemble(parse_args=True, executor=exctr, H0=H0)
     ensemble.libE_specs = LibeSpecs(
         gen_on_manager=True,
         sim_dirs_make=True,
+        ensemble_dir_path="ensemble_" + datetime.now().strftime("%Y_%m_%d__%H_%M_%S"),
         sim_input_dir=str(template_dir),
         platform_specs={"gpu_setting_type": "option_gpus_per_node"},
         save_every_k_sims=10,

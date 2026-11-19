@@ -39,6 +39,7 @@ def parse_cli():
     p.add_argument("--cgyro-path", required=True, help="CGYRO executable (or the stub)")
     p.add_argument("--wrapper", help="launch wrapper placed before the executable (e.g. wrap.PERLMUTTER_GPU)")
     p.add_argument("--parse-cmd", help="command run once per k_j directory before CGYRO (e.g. cgyro_parse.py)")
+    p.add_argument("--start", help="starting point as comma-separated values, e.g. 0.2,0.0 (default: all zeros)")
     p.add_argument("--kj-concurrency", type=int, default=1, help="number of k_j runs executing at once per evaluation")
     p.add_argument("--ky-min", type=float, default=0.15, help="lowest wavenumber in the objective")
     p.add_argument("--ky-max", type=float, default=0.75, help="highest wavenumber in the objective")
@@ -60,6 +61,18 @@ def main():
     case = CASES[args.case]
     template_dir = Path(args.template_dir) if args.template_dir else HERE / "templates" / case["template"]
 
+    # Validate the inputs before the heavy imports, so a typo fails instantly.
+    n = len(case["lb"])
+    lb, ub = np.array(case["lb"]), np.array(case["ub"])
+    start = np.array([float(v) for v in args.start.split(",")]) if args.start else np.zeros(n)
+    if start.size != n:
+        raise SystemExit(f"--start needs {n} comma-separated values for case {args.case}, got {start.size}")
+    if np.any(start < lb) or np.any(start > ub):
+        raise SystemExit(f"--start {start.tolist()} is outside the bounds {lb.tolist()}..{ub.tolist()}")
+    ky_grid = np.round(np.arange(args.ky_min, args.ky_max + 1e-9, 0.05), 10)
+    print(f"objective uses {len(ky_grid)} wavenumbers: {ky_grid[0]:.2f}..{ky_grid[-1]:.2f}")
+    print(f"starting point: {start.tolist()}   bounds: {lb.tolist()}..{ub.tolist()}")
+
     import libensemble.gen_funcs
 
     libensemble.gen_funcs.rc.aposmm_optimizers = "ibcdfo_manifold_sampling"
@@ -70,9 +83,6 @@ def main():
     from libensemble.executors import Executor, MPIExecutor
     from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
     from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
-
-    ky_grid = np.round(np.arange(args.ky_min, args.ky_max + 1e-9, 0.05), 10)
-    print(f"objective uses {len(ky_grid)} wavenumbers: {ky_grid[0]:.2f}..{ky_grid[-1]:.2f}")
 
     if args.executor == "mpi":
         exctr = MPIExecutor()
@@ -91,14 +101,18 @@ def main():
         submit_kwargs = {"app_args": "0"}
 
     ensemble = Ensemble(parse_args=True, executor=exctr)
-    n = len(case["lb"])
 
     # With concurrent k_j runs, libEnsemble's node pinning would put every run on the worker's first node;
     # let Slurm place the job steps within the allocation instead.
     concurrent_mpi = args.executor == "mpi" and args.kj_concurrency > 1
+    # One timestamped directory per run, so a restart does not collide with the
+    # previous run's output (libEnsemble aborts if the ensemble dir is non-empty).
+    from datetime import datetime
+
     ensemble.libE_specs = LibeSpecs(
         gen_on_manager=True,
         sim_dirs_make=True,
+        ensemble_dir_path="ensemble_" + datetime.now().strftime("%Y_%m_%d__%H_%M_%S"),
         sim_input_dir=str(template_dir),
         platform_specs={"gpu_setting_type": "option_gpus_per_node"},
         disable_resource_manager=concurrent_mpi,
@@ -146,12 +160,12 @@ def main():
             "initial_sample_size": 1,
             "stop_after_k_runs": 1,
             "max_active_runs": 1,
-            "sample_points": np.atleast_2d(np.zeros(n)),
+            "sample_points": np.atleast_2d(start),
             "localopt_method": "ibcdfo_manifold_sampling",
             "run_max_eval": 100 * (n + 1),
             "components": len(ky_grid),
-            "lb": np.array(case["lb"]),
-            "ub": np.array(case["ub"]),
+            "lb": lb,
+            "ub": ub,
             "hfun": make_max_gamma_over_ky(ky_grid),
         },
     )

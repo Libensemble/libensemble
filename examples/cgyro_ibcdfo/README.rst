@@ -29,6 +29,18 @@ A run with status 1 keeps its last-iterate ``gamma``. A run with status 2 return
 Completed runs are stored in the file given by ``--cache``, keyed on ``(kappa, x, k_j)``. Rerunning with the same
 cache skips every completed CGYRO run, so an optimization can be continued across batch jobs.
 
+Starting point
+--------------
+
+``--start`` sets where the local optimization begins, as comma-separated values (default: all zeros, which is
+what the published runs used)::
+
+    python run_opt_CGYRO.py --case fixed_S --start 0.2,0.0 ...
+
+The value is checked against the case bounds before any heavy import, so a typo fails immediately. Keep the
+bounds the same across runs that are meant to be compared; if a path leaves the region covered by the contour
+map, extend the map with ``sample_CGYRO.py`` rather than shrinking the bounds.
+
 Concurrency
 -----------
 
