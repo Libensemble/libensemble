@@ -1,14 +1,16 @@
 #!/bin/bash
 #SBATCH -A m4865
-# ---- full run: ~205 points at ~6 min each, 13 at a time (also set -N 13 below)
-# #SBATCH --qos=regular
-# #SBATCH --time=4:00:00
-# #SBATCH -N 13
-# ---- debug queue: at most 8 nodes and 30 minutes. 8 workers clears ~26 points
-#      in about 4 waves of ~5 min, which fits.
+# ---- debug queue: at most 8 nodes and 30 minutes. At ~5 min per k=0.10 run that
+#      is ~5 waves, so ~40 points per job; the 249-point variable-shear top-up
+#      therefore needs ~6 submissions. Re-running is free: points already in the
+#      cache are skipped, so just resubmit until it reports "0 need work".
 #SBATCH --qos=debug
 #SBATCH --time=0:30:00
 #SBATCH -N 8
+# ---- regular queue: the whole top-up in one go
+# #SBATCH --qos=regular
+# #SBATCH --time=3:00:00
+# #SBATCH -N 13
 #SBATCH -J Lib_CGYRO
 #SBATCH -C gpu
 #SBATCH --mail-type=ALL
@@ -37,11 +39,11 @@ numa=1
 mpinuma=4
 
 # ---- what to evaluate -------------------------------------------------------
-CASE=fixed_S
-# CASE=variable_S
+CASE=variable_S
+# CASE=fixed_S
 KY=0.10
-CACHE=/global/u2/j/jmlarson/gamma_over_KY_feb_5_S_fixed.npy
-# CACHE=/global/u2/j/jmlarson/gamma_over_KY_feb_5.npy
+CACHE=/global/u2/j/jmlarson/gamma_over_KY_feb_5.npy
+# CACHE=/global/u2/j/jmlarson/gamma_over_KY_feb_5_S_fixed.npy
 # MAXPTS=4        # uncomment to limit the run to this many points (smoke test)
 NWORKERS=$SLURM_JOB_NUM_NODES
 # -----------------------------------------------------------------------------

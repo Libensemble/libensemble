@@ -40,6 +40,8 @@ def parse_cli():
     p.add_argument("--wrapper", help="launch wrapper placed before the executable (e.g. wrap.PERLMUTTER_GPU)")
     p.add_argument("--parse-cmd", help="command run once per k_j directory before CGYRO (e.g. cgyro_parse.py)")
     p.add_argument("--start", help="starting point as comma-separated values, e.g. 0.2,0.0 (default: all zeros)")
+    p.add_argument("--lb", help="override the case's lower bounds, e.g. -0.4,-0.10")
+    p.add_argument("--ub", help="override the case's upper bounds, e.g. 0.4,0.25")
     p.add_argument("--kj-concurrency", type=int, default=1, help="number of k_j runs executing at once per evaluation")
     p.add_argument("--ky-min", type=float, default=0.15, help="lowest wavenumber in the objective")
     p.add_argument("--ky-max", type=float, default=0.75, help="highest wavenumber in the objective")
@@ -48,7 +50,19 @@ def parse_cli():
     p.add_argument("--nomp", type=int, default=4, help="OpenMP threads per rank")
     p.add_argument("--nodes-per-run", type=int, default=1)
     p.add_argument("--gpus-per-run", type=int, default=4)
-    known, rest = p.parse_known_args()
+    # "--start -0.3,0.1" looks like a flag to argparse. Join it to the option so a
+    # negative starting point works without the user having to write "--start=...".
+    src = sys.argv[1:]
+    argv = []
+    i = 0
+    while i < len(src):
+        if src[i] in ("--start", "--lb", "--ub") and i + 1 < len(src) and src[i + 1].startswith("-"):
+            argv.append(f"{src[i]}={src[i + 1]}")
+            i += 2
+        else:
+            argv.append(src[i])
+            i += 1
+    known, rest = p.parse_known_args(argv)
     if known.help:
         p.print_help()
         sys.exit(0)
@@ -63,7 +77,12 @@ def main():
 
     # Validate the inputs before the heavy imports, so a typo fails instantly.
     n = len(case["lb"])
-    lb, ub = np.array(case["lb"]), np.array(case["ub"])
+    lb = np.array([float(v) for v in args.lb.split(",")]) if args.lb else np.array(case["lb"])
+    ub = np.array([float(v) for v in args.ub.split(",")]) if args.ub else np.array(case["ub"])
+    if lb.size != n or ub.size != n:
+        raise SystemExit(f"--lb/--ub need {n} comma-separated values for case {args.case}")
+    if np.any(lb >= ub):
+        raise SystemExit(f"--lb {lb.tolist()} must be below --ub {ub.tolist()} in every coordinate")
     start = np.array([float(v) for v in args.start.split(",")]) if args.start else np.zeros(n)
     if start.size != n:
         raise SystemExit(f"--start needs {n} comma-separated values for case {args.case}, got {start.size}")
@@ -188,7 +207,14 @@ def main():
     ensemble.run()
 
     if ensemble.is_manager:
-        ensemble.save_output(__file__)
+        # Tag the output with the case, start point and k grid: the default name is
+        # built only from eval and worker counts, so two runs that differ in those
+        # settings would silently overwrite each other.
+        # No dots in the tag: save_output strips a trailing ".15" as a file extension.
+        fmt = lambda v: f"{v:g}".replace(".", "p").replace("-", "m")
+        tag = (f"{args.case}_start{'_'.join(fmt(v) for v in start)}_ky{fmt(args.ky_min)}"
+               f"_d{fmt(lb[0])}to{fmt(ub[0])}")
+        ensemble.save_output(f"run_opt_CGYRO_{tag}")
 
 
 if __name__ == "__main__":

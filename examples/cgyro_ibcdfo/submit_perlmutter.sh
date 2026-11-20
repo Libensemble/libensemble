@@ -43,17 +43,25 @@ numa=1
 mpinuma=4
 
 # ---- what to optimize -------------------------------------------------------
-CASE=fixed_S
-# CASE=variable_S
-START=0.2,0.0     # the published run started at 0.0,0.0; this is the +delta side
-KYMIN=0.10        # 14 wavenumbers, including k=0.10
-# KYMIN=0.15      # 13 wavenumbers, as the published run used
+# ---- variable-shear runs, 14 wavenumbers, delta bounded to +/-0.4.
+#      Run A first (it re-does the published run on the new grid and bounds),
+#      then swap the START lines and run B.
+CASE=variable_S
+# CASE=fixed_S
+START=0.0,0.0      # run A: the published starting point
+# START=0.3,-0.05  # run B: new start in the high-G region (G ~ 0.90 there)
+BOUNDS="--lb -0.4,-0.10 --ub 0.4,0.25"
+# 14 wavenumbers. Unlike the fixed-shear case, k=0.10 is NOT known to be harmless
+# here (it beats the max at 2 of the 30 variable-shear points that have it), which
+# is why run A re-does the published starting point on this grid rather than
+# reusing the published 13-wavenumber result.
+KYMIN=0.10
 SIMMAX=30         # evaluations; use SIMMAX=1 for a smoke test
 # Before running this with KYMIN=0.10, fill in k=0.10 at the points the 13-k run
 # already visited -- see "Adding a wavenumber to an existing run" in the README.
 # Otherwise every evaluation waits on its one missing k=0.10 run (~300 s each).
-CACHE=/global/u2/j/jmlarson/gamma_over_KY_feb_5_S_fixed.npy
-# CACHE=/global/u2/j/jmlarson/gamma_over_KY_feb_5.npy
+CACHE=/global/u2/j/jmlarson/gamma_over_KY_feb_5.npy
+# CACHE=/global/u2/j/jmlarson/gamma_over_KY_feb_5_S_fixed.npy
 KJ_CONCURRENCY=$SLURM_JOB_NUM_NODES
 # -----------------------------------------------------------------------------
 
@@ -71,7 +79,7 @@ echo "Derived settings:"
 echo "CORES_PER_NODE=$CORES_PER_NODE"
 echo "proc_per_node=$proc_per_node"
 echo "nmpi=$nmpi nomp=$nomp numa=$numa mpinuma=$mpinuma"
-echo "CASE=$CASE START=$START KYMIN=$KYMIN SIMMAX=$SIMMAX KJ_CONCURRENCY=$KJ_CONCURRENCY"
+echo "CASE=$CASE START=$START BOUNDS=$BOUNDS KYMIN=$KYMIN SIMMAX=$SIMMAX KJ_CONCURRENCY=$KJ_CONCURRENCY"
 echo "CACHE=$CACHE"
 
 # Environment variables
@@ -112,7 +120,7 @@ PYEOF
 
 set -x
 
-python -u run_opt_CGYRO.py -n 1 --case $CASE --start $START \
+python -u run_opt_CGYRO.py -n 1 --case $CASE --start $START $BOUNDS \
     --ky-min $KYMIN --sim-max $SIMMAX --kj-concurrency $KJ_CONCURRENCY \
     --cache "$CACHE" \
     --cgyro-path $GACODE_ROOT/cgyro/src/cgyro \
