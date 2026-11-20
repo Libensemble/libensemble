@@ -4,10 +4,11 @@
 # #SBATCH --qos=regular
 # #SBATCH --time=4:00:00
 # #SBATCH -N 13
-# ---- smoke test: 4 points (also set MAXPTS=4 below)
+# ---- debug queue: at most 8 nodes and 30 minutes. 8 workers clears ~26 points
+#      in about 4 waves of ~5 min, which fits.
 #SBATCH --qos=debug
 #SBATCH --time=0:30:00
-#SBATCH -N 4
+#SBATCH -N 8
 #SBATCH -J Lib_CGYRO
 #SBATCH -C gpu
 #SBATCH --mail-type=ALL
@@ -41,7 +42,7 @@ CASE=fixed_S
 KY=0.10
 CACHE=/global/u2/j/jmlarson/gamma_over_KY_feb_5_S_fixed.npy
 # CACHE=/global/u2/j/jmlarson/gamma_over_KY_feb_5.npy
-MAXPTS=4          # smoke test: only this many points. Comment out for the full run.
+# MAXPTS=4        # uncomment to limit the run to this many points (smoke test)
 NWORKERS=$SLURM_JOB_NUM_NODES
 # -----------------------------------------------------------------------------
 

@@ -46,9 +46,12 @@ mpinuma=4
 CASE=fixed_S
 # CASE=variable_S
 START=0.2,0.0     # the published run started at 0.0,0.0; this is the +delta side
-KYMIN=0.15        # 13 wavenumbers, matching the published run so the paths compare
-# KYMIN=0.10      # 14 wavenumbers (adding k=0.10 leaves G unchanged for fixed_S)
-SIMMAX=1          # smoke test: ONE evaluation. Raise to ~35 for the real run.
+KYMIN=0.10        # 14 wavenumbers, including k=0.10
+# KYMIN=0.15      # 13 wavenumbers, as the published run used
+SIMMAX=30         # evaluations; use SIMMAX=1 for a smoke test
+# Before running this with KYMIN=0.10, fill in k=0.10 at the points the 13-k run
+# already visited -- see "Adding a wavenumber to an existing run" in the README.
+# Otherwise every evaluation waits on its one missing k=0.10 run (~300 s each).
 CACHE=/global/u2/j/jmlarson/gamma_over_KY_feb_5_S_fixed.npy
 # CACHE=/global/u2/j/jmlarson/gamma_over_KY_feb_5.npy
 KJ_CONCURRENCY=$SLURM_JOB_NUM_NODES

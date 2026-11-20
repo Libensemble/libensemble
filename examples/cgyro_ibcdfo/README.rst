@@ -29,6 +29,25 @@ A run with status 1 keeps its last-iterate ``gamma``. A run with status 2 return
 Completed runs are stored in the file given by ``--cache``, keyed on ``(kappa, x, k_j)``. Rerunning with the same
 cache skips every completed CGYRO run, so an optimization can be continued across batch jobs.
 
+Adding a wavenumber to an existing run
+--------------------------------------
+
+To re-run an optimization with an extra ``k`` (say adding ``k=0.10`` to a run done on 0.15-0.75), fill the
+new ``k`` in **first** with ``sample_CGYRO.py``, then re-run the optimization. Both steps read the same cache,
+so the order matters only for speed:
+
+1. ``sample_CGYRO.py --ky-grid 0.10 --x-from-cache <cache>`` evaluates the new ``k`` at every point in the
+   cache that lacks it, spread across workers (one point each). Points that already have it are skipped, so
+   this picks up exactly the ones the earlier run visited.
+2. ``run_opt_CGYRO.py --ky-min 0.10 ...`` then replays those evaluations from the cache in seconds and only
+   computes genuinely new points.
+
+Done the other way round, every evaluation serializes on its single missing ``k`` run, because within one
+evaluation the concurrency is across ``k`` and there is only one left to do.
+
+Note that the stored history's ``fvec`` width records which grid a run used, and the plotting scripts need
+``--history-ky-min`` set to match it.
+
 Starting point
 --------------
 
