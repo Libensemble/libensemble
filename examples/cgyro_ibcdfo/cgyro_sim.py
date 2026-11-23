@@ -19,7 +19,12 @@ from filelock import SoftFileLock as FileLock
 
 from libensemble.message_numbers import MAN_SIGNAL_KILL, TASK_FAILED, WORKER_DONE
 
-CONVERGED, MAX_TIME, FAILED = 0, 1, 2
+# Per-k_j outcome codes. CGYRO_ERROR means CGYRO ran and produced numbers but
+# reported a non-convergence error (e.g. "Underflow in calculation of frequency");
+# NO_OUTPUT means nothing usable was produced at all. Only the latter indicates a
+# broken setup, so only the latter is fatal.
+CONVERGED, MAX_TIME, CGYRO_ERROR, NO_OUTPUT = 0, 1, 2, 3
+FAILED = NO_OUTPUT  # backwards-compatible alias
 DEFAULT_KY_GRID = np.arange(0.15, 0.80, 0.05)  # 13 values, 0.15 ... 0.75
 DEFAULT_KAPPA = 1.25222  # elongation, held fixed in the 2D (delta, zeta) studies
 
@@ -77,13 +82,13 @@ def find_cached(cache, key):
 
 
 def classify_exit(msg):
-    """Map the last line of out.cgyro.info to CONVERGED, MAX_TIME or FAILED."""
+    """Map the last line of out.cgyro.info to an outcome code."""
     m = (msg or "").strip().lower()
     if "converged" in m:
         return CONVERGED
     if re.search(r"max[ _]t", m):
         return MAX_TIME
-    return FAILED
+    return CGYRO_ERROR
 
 
 def read_outputs(run_dir):
@@ -152,6 +157,8 @@ def run_CGYRO_over_KY(H, persis_info, sim_specs, libE_info):
     todo = deque()
     for i, run in enumerate(runs):
         hit = find_cached(cache, run["key"])
+        if hit is not None and not np.all(np.isfinite(np.asarray(hit["obj_vals"], dtype=float))):
+            hit = None  # stale non-finite entry from an older run; recompute it
         if hit is not None:
             run["fout"], run["msg"] = np.asarray(hit["obj_vals"], dtype=float), hit["string_out"]
             run["status"], run["cached"] = classify_exit(run["msg"]), True
@@ -211,13 +218,18 @@ def run_CGYRO_over_KY(H, persis_info, sim_specs, libE_info):
     fvec = np.array([r["fout"][1] for r in runs])
     statuses = [r["status"] for r in runs]
 
-    # Every run failing is a configuration problem, not a result. Returning an
-    # all-NaN fvec would let the job "succeed" and feed the optimizer garbage, so
-    # stop here with the first run's reason instead.
-    if not killed and all(s == FAILED for s in statuses):
+    # Producing no output at all points at a broken setup rather than a physics
+    # result, and an all-NaN fvec would let the job "succeed" while feeding the
+    # optimizer garbage. A CGYRO error is different: the run executed and returned
+    # numbers, so it is flagged and kept, exactly as the earlier serial code did.
+    if not killed and all(s == NO_OUTPUT for s in statuses):
         raise RuntimeError(
-            f"all {len(runs)} CGYRO runs failed for x={np.asarray(x).tolist()}; first reason: {runs[0]['msg']}"
+            f"no usable output from any of the {len(runs)} CGYRO runs for "
+            f"x={np.asarray(x).tolist()}; first reason: {runs[0]['msg']}"
         )
+    for run in runs:
+        if run["status"] == CGYRO_ERROR and not run["cached"]:
+            print(f"WARNING: CGYRO error at k={run['ky']:.2f}, value kept and flagged: {run['msg']}", flush=True)
     output = np.zeros(1, dtype=sim_specs["out"])
     output["fvec"][0] = fvec
     output["f"] = np.max(fvec / ky_grid)

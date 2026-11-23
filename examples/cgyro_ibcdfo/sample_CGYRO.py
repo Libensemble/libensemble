@@ -47,6 +47,8 @@ def parse_cli():
     p.add_argument("--x-from-csv", help="take the point list from a CSV with delta,zeta per line")
     p.add_argument("--x-grid", help="build a grid: dmin:dmax:nd,zmin:zmax:nz")
     p.add_argument("--max-points", type=int, help="evaluate at most this many points (for a smoke test)")
+    p.add_argument("--delta-range", help="only evaluate points with delta in this window, e.g. -0.4,0.4")
+    p.add_argument("--zeta-range", help="only evaluate points with zeta in this window, e.g. -0.10,0.25")
     p.add_argument("--dry-run", action="store_true", help="list the work and exit without running libEnsemble")
     p.add_argument("--executor", choices=["mpi", "basic"], default="mpi")
     p.add_argument("--cgyro-path", required=True)
@@ -57,7 +59,18 @@ def parse_cli():
     p.add_argument("--nomp", type=int, default=4)
     p.add_argument("--nodes-per-run", type=int, default=1)
     p.add_argument("--gpus-per-run", type=int, default=4)
-    known, rest = p.parse_known_args()
+    # negative values after these options would otherwise look like flags
+    src = sys.argv[1:]
+    argv = []
+    i = 0
+    while i < len(src):
+        if src[i] in ("--delta-range", "--zeta-range") and i + 1 < len(src) and src[i + 1].startswith("-"):
+            argv.append(f"{src[i]}={src[i + 1]}")
+            i += 2
+        else:
+            argv.append(src[i])
+            i += 1
+    known, rest = p.parse_known_args(argv)
     if known.help:
         p.print_help()
         sys.exit(0)
@@ -118,6 +131,24 @@ def main():
         points = points_from_csv(args.x_from_csv)
     else:
         points = points_from_grid(args.x_grid)
+
+    # A cache accumulates every point any earlier run visited, including ones from
+    # wider bounds than we now use. Topping those up is wasted compute, and for this
+    # case it is exactly where CGYRO underflows, so allow restricting the region.
+    def in_window(x, spec, idx):
+        if not spec:
+            return True
+        lo, hi = (float(v) for v in spec.split(","))
+        return lo <= x[idx] <= hi
+
+    n_all = len(points)
+    points = np.array([x for x in points
+                       if in_window(x, args.delta_range, 0) and in_window(x, args.zeta_range, 1)])
+    if len(points) < n_all:
+        print(f"region filter: {len(points)} of {n_all} points kept "
+              f"(delta {args.delta_range or 'any'}, zeta {args.zeta_range or 'any'})")
+    if len(points) == 0:
+        raise SystemExit("no points left after the region filter")
 
     # Skip points whose requested k values are already cached, so the run holds only real work.
     cache = load_cache(cache_path) if os.path.exists(cache_path) else []

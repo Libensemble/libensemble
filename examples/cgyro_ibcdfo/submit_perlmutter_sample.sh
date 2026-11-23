@@ -42,6 +42,10 @@ mpinuma=4
 CASE=variable_S
 # CASE=fixed_S
 KY=0.10
+# Only top up the region we actually plot and optimize over. The cache still holds
+# points from the older delta in [-0.6, 0.6] runs; those are wasted work here and
+# are exactly where CGYRO underflows.
+REGION="--delta-range -0.4,0.4 --zeta-range -0.10,0.25"
 CACHE=/global/u2/j/jmlarson/gamma_over_KY_feb_5.npy
 # CACHE=/global/u2/j/jmlarson/gamma_over_KY_feb_5_S_fixed.npy
 # MAXPTS=4        # uncomment to limit the run to this many points (smoke test)
@@ -62,7 +66,7 @@ echo "Derived settings:"
 echo "CORES_PER_NODE=$CORES_PER_NODE"
 echo "proc_per_node=$proc_per_node"
 echo "nmpi=$nmpi nomp=$nomp numa=$numa mpinuma=$mpinuma"
-echo "CASE=$CASE KY=$KY NWORKERS=$NWORKERS MAXPTS=${MAXPTS:-all}"
+echo "CASE=$CASE KY=$KY REGION=$REGION NWORKERS=$NWORKERS MAXPTS=${MAXPTS:-all}"
 echo "CACHE=$CACHE"
 
 # Environment variables
@@ -94,7 +98,7 @@ python --version
 set -x
 
 python -u sample_CGYRO.py -n $NWORKERS --case $CASE \
-    --cache "$CACHE" --x-from-cache "$CACHE" --ky-grid $KY \
+    --cache "$CACHE" --x-from-cache "$CACHE" --ky-grid $KY $REGION \
     --cgyro-path $GACODE_ROOT/cgyro/src/cgyro \
     --wrapper $GACODE_ROOT/platform/exec/wrap.PERLMUTTER_GPU \
     --parse-cmd "python $GACODE_ROOT/cgyro/bin/cgyro_parse.py" \

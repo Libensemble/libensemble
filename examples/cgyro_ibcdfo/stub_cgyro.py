@@ -7,6 +7,7 @@ Environment variables select behavior:
   STUB_MAXTIME_KY         ky for which the first STUB_MAXTIME_ATTEMPTS attempts end at "max time"
   STUB_MAXTIME_ATTEMPTS   number of such attempts (default 0)
   STUB_FAIL_KY            ky for which the run exits with an error and writes no output
+  STUB_ERROR_KY           ky for which CGYRO writes output but reports an error exit
 """
 import os
 import re
@@ -38,6 +39,12 @@ hit_max_time = (
     abs(ky - float(os.environ.get("STUB_MAXTIME_KY", "-1"))) < 1e-6
     and attempts <= int(os.environ.get("STUB_MAXTIME_ATTEMPTS", "0"))
 )
+hit_error = abs(ky - float(os.environ.get("STUB_ERROR_KY", "-1"))) < 1e-6
 with open("out.cgyro.info", "w") as f:
     f.write(" step  err\n 1 0.1\n\n")
-    f.write("EXIT: (CGYRO) Linear terminated at max time\n" if hit_max_time else "EXIT: (CGYRO) Linear converged\n")
+    if hit_max_time:
+        f.write("EXIT: (CGYRO) Linear terminated at max time\n")
+    elif hit_error:
+        f.write("ERROR: (CGYRO) Underflow in calculation of frequency error\n")
+    else:
+        f.write("EXIT: (CGYRO) Linear converged\n")

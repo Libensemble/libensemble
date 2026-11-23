@@ -10,7 +10,7 @@ from pathlib import Path
 
 import numpy as np
 
-from cgyro_sim import CONVERGED, FAILED, MAX_TIME, load_cache, run_CGYRO_over_KY
+from cgyro_sim import CGYRO_ERROR, CONVERGED, MAX_TIME, NO_OUTPUT, load_cache, run_CGYRO_over_KY
 from libensemble import Ensemble
 from libensemble.executors import Executor
 from libensemble.gen_funcs.sampling import uniform_random_sample
@@ -108,9 +108,20 @@ def main():
 
         jf = int(np.argmin(abs(KY - 0.45)))
         Hf, _ = run_case(tmp, tmp / "cache_fail.npy", 4, {**env, "STUB_FAIL_KY": "0.45"})
-        assert (Hf["kj_status"][:, jf] == FAILED).all() and np.isnan(Hf["fvec"][:, jf]).all()
+        assert (Hf["kj_status"][:, jf] == NO_OUTPUT).all() and np.isnan(Hf["fvec"][:, jf]).all()
         assert len(load_cache(str(tmp / "cache_fail.npy"))) == NPTS * 12, "failed runs must not be cached"
         print("failed run: flagged NaN, not cached; concurrency 4 in waves ok")
+
+        # A CGYRO error (ran, produced numbers, reported a non-convergence exit) must
+        # be flagged and cached but must NOT abort: with one k per evaluation that
+        # would otherwise kill a whole sampling job on a single bad point.
+        je = int(np.argmin(abs(KY - 0.60)))
+        He, _ = run_case(tmp, tmp / "cache_err.npy", 13, {**env, "STUB_ERROR_KY": "0.60"})
+        assert (He["kj_status"][:, je] == CGYRO_ERROR).all(), "CGYRO error misclassified"
+        assert np.isfinite(He["fvec"][:, je]).all(), "value should be kept, not NaN"
+        assert (np.delete(He["kj_status"], je, axis=1) == CONVERGED).all()
+        assert len(load_cache(str(tmp / "cache_err.npy"))) == NPTS * 13, "error runs must still be cached"
+        print("CGYRO error: flagged, value kept, cached, run not aborted")
     print("ALL OK")
 
 
