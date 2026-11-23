@@ -227,9 +227,22 @@ def run_CGYRO_over_KY(H, persis_info, sim_specs, libE_info):
             f"no usable output from any of the {len(runs)} CGYRO runs for "
             f"x={np.asarray(x).tolist()}; first reason: {runs[0]['msg']}"
         )
-    for run in runs:
-        if run["status"] == CGYRO_ERROR and not run["cached"]:
-            print(f"WARNING: CGYRO error at k={run['ky']:.2f}, value kept and flagged: {run['msg']}", flush=True)
+    # An underflow returns gamma = 0, and because the objective is max_j gamma_j/k_j
+    # a zero can only ever lower it -- so a numerical failure can masquerade as a
+    # good point. Optimization runs therefore stop on one; sampling runs (maps) keep
+    # the value and carry on, which is what the earlier serial code did.
+    errored = [r for r in runs if r["status"] == CGYRO_ERROR]
+    if errored and u.get("stop_on_cgyro_error", False):
+        detail = "; ".join(f"k={r['ky']:.2f}: {r['msg']}" for r in errored[:3])
+        raise RuntimeError(
+            f"CGYRO reported an error at {len(errored)} of {len(runs)} wavenumbers for "
+            f"x={np.asarray(x).tolist()} (gamma was returned as "
+            f"{', '.join(f'{r['fout'][1]:g}' for r in errored[:3])}). Stopping rather than "
+            f"letting a numerical failure look like a good point. Details: {detail}"
+        )
+    for r in errored:
+        if not r["cached"]:
+            print(f"WARNING: CGYRO error at k={r['ky']:.2f}, value kept and flagged: {r['msg']}", flush=True)
     output = np.zeros(1, dtype=sim_specs["out"])
     output["fvec"][0] = fvec
     output["f"] = np.max(fvec / ky_grid)

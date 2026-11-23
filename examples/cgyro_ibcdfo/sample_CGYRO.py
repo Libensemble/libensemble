@@ -247,7 +247,8 @@ def main():
         H = ensemble.H[ensemble.H["sim_ended"]]
         status = np.asarray(H["kj_status"])
         print(f"evaluated {len(H)} points x {len(ky_grid)} k")
-        print(f"  converged {(status == 0).sum()}, not converged {(status == 1).sum()}, failed {(status == 2).sum()}")
+        print(f"  converged {(status == 0).sum()}, hit max time {(status == 1).sum()}, "
+              f"CGYRO error {(status == 2).sum()}, no output {(status == 3).sum()}")
         ensemble.save_output(__file__)
 
 

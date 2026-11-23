@@ -46,6 +46,10 @@ def parse_cli():
     p.add_argument("--ky-min", type=float, default=0.15, help="lowest wavenumber in the objective")
     p.add_argument("--ky-max", type=float, default=0.75, help="highest wavenumber in the objective")
     p.add_argument("--max-attempts", type=int, default=4, help="attempts per k_j when CGYRO stops at max time")
+    p.add_argument("--allow-cgyro-error", action="store_true",
+                   help="continue past a CGYRO error (e.g. underflow) instead of stopping. Off by "
+                        "default: an underflow returns gamma=0, which the minimax objective reads "
+                        "as a good point.")
     p.add_argument("--nmpi", type=int, default=4, help="MPI ranks per CGYRO run")
     p.add_argument("--nomp", type=int, default=4, help="OpenMP threads per rank")
     p.add_argument("--nodes-per-run", type=int, default=1)
@@ -172,6 +176,7 @@ def main():
             "submit_kwargs": submit_kwargs,
             "parse_cmd": args.parse_cmd,
             "ky_grid": ky_grid,
+            "stop_on_cgyro_error": not args.allow_cgyro_error,
         },
     )
 
