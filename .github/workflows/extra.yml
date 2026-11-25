@@ -30,7 +30,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           lfs: true
-      - uses: prefix-dev/setup-pixi@v0.11.2
+      - uses: prefix-dev/setup-pixi@v0.11.3
         with:
           pixi-version: v0.69.0
           cache: true
@@ -72,7 +72,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           lfs: true
-      - uses: prefix-dev/setup-pixi@v0.11.2
+      - uses: prefix-dev/setup-pixi@v0.11.3
         with:
           pixi-version: v0.69.0
           cache: true
@@ -128,7 +128,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           lfs: true
-      - uses: prefix-dev/setup-pixi@v0.11.2
+      - uses: prefix-dev/setup-pixi@v0.11.3
         with:
           pixi-version: v0.69.0
           cache: true
@@ -181,7 +181,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           lfs: true
-      - uses: prefix-dev/setup-pixi@v0.11.2
+      - uses: prefix-dev/setup-pixi@v0.11.3
         with:
           pixi-version: v0.69.0
           cache: true
@@ -213,7 +213,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           lfs: true
-      - uses: prefix-dev/setup-pixi@v0.11.2
+      - uses: prefix-dev/setup-pixi@v0.11.3
         with:
           pixi-version: v0.69.0
           cache: true
@@ -240,7 +240,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           lfs: true
-      - uses: prefix-dev/setup-pixi@v0.11.2
+      - uses: prefix-dev/setup-pixi@v0.11.3
         with:
           pixi-version: v0.69.0
           cache: true
@@ -270,7 +270,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           lfs: true
-      - uses: prefix-dev/setup-pixi@v0.11.2
+      - uses: prefix-dev/setup-pixi@v0.11.3
         with:
           pixi-version: v0.69.0
           cache: true
@@ -287,7 +287,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           lfs: true
-      - uses: prefix-dev/setup-pixi@v0.11.2
+      - uses: prefix-dev/setup-pixi@v0.11.3
         with:
           pixi-version: v0.69.0
           cache: true
@@ -309,7 +309,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           lfs: true
-      - uses: prefix-dev/setup-pixi@v0.11.2
+      - uses: prefix-dev/setup-pixi@v0.11.3
         with:
           pixi-version: v0.69.0
           cache: true
@@ -344,7 +344,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           lfs: true
-      - uses: prefix-dev/setup-pixi@v0.11.2
+      - uses: prefix-dev/setup-pixi@v0.11.3
         with:
           pixi-version: v0.69.0
           cache: true
